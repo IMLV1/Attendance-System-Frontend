@@ -1,7 +1,6 @@
 import 'package:attendance_system/core/utils/dimensions_ext.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
