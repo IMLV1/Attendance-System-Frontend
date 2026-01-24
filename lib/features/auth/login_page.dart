@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '';
 
 class LoginPage extends StatelessWidget {
 
@@ -10,6 +11,7 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Scaffold(
+
         backgroundColor: Theme
             .of(context)
             .scaffoldBackgroundColor,
@@ -61,7 +63,7 @@ class LoginPage extends StatelessWidget {
                                           width: 20,
                                           height: 20,
                                         ),
-                                        Text('Login with Google')
+                                        Text('Login with Google ')
                                       ],
                                     ),
                                     onPressed: () {
