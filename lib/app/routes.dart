@@ -1,3 +1,5 @@
+import 'package:attendance_system/shared/theme/app_theme.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/auth/auth_state.dart';
 import '../features/auth/login_page.dart';
@@ -17,7 +19,10 @@ final appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/login',
-      builder: (_, __) => const LoginPage(),
+      builder: (_, _) => MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: LoginPage()
+      ),
     ),
   ],
 );
