@@ -1,19 +1,25 @@
-import 'package:attendance_system/service_locator.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 
 import 'app/app.dart';
-import 'app/di.dart';
 import 'core/auth/auth_state.dart';
-import 'core/network/api_config.dart';
+import 'service_locator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  ApiConfig.init();
+  await dotenv.load(fileName: '.env');
   await setupServiceLocator();
-  await setupAppDI();
 
-  await getIt<AuthState>().init();
+  final authState = getIt<AuthState>();
+  await authState.init();
 
-  runApp(const App());
+  runApp(
+    ChangeNotifierProvider<AuthState>.value(
+      value: authState,
+      child: const App(),
+    ),
+  );
 }
+

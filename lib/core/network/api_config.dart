@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
+
 class ApiConfig {
-  // Endpoint Backend
   static late String baseUrl;
 
   static const connectTimeout = Duration(seconds: 10);
@@ -12,8 +13,15 @@ class ApiConfig {
 
   static void init() {
     const isProd = bool.fromEnvironment('dart.vm.product');
-    baseUrl = isProd
-        ? 'http://20.196.155.236:3000'
-        : 'http://localhost:8080';
+
+    if (isProd) {
+      baseUrl = 'http://20.196.155.236:3000';
+    } else {
+      if (kIsWeb) {
+        baseUrl = 'http://localhost:8080'; // Web
+      } else {
+        baseUrl = 'http://10.0.2.2:8080'; // Android Emulator / iOS
+      }
+    }
   }
 }
