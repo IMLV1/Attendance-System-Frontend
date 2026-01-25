@@ -11,44 +11,77 @@ class Header extends StatelessWidget {
   const Header({
     super.key,
     required this.TitleThai,
-    required this.TitleEng,
+    this.TitleEng = '',
     this.IconPath
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
+  final double screenWidth = MediaQuery.of(context).padding.top;
+
     return Container(
       color: AppColors.barColor,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.only(top:screenWidth+10, left: 20, right: 20, bottom: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           if(IconPath != null)
             Image.asset(
               IconPath!,
               width: 40,
               height: 40,
+              color: AppColors.cardColor,
+            )
+          else
+            GestureDetector(
+              onTap: () {
+                // Navigate back to the previous screen
+              },
+              child: Icon (
+                Icons.arrow_back,
+                color: AppColors.cardColor,
+                size: 30,
+              ),
+            )
+          ,
+          const SizedBox(width: 10),
+          if(IconPath != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  TitleThai,
+                  style: const TextStyle(
+                    color: AppColors.cardColor,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  TitleEng,
+                  style: const TextStyle(
+                    color: AppColors.greyTextColor,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            )
+          else
+            Expanded(
+              child:
+                Text(
+                  TitleThai,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.cardColor,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
             ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 4,
-            children: [
-              Text(
-                TitleThai,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                TitleEng,
-                style: const TextStyle(
-                  fontSize: 17,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
+          if(IconPath == null)
+            const SizedBox(width: 40) // To balance the back icon on the left
         ],
       ),
     );
