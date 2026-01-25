@@ -1,4 +1,4 @@
-import '../network/api_client.dart';
+import 'package:dio/dio.dart';
 
 class AuthResult {
   final String accessToken;
@@ -17,21 +17,24 @@ class AuthResult {
   }
 }
 
-class AuthService {
-  final ApiClient api;
+class AuthApiService {
+  final Dio dio;
 
-  AuthService(this.api);
+  AuthApiService(this.dio);
 
-  Future<AuthResult> loginWithGoogle(String idToken) async {
-    final res = await api.dio.post(
+  Future<AuthResult> loginWithGoogle(String googleToken) async {
+    final res = await dio.post(
       '/auth/google',
-      data: {'idToken': idToken},
+      data: {
+        'token': googleToken,
+      },
     );
+
     return AuthResult.fromJson(res.data);
   }
 
   Future<AuthResult> refresh(String refreshToken) async {
-    final res = await api.dio.post(
+    final res = await dio.post(
       '/auth/refresh',
       data: {'refreshToken': refreshToken},
     );
@@ -39,6 +42,7 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    await api.dio.post('/auth/logout');
+    await dio.post('/auth/logout');
   }
 }
+
