@@ -19,7 +19,9 @@ class GoogleLoginServiceImpl implements GoogleLoginService {
     if (account == null) return null;
 
     final auth = await account.authentication;
-
+    print(auth.accessToken);
+    print("hello");
+    print(auth.idToken);
     return kIsWeb ? auth.accessToken : auth.idToken;
   }
 

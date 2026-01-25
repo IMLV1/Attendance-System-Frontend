@@ -24,9 +24,6 @@ class LoginPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 13.r(context),
             children: [
-
-
-
               ConstrainedBox(
                   constraints: BoxConstraints(
                     maxHeight: Responsive.isDesktop(context) ? 420 : double.infinity,
