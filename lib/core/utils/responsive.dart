@@ -23,6 +23,13 @@ class Responsive {
     return currentWidth / baseWidth;
   }
 
+  static double scaleFromHeight({
+    required double currentHeight,
+    double baseHeight = 250, // design width
+  }) {
+    return currentHeight / baseHeight;
+  }
+
   // Content max width (important for web)
   static double maxContentWidth(BuildContext context) {
     if (isDesktop(context)) return 420;
