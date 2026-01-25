@@ -10,24 +10,18 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Container(
         alignment: AlignmentGeometry.center,
         padding: EdgeInsets.symmetric(horizontal: 20.r(context)),
-
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 13.r(context),
           children: [
-
-
-
             ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: Responsive.isDesktop(context) ? 420 : double.infinity,
+                maxHeight: Responsive.isDesktop(context) ? 350 : double.infinity,
               ),
-
               child: AspectRatio(
                 aspectRatio: 362 / 244,
                 child: LayoutBuilder(
