@@ -4,6 +4,9 @@ import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/auth/auth_state.dart';
 
 class LoginPage extends StatelessWidget {
 
@@ -68,7 +71,9 @@ class LoginPage extends StatelessWidget {
                                       ],
                                     ),
                                     ElevatedButton(
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          context.read<AuthState>().loginWithGoogle();
+                                        },
                                         style: ElevatedButton.styleFrom(
                                             padding: EdgeInsets.all(20 * scale)
                                         ),

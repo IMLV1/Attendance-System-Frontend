@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/auth/auth_state.dart';
 
 class LoginPage extends StatelessWidget {
 
@@ -64,7 +67,7 @@ class LoginPage extends StatelessWidget {
                                       ],
                                     ),
                                     onPressed: () {
-                                      print('i sus');
+                                      context.read<AuthState>().loginWithGoogle();
                                     },
                                   ),
                                 ],
