@@ -1,7 +1,10 @@
 import 'package:attendance_system/core/utils/dimensions_ext.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/head_bar/main_header.dart';
+import 'package:attendance_system/shared/widgets/head_bar/sub_header.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -14,8 +17,9 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
+    return AppScaffold(
+      header: MainHeader(),
+      content: Stack(
         children: [
           Container(
             color: AppColors.backgroundColor,
@@ -163,8 +167,6 @@ class LoginPage extends StatelessWidget {
               },
             ),
           ),
-
-          /// 🔹 COPYRIGHT
           Positioned(
             bottom: 20,
             left: 40,
@@ -178,15 +180,8 @@ class LoginPage extends StatelessWidget {
               ),
             ),
           ),
-
-          /// 🔹 HEADER
-          const Header(
-            titleThai: 'เข้าสู่ระบบ',
-            titleEng: 'Login with Google',
-            iconPath: 'google_logo.svg',
-          ),
         ],
-      ),
+      )
     );
   }
 }
