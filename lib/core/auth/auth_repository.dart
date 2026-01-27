@@ -24,10 +24,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> loginWithGoogle() async {
-    final idToken = await google.login();
-    if (idToken == null) throw Exception('Login cancelled');
+    final accessToken = await google.login();
+    if (accessToken == null) {
+      throw Exception('Login cancelled');
+    }
 
-    final res = await api.loginWithGoogle(idToken);
+    final res = await api.loginWithGoogle(accessToken);
     await storage.save(res.accessToken, res.refreshToken);
     apiClient.setToken(res.accessToken);
   }
@@ -50,7 +52,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    await api.logout();
+    try {
+      await api.logout();
+    } catch (_) {}
     await storage.clear();
     apiClient.clearToken();
     await google.logout();

@@ -1,4 +1,3 @@
-import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,14 +16,12 @@ final appRouter = GoRouter(
       return location == '/splash' ? null : '/splash';
     }
 
-    final isLogin = location == '/login';
-    final isSplash = location == '/splash';
-
     if (!auth.isLoggedIn) {
-      return isLogin ? null : '/login';
+      return location == '/login' ? null : '/login';
     }
 
-    if (auth.isLoggedIn && (isLogin || isSplash)) {
+    if (auth.isLoggedIn &&
+        (location == '/login' || location == '/splash')) {
       return '/home';
     }
 
@@ -33,22 +30,17 @@ final appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/splash',
-      builder: (_, __) => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      builder: (_, __) =>
+      const Scaffold(body: Center(child: CircularProgressIndicator())),
     ),
     GoRoute(
       path: '/login',
-      builder: (_, __) => MaterialApp(
-        theme: AppTheme.lightTheme,
-        home: LoginPage(),
-      )
+      builder: (_, __) => const LoginPage(),
     ),
     GoRoute(
       path: '/home',
-      builder: (_, __) => const Scaffold(
-        body: Center(child: Text('HOME')),
-      ),
+      builder: (_, __) =>
+      const Scaffold(body: Center(child: Text('HOME'))),
     ),
   ],
 );
