@@ -8,6 +8,7 @@ class SubHeader extends Header {
 
   const SubHeader(this.parent, {
     super.key,
+    super.title,
   });
 
   @override

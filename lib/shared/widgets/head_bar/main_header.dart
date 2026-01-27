@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ class MainHeader extends Header {
 
   const MainHeader({
     super.key,
+    super.title,
     this.subTitle = 'Default SubTitle',
     this.iconPath = 'google_logo.svg',
   });
@@ -89,7 +91,7 @@ class MainHeader extends Header {
                     height: 26,
                   ),
                 ),
-                IconButton(
+                if (Responsive.isMobile(context)) IconButton(
                   onPressed: () {},
                   icon: SvgPicture.asset(
                     'assets/images/hamburger_menu.svg',
