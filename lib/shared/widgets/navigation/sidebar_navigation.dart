@@ -43,8 +43,16 @@ class SideBarNavigation extends StatelessWidget {
         body: Column(
           children: [
             const SizedBox(height: 15),
-            SideBarButton(pageID: 'checkin', pageName: 'ลงชื่อเข้า-ออกงาน', pageIcon: 'navigation/icon_checkin.svg'),
-            SideBarButton(pageID: 'leave', pageName: 'การลางาน', pageIcon: 'navigation/icon_leave_request.svg'),
+            SideBarButton(pageID: 'checkin', pageName: 'ลงชื่อเข้า-ออกงาน', pageIcon: 'icon_checkin.svg'),
+            SideBarButton(pageID: 'time-request', pageName: 'ขออนุมัติเวลาเข้า-ออกงาน', pageIcon: 'icon_time_request.svg'),
+            SideBarButton(pageID: 'leave', pageName: 'การลางาน', pageIcon: 'icon_leave.svg'),
+            SideBarButton(pageID: 'statistic', pageName: 'สถิติ', pageIcon: 'icon_statistic.svg'),
+            const SizedBox(height: 15),
+            Divider(
+              height: 1,        // space the divider takes vertically
+              thickness: 1,     // actual line thickness
+              color: AppColors.lightTextColor,
+            ),
           ],
         ),
       ),
