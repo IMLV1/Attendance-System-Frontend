@@ -25,8 +25,7 @@ class GoogleLoginServiceImpl implements GoogleLoginService {
 
       final auth = await account.authentication;
 
-      debugPrint('📱 accessToken = ${auth.accessToken}');
-      debugPrint('📱 idToken = ${auth.idToken}');
+      debugPrint('accessToken = ${auth.accessToken}');
 
       if (auth.accessToken == null) {
         throw Exception('ไม่พบ accessToken');
