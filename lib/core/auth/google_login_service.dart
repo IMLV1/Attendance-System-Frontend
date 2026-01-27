@@ -42,6 +42,9 @@ class GoogleLoginServiceImpl implements GoogleLoginService {
 
   @override
   Future<void> logout() async {
+    try {
+      await _googleSignIn.disconnect();
+    } catch (_) {}
     await _googleSignIn.signOut();
   }
 }
