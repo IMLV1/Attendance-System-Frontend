@@ -19,6 +19,8 @@ class SubHeader extends Header {
         backgroundColor: AppColors.barColor,
         elevation: 0,
 
+        leadingWidth: 56,
+
         toolbarHeight: 40,
 
         /// สำคัญมาก ❗
@@ -35,9 +37,6 @@ class SubHeader extends Header {
             height: 24,
           ),
         ),
-
-        /// ปรับความกว้าง leading ให้บาลานซ์
-        leadingWidth: 56,
 
         title: Text(
           title,

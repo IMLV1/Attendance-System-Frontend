@@ -13,4 +13,6 @@ class AppColors {
 
   static const titleColor = Color(0xFFFFFFFF);
   static const subTitleColor = Color(0xFFCFCFCF);
+
+  static const sideBarColor = Color(0xFF2f3337);
 }
