@@ -5,7 +5,9 @@ enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthState extends ChangeNotifier {
   final AuthRepository repo;
+
   AuthStatus status = AuthStatus.unknown;
+  String? role;
 
   AuthState(this.repo);
 
@@ -18,14 +20,17 @@ class AuthState extends ChangeNotifier {
   }
 
   Future<void> loginWithGoogle() async {
-    await repo.loginWithGoogle();
+    final result = await repo.loginWithGoogle();
+    role = result.role;
     status = AuthStatus.authenticated;
     notifyListeners();
   }
 
   Future<void> logout() async {
     await repo.logout();
+    role = null;
     status = AuthStatus.unauthenticated;
     notifyListeners();
   }
 }
+

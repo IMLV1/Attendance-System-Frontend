@@ -4,10 +4,11 @@ import 'token_storage.dart';
 import '../network/api_client.dart';
 
 abstract class AuthRepository {
-  Future<void> loginWithGoogle();
+  Future<AuthResult> loginWithGoogle();
   Future<bool> hasToken();
   Future<void> logout();
 }
+
 
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -24,16 +25,21 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
   @override
-  Future<void> loginWithGoogle() async {
+  @override
+  Future<AuthResult> loginWithGoogle() async {
     final googleToken = await google.login();
     if (googleToken == null) {
       throw Exception('Login cancelled');
     }
 
     final res = await api.loginWithGoogle(googleToken);
+
     await storage.save(res.accessToken);
     apiClient.setToken(res.accessToken);
+
+    return res;
   }
+
 
   @override
   Future<bool> hasToken() async {

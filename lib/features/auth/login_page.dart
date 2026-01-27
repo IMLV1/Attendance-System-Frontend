@@ -14,6 +14,8 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // final role = context.watch<AuthState>().role;
+
     return AppScaffold(
       header: MainHeader(),
       content: Stack(
