@@ -17,14 +17,11 @@ final appRouter = GoRouter(
       return location == '/splash' ? null : '/splash';
     }
 
-    final isLogin = location == '/login';
-    final isSplash = location == '/splash';
-
     if (!auth.isLoggedIn) {
-      return isLogin ? null : '/login';
+      return location == '/login' ? null : '/login';
     }
 
-    if (auth.isLoggedIn && (isLogin || isSplash)) {
+    if (auth.isLoggedIn && (location == '/login' || location == '/splash')) {
       return '/home';
     }
 

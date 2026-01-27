@@ -18,12 +18,7 @@ void setupAuthInterceptor(
       },
       onError: (e, handler) async {
         if (e.response?.statusCode == 401) {
-          final ok = await authRepository.refreshToken();
-          if (ok) {
-            final token = await tokenStorage.accessToken;
-            e.requestOptions.headers['Authorization'] = 'Bearer $token';
-            return handler.resolve(await dio.fetch(e.requestOptions));
-          }
+          await authRepository.logout();
         }
         handler.next(e);
       },

@@ -5,7 +5,6 @@ enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthState extends ChangeNotifier {
   final AuthRepository repo;
-
   AuthStatus status = AuthStatus.unknown;
 
   AuthState(this.repo);
@@ -13,7 +12,7 @@ class AuthState extends ChangeNotifier {
   bool get isLoggedIn => status == AuthStatus.authenticated;
 
   Future<void> init() async {
-    final ok = await repo.refreshToken();
+    final ok = await repo.hasToken();
     status = ok ? AuthStatus.authenticated : AuthStatus.unauthenticated;
     notifyListeners();
   }
