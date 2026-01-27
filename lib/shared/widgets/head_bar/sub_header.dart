@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class SubHeader extends Header {
   final Widget parent;
 
-  const SubHeader(Widget this.parent, {
+  const SubHeader(this.parent, {
     super.key,
   });
 

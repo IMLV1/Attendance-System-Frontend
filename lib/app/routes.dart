@@ -38,11 +38,11 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/login',
-      builder: (_, __) => MaterialApp(
-        theme: AppTheme.lightTheme,
-        home: LoginPage(),
-      )
+        path: '/login',
+        builder: (_, __) => MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: LoginPage(),
+        )
     ),
     GoRoute(
       path: '/home',

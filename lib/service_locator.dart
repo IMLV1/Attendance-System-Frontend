@@ -18,40 +18,36 @@ Future<void> setupServiceLocator() async {
   final dio = Dio(
     BaseOptions(
       baseUrl: ApiConfig.baseUrl,
+      headers: ApiConfig.defaultHeaders,
       connectTimeout: ApiConfig.connectTimeout,
       receiveTimeout: ApiConfig.receiveTimeout,
-      headers: ApiConfig.defaultHeaders,
     ),
   );
 
-  // Network
   getIt.registerSingleton<Dio>(dio);
-  getIt.registerLazySingleton<ApiClient>(() => ApiClient(getIt()));
+  getIt.registerLazySingleton<ApiClient>(() => ApiClient(dio));
 
-  // External Services
   getIt.registerLazySingleton<GoogleLoginService>(
         () => GoogleLoginServiceImpl(),
   );
 
   getIt.registerLazySingleton<TokenStorage>(
-        () => createTokenStorage(),
+        () => SecureTokenStorage(),
   );
 
-  // Auth Core
   getIt.registerLazySingleton<AuthApiService>(
-        () => AuthApiService(getIt<Dio>()),
+        () => AuthApiService(dio),
   );
 
   getIt.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(
-      getIt(), // AuthApiService
-      getIt(), // TokenStorage
-      getIt(), // GoogleLoginService
-      getIt<ApiClient>(),
+      getIt(),
+      getIt(),
+      getIt(),
+      getIt(),
     ),
   );
 
-  // State Management
   getIt.registerLazySingleton<AuthState>(
         () => AuthState(getIt()),
   );
