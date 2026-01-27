@@ -1,0 +1,250 @@
+import 'package:flutter/material.dart';
+import 'package:attendance_system/shared/widgets/head_bar/main_header.dart';
+import 'package:attendance_system/shared/widgets/app_scaffold.dart';
+
+//ทำ model mock
+class MockProfile {
+  final String thName;
+  final String enName;
+  final String email;
+  final String avatarAsset;
+
+  const MockProfile({
+    required this.thName,
+    required this.enName,
+    required this.email,
+    required this.avatarAsset,
+  });
+}
+
+/// หน้าจอโปรไฟล์ผู้ใช้งาน (Stateless เพราะตอนนี้ใช้ mock data ยังไม่มี state เปลี่ยนแปลง)
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Mock data (เดี๋ยวค่อยเปลี่ยนเป็นข้อมูลจาก API)
+    const profile = MockProfile(
+      thName: 'ด้วยดี ตามไท',
+      enName: 'Duaydee Tamtai',
+      email: 'duaydee.t@eng.src.ku.ac.th',
+      avatarAsset: 'assets/images/Avatar_profile.png',
+    );
+
+    return AppScaffold(
+      header: const MainHeader(
+        title: 'ข้อมูลผู้ใช้งาน',
+        subTitle: 'User Profile',
+        iconPath: 'icon_profile.svg',
+      ),
+      content: Padding(
+        padding: const EdgeInsets.only(top: 65), // กัน content โดน header ทับ
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _ProfileHeaderCard(
+                  thName: profile.thName,
+                  enName: profile.enName,
+                  email: profile.email,
+                  avatarAsset: profile.avatarAsset,
+                ),
+                const SizedBox(height: 12),
+
+                _ProfileInfoCard(
+                  rows:  [
+                    ProfileFieldRow(label: 'รหัสบุคลากร', value: 'XXXXXXXXXXXX'),
+                    ProfileFieldRow(label: 'เลขประจำตัวประชาชน', value: '110010110011'),
+                    ProfileFieldRow(label: 'ชื่อ-นามสกุล', value: profile.thName),
+                    ProfileFieldRow(label: 'Full-name', value: profile.enName),
+                    ProfileFieldRow(label: 'เพศ', value: 'ชาย'),
+                    ProfileFieldRow(label: 'สัญชาติ', value: 'ไทย'),
+                    ProfileFieldRow(label: 'เบอร์โทร', value: '099-999-9999'),
+                    ProfileFieldRow(label: 'อีเมล', value: profile.email),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+                _CurrentPositionCard(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// การ์ดส่วนหัวของโปรไฟล์: Avatar + ชื่อไทย/อังกฤษ
+class _ProfileHeaderCard extends StatelessWidget {
+  final String thName; // ชื่อภาษาไทย
+  final String enName; // ชื่อภาษาอังกฤษ
+  final String email; // อีเมล
+  final String avatarAsset; // รูปโปรไฟล์
+
+  const _ProfileHeaderCard({
+    required this.thName,
+    required this.enName,
+    required this.email,
+    required this.avatarAsset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0, // ไม่ให้เงา (เรียบ ๆ)
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16), // มุมโค้ง
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // รูปโปรไฟล์
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: AssetImage(avatarAsset),
+              backgroundColor: Colors.transparent,
+            ),
+            const SizedBox(width: 12),
+
+            // ข้อความชื่อ 2 บรรทัด
+            Expanded(
+              // Expanded ทำให้ column กินพื้นที่ที่เหลือใน Row
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    thName,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    enName,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// การ์ดรายละเอียดข้อมูลผู้ใช้ (กลุ่มแถวหลาย ๆ แถว)
+class _ProfileInfoCard extends StatelessWidget {
+  final List<ProfileFieldRow> rows; // รายการแถว label-value ที่จะแสดง
+  const _ProfileInfoCard({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        children: [
+          // วนลูปสร้างแต่ละแถว พร้อมเส้นคั่น (Divider) ระหว่างแถว
+          for (int i = 0; i < rows.length; i++) ...[
+            // Padding ต่อแถว เพื่อให้มีระยะหายใจ
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: rows[i],
+            ),
+
+            // ใส่ Divider ยกเว้นแถวสุดท้าย
+            if (i != rows.length - 1)
+              Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
+          ]
+        ],
+      ),
+    );
+  }
+}
+
+/// แถวข้อมูลแบบ "label - value"
+class ProfileFieldRow extends StatelessWidget {
+  final String label; // ชื่อฟิลด์ เช่น "อีเมล"
+  final String value; // ค่าที่แสดง เช่น "xxx@xxx.com"
+
+  const ProfileFieldRow({super.key, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // label ฝั่งซ้าย: ใช้ Expanded ให้กินพื้นที่ได้
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 13),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // value ฝั่งขวา: ใช้ Flexible กันล้น + ellipsis
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+            overflow: TextOverflow.ellipsis, // ถ้ายาวเกินตัดด้วย ...
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// การ์ดตำแหน่ง/บทบาทปัจจุบัน (ตอนนี้ทำเป็นตัวอย่างด้วย chip tag)
+class _CurrentPositionCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // ไอคอนตำแหน่ง
+            const Icon(Icons.place_outlined, size: 18),
+            const SizedBox(width: 8),
+
+            // ข้อความหัวข้อ
+            const Text('ตำแหน่งปัจจุบัน:', style: TextStyle(fontSize: 13)),
+            const SizedBox(width: 8),
+
+            // แท็กสถานะ/บทบาท (ตัวอย่าง)
+            _ChipTag(text: 'รองคณบดีฝ่ายวิชาการ'),
+            const SizedBox(width: 6),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget แท็กเล็ก ๆ แบบ pill/chip ที่กำหนดสีและขอบโค้งเอง
+class _ChipTag extends StatelessWidget {
+  final String text;
+  const _ChipTag({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // padding ภายในแท็ก
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(20, 255, 165, 29), // สีพื้นหลัง
+        borderRadius: BorderRadius.circular(999), // ทำให้เป็นทรง pill
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 11, color: Color.fromARGB(255, 255, 165, 29)),
+      ),
+    );
+  }
+}

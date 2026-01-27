@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/auth/auth_state.dart';
 import '../features/auth/login_page.dart';
 import '../service_locator.dart';
+import '../features/profile/profile_page.dart ';
 
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
@@ -13,9 +14,9 @@ final appRouter = GoRouter(
     final auth = getIt<AuthState>();
     final location = state.matchedLocation;
 
-    if (auth.status == AuthStatus.unknown) {
-      return location == '/splash' ? null : '/splash';
-    }
+    // if (auth.status == AuthStatus.unknown) {
+    //   return location == '/splash' ? null : '/splash';
+    // }
 
     if (!auth.isLoggedIn) {
       return location == '/login' ? null : '/login';
@@ -25,7 +26,7 @@ final appRouter = GoRouter(
       return '/home';
     }
 
-    return null;
+    // return null;
   },
   routes: [
     GoRoute(
@@ -43,10 +44,11 @@ final appRouter = GoRouter(
         )
     ),
     GoRoute(
-      path: '/home',
-      builder: (_, __) => const Scaffold(
-        body: Center(child: Text('HOME')),
-      ),
+     path: '/profile',//Profile Page
+      builder: (_, __) => MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: ProfilePage(),
+      )
     ),
   ],
 );
