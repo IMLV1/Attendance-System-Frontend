@@ -23,7 +23,7 @@ class AppScaffold extends StatelessWidget {
         body: Row(
           children: [
 
-            if (Responsive.isDesktop(context)) SideBarNavigation(),
+            if (Responsive.isDesktop(context) && !hideNavigation) SideBarNavigation(),
 
             Expanded(
                 flex: 3,
