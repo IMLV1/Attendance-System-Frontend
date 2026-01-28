@@ -4,15 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SubHeader extends Header {
-  final Widget parent;
 
-  const SubHeader(this.parent, {
+  const SubHeader({
     super.key,
     super.title,
   });
 
   @override
   Widget build(BuildContext context) {
+
+    int permissionLevel = 3;
+
     return Positioned(
       left: 0,
       right: 0,
@@ -24,11 +26,11 @@ class SubHeader extends Header {
 
         toolbarHeight: 40,
 
-        /// สำคัญมาก ❗
         centerTitle: true,
 
-        /// Back button
-        leading: IconButton(
+        automaticallyImplyLeading: false,
+
+        leading: Navigator.of(context).canPop() ? IconButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -37,7 +39,7 @@ class SubHeader extends Header {
             width: 24,
             height: 24,
           ),
-        ),
+        ) : null,
 
         title: Text(
           title,
