@@ -1,3 +1,7 @@
+import 'package:attendance_system/features/settings/attendance/setting_attendance.dart';
+import 'package:attendance_system/features/settings/attendance_request/setting_attendance_request.dart';
+import 'package:attendance_system/features/settings/budget_year/setting_budget_year.dart';
+import 'package:attendance_system/features/settings/leave_type/setting_leave_type.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/sub_header.dart';
@@ -59,10 +63,34 @@ class SettingPage extends StatelessWidget {
                   SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
-                        IconTextButton(icon: 'icon_setting.svg', label: 'ตั้งค่าปีงบประมาณ'),
-                        IconTextButton(icon: 'icon_setting.svg', label: 'การลงชื่อเข้า-ออกงาน'),
-                        IconTextButton(icon: 'icon_setting.svg', label: 'คำขออนุมัติเวลางาน'),
-                        IconTextButton(icon: 'icon_setting.svg', label: 'ประเภทการลางาน'),
+                        IconTextButton(onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (context) => const SettingBudgetYear(),
+                            ),
+                          );
+                        }, icon: 'icon_setting.svg', label: 'ตั้งค่าปีงบประมาณ'),
+                        IconTextButton(onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (context) => const SettingAttendance(),
+                            ),
+                          );
+                        }, icon: 'icon_setting.svg', label: 'การลงชื่อเข้า-ออกงาน'),
+                        IconTextButton(onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (context) => const SettingAttendanceRequest(),
+                            ),
+                          );
+                        }, icon: 'icon_setting.svg', label: 'คำขออนุมัติเวลางาน'),
+                        IconTextButton(onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (context) => const SettingLeaveType(),
+                            ),
+                          );
+                        }, icon: 'icon_setting.svg', label: 'ประเภทการลางาน'),
                       ]
                   ),
                 ]

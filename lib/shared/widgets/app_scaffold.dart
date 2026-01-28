@@ -28,13 +28,20 @@ class AppScaffold extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Scaffold(
+                extendBodyBehindAppBar: true,
+                appBar: AppBar(
+                  elevation: 0,
+                  leadingWidth: double.infinity,
+                  leading: Container(
+                    color: Colors.red,
+                  ),
+                ),
                 body: Stack(
                 children: [
-                  content,
-                  ?header,
-                ],
-              ),
-              bottomNavigationBar: (Responsive.isMobile(context) && !hideNavigation) ? BottomNavigation() : null,
+                    content,
+                  ],
+                ),
+                bottomNavigationBar: (Responsive.isMobile(context) && !hideNavigation) ? BottomNavigation() : null,
               )
             ),
           ],

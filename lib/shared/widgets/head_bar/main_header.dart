@@ -18,19 +18,15 @@ class MainHeader extends Header {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: 0,
-      right: 0,
-      child: AppBar(
+    return AppBar(
         backgroundColor: AppColors.barColor,
         elevation: 0,
 
         /// ความสูง header
         toolbarHeight: 65,
-        /// ❗ อย่าให้ AppBar เดา leading เอง
+
         automaticallyImplyLeading: false,
 
-        /// LEFT SIDE (logo + title)
         leadingWidth: double.infinity,
         leading: Padding(
           padding: const EdgeInsets.only(left: 25),
@@ -110,7 +106,6 @@ class MainHeader extends Header {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }

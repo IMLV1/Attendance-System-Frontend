@@ -15,10 +15,7 @@ class SubHeader extends Header {
 
     int permissionLevel = 3;
 
-    return Positioned(
-      left: 0,
-      right: 0,
-      child: AppBar(
+    return AppBar(
         backgroundColor: AppColors.barColor,
         elevation: 0,
 
@@ -49,7 +46,6 @@ class SubHeader extends Header {
             color: AppColors.titleColor,
           ),
         ),
-      ),
-    );
+      );
   }
 }
