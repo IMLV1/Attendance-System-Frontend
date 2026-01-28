@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 
 class AuthResult {
   final String accessToken;
@@ -24,8 +25,10 @@ class AuthApiService {
   Future<AuthResult> loginWithGoogle(String accessToken) async {
     final res = await dio.post(
       '/auth/google',
-      data: {'accessToken': accessToken},
+      data: {'token': accessToken},
     );
+
+    debugPrint('res = ${res.data}');
     return AuthResult.fromJson(res.data);
   }
 
