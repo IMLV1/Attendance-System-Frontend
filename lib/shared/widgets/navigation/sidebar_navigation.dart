@@ -11,6 +11,8 @@ class SideBarNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    int permissionLevel = 1;
+
     return SizedBox(
 
       width: 300,
@@ -40,20 +42,77 @@ class SideBarNavigation extends StatelessWidget {
             ),
           ),
         ),
-        body: Column(
+        body: ListView(
+          scrollDirection: Axis.vertical,
+
           children: [
             const SizedBox(height: 15),
             SideBarButton(pageID: 'checkin', pageName: 'ลงชื่อเข้า-ออกงาน', pageIcon: 'icon_checkin.svg'),
             SideBarButton(pageID: 'time-request', pageName: 'ขออนุมัติเวลาเข้า-ออกงาน', pageIcon: 'icon_time_request.svg'),
             SideBarButton(pageID: 'leave', pageName: 'การลางาน', pageIcon: 'icon_leave.svg'),
             SideBarButton(pageID: 'statistic', pageName: 'สถิติ', pageIcon: 'icon_statistic.svg'),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
             Divider(
               height: 1,        // space the divider takes vertically
               thickness: 1,     // actual line thickness
               color: AppColors.lightTextColor,
             ),
+            const SizedBox(height: 10),
+            SideBarButton(pageID: 'history-attendance', pageName: 'บันทึกการเข้างาน', pageIcon: 'icon_attendance_history.svg'),
+            SideBarButton(pageID: 'history-leave', pageName: 'บันทึกการลางาน', pageIcon: 'icon_leave_history.svg'),
+            SideBarButton(pageID: 'history-attendance-request', pageName: 'บันทึกคำขออนุมัติเวลางาน', pageIcon: 'icon_attendance_request_history.svg'),
+            if (permissionLevel >= 1) const SizedBox(height: 10),
+            if (permissionLevel >= 1) Divider(
+              height: 1,        // space the divider takes vertically
+              thickness: 1,     // actual line thickness
+              color: AppColors.lightTextColor,
+            ),
+            if (permissionLevel >= 1) const SizedBox(height: 10),
+            if (permissionLevel >= 1) SideBarButton(pageID: 'approval', pageName: 'อนุมัติคำขอ', pageIcon: 'icon_approval.svg'),
+            if (permissionLevel >= 1) SideBarButton(pageID: 'history-approval', pageName: 'บันทึกการอนุมัติคำขอ', pageIcon: 'icon_attendance_history.svg'),
+            if (permissionLevel >= 1) SideBarButton(pageID: 'personnel-info', pageName: 'ข้อมูลบุคลากรในองค์กร', pageIcon: 'icon_personnel_info.svg'),
+            if (permissionLevel >= 2) const SizedBox(height: 10),
+            if (permissionLevel >= 2) Divider(
+              height: 1,        // space the divider takes vertically
+              thickness: 1,     // actual line thickness
+              color: AppColors.lightTextColor,
+            ),
+            if (permissionLevel >= 2) const SizedBox(height: 10),
+            if (permissionLevel >= 2) SideBarButton(pageID: 'user-management', pageName: 'จัดการผู้ใช้งานระบบ', pageIcon: 'icon_user_management.svg'),
+            if (permissionLevel >= 2) SideBarButton(pageID: 'role-management', pageName: 'จัดการตำแหน่ง', pageIcon: 'icon_role_management.svg'),
+            if (permissionLevel >= 3) const SizedBox(height: 10),
+            if (permissionLevel >= 3) Divider(
+              height: 1,        // space the divider takes vertically
+              thickness: 1,     // actual line thickness
+              color: AppColors.lightTextColor,
+            ),
+            if (permissionLevel >= 3) const SizedBox(height: 10),
+            if (permissionLevel >= 3) SideBarButton(pageID: 'config-budget-year', pageName: 'ตั้งค่าปีงบประมาณ', pageIcon: 'icon_setting.svg'),
+            if (permissionLevel >= 3) SideBarButton(pageID: 'config-attendance', pageName: 'การลงชื่อเข้า-ออกงาน', pageIcon: 'icon_setting.svg'),
+            if (permissionLevel >= 3) SideBarButton(pageID: 'config-attendance-request', pageName: 'คำขออนุมัติเวลางาน', pageIcon: 'icon_setting.svg'),
+            if (permissionLevel >= 3) SideBarButton(pageID: 'config-leave-type', pageName: 'ประเภทการลางาน', pageIcon: 'icon_setting.svg'),
           ],
+        ),
+        bottomNavigationBar: Container(
+          height: 100,
+          decoration: BoxDecoration(
+            border: BoxBorder.all(
+              color: AppColors.lightTextColor,
+              strokeAlign: BorderSide.strokeAlignOutside
+            )
+          ),
+
+          child: Row(
+            children: [
+              Text(
+                'PROFILE HERE',
+                style: TextStyle(
+                  color: Colors.amber,
+                  fontSize: 30
+                ),
+              )
+            ],
+          )
         ),
       ),
     );
@@ -93,11 +152,14 @@ class SideBarButton extends StatelessWidget {
         // height: 60,
         child: Row(
           children: [
-            SizedBox(width: 15),
-            SvgPicture.asset(
-              'assets/images/$pageIcon',
-              height: 30,
-              colorFilter: ColorFilter.mode(state == pageID ? AppColors.titleColor : AppColors.subTitleColor, BlendMode.srcIn),
+            SizedBox(width: 5),
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: SvgPicture.asset(
+                'assets/images/$pageIcon',
+                colorFilter: ColorFilter.mode(state == pageID ? AppColors.titleColor : AppColors.subTitleColor, BlendMode.srcIn),
+              ),
             ),
             SizedBox(width: 10),
             Text(
