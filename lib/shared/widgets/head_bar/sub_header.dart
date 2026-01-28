@@ -8,6 +8,7 @@ class SubHeader extends Header {
 
   const SubHeader(this.parent, {
     super.key,
+    super.title,
   });
 
   @override
@@ -18,6 +19,8 @@ class SubHeader extends Header {
       child: AppBar(
         backgroundColor: AppColors.barColor,
         elevation: 0,
+
+        leadingWidth: 56,
 
         toolbarHeight: 40,
 
@@ -35,9 +38,6 @@ class SubHeader extends Header {
             height: 24,
           ),
         ),
-
-        /// ปรับความกว้าง leading ให้บาลานซ์
-        leadingWidth: 56,
 
         title: Text(
           title,

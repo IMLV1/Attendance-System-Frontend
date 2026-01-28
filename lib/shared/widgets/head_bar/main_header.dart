@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ class MainHeader extends Header {
 
   const MainHeader({
     super.key,
+    super.title,
     this.subTitle = 'Default SubTitle',
     this.iconPath = 'google_logo.svg',
   });
@@ -24,12 +26,11 @@ class MainHeader extends Header {
 
         /// ความสูง header
         toolbarHeight: 65,
-
         /// ❗ อย่าให้ AppBar เดา leading เอง
         automaticallyImplyLeading: false,
 
         /// LEFT SIDE (logo + title)
-        leadingWidth: 260,
+        leadingWidth: double.infinity,
         leading: Padding(
           padding: const EdgeInsets.only(left: 25),
           child: Row(
@@ -79,7 +80,7 @@ class MainHeader extends Header {
         /// RIGHT SIDE (actions)
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 25),
+            padding: const EdgeInsets.only(right: 10),
             child: Row(
               children: [
                 IconButton(
@@ -90,8 +91,7 @@ class MainHeader extends Header {
                     height: 26,
                   ),
                 ),
-                const SizedBox(width: 4),
-                IconButton(
+                if (Responsive.isMobile(context)) IconButton(
                   onPressed: () {},
                   icon: SvgPicture.asset(
                     'assets/images/hamburger_menu.svg',
