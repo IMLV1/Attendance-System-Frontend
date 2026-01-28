@@ -1,7 +1,7 @@
+import '../network/api_client.dart';
 import 'auth_api_service.dart';
 import 'google_login_service.dart';
 import 'token_storage.dart';
-import '../network/api_client.dart';
 
 abstract class AuthRepository {
   Future<AuthResult> loginWithGoogle();

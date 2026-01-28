@@ -1,6 +1,5 @@
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
-import 'package:attendance_system/shared/widgets/head_bar/sub_header.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
 
 class SettingBudgetYear extends StatelessWidget {
@@ -9,7 +8,7 @@ class SettingBudgetYear extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-        header: SubHeader(title: 'ตั้งค่าปีงบประมาณ'),
+        header: Header.subHeader(context, title: 'ตั้งค่าปีงบประมาณ'),
         content: MaterialApp()
     );
   }
