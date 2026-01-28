@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-
 import 'app/app.dart';
 import 'core/auth/auth_state.dart';
 import 'service_locator.dart';
