@@ -1,3 +1,4 @@
+import 'package:attendance_system/features/profile/profile_page.dart';
 import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -5,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../core/auth/auth_state.dart';
 import '../features/auth/login_page.dart';
 import '../service_locator.dart';
-import '../features/profile/profile_page.dart ';
 
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
