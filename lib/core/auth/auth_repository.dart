@@ -25,7 +25,6 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
   @override
-  @override
   Future<AuthResult> loginWithGoogle() async {
     final googleToken = await google.login();
     if (googleToken == null) {

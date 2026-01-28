@@ -15,7 +15,7 @@ class ApiConfig {
     const isProd = bool.fromEnvironment('dart.vm.product');
 
     if (isProd) {
-      baseUrl = 'http://20.196.155.236:3000';
+      baseUrl = 'http://20.194.9.179:3000';
     } else {
       if (kIsWeb) {
         baseUrl = 'http://localhost:8080'; // Web
