@@ -1,7 +1,7 @@
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/navigation/bottom_navigation.dart';
-import 'package:attendance_system/shared/widgets/navigation/navigation_state.dart';
+import 'package:attendance_system/shared/widgets/navigation_state.dart';
 import 'package:attendance_system/shared/widgets/navigation/sidebar_navigation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +34,7 @@ class AppScaffold extends StatelessWidget {
                   ?header,
                 ],
               ),
-              bottomNavigationBar: (!hideNavigation) ? BottomNavigation() : null,
+              bottomNavigationBar: (Responsive.isMobile(context) && !hideNavigation) ? BottomNavigation() : null,
               )
             ),
           ],

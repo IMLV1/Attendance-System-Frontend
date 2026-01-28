@@ -9,6 +9,12 @@ abstract class GoogleLoginService {
 
 class GoogleLoginServiceImpl implements GoogleLoginService {
   late final GoogleSignIn _googleSignIn;
+  //bool _initialized = false;
+  //
+  //Future<void> _init() async {
+  //  if (!_initialized) return;
+  //  await _googleSignIn.initialize();
+  //}
 
   GoogleLoginServiceImpl() {
     _googleSignIn = GoogleSignIn(
@@ -25,10 +31,15 @@ class GoogleLoginServiceImpl implements GoogleLoginService {
 
       final auth = await account.authentication;
 
+      debugPrint('idToken = ${auth.idToken}');
       debugPrint('accessToken = ${auth.accessToken}');
 
       if (auth.accessToken == null) {
         throw Exception('ไม่พบ accessToken');
+      }
+
+      if (auth.idToken == null) {
+        throw Exception('ไม่พบ idToken');
       }
 
       return auth.accessToken;

@@ -15,4 +15,7 @@ class AppColors {
   static const subTitleColor = Color(0xFFCFCFCF);
 
   static const sideBarColor = Color(0xFF2f3337);
+  static const selectedMenuColor = Color(0xFF5dbb8d);
+  static const unSelectMenuColor = Color(0xFF000000);
+  static const unSelectMenuIconColor = Color(0xFF74787B);
 }
