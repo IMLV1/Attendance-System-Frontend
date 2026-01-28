@@ -11,7 +11,7 @@ class SideBarNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    int permissionLevel = 1;
+    int permissionLevel = 3;
 
     return SizedBox(
 
