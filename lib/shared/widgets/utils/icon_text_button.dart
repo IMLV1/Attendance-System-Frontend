@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -7,14 +6,15 @@ class IconTextButton extends StatelessWidget {
   final String icon;
   final String label;
   final bool arrow;
+  final VoidCallback? onPressed;
 
-  const IconTextButton({super.key, required this.icon, required this.label, this.arrow = true});
+  const IconTextButton({super.key, required this.icon, required this.label, this.arrow = true, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
 
-        onPressed: () {},
+        onPressed: onPressed ?? () {},
         style: ElevatedButton.styleFrom(
             elevation: 0,
             padding: EdgeInsets.all(0),

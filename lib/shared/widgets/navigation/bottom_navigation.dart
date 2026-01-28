@@ -1,6 +1,6 @@
+import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/navigation_state.dart';
 import 'package:flutter/material.dart';
-import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 

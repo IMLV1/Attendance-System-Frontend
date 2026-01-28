@@ -2,8 +2,8 @@ import 'package:attendance_system/core/utils/dimensions_ext.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
+import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/head_bar/main_header.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +18,7 @@ class LoginPage extends StatelessWidget {
     // final role = context.watch<AuthState>().role;
 
     return AppScaffold(
-      header: MainHeader(),
+      header: Header.mainHeader(context),
       hideNavigation: true,
 
       content: SafeArea(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'auth_repository.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }

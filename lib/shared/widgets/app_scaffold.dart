@@ -1,16 +1,14 @@
 import 'package:attendance_system/core/utils/responsive.dart';
-import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/navigation/bottom_navigation.dart';
-import 'package:attendance_system/shared/widgets/navigation_state.dart';
 import 'package:attendance_system/shared/widgets/navigation/sidebar_navigation.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:attendance_system/shared/widgets/navigation_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AppScaffold extends StatelessWidget {
 
   final Widget content;
-  final Header? header;
+  final AppBar? header;
   final bool hideNavigation;
 
   const AppScaffold({super.key, this.hideNavigation = false, required this.content, this.header});
@@ -28,13 +26,13 @@ class AppScaffold extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Scaffold(
+                appBar: header,
                 body: Stack(
                 children: [
-                  content,
-                  ?header,
-                ],
-              ),
-              bottomNavigationBar: (Responsive.isMobile(context) && !hideNavigation) ? BottomNavigation() : null,
+                    content,
+                  ],
+                ),
+                bottomNavigationBar: (Responsive.isMobile(context) && !hideNavigation) ? BottomNavigation() : null,
               )
             ),
           ],
