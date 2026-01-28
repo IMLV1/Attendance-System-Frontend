@@ -30,11 +30,23 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            // ไฟล์ release.keystore อยู่ที่ android/release.keystore
+            storeFile = file("../release.keystore")
+            storePassword = "a2t1t4e7n4d8a3n6c4e7"
+            keyAlias = "release"
+            keyPassword = "a2t1t4e7n4d8a3n6c4e7"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release") // ✅ ตรงนี้
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
