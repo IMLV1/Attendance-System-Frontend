@@ -1,4 +1,5 @@
 import 'package:attendance_system/core/utils/responsive.dart';
+import 'package:attendance_system/features/settings/setting_page.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,13 @@ class MainHeader extends Header {
                   ),
                 ),
                 if (Responsive.isMobile(context)) IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) => const SettingPage(),
+                      ),
+                    );
+                  },
                   icon: SvgPicture.asset(
                     'assets/images/hamburger_menu.svg',
                     width: 24,
