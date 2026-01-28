@@ -44,7 +44,7 @@ class Header {
     );
   }
 
-  static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath}) {
+  static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath = 'google_logo.svg'}) {
     return AppBar(
       backgroundColor: AppColors.barColor,
       elevation: 0,

@@ -1,5 +1,5 @@
+import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
-import 'package:attendance_system/shared/widgets/head_bar/main_header.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 
 //ทำ model mock
@@ -32,7 +32,7 @@ class ProfilePage extends StatelessWidget {
     );
 
     return AppScaffold(
-      header: const MainHeader(
+      header: Header.mainHeader(context,
         title: 'ข้อมูลผู้ใช้งาน',
         subTitle: 'User Profile',
         iconPath: 'icon_profile.svg',
