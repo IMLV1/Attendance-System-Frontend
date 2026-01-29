@@ -156,7 +156,7 @@ class SideBarButton extends StatelessWidget {
               width: 20,
               height: 20,
               child: SvgPicture.asset(
-                'assets/images/$pageIcon',
+                'assets/images/',
                 colorFilter: ColorFilter.mode(currentPath == path ? AppColors.titleColor : AppColors.subTitleColor, BlendMode.srcIn),
               ),
             ),

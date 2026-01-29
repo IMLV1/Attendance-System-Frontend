@@ -1,9 +1,13 @@
+import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/auth/auth_state.dart';
 
 class SettingPage extends StatelessWidget {
 
@@ -22,6 +26,7 @@ class SettingPage extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
 
           child: Container(
+            color: AppColors.backgroundColor,
             alignment: Alignment.topCenter,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -48,7 +53,9 @@ class SettingPage extends StatelessWidget {
                   SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
-                        IconTextButton(icon: 'icon_user_management.svg', label: 'จัดการผู้ใช้งานระบบ'),
+                        IconTextButton(onPressed: () {
+                          context.push('/settings/user-management');
+                        }, icon: 'icon_user_management.svg', label: 'จัดการผู้ใช้งานระบบ'),
                         IconTextButton(icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
                       ]
                   ),
@@ -67,6 +74,15 @@ class SettingPage extends StatelessWidget {
                         IconTextButton(onPressed: () {
                           context.push('/settings/config-leave-type');
                         }, icon: 'icon_setting.svg', label: 'ประเภทการลางาน'),
+                      ]
+                  ),
+                  SeparatorCard(
+                      separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                      children: [
+                        IconTextButton(arrow: false, onPressed: () async {
+                          await context.read<AuthState>().logout();
+                        }, icon: 'icon_setting.svg', label: 'ออกจากระบบ'),
+                        // TODO: change Color red in label text and change Icon
                       ]
                   ),
                 ]

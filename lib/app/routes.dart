@@ -28,23 +28,43 @@ final appRouter = GoRouter(
   //   if (location == '/') return 'login';
   //   return null;
   //
-  //   // final auth = getIt<AuthState>();
-  //   // final location = state.matchedLocation;
-  //   //
-  //   // // if (auth.status == AuthStatus.unknown) {
-  //   // //   return location == '/splash' ? null : '/splash';
-  //   // // }
-  //   //
-  //   // if (!auth.isLoggedIn) {
-  //   //   return location == '/login' ? null : '/login';
-  //   // }
-  //   //
-  //   // if (auth.isLoggedIn && (location == '/login' || location == '/splash')) {
-  //   //   return '/home';
-  //   // }
-  //   //
-  //   // return null;
-  // },
+  //   final auth = getIt<AuthState>();
+  //   final location = state.matchedLocation;
+  //
+  //   if (auth.status == AuthStatus.unknown) {
+  //     return location == '/splash' ? null : '/splash';
+  //   }
+  //
+  //   if (!auth.isLoggedIn) {
+  //     return location == '/login' ? null : '/login';
+  //   }
+  //
+  //   if (auth.isLoggedIn && (location == '/login' || location == '/splash')) {
+  //     return '/home';
+  //   }
+  //
+  //   return null;
+
+    redirect: (_, state) {
+      final auth = getIt<AuthState>();
+      final location = state.matchedLocation;
+
+      if (auth.status == AuthStatus.unknown) {
+        return location == '/splash' ? null : '/splash';
+      }
+
+      final isLogin = location == '/login';
+
+      if (auth.status == AuthStatus.unauthenticated) {
+        return isLogin ? null : '/login';
+      }
+
+      if (auth.status == AuthStatus.authenticated && isLogin) {
+        return '/check-in';
+      }
+
+      return null;
+    },
 
   routes: [
     GoRoute(

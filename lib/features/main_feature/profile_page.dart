@@ -1,35 +1,37 @@
+import 'package:attendance_system/domain/profile_service/profile_service.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
-//ทำ model mock
-class MockProfile {
-  final String thName;
-  final String enName;
-  final String email;
-  final String avatarAsset;
+import '../../domain/profile_service/profile_model.dart';
 
-  const MockProfile({
-    required this.thName,
-    required this.enName,
-    required this.email,
-    required this.avatarAsset,
-  });
-}
-
-/// หน้าจอโปรไฟล์ผู้ใช้งาน (Stateless เพราะตอนนี้ใช้ mock data ยังไม่มี state เปลี่ยนแปลง)
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+/// หน้าจอโปรไฟล์ผู้ใช้งาน (Stateless เพราะตอนนี้ใช้ mock data ยังไม่มี state เปลี่ยนแปลง)
+class _ProfilePageState extends State<ProfilePage> {
+  late Future<ProfileModel> _futureProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureProfile = GetIt.I<ProfileService>().getProfile();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Mock data (เดี๋ยวค่อยเปลี่ยนเป็นข้อมูลจาก API)
-    const profile = MockProfile(
-      thName: 'ด้วยดี ตามไท',
-      enName: 'Duaydee Tamtai',
-      email: 'duaydee.t@eng.src.ku.ac.th',
-      avatarAsset: 'assets/images/Avatar_profile.png',
-    );
+    // // Mock data (เดี๋ยวค่อยเปลี่ยนเป็นข้อมูลจาก API)
+    // const profile = MockProfile(
+    //   thName: 'ด้วยดี ตามไท',
+    //   enName: 'Duaydee Tamtai',
+    //   email: 'duaydee.t@eng.src.ku.ac.th',
+    //   avatarAsset: 'assets/images/Avatar_profile.png',
+    // );
 
     return AppScaffold(
       header: Header.mainHeader(context,
@@ -37,57 +39,74 @@ class ProfilePage extends StatelessWidget {
         subTitle: 'User Profile',
         iconPath: 'icon_profile.svg',
       ),
-      content: Padding(
-        padding: const EdgeInsets.only(top: 65), // กัน content โดน header ทับ
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _ProfileHeaderCard(
-                  thName: profile.thName,
-                  enName: profile.enName,
-                  email: profile.email,
-                  avatarAsset: profile.avatarAsset,
-                ),
-                const SizedBox(height: 12),
+        content: FutureBuilder<ProfileModel>(
+            future: _futureProfile,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                _ProfileInfoCard(
-                  rows:  [
-                    ProfileFieldRow(label: 'รหัสบุคลากร', value: 'XXXXXXXXXXXX'),
-                    ProfileFieldRow(label: 'เลขประจำตัวประชาชน', value: '110010110011'),
-                    ProfileFieldRow(label: 'ชื่อ-นามสกุล', value: profile.thName),
-                    ProfileFieldRow(label: 'Full-name', value: profile.enName),
-                    ProfileFieldRow(label: 'เพศ', value: 'ชาย'),
-                    ProfileFieldRow(label: 'สัญชาติ', value: 'ไทย'),
-                    ProfileFieldRow(label: 'เบอร์โทร', value: '099-999-9999'),
-                    ProfileFieldRow(label: 'อีเมล', value: profile.email),
-                  ],
-                ),
+              if (snapshot.hasError) {
+                return const Center(child: Text('โหลดข้อมูลไม่สำเร็จ'));
+              }
 
-                const SizedBox(height: 12),
-                _CurrentPositionCard(),
-              ],
-            ),
-          ),
+              final profile = snapshot.data!;
+
+              return Padding(
+                  padding: const EdgeInsets.only(top: 65),
+                  // กัน content โดน header ทับ
+                  child: SafeArea(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _ProfileHeaderCard(
+                            thName: profile.thName,
+                            enName: profile.enName,
+                            email: profile.email,
+                            // avatarAsset: profile.,
+                          ),
+                          const SizedBox(height: 12),
+
+                          _ProfileInfoCard(
+                              rows: [
+                                ProfileFieldRow(label: 'รหัสบุคลากร', value: profile.staffId),
+                                ProfileFieldRow(label: 'เลขประจำตัวประชาชน', value: profile.citizenId),
+                                ProfileFieldRow(label: 'ชื่อ-นามสกุล', value: profile.thName),
+                                ProfileFieldRow(label: 'Full-name', value: profile.enName),
+                                ProfileFieldRow(label: 'เพศ', value: profile.gender),
+                                ProfileFieldRow(label: 'สัญชาติ', value: profile.nationality),
+                                ProfileFieldRow(label: 'เบอร์โทร', value: profile.phone),
+                                ProfileFieldRow(label: 'อีเมล', value: profile.email),
+                            ]
+                          ),
+
+                          const SizedBox(height: 12),
+                          _CurrentPositionCard(),
+                        ],
+                      ),
+                    ),
+                  )
+              );
+            }
         ),
-      ),
     );
   }
 }
+
 
 /// การ์ดส่วนหัวของโปรไฟล์: Avatar + ชื่อไทย/อังกฤษ
 class _ProfileHeaderCard extends StatelessWidget {
   final String thName; // ชื่อภาษาไทย
   final String enName; // ชื่อภาษาอังกฤษ
   final String email; // อีเมล
-  final String avatarAsset; // รูปโปรไฟล์
+  // final String avatarAsset; // รูปโปรไฟล์
 
   const _ProfileHeaderCard({
     required this.thName,
     required this.enName,
     required this.email,
-    required this.avatarAsset,
+    // required this.avatarAsset,
   });
 
   @override
@@ -104,7 +123,7 @@ class _ProfileHeaderCard extends StatelessWidget {
             // รูปโปรไฟล์
             CircleAvatar(
               radius: 20,
-              backgroundImage: AssetImage(avatarAsset),
+              // backgroundImage: AssetImage(avatarAsset),
               backgroundColor: Colors.transparent,
             ),
             const SizedBox(width: 12),

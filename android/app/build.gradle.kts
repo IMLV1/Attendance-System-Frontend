@@ -49,6 +49,23 @@ android {
             isShrinkResources = false
         }
     }
+//    signingConfigs {
+//        release {
+//            keyAlias keystoreProperties['keyAlias']
+//            keyPassword keystoreProperties['keyPassword']
+//            storeFile file(keystoreProperties['storeFile'])
+//            storePassword keystoreProperties['storePassword']
+//        }
+//    }
+//
+//    buildTypes {
+//        release {
+//            signingConfig signingConfigs.release // ✅ ถูกต้องจริง
+//            minifyEnabled false
+//            shrinkResources false
+//        }
+//    }
+
 }
 
 flutter {

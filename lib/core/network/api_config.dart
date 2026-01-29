@@ -18,9 +18,9 @@ class ApiConfig {
       baseUrl = 'http://20.194.9.179:3000';
     } else {
       if (kIsWeb) {
-        baseUrl = 'http://localhost:8080'; // Web
+        baseUrl = 'http://20.194.9.179:3000'; // Web
       } else {
-        baseUrl = 'http://10.0.2.2:8080'; // Android Emulator / iOS
+        baseUrl = 'http://20.194.9.179:3000'; // Android Emulator / iOS
       }
     }
   }

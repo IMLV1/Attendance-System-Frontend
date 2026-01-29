@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static final lightTheme = ThemeData(
     primaryColor: AppColors.primaryColor,
-    shadowColor: AppColors.shadowColor,
     cardColor: AppColors.cardColor,
     scaffoldBackgroundColor: AppColors.backgroundColor,
     brightness: Brightness.light,
