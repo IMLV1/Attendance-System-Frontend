@@ -1,3 +1,4 @@
+import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,10 @@ void main() async {
   runApp(
     ChangeNotifierProvider<AuthState>.value(
       value: authState,
-      child: const App(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: App(),
+      )
     ),
   );
 }
