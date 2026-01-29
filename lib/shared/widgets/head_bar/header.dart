@@ -1,8 +1,8 @@
 import 'package:attendance_system/core/utils/responsive.dart';
-import 'package:attendance_system/features/settings/setting_page.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
 class Header {
 
@@ -22,9 +22,9 @@ class Header {
 
       automaticallyImplyLeading: false,
 
-      leading: Navigator.of(context).canPop() ? IconButton(
+      leading: context.canPop() ? IconButton(
         onPressed: () {
-          Navigator.of(context).pop();
+          context.pop();
         },
         icon: SvgPicture.asset(
           'assets/images/back_button.svg',
@@ -117,11 +117,7 @@ class Header {
               ),
               if (Responsive.isMobile(context)) IconButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (context) => const SettingPage(),
-                    ),
-                  );
+                  context.push('/settings');
                 },
                 icon: SvgPicture.asset(
                   'assets/images/hamburger_menu.svg',

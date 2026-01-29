@@ -1,9 +1,4 @@
-import 'package:attendance_system/core/utils/responsive.dart';
-import 'package:attendance_system/shared/widgets/navigation/bottom_navigation.dart';
-import 'package:attendance_system/shared/widgets/navigation/sidebar_navigation.dart';
-import 'package:attendance_system/shared/widgets/navigation_state.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class AppScaffold extends StatelessWidget {
 
@@ -15,29 +10,10 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => NavigationState(),
-      child: Scaffold(
-        body: Row(
-          children: [
 
-            if (Responsive.isDesktop(context) && !hideNavigation) SideBarNavigation(),
-
-            Expanded(
-              flex: 3,
-              child: Scaffold(
-                appBar: header,
-                body: Stack(
-                children: [
-                    content,
-                  ],
-                ),
-                bottomNavigationBar: (Responsive.isMobile(context) && !hideNavigation) ? BottomNavigation() : null,
-              )
-            ),
-          ],
-        )
-      )
+    return Scaffold(
+      appBar: header,
+      body: content,
     );
   }
 }

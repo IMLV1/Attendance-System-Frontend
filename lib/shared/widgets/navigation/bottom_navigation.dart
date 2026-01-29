@@ -1,12 +1,13 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
-import 'package:attendance_system/shared/widgets/navigation_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 class BottomNavigation extends StatelessWidget {
 
-  const BottomNavigation({super.key});
+  final String currentPath;
+
+  const BottomNavigation({super.key, required this.currentPath});
 
   @override
   Widget build(BuildContext context) {
@@ -28,21 +29,18 @@ class BottomNavigation extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _navigationItem(context, 'time-request', 'icon_time_request.svg', 'ขออนุมัติเวลา'),
-            _navigationItem(context, 'leave', 'icon_leave.svg', 'ลางาน'),
-            _centerItem(context, 'checkin', 'icon_checkin.svg', 'เข้า-ออกงาน'),
-            _navigationItem(context, 'statistic', 'icon_statistic.svg', 'สถิติ'),
-            _profileItem(context, 'profile', '', 'โปรไฟล์'),
+            _navigationItem(context, '/time-request', 'icon_time_request.svg', 'ขออนุมัติเวลา'),
+            _navigationItem(context, '/leave', 'icon_leave.svg', 'ลางาน'),
+            _centerItem(context, '/check-in', 'icon_checkin.svg', 'เข้า-ออกงาน'),
+            _navigationItem(context, '/statistic', 'icon_statistic.svg', 'สถิติ'),
+            _profileItem(context, '/profile', '', 'โปรไฟล์'),
           ],
         ),
       ),
     );
   }
 
-  Widget _navigationItem(BuildContext context, String pageName, String iconPath, String label) {
-
-    NavigationState nav = context.watch<NavigationState>();
-    String currentState = nav.currentPage;
+  Widget _navigationItem(BuildContext context, String path, String iconPath, String label) {
 
     return Expanded(
       child: InkWell(
@@ -51,7 +49,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          nav.setPage(pageName);
+          context.go(path);
         },
 
         child: Column(
@@ -62,7 +60,7 @@ class BottomNavigation extends StatelessWidget {
               width: 30,
               child: SvgPicture.asset(
                 'assets/images/$iconPath',
-                colorFilter: ColorFilter.mode(currentState == pageName ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, BlendMode.srcIn),
+                colorFilter: ColorFilter.mode(currentPath == path ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, BlendMode.srcIn),
               ),
             ),
             const SizedBox(height: 4),
@@ -70,7 +68,7 @@ class BottomNavigation extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: (currentState == pageName) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
+                color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
               ),
               maxLines: 1,
             ),
@@ -80,10 +78,7 @@ class BottomNavigation extends StatelessWidget {
       ),
     );
   }
-  Widget _centerItem(BuildContext context, String pageName, String iconPath, String label) {
-
-    NavigationState nav = context.watch<NavigationState>();
-    String currentState = nav.currentPage;
+  Widget _centerItem(BuildContext context, String path, String iconPath, String label) {
 
     return Expanded(
       child: InkWell(
@@ -92,7 +87,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          nav.setPage(pageName);
+          context.go(path);
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -103,7 +98,7 @@ class BottomNavigation extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: (currentState == pageName) ? AppColors.selectedMenuColor : AppColors.unSelectMenuIconColor,
+                  color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuIconColor,
                   shape: BoxShape.circle,
                   boxShadow: const [
                     BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))
@@ -125,7 +120,7 @@ class BottomNavigation extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: (currentState == pageName) ? AppColors.selectedMenuColor : AppColors.unSelectMenuIconColor,
+                  color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.blackTextColor,
                   fontWeight: FontWeight.normal,
                 ),
               ),
@@ -135,10 +130,7 @@ class BottomNavigation extends StatelessWidget {
       ),
     );
   }
-  Widget _profileItem(BuildContext context, String pageName ,String iconPath, String label) {
-
-    NavigationState nav = context.watch<NavigationState>();
-    String currentState = nav.currentPage;
+  Widget _profileItem(BuildContext context, String path ,String iconPath, String label) {
 
     return Expanded(
       child: InkWell(
@@ -147,7 +139,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          nav.setPage(pageName);
+          context.go(path);
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -160,7 +152,7 @@ class BottomNavigation extends StatelessWidget {
                   width: 35,
                   height: 35,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Icon(Icons.person, color: (currentState == pageName) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, size: 35),
+                  errorBuilder: (context, error, stackTrace) => Icon(Icons.person, color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, size: 35),
                 ),
               ),
             ),
@@ -169,7 +161,7 @@ class BottomNavigation extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: (currentState == pageName) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
+                color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
               ),
               maxLines: 1,
               textAlign: TextAlign.center,
