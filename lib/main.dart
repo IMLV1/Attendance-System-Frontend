@@ -9,7 +9,7 @@ import 'service_locator.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: '.env');
+  await dotenv.load(fileName: '.env.example');
   await setupServiceLocator();
 
   final authState = getIt<AuthState>();

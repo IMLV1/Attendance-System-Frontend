@@ -8,7 +8,7 @@ class AppColors {
   static const backgroundColor = Color(0xFFEAEAEA);
   static const shadowColor = Color(0xFFEAEAEA);
   static const lightTextColor = Color(0xFF7E7E7E);
-  static const blackTextColor = Color(0x00ff0000);
+  static const blackTextColor = Color(0xFF000000);
   static const greyTextColor = Color(0xFF2C2C2C);
 
   static const titleColor = Color(0xFFFFFFFF);
@@ -18,4 +18,14 @@ class AppColors {
   static const selectedMenuColor = Color(0xFF5dbb8d);
   static const unSelectMenuColor = Color(0xFF000000);
   static const unSelectMenuIconColor = Color(0xFF74787B);
+  static const linegray = Color(0xFFCACACA);
+
+  static const buttoncheckin = Color(0xFF51B774);
+  static const buttoncheckin_background = Color(0xFFD2FDE0);
+  static const buttoncheckout = Color(0xFFFF5353);
+  static const buttoncheckout_background = Color(0xFFFF9797);
+  static const buttondisable= Color(0xFFA9A9A9);
+  static const buttondisable_background = Color(0xFFE8E8E8);
+
+
 }

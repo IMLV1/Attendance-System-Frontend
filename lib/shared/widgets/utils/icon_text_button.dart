@@ -1,3 +1,5 @@
+import 'package:attendance_system/app/app.dart';
+import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -38,7 +40,8 @@ class IconTextButton extends StatelessWidget {
                 Text(
                     label,
                     style: TextStyle(
-                        fontSize: 15
+                        fontSize: 15,
+                      color: AppColors.blackTextColor,
                     )
                 ),
                 Spacer(),

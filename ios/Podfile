@@ -1,5 +1,5 @@
 # Uncomment this line to define a global platform for your project
-# platform :ios, '13.0'
+ platform :ios, '15.6'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -41,7 +41,20 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
 
     target.build_configurations.each do |config|
-          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
-        end
+      # 1. ปิดระบบ Sandbox เพื่อให้สคริปต์ของ Flutter/Pods ทำงานได้ (แก้ PhaseScriptExecution failed)
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+
+      # 2. ล้างการยกเว้นสถาปัตยกรรมสำหรับ Simulator (แก้ปัญหารันบน iPhone รุ่นใหม่ๆ ไม่ได้)
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = ''
+
+      # 3. แก้ปัญหาหา Header ของ PromisesObjC ไม่เจอ (แก้ FBLPromiseError.h not found)
+      config.build_settings['HEADER_SEARCH_PATHS'] = '$(inherited) ${PODS_ROOT}/Headers/Public ${PODS_ROOT}/Headers/Public/PromisesObjC'
+
+      # 4. บังคับเวอร์ชัน iOS ให้ตรงกันเพื่อลด Warning (เลือกตามที่โปรเจกต์ต้องการ เช่น 13.0 หรือ 15.0)
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.6'
+
+      # บรรทัดเดิมของคุณ (ถ้าจำเป็นต้องใช้ แต่ปกติ Flutter จะจัดการให้ครับ)
+      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+    end
   end
 end

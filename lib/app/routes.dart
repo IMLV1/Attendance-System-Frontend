@@ -1,3 +1,4 @@
+import 'package:attendance_system/features/checkin/checkin_page.dart';
 import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -35,18 +36,8 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
-        path: '/login',
-        builder: (_, __) => MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          home: LoginPage(),
-        )
-    ),
-    GoRoute(
-      path: '/home',
-      builder: (_, __) => const Scaffold(
-        body: Center(child: Text('HOME')),
-      ),
+      path: '/login',
+      builder: (_, __) => const CheckinPage(),
     ),
   ],
 );
