@@ -18,7 +18,10 @@ void main() async {
   runApp(
     ChangeNotifierProvider<AuthState>.value(
       value: authState,
-      child: const App(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: App(),
+      )
     ),
   );
 }

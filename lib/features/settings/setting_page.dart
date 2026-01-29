@@ -1,12 +1,9 @@
-import 'package:attendance_system/features/settings/attendance/setting_attendance.dart';
-import 'package:attendance_system/features/settings/attendance_request/setting_attendance_request.dart';
-import 'package:attendance_system/features/settings/budget_year/setting_budget_year.dart';
-import 'package:attendance_system/features/settings/leave_type/setting_leave_type.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingPage extends StatelessWidget {
 
@@ -25,7 +22,6 @@ class SettingPage extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
 
           child: Container(
-            padding: EdgeInsets.only(top: 40),
             alignment: Alignment.topCenter,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -60,32 +56,16 @@ class SettingPage extends StatelessWidget {
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
                         IconTextButton(onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (context) => const SettingBudgetYear(),
-                            ),
-                          );
+                          context.push('/settings/budget-year');
                         }, icon: 'icon_setting.svg', label: 'ตั้งค่าปีงบประมาณ'),
                         IconTextButton(onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (context) => const SettingAttendance(),
-                            ),
-                          );
+                          context.push('/settings/config-attendance');
                         }, icon: 'icon_setting.svg', label: 'การลงชื่อเข้า-ออกงาน'),
                         IconTextButton(onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (context) => const SettingAttendanceRequest(),
-                            ),
-                          );
+                          context.push('/settings/config-attendance-request');
                         }, icon: 'icon_setting.svg', label: 'คำขออนุมัติเวลางาน'),
                         IconTextButton(onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (context) => const SettingLeaveType(),
-                            ),
-                          );
+                          context.push('/settings/config-leave-type');
                         }, icon: 'icon_setting.svg', label: 'ประเภทการลางาน'),
                       ]
                   ),
