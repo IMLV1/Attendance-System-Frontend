@@ -2,12 +2,14 @@ import 'package:attendance_system/features/main_feature/checkin_page.dart';
 import 'package:attendance_system/features/main_feature/leave_request_page.dart';
 import 'package:attendance_system/features/main_feature/profile_page.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_attendance.dart';
-import 'package:attendance_system/features/settings/attendance_request/setting_attendance_request.dart';
-import 'package:attendance_system/features/settings/budget_year/setting_budget_year.dart';
+import 'package:attendance_system/features/settings/admin_config/setting_attendance_request.dart';
+import 'package:attendance_system/features/settings/admin_config/setting_budget_year.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_leave_type.dart';
 import 'package:attendance_system/features/settings/setting_page.dart';
 import 'package:attendance_system/features/main_feature/statistic_page.dart';
 import 'package:attendance_system/features/main_feature/time_request_page.dart';
+import 'package:attendance_system/features/settings/user_management/role_management.dart';
+import 'package:attendance_system/features/settings/user_management/user_management.dart';
 import 'package:attendance_system/shared/widgets/base_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -47,11 +49,11 @@ final appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/splash',
-      builder: (_, __) => const Center(child: CircularProgressIndicator()),
+      builder: (_, _) => const Center(child: CircularProgressIndicator()),
     ),
     GoRoute(
       path: '/login',
-      builder: (_, __) => const LoginPage(),
+      builder: (_, _) => const LoginPage(),
     ),
     ShellRoute(
       builder: (context, state, child) {
@@ -60,43 +62,51 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/check-in',
-          pageBuilder: (_, __) => const NoTransitionPage(child: CheckinPage()),
+          pageBuilder: (_, _) => const NoTransitionPage(child: CheckinPage()),
         ),
         GoRoute(
           path: '/settings',
-          builder: (_, __) => const SettingPage(),
+          builder: (_, _) => const SettingPage(),
         ),
         GoRoute(
           path: '/profile',
-          pageBuilder: (_, __) => const NoTransitionPage(child: ProfilePage()),
+          pageBuilder: (_, _) => const NoTransitionPage(child: ProfilePage()),
         ),
         GoRoute(
           path: '/statistic',
-          pageBuilder: (_, __) => const NoTransitionPage(child: StatisticPage()),
+          pageBuilder: (_, _) => const NoTransitionPage(child: StatisticPage()),
         ),
         GoRoute(
           path: '/time-request',
-          pageBuilder: (_, __) => const NoTransitionPage(child: TimeRequestPage()),
+          pageBuilder: (_, _) => const NoTransitionPage(child: TimeRequestPage()),
         ),
         GoRoute(
           path: '/leave',
-          pageBuilder: (_, __) => const NoTransitionPage(child: LeaveRequestPage()),
+          pageBuilder: (_, _) => const NoTransitionPage(child: LeaveRequestPage()),
         ),
         GoRoute(
           path: '/settings/budget-year',
-          builder: (_, __) => const SettingBudgetYear(),
+          builder: (_, _) => const SettingBudgetYear(),
         ),
         GoRoute(
           path: '/settings/config-attendance',
-          builder: (_, __) => const SettingAttendance(),
+          builder: (_, _) => const SettingAttendance(),
         ),
         GoRoute(
           path: '/settings/config-attendance-request',
-          builder: (_, __) => const SettingAttendanceRequest(),
+          builder: (_, _) => const SettingAttendanceRequest(),
         ),
         GoRoute(
           path: '/settings/config-leave-type',
-          builder: (_, __) => const SettingLeaveType(),
+          builder: (_, _) => const SettingLeaveType(),
+        ),
+        GoRoute(
+          path: '/settings/user-management',
+          builder: (_, _) => const UserManagement(),
+        ),
+        GoRoute(
+          path: '/settings/role-management',
+          builder: (_, _) => const RoleManagement(),
         ),
       ],
     ),
