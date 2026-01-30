@@ -81,17 +81,17 @@ class AuthRepositoryImpl implements AuthRepository {
   /// 4. Logout from Google
   @override
   Future<void> logout() async {
-    if (_isLoggingOut) return; // 🛑 กันรั่ว
+    if (_isLoggingOut) return;
     _isLoggingOut = true;
 
     try {
-      await api.logout(); // best effort
-    } catch (_) {}
-
-    await storage.clear();
-    apiClient.clearToken();
-    await google.logout();
-
-    _isLoggingOut = false;
+      await api.logout();
+      await storage.clear();
+      apiClient.clearToken();
+      await google.logout();
+    } finally {
+      _isLoggingOut = false;
+    }
   }
+
 }

@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'auth_result.dart';
+
+/// Auth result model from backend
+/// Contains access token and user role
 
 /// Service class for authentication APIs
 class AuthApiService {
@@ -10,33 +13,26 @@ class AuthApiService {
   /// Dio should be configured with baseUrl, interceptors, etc.
   AuthApiService(this.dio);
 
-  /// Google access token from client
-  /// Backend will verify it and return JWT + user info
+  /// accessToken is the Google access token from client
+  /// Backend will verify it and return JWT + role
   Future<AuthResult> loginWithGoogle(String accessToken) async {
-    try {
-      final res = await dio.post(
-        '/auth/google',
-        data: {
-          'token': accessToken,
-        },
-      );
+    final res = await dio.post(
+      '/auth/google',
+      data: {
+        'token': accessToken, // Google token
+      },
+    );
 
-      debugPrint('login response = ${res.data}');
+    // Debug backend response
+    debugPrint('login = ${res.data}');
 
-      return AuthResult.fromJson(res.data);
-    } on DioException catch (e) {
-      debugPrint('login error = ${e.response?.data}');
-      rethrow;
-    }
+    return AuthResult.fromJson(res.data);
   }
 
-  /// Best-effort logout
+  /// Usually used to invalidate refresh token on backend
+  /// Client still needs to clear local token storage
   Future<void> logout() async {
-    try {
-      final res = await dio.post('/auth/logout');
-      debugPrint('logout response = ${res.data}');
-    } catch (_) {
-      // ignore
-    }
+    final res = await dio.post('/auth/logout');
+    debugPrint('logout = ${res.data}');
   }
 }
