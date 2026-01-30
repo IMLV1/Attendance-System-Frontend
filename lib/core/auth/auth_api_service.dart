@@ -1,25 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
-/// Auth result model from backend
-/// Contains access token and user role
-class AuthResult {
-  /// JWT access token for API requests
-  final String accessToken;
-  final String role;
-
-  AuthResult({
-    required this.accessToken,
-    required this.role,
-  });
-
-  factory AuthResult.fromJson(Map<String, dynamic> json) {
-    return AuthResult(
-      accessToken: json['access_token'],
-      role: json['role'],
-    );
-  }
-}
+import 'auth_result.dart';
 
 /// Service class for authentication APIs
 class AuthApiService {
@@ -28,26 +10,33 @@ class AuthApiService {
   /// Dio should be configured with baseUrl, interceptors, etc.
   AuthApiService(this.dio);
 
-  /// accessToken is the Google access token from client
-  /// Backend will verify it and return JWT + role
+  /// Google access token from client
+  /// Backend will verify it and return JWT + user info
   Future<AuthResult> loginWithGoogle(String accessToken) async {
-    final res = await dio.post(
-      '/auth/google',
-      data: {
-        'token': accessToken, // Google token
-      },
-    );
+    try {
+      final res = await dio.post(
+        '/auth/google',
+        data: {
+          'token': accessToken,
+        },
+      );
 
-    // Debug backend response
-    debugPrint('login = ${res.data}');
+      debugPrint('login response = ${res.data}');
 
-    return AuthResult.fromJson(res.data);
+      return AuthResult.fromJson(res.data);
+    } on DioException catch (e) {
+      debugPrint('login error = ${e.response?.data}');
+      rethrow;
+    }
   }
 
-  /// Usually used to invalidate refresh token on backend
-  /// Client still needs to clear local token storage
+  /// Best-effort logout
   Future<void> logout() async {
-    final res = await dio.post('/auth/logout');
-    debugPrint('logout = ${res.data}');
+    try {
+      final res = await dio.post('/auth/logout');
+      debugPrint('logout response = ${res.data}');
+    } catch (_) {
+      // ignore
+    }
   }
 }

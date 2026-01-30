@@ -41,7 +41,7 @@ class AuthState extends ChangeNotifier {
   Future<void> loginWithGoogle() async {
     try {
       final result = await repo.loginWithGoogle();
-      role = result.role;
+      role = result.user.role;
       status = AuthStatus.authenticated;
     } catch (e) {
       status = AuthStatus.unauthenticated;
