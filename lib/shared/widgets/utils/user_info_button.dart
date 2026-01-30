@@ -1,18 +1,21 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class IconTextButton extends StatelessWidget {
+class UserInfoButton extends StatelessWidget {
 
-  final String icon;
-  final String label;
+  final Widget icon;
+  final String title;
+  final String subTitle;
+  final List<Map<String, String>> roles;
   final bool arrow;
   final VoidCallback? onPressed;
-  final Color color;
 
-  const IconTextButton({super.key, required this.icon, required this.label, this.arrow = true, this.onPressed, this.color = Colors.black});
+  const UserInfoButton({super.key, required this.icon, required this.title, required this.subTitle, this.arrow = true, this.onPressed, required this.roles});
 
   @override
   Widget build(BuildContext context) {
+
     return ElevatedButton(
 
         onPressed: onPressed ?? () {},
@@ -25,24 +28,18 @@ class IconTextButton extends StatelessWidget {
         ),
 
         child: Padding(
-            padding: EdgeInsets.all(15),
+            padding: EdgeInsets.symmetric(horizontal: 0),
             child: Row(
               children: [
-                SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: SvgPicture.asset(
-                      'assets/images/$icon',
-                      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                    )
-                ),
-                SizedBox(width: 10),
-                Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: color
-                    )
+                Container(
+                  width: 40,
+                  height: 40,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    color: Colors.red,
+                  ),
+                  child: Center(child: icon)
                 ),
                 Spacer(),
                 if (arrow) SizedBox(
@@ -57,4 +54,5 @@ class IconTextButton extends StatelessWidget {
         )
     );
   }
+
 }

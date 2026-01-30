@@ -45,9 +45,9 @@ class GoogleLoginServiceImpl implements GoogleLoginService {
         throw Exception('Access token not found');
       }
 
-      if (auth.idToken == null) {
-        throw Exception('ID token not found');
-      }
+      // if (auth.idToken == null) {
+      //   throw Exception('ID token not found');
+      // }
 
       // Return Google access token to backend
       return auth.accessToken;
