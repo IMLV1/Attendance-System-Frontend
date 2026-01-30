@@ -3,7 +3,9 @@ import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:provider/provider.dart';
 
+import '../../core/auth/auth_state.dart';
 import '../../domain/profile_service/profile_model.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -32,6 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
     //   email: 'duaydee.t@eng.src.ku.ac.th',
     //   avatarAsset: 'assets/images/Avatar_profile.png',
     // );
+    final auth = context.watch<AuthState>();
 
     return AppScaffold(
       header: Header.mainHeader(context,
@@ -64,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             thName: profile.thName,
                             enName: profile.enName,
                             email: profile.email,
-                            // avatarAsset: profile.,
+                            avatarAsset: auth.profileUrl,
                           ),
                           const SizedBox(height: 12),
 
@@ -100,17 +103,18 @@ class _ProfileHeaderCard extends StatelessWidget {
   final String thName; // ชื่อภาษาไทย
   final String enName; // ชื่อภาษาอังกฤษ
   final String email; // อีเมล
-  // final String avatarAsset; // รูปโปรไฟล์
+  final String? avatarAsset;
 
   const _ProfileHeaderCard({
     required this.thName,
     required this.enName,
     required this.email,
-    // required this.avatarAsset,
+    this.avatarAsset,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasAvatar = avatarAsset != null && avatarAsset!.isNotEmpty;
     return Card(
       elevation: 0, // ไม่ให้เงา (เรียบ ๆ)
       shape: RoundedRectangleBorder(
@@ -121,11 +125,20 @@ class _ProfileHeaderCard extends StatelessWidget {
         child: Row(
           children: [
             // รูปโปรไฟล์
+            // CircleAvatar(
+            //   radius: 20,
+            //   // backgroundImage: AssetImage(avatarAsset),
+            //   backgroundColor: Colors.transparent,
+            // ),
+
             CircleAvatar(
               radius: 20,
-              // backgroundImage: AssetImage(avatarAsset),
-              backgroundColor: Colors.transparent,
+              backgroundImage: hasAvatar ? NetworkImage(avatarAsset!) : null,
+              child: !hasAvatar
+                  ? const Icon(Icons.person, size: 20)
+                  : null,
             ),
+
             const SizedBox(width: 12),
 
             // ข้อความชื่อ 2 บรรทัด

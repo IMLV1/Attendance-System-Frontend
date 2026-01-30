@@ -19,6 +19,7 @@ class AuthState extends ChangeNotifier {
 
   /// Current user role (e.g. admin, approval, user)
   String? role;
+  String? profileUrl;
 
   AuthState(this.repo);
 
@@ -41,7 +42,8 @@ class AuthState extends ChangeNotifier {
   Future<void> loginWithGoogle() async {
     try {
       final result = await repo.loginWithGoogle();
-      role = result.role;
+      role = result.user.role;
+      profileUrl = result.picture;
       status = AuthStatus.authenticated;
     } catch (e) {
       status = AuthStatus.unauthenticated;
@@ -57,6 +59,7 @@ class AuthState extends ChangeNotifier {
   Future<void> logout() async {
     await repo.logout();
     role = null;
+    profileUrl = null;
     status = AuthStatus.unauthenticated;
     notifyListeners();
   }

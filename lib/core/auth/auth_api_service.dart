@@ -1,25 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 
+import 'auth_result.dart';
+
 /// Auth result model from backend
 /// Contains access token and user role
-class AuthResult {
-  /// JWT access token for API requests
-  final String accessToken;
-  final String role;
-
-  AuthResult({
-    required this.accessToken,
-    required this.role,
-  });
-
-  factory AuthResult.fromJson(Map<String, dynamic> json) {
-    return AuthResult(
-      accessToken: json['access_token'],
-      role: json['role'],
-    );
-  }
-}
 
 /// Service class for authentication APIs
 class AuthApiService {

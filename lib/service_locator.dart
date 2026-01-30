@@ -15,7 +15,7 @@ import 'domain/profile_service/profile_service.dart';
 final getIt = GetIt.instance;
 
 /// Setup dependency injection
-///
+
 /// Registers:
 /// - Network (Dio, ApiClient)
 /// - Auth services (Google login, token storage, API)
