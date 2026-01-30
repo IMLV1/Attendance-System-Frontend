@@ -81,7 +81,16 @@ class SettingPage extends StatelessWidget {
                       children: [
                         IconTextButton(arrow: false, onPressed: () async {
                           await context.read<AuthState>().logout();
-                        }, icon: 'icon_setting.svg', label: 'ออกจากระบบ'),
+                        }, icon: 'icon_signature.svg', label: 'แก้ไขลายเซ็น', color: Colors.black),
+                        // TODO: change Color red in label text and change Icon
+                      ]
+                  ),
+                  SeparatorCard(
+                      separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                      children: [
+                        IconTextButton(arrow: false, onPressed: () async {
+                          await context.read<AuthState>().logout();
+                        }, icon: 'icon_logout.svg', label: 'ออกจากระบบ', color: Colors.red),
                         // TODO: change Color red in label text and change Icon
                       ]
                   ),

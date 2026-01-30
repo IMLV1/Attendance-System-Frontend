@@ -1,6 +1,8 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,6 +12,15 @@ class UserManagement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    List<Map<String, dynamic>> users = [
+      {'id': '1100000000000', 'name-th': 'ศ.ดร.ด้วยดี ตามไท', 'name-en': 'Prof. Dr. Duaydee Tamtai', 'profile': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=697d7ce8&is=697c2b68&hm=4687fb27b3ca45b7658b67c02eb42410cdc306c96f97887e0f9a66a22f56250e&=&format=webp&width=404&height=718', 'roles': [
+        {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+        {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
+        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'}
+      ]}
+    ];
+
     return AppScaffold(
       header: Header.subHeader(context, title: 'จัดการผู้ใช้งานระบบ'),
       content: SafeArea(
@@ -87,29 +98,105 @@ class UserManagement extends StatelessWidget {
                     ],
                   )
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Row(
-                    spacing: 6,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/users.svg',
-                      ),
-                      Text('ผู้ใช้งาน')
-                    ],
-                  )
-                ),
-                TextField(
-
-                  onChanged: (input) {},
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(50),
-
+                Column(
+                  spacing: 5,
+                  children: [
+                    Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(horizontal: 5),
+                        child: Row(
+                          spacing: 6,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/images/users.svg',
+                            ),
+                            Text('ผู้ใช้งาน')
+                          ],
+                        )
                     ),
-                    hintText: 'Enter a search term',
-                  ),
-                )
+                    SizedBox(
+                        width: double.infinity,
+                        child: Row(
+                          spacing: 10,
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                onChanged: (input) {},
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(50),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                      width: 1,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(50),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                      width: 1,
+                                    ),
+                                  ),
+                                  hint: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 10,
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/search.svg',
+                                        width: 15,
+                                        height: 15,
+                                      ),
+                                      Text('ค้นหาผู้ใช้...',
+                                          style: TextStyle(
+                                              color: Color(0xFF7D7D7D),
+                                              fontSize: 15
+                                          )
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 55,
+                              child: ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    elevation: 0,
+                                    shadowColor: Colors.transparent,
+                                    padding: EdgeInsets.all(0),
+                                    side: const BorderSide(
+                                      color: Color(0xFF7D7D7D),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: SvgPicture.asset(
+                                    'assets/images/create_user.svg',
+                                    colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
+                                  )
+                              ),
+                            )
+                          ],
+                        )
+                    )
+                  ],
+                ),
+                SeparatorCard(
+                  children: [
+                    ...users.map((m) {
+                      return Container(
+                        width: double.infinity,
+                        color: Colors.white,
+                        padding: EdgeInsets.all(10),
+                        child: Text('1234')
+                      );
+                    })
+                  ]
+                ),
               ]
             )
           )
