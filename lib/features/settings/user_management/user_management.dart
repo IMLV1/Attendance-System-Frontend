@@ -192,7 +192,11 @@ class UserManagement extends StatelessWidget {
                         width: double.infinity,
                         color: Colors.white,
                         padding: EdgeInsets.all(10),
-                        child: Text('1234')
+                        child: UserInfoButton(
+                            icon: Image.network(m['profile']),
+                            title: m['name-th'],
+                            subTitle: m['name-en'],
+                            roles: m['roles'])
                       );
                     })
                   ]

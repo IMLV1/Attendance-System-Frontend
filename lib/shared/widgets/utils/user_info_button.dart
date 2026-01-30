@@ -7,10 +7,11 @@ class UserInfoButton extends StatelessWidget {
   final Widget icon;
   final String title;
   final String subTitle;
+  final List<Map<String, String>> roles;
   final bool arrow;
   final VoidCallback? onPressed;
 
-  const UserInfoButton({super.key, required this.icon, required this.title, required this.subTitle, this.arrow = true, this.onPressed});
+  const UserInfoButton({super.key, required this.icon, required this.title, required this.subTitle, this.arrow = true, this.onPressed, required this.roles});
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +28,18 @@ class UserInfoButton extends StatelessWidget {
         ),
 
         child: Padding(
-            padding: EdgeInsets.all(15),
+            padding: EdgeInsets.symmetric(horizontal: 0),
             child: Row(
               children: [
                 Container(
-                  color: Colors.red
+                  width: 40,
+                  height: 40,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    color: Colors.red,
+                  ),
+                  child: Center(child: icon)
                 ),
                 Spacer(),
                 if (arrow) SizedBox(
