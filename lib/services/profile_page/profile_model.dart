@@ -7,7 +7,7 @@ class ProfileModel {
   final String nationality;
   final String phone;
   final String email;
-  final String role_init;
+  final List<Role> roles;
   final String avatarUrl;
 
   ProfileModel({
@@ -19,12 +19,11 @@ class ProfileModel {
     required this.nationality,
     required this.phone,
     required this.email,
-    required this.role_init,
+    required this.roles,
     required this.avatarUrl,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
-
     return ProfileModel(
       staffId: json['employee_id'] ?? '',
       citizenId: json['user_id'] ?? '',
@@ -34,8 +33,24 @@ class ProfileModel {
       nationality: json['nationality'] ?? '',
       phone: json['phone'] ?? '',
       email: json['email'] ?? '',
-      role_init: json['role_init'] ?? '',
+      roles: (json['role_sys'] as List<dynamic>?)
+          ?.map((e) => Role.fromJson(e))
+          .toList() ?? [],
       avatarUrl: json['picture'] ?? '',
+    );
+  }
+}
+
+class Role {
+  final String name;
+  final String colorHex;
+
+  Role({required this.name, required this.colorHex});
+
+  factory Role.fromJson(Map<String, dynamic> json) {
+    return Role(
+      name: json['role_name'] ?? '',
+      colorHex: json['role_color'] ?? '#000000',
     );
   }
 }
