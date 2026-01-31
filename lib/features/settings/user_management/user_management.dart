@@ -14,10 +14,62 @@ class UserManagement extends StatelessWidget {
   Widget build(BuildContext context) {
 
     List<Map<String, dynamic>> users = [
+      {'id': '1100000000000', 'name-th': 'ศ.ดร.บลาๆๆๆๆๆๆๆๆ นี่คือนามสกุล', 'name-en': 'Prof. Dr. ThisisSurName ThisIsLastName', 'profile': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=697d7ce8&is=697c2b68&hm=4687fb27b3ca45b7658b67c02eb42410cdc306c96f97887e0f9a66a22f56250e&=&format=webp&width=404&height=718', 'roles': [
+        {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+        {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
+        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'},
+        {'role-name': 'abc', 'role-color': '123456'},
+        {'role-name': 'def', 'role-color': '789abc'},
+        {'role-name': 'ghi', 'role-color': '00fffd'},
+        {'role-name': 'jkl', 'role-color': '00d91a'},
+
+      ]},
+      {'id': '1100000000000', 'name-th': 'ศ.ดร.บลาๆๆๆๆๆๆๆๆ นี่คือนามสกุล', 'name-en': 'Prof. Dr. ThisisSurName ThisIsLastName', 'profile': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=697d7ce8&is=697c2b68&hm=4687fb27b3ca45b7658b67c02eb42410cdc306c96f97887e0f9a66a22f56250e&=&format=webp&width=404&height=718', 'roles': [
+        {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+        {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
+        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'},
+        {'role-name': 'abc', 'role-color': '123456'},
+        {'role-name': 'def', 'role-color': '789abc'},
+        {'role-name': 'ghi', 'role-color': '00fffd'},
+        {'role-name': 'jkl', 'role-color': '00d91a'},
+
+      ]},
+      {'id': '1100000000000', 'name-th': 'ศ.ดร.บลาๆๆๆๆๆๆๆๆ นี่คือนามสกุล', 'name-en': 'Prof. Dr. ThisisSurName ThisIsLastName', 'profile': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=697d7ce8&is=697c2b68&hm=4687fb27b3ca45b7658b67c02eb42410cdc306c96f97887e0f9a66a22f56250e&=&format=webp&width=404&height=718', 'roles': [
+        {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+        {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
+        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'},
+        {'role-name': 'abc', 'role-color': '123456'},
+        {'role-name': 'def', 'role-color': '789abc'},
+        {'role-name': 'ghi', 'role-color': '00fffd'},
+        {'role-name': 'jkl', 'role-color': '00d91a'},
+
+      ]},
+      {'id': '1100000000000', 'name-th': 'ศ.ดร.บลาๆๆๆๆๆๆๆๆ นี่คือนามสกุล', 'name-en': 'Prof. Dr. ThisisSurName ThisIsLastName', 'profile': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=697d7ce8&is=697c2b68&hm=4687fb27b3ca45b7658b67c02eb42410cdc306c96f97887e0f9a66a22f56250e&=&format=webp&width=404&height=718', 'roles': [
+        {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+        {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
+        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'},
+        {'role-name': 'abc', 'role-color': '123456'},
+        {'role-name': 'def', 'role-color': '789abc'},
+        {'role-name': 'ghi', 'role-color': '00fffd'},
+        {'role-name': 'jkl', 'role-color': '00d91a'},
+
+      ]},
+      {'id': '1100000000000', 'name-th': 'ศ.ดร.บลาๆๆๆๆๆๆๆๆ นี่คือนามสกุล', 'name-en': 'Prof. Dr. ThisisSurName ThisIsLastName', 'profile': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=697d7ce8&is=697c2b68&hm=4687fb27b3ca45b7658b67c02eb42410cdc306c96f97887e0f9a66a22f56250e&=&format=webp&width=404&height=718', 'roles': [
+        {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+        {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
+        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'},
+        {'role-name': 'abc', 'role-color': '123456'},
+        {'role-name': 'def', 'role-color': '789abc'},
+        {'role-name': 'ghi', 'role-color': '00fffd'},
+        {'role-name': 'jkl', 'role-color': '00d91a'},
+
+      ]},
+      {'id': '1100000000000', 'name-th': 'ศ.ดร.ธีธัช ปิตานุพง', 'name-en': 'Prof. Dr. Teetat Pitanuphong', 'profile': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=697d7ce8&is=697c2b68&hm=4687fb27b3ca45b7658b67c02eb42410cdc306c96f97887e0f9a66a22f56250e&=&format=webp&width=404&height=718', 'roles': [
+        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'}
+      ]},
       {'id': '1100000000000', 'name-th': 'ศ.ดร.ด้วยดี ตามไท', 'name-en': 'Prof. Dr. Duaydee Tamtai', 'profile': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=697d7ce8&is=697c2b68&hm=4687fb27b3ca45b7658b67c02eb42410cdc306c96f97887e0f9a66a22f56250e&=&format=webp&width=404&height=718', 'roles': [
         {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
         {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
-        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'}
       ]}
     ];
 
@@ -28,7 +80,7 @@ class UserManagement extends StatelessWidget {
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+            padding: EdgeInsets.only(left: 10, right: 10, top: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               spacing: 13,
@@ -185,22 +237,30 @@ class UserManagement extends StatelessWidget {
                     )
                   ],
                 ),
-                SeparatorCard(
-                  children: [
-                    ...users.map((m) {
-                      return Container(
-                        width: double.infinity,
-                        color: Colors.white,
-                        padding: EdgeInsets.all(10),
-                        child: UserInfoButton(
-                            icon: Image.network(m['profile']),
-                            title: m['name-th'],
-                            subTitle: m['name-en'],
-                            roles: m['roles'])
-                      );
-                    })
-                  ]
-                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SeparatorCard(
+                        separatorPadding: EdgeInsets.only(left: 70, right: 15),
+                        children: [
+                          ...users.map((m) {
+                            return UserInfoButton(
+                              onPressed: () {
+
+                              },
+                              icon: Image.network(
+                                  m['profile'],
+                                  fit: BoxFit.cover
+                              ),
+                              title: m['name-th'],
+                              subTitle: m['name-en'],
+                              roles: m['roles']
+                            );
+                          })
+                        ]
+                    ),
+                  ),
+                )
               ]
             )
           )
