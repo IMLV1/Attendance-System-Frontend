@@ -3,14 +3,14 @@ class UserModel {
   final String email;
   final String name;
   final String? avatarUrl;
-  final String role;
+  final List<String> roleType;
 
   UserModel({
     required this.id,
     required this.email,
     required this.name,
     this.avatarUrl,
-    required this.role,
+    required this.roleType,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -19,7 +19,7 @@ class UserModel {
       email: json['email'],
       name: json['name'],
       avatarUrl: json['avatar'],
-      role: json['role'],
+      roleType: List<String>.from(json['role'] ?? []),
     );
   }
 }
