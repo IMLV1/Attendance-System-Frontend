@@ -6,7 +6,11 @@ class SeparatorCard extends StatelessWidget {
   final List<Widget> children;
   final EdgeInsetsGeometry separatorPadding;
 
-  const SeparatorCard({super.key, this.children = const [], this.separatorPadding = const EdgeInsetsGeometry.all(0)});
+  const SeparatorCard({
+    super.key,
+    this.children = const [],
+    this.separatorPadding = const EdgeInsetsGeometry.all(0)
+  });
 
   @override
   Widget build(BuildContext context) {
