@@ -21,26 +21,50 @@ import '../service_locator.dart';
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
   initialLocation: '/login',
-  redirect: (_, state) {
-    // final auth = getIt<AuthState>();
-    // final location = state.matchedLocation;
+  // redirect: (_, state) {
+  //
+  //   final location = state.matchedLocation;
+  //
+  //   if (location == '/') return 'login';
+  //   return null;
+  //
+  //   final auth = getIt<AuthState>();
+  //   final location = state.matchedLocation;
+  //
+  //   if (auth.status == AuthStatus.unknown) {
+  //     return location == '/splash' ? null : '/splash';
+  //   }
+  //
+  //   if (!auth.isLoggedIn) {
+  //     return location == '/login' ? null : '/login';
+  //   }
+  //
+  //   if (auth.isLoggedIn && (location == '/login' || location == '/splash')) {
+  //     return '/home';
+  //   }
+  //
+  //   return null;
 
-    // if (auth.status == AuthStatus.unknown) {
-    //   return location == '/splash' ? null : '/splash';
-    // }
-    //
-    // final isLogin = location == '/login';
-    //
-    // if (auth.status == AuthStatus.unauthenticated) {
-    //   return isLogin ? null : '/login';
-    // }
-    //
-    // if (auth.status == AuthStatus.authenticated && isLogin) {
-    //   return '/check-in';
-    // }
+    redirect: (_, state) {
+      final auth = getIt<AuthState>();
+      final location = state.matchedLocation;
 
-    return null;
-  },
+      if (auth.status == AuthStatus.unknown) {
+        return location == '/splash' ? null : '/splash';
+      }
+
+      final isLogin = location == '/login';
+
+      if (auth.status == AuthStatus.unauthenticated) {
+        return isLogin ? null : '/login';
+      }
+
+      if (auth.status == AuthStatus.authenticated && isLogin) {
+        return '/check-in';
+      }
+
+      return null;
+    },
 
   routes: [
     GoRoute(
