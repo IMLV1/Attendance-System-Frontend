@@ -12,26 +12,30 @@ void setupAuthInterceptor(
       required AuthRepository authRepository,
       required TokenStorage tokenStorage,
     }) {
+  bool isLoggingOut = false;
+
   dio.interceptors.add(
     InterceptorsWrapper(
-      /// Called before request is sent
       onRequest: (options, handler) async {
         final token = await tokenStorage.accessToken;
-
-        // Attach Authorization header if token exists
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
-
         handler.next(options);
       },
 
-      /// Called when request returns an error
       onError: (e, handler) async {
-        // If token is invalid or expired
-        if (e.response?.statusCode == 401) {
-          // Logout user and clear local auth data
+        final status = e.response?.statusCode;
+        final path = e.requestOptions.path;
+
+        if (status == 401 &&
+            !isLoggingOut &&
+            !path.contains('/auth/google') &&
+            !path.contains('/auth/logout')) {
+
+          isLoggingOut = true;
           await authRepository.logout();
+          isLoggingOut = false;
         }
 
         handler.next(e);
@@ -39,3 +43,4 @@ void setupAuthInterceptor(
     ),
   );
 }
+

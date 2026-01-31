@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/auth/user_model.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_repository.dart';
@@ -18,8 +19,7 @@ class AuthState extends ChangeNotifier {
   AuthStatus status = AuthStatus.unknown;
 
   /// Current user role (e.g. admin, approval, user)
-  String? role;
-  String? profileUrl;
+  UserModel? user;
 
   AuthState(this.repo);
 
@@ -42,8 +42,7 @@ class AuthState extends ChangeNotifier {
   Future<void> loginWithGoogle() async {
     try {
       final result = await repo.loginWithGoogle();
-      role = result.user.role;
-      profileUrl = result.picture;
+      user = result.user;
       status = AuthStatus.authenticated;
     } catch (e) {
       status = AuthStatus.unauthenticated;
@@ -58,8 +57,7 @@ class AuthState extends ChangeNotifier {
   /// Clears tokens, resets role, and updates auth state
   Future<void> logout() async {
     await repo.logout();
-    role = null;
-    profileUrl = null;
+    user = null;
     status = AuthStatus.unauthenticated;
     notifyListeners();
   }
