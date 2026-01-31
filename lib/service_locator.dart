@@ -1,3 +1,4 @@
+import 'package:attendance_system/services/profile_page/profile_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -9,6 +10,9 @@ import 'core/auth/token_storage.dart';
 import 'core/network/api_client.dart';
 import 'core/network/api_config.dart';
 import 'core/network/auth_interceptor.dart';
+
+// --- ADD THIS IMPORT ---
+// Update the path to match where your ProfileService file is located
 
 final getIt = GetIt.instance;
 
@@ -37,7 +41,7 @@ Future<void> setupServiceLocator() async {
         () => ApiClient(dio),
   );
 
-  ///⃣ Google login
+  /// Google login
   getIt.registerLazySingleton<GoogleLoginService>(
         () => GoogleLoginServiceImpl(),
   );
@@ -45,6 +49,11 @@ Future<void> setupServiceLocator() async {
   /// Auth API
   getIt.registerLazySingleton<AuthApiService>(
         () => AuthApiService(dio),
+  );
+
+  /// Profile Service
+  getIt.registerLazySingleton<ProfileService>(
+        () => ProfileService(),
   );
 
   /// Auth repository
@@ -57,7 +66,7 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
-  /// Dio auth interceptor (ก่อน AuthState)
+  /// Dio auth interceptor
   setupAuthInterceptor(
     dio,
     authRepository: getIt<AuthRepository>(),
