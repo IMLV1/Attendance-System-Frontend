@@ -39,6 +39,8 @@ class AuthApiService {
 
   Future<UserModel> getMe() async {
     final res = await dio.get('/auth/me');
+    debugPrint('getMe = ${res.data}');
+
     return UserModel.fromJson(res.data);
   }
 }
