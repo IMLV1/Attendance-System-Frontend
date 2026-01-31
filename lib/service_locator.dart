@@ -9,23 +9,14 @@ import 'core/auth/token_storage.dart';
 import 'core/network/api_client.dart';
 import 'core/network/api_config.dart';
 import 'core/network/auth_interceptor.dart';
-import 'domain/profile_service/profile_service.dart';
 
-/// Global service locator instance
 final getIt = GetIt.instance;
 
-/// Setup dependency injection
-
-/// Registers:
-/// - Network (Dio, ApiClient)
-/// - Auth services (Google login, token storage, API)
-/// - Auth state & repository
-/// - Dio auth interceptor
 Future<void> setupServiceLocator() async {
-  /// Initialize API configuration (baseUrl, headers, timeouts)
+  /// API config
   ApiConfig.init();
 
-  /// Create Dio instance with base configuration
+  /// Dio (single instance)
   final dio = Dio(
     BaseOptions(
       baseUrl: ApiConfig.baseUrl,
@@ -34,54 +25,47 @@ Future<void> setupServiceLocator() async {
       receiveTimeout: ApiConfig.receiveTimeout,
     ),
   );
-
-  /// Register Dio (single instance)
   getIt.registerSingleton<Dio>(dio);
 
-  /// Register API client wrapper
-  getIt.registerLazySingleton<ApiClient>(() => ApiClient(dio));
-
-  /// Google Sign-In service
-  getIt.registerLazySingleton<GoogleLoginService>(
-        () => GoogleLoginServiceImpl(),
-  );
-
-  /// Secure token storage
+  /// Token storage
   getIt.registerLazySingleton<TokenStorage>(
         () => SecureTokenStorage(),
   );
 
-  /// Auth API service (network only)
+  /// ApiClient
+  getIt.registerLazySingleton<ApiClient>(
+        () => ApiClient(dio),
+  );
+
+  ///⃣ Google login
+  getIt.registerLazySingleton<GoogleLoginService>(
+        () => GoogleLoginServiceImpl(),
+  );
+
+  /// Auth API
   getIt.registerLazySingleton<AuthApiService>(
         () => AuthApiService(dio),
   );
 
-  /// Auth repository (business logic)
+  /// Auth repository
   getIt.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(
-      getIt(), // AuthApiService
-      getIt(), // TokenStorage
-      getIt(), // GoogleLoginService
-      getIt(), // ApiClient
+      getIt<AuthApiService>(),
+      getIt<TokenStorage>(),
+      getIt<GoogleLoginService>(),
+      getIt<ApiClient>(),
     ),
   );
 
-  /// Global authentication state
-  getIt.registerLazySingleton<AuthState>(
-        () => AuthState(getIt()),
-  );
-
-  /// Setup Dio auth interceptor
-  /// - Attach access token to requests
-  /// - Auto logout on 401 response
+  /// Dio auth interceptor (ก่อน AuthState)
   setupAuthInterceptor(
     dio,
     authRepository: getIt<AuthRepository>(),
     tokenStorage: getIt<TokenStorage>(),
   );
 
-  getIt.registerLazySingleton<ProfileService>(
-        () => ProfileService()
+  /// Global AuthState
+  getIt.registerLazySingleton<AuthState>(
+        () => AuthState(getIt<AuthRepository>()),
   );
-
 }

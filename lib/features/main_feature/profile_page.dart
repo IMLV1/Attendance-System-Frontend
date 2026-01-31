@@ -34,7 +34,8 @@ class _ProfilePageState extends State<ProfilePage> {
     //   email: 'duaydee.t@eng.src.ku.ac.th',
     //   avatarAsset: 'assets/images/Avatar_profile.png',
     // );
-    final auth = context.watch<AuthState>();
+    // final auth = context.watch<AuthState>();
+    // debugPrint('url = ${auth.profileUrl}');
 
     return AppScaffold(
       header: Header.mainHeader(context,
@@ -67,7 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             thName: profile.thName,
                             enName: profile.enName,
                             email: profile.email,
-                            avatarAsset: auth.profileUrl,
+                            // avatarAsset: auth.profileUrl,
                           ),
                           const SizedBox(height: 12),
 
@@ -232,8 +233,11 @@ class ProfileFieldRow extends StatelessWidget {
 
 /// การ์ดตำแหน่ง/บทบาทปัจจุบัน (ตอนนี้ทำเป็นตัวอย่างด้วย chip tag)
 class _CurrentPositionCard extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthState>();
+    // debugPrint('role = ${auth.role}');
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
