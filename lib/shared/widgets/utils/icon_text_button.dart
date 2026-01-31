@@ -9,7 +9,14 @@ class IconTextButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Color color;
 
-  const IconTextButton({super.key, required this.icon, required this.label, this.arrow = true, this.onPressed, this.color = Colors.black});
+  const IconTextButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.arrow = true,
+    this.onPressed,
+    this.color = Colors.black
+  });
 
   @override
   Widget build(BuildContext context) {
