@@ -1,10 +1,9 @@
-import 'package:attendance_system/domain/profile_service/profile_service.dart';
+import 'package:attendance_system/services/profile_service/profile_model.dart';
+import 'package:attendance_system/services/profile_service/profile_service.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-
-import '../../domain/profile_service/profile_model.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

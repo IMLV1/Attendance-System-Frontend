@@ -8,7 +8,20 @@ class Header {
 
   static AppBar subHeader(BuildContext context, {title = 'Default Title'}) {
 
-    int permissionLevel = 3;
+    final width = MediaQuery
+        .of(context)
+        .size
+        .width;
+
+    double scaleFactor;
+
+    if (width < 600) {
+      scaleFactor = 1.0; // mobile
+    } else if (width < 1200) {
+      scaleFactor = 1.2; // tablet
+    } else {
+      scaleFactor = 1.4; // desktop
+    }
 
     return AppBar(
       backgroundColor: AppColors.barColor,
@@ -16,20 +29,30 @@ class Header {
 
       leadingWidth: 56,
 
-      toolbarHeight: 40,
+      toolbarHeight: 40 * scaleFactor,
 
       centerTitle: true,
 
       automaticallyImplyLeading: false,
 
-      leading: context.canPop() ? IconButton(
+      leading: Navigator.of(context).canPop() ?
+      IconButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        icon: SvgPicture.asset(
+          'assets/images/back_button.svg',
+          width: 24 * scaleFactor,
+          height: 24 * scaleFactor,
+        ),
+      ) : context.canPop() ? IconButton(
         onPressed: () {
           context.pop();
         },
         icon: SvgPicture.asset(
           'assets/images/back_button.svg',
-          width: 24,
-          height: 24,
+          width: 24 * scaleFactor,
+          height: 24 * scaleFactor,
         ),
       ) : null,
 
@@ -45,12 +68,28 @@ class Header {
   }
 
   static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath = 'google_logo.svg'}) {
+
+    final width = MediaQuery
+        .of(context)
+        .size
+        .width;
+
+    double scaleFactor;
+
+    if (width < 600) {
+      scaleFactor = 1.0; // mobile
+    } else if (width < 1200) {
+      scaleFactor = 1.2; // tablet
+    } else {
+      scaleFactor = 1.4; // desktop
+    }
+
     return AppBar(
       backgroundColor: AppColors.barColor,
       elevation: 0,
 
       /// ความสูง header
-      toolbarHeight: 65,
+      toolbarHeight: 65 * scaleFactor,
 
       automaticallyImplyLeading: false,
 
@@ -60,8 +99,8 @@ class Header {
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 40 * scaleFactor,
+              height: 40 * scaleFactor,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
                 color: AppColors.barHighlightColor,
@@ -69,8 +108,8 @@ class Header {
               child: Center(
                 child: SvgPicture.asset(
                   'assets/images/$iconPath',
-                  width: 28,
-                  height: 28,
+                  width: 28 * scaleFactor,
+                  height: 28 * scaleFactor,
                 ),
               ),
             ),

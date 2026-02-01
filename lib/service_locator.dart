@@ -1,3 +1,4 @@
+import 'package:attendance_system/services/profile_service/profile_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -9,7 +10,6 @@ import 'core/auth/token_storage.dart';
 import 'core/network/api_client.dart';
 import 'core/network/api_config.dart';
 import 'core/network/auth_interceptor.dart';
-import 'domain/profile_service/profile_service.dart';
 
 /// Global service locator instance
 final getIt = GetIt.instance;
