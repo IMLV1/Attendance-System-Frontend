@@ -10,51 +10,79 @@ import '../../../shared/widgets/utils/app_button_list_card.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 
-class RoleManagement extends StatelessWidget {
+class RoleManagement extends StatefulWidget {
   const RoleManagement({super.key});
 
-  get countMainRole => null;
+  @override
+  State<RoleManagement> createState() => _RoleManagementState();
+}
+class _RoleManagementState extends State<RoleManagement> {
+  final TextEditingController _controller = TextEditingController();
+
+  late List<Map<String, dynamic>> _allData;
+  late List<Map<String, dynamic>> _filteredData;
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _filteredData = _allData.where((item) {
+        return item['title']
+            .toString()
+            .toLowerCase()
+            .contains(value.toLowerCase());
+      }).toList();
+    });
+  }
+
+  int get countMainRole => _filteredData.length;
+
+  final List<Map<String, dynamic>> _dataTest = [
+    {
+      'icon': 'icon_admin.svg',
+      'title': 'ผู้ดูแล',
+      'subTitle': 'สมาชิก 1 คน',
+      'iconColor': null,
+      'arrow': true,
+      'timeStamp': null,
+      'notation': null,
+    },
+    {
+      'icon': 'icon_sick_cancel.svg',
+      'title': 'คำขอลางานถูกปฏิเสธ',
+      'subTitle':
+      'คำขอลาป่วยวันที่ 24 ก.ย. 2568 ถึงวันที่ 30 ก.ย. 2568 ถูกปฎิเสธโดย ผศ.ดร.สมชาย ใจดี',
+      'iconColor': null,
+      'arrow': true,
+      'timeStamp': 'มกราคม 13',
+      'notation': 'หมายเลขคำขอ: LEV000000065013',
+    },{
+      'icon': 'role_management.svg',
+      'title': 'ผู้ดูแล',
+      'subTitle': 'สมาชิก 1 คน',
+      'iconColor': Colors.blue,
+      'arrow': true,
+      'timeStamp': null,
+      'notation': null,
+    },
+    {
+      'icon': 'icon_cancel.svg',
+      'title': '17/09/2020 - 18/03/2021',
+      'subTitle': 'หมายเลขคำขอ: LEV000000065012',
+      'iconColor': Color(0xFFE7000B),
+      'arrow': true,
+      'timeStamp': null,
+      'notation': null,
+    }
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _allData = _dataTest;
+    _filteredData = _dataTest;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> dataTest = [
-      {
-        'icon': 'icon_admin.svg',
-        'title': 'ผู้ดูแล',
-        'subTitle': 'สมาชิก 1 คน',
-        'iconColor': null,
-        'arrow': true,
-        'timeStamp': null,
-        'notation': null,
-      },
-      {
-        'icon': 'icon_sick_cancel.svg',
-        'title': 'คำขอลางานถูกปฏิเสธ',
-        'subTitle':
-        'คำขอลาป่วยวันที่ 24 ก.ย. 2568 ถึงวันที่ 30 ก.ย. 2568 ถูกปฎิเสธโดย ผศ.ดร.สมชาย ใจดี',
-        'iconColor': null,
-        'arrow': true,
-        'timeStamp': 'มกราคม 13',
-        'notation': 'หมายเลขคำขอ: LEV000000065013',
-      },{
-        'icon': 'role_management.svg',
-        'title': 'ผู้ดูแล',
-        'subTitle': 'สมาชิก 1 คน',
-        'iconColor': Colors.blue,
-        'arrow': true,
-        'timeStamp': null,
-        'notation': null,
-      },
-      {
-        'icon': 'icon_cancel.svg',
-        'title': '17/09/2020 - 18/03/2021',
-        'subTitle': 'หมายเลขคำขอ: LEV000000065012',
-        'iconColor': Color(0xFFE7000B),
-        'arrow': true,
-        'timeStamp': null,
-        'notation': null,
-      }
-    ];
 
     return AppScaffold(
       header: Header.subHeader(
@@ -84,8 +112,8 @@ class RoleManagement extends StatelessWidget {
                   ],
                 ),
                 TextField(
-                  // controller: _controller,
-                  // onChanged: _onSearchChanged,
+                  controller: _controller,
+                  onChanged: _onSearchChanged,
                   decoration: InputDecoration(
                     isDense: true,
                     filled: true,
@@ -152,10 +180,12 @@ class RoleManagement extends StatelessWidget {
                               ],
                             ),
                             AppButtonListCard(
-                                items: dataTest,
+                                items: _filteredData,
                             ),
                           ],
                         ),
+
+                        /// TODO:ตำแหน่งเสริม
                       ],
                     ),
                   ),
