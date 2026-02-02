@@ -144,16 +144,14 @@ class BottomNavigation extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Container(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'assets/images/$iconPath',
-                  width: 35,
-                  height: 35,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Icon(Icons.person, color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, size: 35),
-                ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                'assets/images/$iconPath',
+                width: 35,
+                height: 35,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Icon(Icons.person, color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, size: 35),
               ),
             ),
             const SizedBox(height: 4),
