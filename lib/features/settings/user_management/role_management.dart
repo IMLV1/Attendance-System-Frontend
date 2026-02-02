@@ -68,7 +68,6 @@ class _RoleManagementState extends State<RoleManagement> {
   late List<RoleSystem> _filteredMainRole;
   late List<RoleSystem> _filteredSpecialRole;
 
-
   @override
   void initState() {
     super.initState();
@@ -80,37 +79,26 @@ class _RoleManagementState extends State<RoleManagement> {
   }
 
   void _onSearchChanged(String value) {
-    final keyword = value.toLowerCase();
+    final keyword = value.trim().toLowerCase();
 
     setState(() {
       if (keyword.isEmpty) {
         _filteredMainRole = roleManagement.mainRole;
         _filteredSpecialRole = roleManagement.specialRole;
       } else {
-        _filteredMainRole = roleManagement.mainRole.where((role) {
-          final matchRole =
-          role.roleName.toLowerCase().contains(keyword);
+        _filteredMainRole = roleManagement.mainRole
+            .where((role) =>
+            role.roleName.toLowerCase().contains(keyword))
+            .toList();
 
-          final matchMember = role.members.any((member) =>
-          member.thName.toLowerCase().contains(keyword) ||
-              member.enName.toLowerCase().contains(keyword));
-
-          return matchRole || matchMember;
-        }).toList();
-
-        _filteredSpecialRole = roleManagement.specialRole.where((role) {
-          final matchRole =
-          role.roleName.toLowerCase().contains(keyword);
-
-          final matchMember = role.members.any((member) =>
-          member.thName.toLowerCase().contains(keyword) ||
-              member.enName.toLowerCase().contains(keyword));
-
-          return matchRole || matchMember;
-        }).toList();
+        _filteredSpecialRole = roleManagement.specialRole
+            .where((role) =>
+            role.roleName.toLowerCase().contains(keyword))
+            .toList();
       }
     });
   }
+
 
   @override
   void dispose() {
