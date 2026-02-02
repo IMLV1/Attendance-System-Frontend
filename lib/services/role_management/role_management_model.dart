@@ -17,12 +17,12 @@ class RoleManagementModel {
 
 class RoleSystem {
   final String roleName;
-  final String roleColor;
+  final String? roleColor;
   final List<Member> members;
 
   RoleSystem({
     required this.roleName,
-    required this.roleColor,
+    this.roleColor,
     required this.members,
   });
 

@@ -4,8 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../services/role_management/role_management_model.dart';
 import '../../../shared/theme/app_colors.dart';
-import '../../../shared/widgets/utils/app_button_list_card.dart';
+import '../../../shared/widgets/utils/app_button.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 
@@ -15,74 +16,110 @@ class RoleManagement extends StatefulWidget {
   @override
   State<RoleManagement> createState() => _RoleManagementState();
 }
+
 class _RoleManagementState extends State<RoleManagement> {
-  final TextEditingController _controller = TextEditingController();
 
-  late List<Map<String, dynamic>> _allData;
-  late List<Map<String, dynamic>> _filteredData;
+  final roleManagement = RoleManagementModel(
+    mainRole: [
+      RoleSystem(
+        roleName: "ผู้ดูแลระบบ",
+        // roleColor: "FF3B30",
+        members: [
+          Member(
+            thName: "สมชาย ใจดี",
+            enName: "Somchai Jaidee",
+            avatarUrl: "https://example.com/avatar1.png",
+          ),
+          Member(
+            thName: "วิภา แสนสวย",
+            enName: "Wipa Saensuay",
+            avatarUrl: "https://example.com/avatar2.png",
+          ),
+        ],
+      ),
+      RoleSystem(
+        roleName: "อาจารย์",
+        roleColor: "007AFF",
+        members: [
+          Member(
+            thName: "ดร.กิตติพงศ์ ศรีสุข",
+            enName: "Dr. Kittipong Srisuk",
+            avatarUrl: "https://example.com/avatar3.png",
+          ),
+        ],
+      ),
+    ],
+    specialRole: [
+      RoleSystem(
+        roleName: "หัวหน้าทีม",
+        roleColor: "34C759",
+        members: [
+          Member(
+            thName: "นฤมล รัตนชัย",
+            enName: "Narumon Rattanachai",
+            avatarUrl: "https://example.com/avatar4.png",
+          ),
+        ],
+      ),
+    ],
+  );
 
-  void _onSearchChanged(String value) {
-    setState(() {
-      _filteredData = _allData.where((item) {
-        return item['title']
-            .toString()
-            .toLowerCase()
-            .contains(value.toLowerCase());
-      }).toList();
-    });
-  }
+  late TextEditingController _controller;
+  late List<RoleSystem> _filteredMainRole;
+  late List<RoleSystem> _filteredSpecialRole;
 
-  int get countMainRole => _filteredData.length;
-
-  final List<Map<String, dynamic>> _dataTest = [
-    {
-      'icon': 'icon_admin.svg',
-      'title': 'ผู้ดูแล',
-      'subTitle': 'สมาชิก 1 คน',
-      'iconColor': null,
-      'arrow': true,
-      'timeStamp': null,
-      'notation': null,
-    },
-    {
-      'icon': 'icon_sick_cancel.svg',
-      'title': 'คำขอลางานถูกปฏิเสธ',
-      'subTitle':
-      'คำขอลาป่วยวันที่ 24 ก.ย. 2568 ถึงวันที่ 30 ก.ย. 2568 ถูกปฎิเสธโดย ผศ.ดร.สมชาย ใจดี',
-      'iconColor': null,
-      'arrow': true,
-      'timeStamp': 'มกราคม 13',
-      'notation': 'หมายเลขคำขอ: LEV000000065013',
-    },{
-      'icon': 'role_management.svg',
-      'title': 'ผู้ดูแล',
-      'subTitle': 'สมาชิก 1 คน',
-      'iconColor': Colors.blue,
-      'arrow': true,
-      'timeStamp': null,
-      'notation': null,
-    },
-    {
-      'icon': 'icon_cancel.svg',
-      'title': '17/09/2020 - 18/03/2021',
-      'subTitle': 'หมายเลขคำขอ: LEV000000065012',
-      'iconColor': Color(0xFFE7000B),
-      'arrow': true,
-      'timeStamp': null,
-      'notation': null,
-    }
-  ];
 
   @override
   void initState() {
     super.initState();
-    _allData = _dataTest;
-    _filteredData = _dataTest;
+
+    _controller = TextEditingController();
+
+    _filteredMainRole = roleManagement.mainRole;
+    _filteredSpecialRole = roleManagement.specialRole;
+  }
+
+  void _onSearchChanged(String value) {
+    final keyword = value.toLowerCase();
+
+    setState(() {
+      if (keyword.isEmpty) {
+        _filteredMainRole = roleManagement.mainRole;
+        _filteredSpecialRole = roleManagement.specialRole;
+      } else {
+        _filteredMainRole = roleManagement.mainRole.where((role) {
+          final matchRole =
+          role.roleName.toLowerCase().contains(keyword);
+
+          final matchMember = role.members.any((member) =>
+          member.thName.toLowerCase().contains(keyword) ||
+              member.enName.toLowerCase().contains(keyword));
+
+          return matchRole || matchMember;
+        }).toList();
+
+        _filteredSpecialRole = roleManagement.specialRole.where((role) {
+          final matchRole =
+          role.roleName.toLowerCase().contains(keyword);
+
+          final matchMember = role.members.any((member) =>
+          member.thName.toLowerCase().contains(keyword) ||
+              member.enName.toLowerCase().contains(keyword));
+
+          return matchRole || matchMember;
+        }).toList();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
     return AppScaffold(
       header: Header.subHeader(
         context,
@@ -175,16 +212,29 @@ class _RoleManagementState extends State<RoleManagement> {
                                   height: 15,
                                   width: 15,
                                 ),
-                                Text('ตำแหน่งหนัก ($countMainRole)')
+                                /// TODO: มาทำด้วย
+                                Text('ตำแหน่งหนัก (${roleManagement.mainRole.length})')
                               ],
                             ),
-                            AppButtonListCard(
-                                items: _filteredData,
-                            ),
+                            // AppButtonListCard(
+                            //     items: dataTest,
+                            // ),
+                            SeparatorCard(
+                              separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                              children: [
+                                ...roleManagement.mainRole.map((m) {
+                                  return AppButton(
+                                      icon: 'icon_admin.svg',
+                                      iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
+                                      title: m.roleName,
+                                      subTitle: 'สมาชิก ${m.members.length} คน',
+                                      arrow: true
+                                  );
+                                })
+                              ],
+                            )
                           ],
                         ),
-
-                        /// TODO:ตำแหน่งเสริม
                         Column(
                           spacing: 5,
                           children: [
@@ -197,12 +247,26 @@ class _RoleManagementState extends State<RoleManagement> {
                                   height: 15,
                                   width: 15,
                                 ),
-                                Text('ตำแหน่งเสริม ($countMainRole)')
+                                Text('ตำแหน่งเสริม (${roleManagement.specialRole.length})')
                               ],
                             ),
-                            AppButtonListCard(
-                              items: _filteredData,
-                            ),
+                            // AppButtonListCard(
+                            //     items: dataTest,
+                            // ),
+                            SeparatorCard(
+                              separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                              children: [
+                              ...roleManagement.specialRole.map((m) {
+                                return AppButton(
+                                  icon: 'icon_admin.svg',
+                                  iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,,
+                                  title: m.roleName,
+                                  subTitle: 'สมาชิก ${m.members.length} คน',
+                                  arrow: true
+                                  );
+                                })
+                              ],
+                            )
                           ],
                         ),
                       ],
