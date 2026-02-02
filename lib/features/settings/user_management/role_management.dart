@@ -186,6 +186,26 @@ class _RoleManagementState extends State<RoleManagement> {
                         ),
 
                         /// TODO:ตำแหน่งเสริม
+                        Column(
+                          spacing: 5,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              spacing: 6,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/role_management.svg',
+                                  height: 15,
+                                  width: 15,
+                                ),
+                                Text('ตำแหน่งเสริม ($countMainRole)')
+                              ],
+                            ),
+                            AppButtonListCard(
+                              items: _filteredData,
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
