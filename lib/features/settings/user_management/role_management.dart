@@ -1,6 +1,5 @@
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -27,12 +26,12 @@ class _RoleManagementState extends State<RoleManagement> {
         members: [
           Member(
             thName: "สมชาย ใจดี",
-            enName: "Somchai Jaidee",
+            enName: "SomChai Jaimee",
             avatarUrl: "https://example.com/avatar1.png",
           ),
           Member(
             thName: "วิภา แสนสวย",
-            enName: "Wipa Saensuay",
+            enName: "Wipe Sensuality",
             avatarUrl: "https://example.com/avatar2.png",
           ),
         ],
@@ -43,7 +42,7 @@ class _RoleManagementState extends State<RoleManagement> {
         members: [
           Member(
             thName: "ดร.กิตติพงศ์ ศรีสุข",
-            enName: "Dr. Kittipong Srisuk",
+            enName: "Dr. KittiPong Sunrise",
             avatarUrl: "https://example.com/avatar3.png",
           ),
         ],
@@ -56,7 +55,7 @@ class _RoleManagementState extends State<RoleManagement> {
         members: [
           Member(
             thName: "นฤมล รัตนชัย",
-            enName: "Narumon Rattanachai",
+            enName: "Naruto Attractant",
             avatarUrl: "https://example.com/avatar4.png",
           ),
         ],
@@ -247,7 +246,7 @@ class _RoleManagementState extends State<RoleManagement> {
                               ...roleManagement.specialRole.map((m) {
                                 return AppButton(
                                   icon: 'icon_admin.svg',
-                                  iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,,
+                                  iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                   title: m.roleName,
                                   subTitle: 'สมาชิก ${m.members.length} คน',
                                   arrow: true
