@@ -17,7 +17,7 @@ class LoginPage extends StatelessWidget {
     // final role = context.watch<AuthState>().role;
 
     return AppScaffold(
-      // header: Header.mainHeader(context),
+      header: Header.mainHeader(context),
       hideNavigation: true,
 
       content: SafeArea(

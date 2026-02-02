@@ -40,7 +40,7 @@ class AppButtonListCard extends StatelessWidget {
           height: 1,
           thickness: 1,
           indent: 70,
-          endIndent: 10,
+          endIndent: 15,
           color: Color(0xFFE0E0E0),
         ),
       ),
