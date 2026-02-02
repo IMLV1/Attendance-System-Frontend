@@ -17,7 +17,7 @@ class CheckinPage extends StatefulWidget {
   State<CheckinPage> createState() => _CheckinPageState();
 }
 class _CheckinPageState extends State<CheckinPage>{
-  String currentTime = "18:30";
+  String currentTime = "08:30";
   String currentDay = "วันพฤหัสบดีที่ 29 มกราคม 2569";
 
   bool _hasCheckedIn = false;
@@ -270,6 +270,8 @@ class _CheckinPageState extends State<CheckinPage>{
             const SizedBox(width: 5),
             Expanded(
               child: Text(
+                softWrap: true,
+                textAlign: TextAlign.center,
                 'กรุณาเช็คอินเข้างานภายในเวลา 08:30 หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา 00:00 ของทุกวัน ',
                 style: TextStyle(
                   fontSize: 11,
@@ -289,7 +291,7 @@ class _CheckinPageState extends State<CheckinPage>{
       width: double.infinity,
       padding:const EdgeInsets.all(16) ,
       decoration: BoxDecoration(
-        color: AppColors.backgroundColor,
+        color: Color(0xFFEAEAEA),
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
