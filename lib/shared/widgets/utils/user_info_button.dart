@@ -1,3 +1,5 @@
+import 'package:attendance_system/services/user_management/user_management_model.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -6,7 +8,7 @@ class UserInfoButton extends StatelessWidget {
   final Widget icon;
   final String title;
   final String subTitle;
-  final List<Map<String, String>> roles;
+  final List<Role> roles;
   final bool arrow;
   final VoidCallback? onPressed;
 
@@ -52,12 +54,12 @@ class UserInfoButton extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(fontSize: 14),
+                        style: TextStyle(fontSize: 14, color: Colors.black),
                         softWrap: true,
                       ),
                       Text(
                         subTitle,
-                        style: TextStyle(fontSize: 10),
+                        style: TextStyle(fontSize: 10, color: Color(0xFF7E7E7E)),
                         softWrap: true,
                       ),
                     ],
@@ -83,17 +85,16 @@ class UserInfoButton extends StatelessWidget {
                         runSpacing: 5,
                         children: [
                           ...roles.map((m) {
-                            String? hex = m['role-color'];
                             return Container(
                               padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(2),
-                                color: Color(int.parse("33$hex", radix: 16)),
+                                color: m.color.withAlpha((20 * 255 / 100).toInt()),
                               ),
                               child: Text(
-                                m['role-name'] as String,
+                                m.name as String,
                                 style: TextStyle(
-                                  color: Color(int.parse("FF$hex", radix: 16)),
+                                  color: m.color,
                                   fontSize: 10
                                 ),
                               )
