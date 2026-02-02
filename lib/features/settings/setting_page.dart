@@ -56,7 +56,9 @@ class SettingPage extends StatelessWidget {
                         IconTextButton(onPressed: () {
                           context.push('/settings/user-management');
                         }, icon: 'icon_user_management.svg', label: 'จัดการผู้ใช้งานระบบ'),
-                        IconTextButton(icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
+                        IconTextButton(onPressed: () {
+                          context.push('/settings/role-management');
+                        },icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
                       ]
                   ),
                   SeparatorCard(

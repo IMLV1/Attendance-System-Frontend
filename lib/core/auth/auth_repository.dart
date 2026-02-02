@@ -14,6 +14,8 @@ abstract class AuthRepository {
 
   /// Logout user and clear all auth data
   Future<void> logout();
+
+  Future<void> forceLogout();
 }
 
 /// Authentication repository implementation
@@ -30,7 +32,7 @@ class AuthRepositoryImpl implements AuthRepository {
       this.storage,
       this.google,
       this.apiClient,
-      );
+  );
 
   /// Login flow:
   /// 1. Sign in with Google
@@ -65,14 +67,20 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> hasToken() async {
     final token = await storage.accessToken;
+    if (token == null) return false;
 
-    if (token != null) {
-      apiClient.setToken(token);
+    apiClient.setToken(token);
+
+    try {
+      await api.getMe(); // ถ้า token หมดอายุ จะ throw
       return true;
+    } catch (_) {
+      await storage.clear();
+      apiClient.clearToken();
+      return false;
     }
-
-    return false;
   }
+
 
   /// Logout flow:
   /// 1. Notify backend (best effort)
@@ -85,7 +93,10 @@ class AuthRepositoryImpl implements AuthRepository {
     _isLoggingOut = true;
 
     try {
-      await api.logout();
+      try {
+        await api.logout(); // best effort
+      } catch (_) {}
+
       await storage.clear();
       apiClient.clearToken();
       await google.logout();
@@ -94,4 +105,17 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
+  Future<void> forceLogout() async {
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
+
+    try {
+      await storage.clear();
+      apiClient.clearToken();
+      await google.logout();
+    } finally {
+      _isLoggingOut = false;
+    }
+  }
 }

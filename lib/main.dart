@@ -9,15 +9,18 @@ import 'service_locator.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  /// Load env
   await dotenv.load(fileName: '.env');
+
+  /// Setup DI
   await setupServiceLocator();
 
-  final authState = getIt<AuthState>();
-  await authState.init();
+  /// Init auth state (check token + /auth/me)
+  await getIt<AuthState>().init();
 
   runApp(
     ChangeNotifierProvider<AuthState>.value(
-      value: authState,
+      value: getIt<AuthState>(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: App(),

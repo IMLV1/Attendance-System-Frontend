@@ -1,9 +1,7 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 // import '../../shared/widgets/utils/clock_realtime.dart';
@@ -17,7 +15,7 @@ class CheckinPage extends StatefulWidget {
   State<CheckinPage> createState() => _CheckinPageState();
 }
 class _CheckinPageState extends State<CheckinPage>{
-  String currentTime = "18:30";
+  String currentTime = "08:30";
   String currentDay = "วันพฤหัสบดีที่ 29 มกราคม 2569";
 
   bool _hasCheckedIn = false;
@@ -141,8 +139,8 @@ class _CheckinPageState extends State<CheckinPage>{
 
     if (hasCheckedOut) {
 
-      buttonColor = AppColors.buttondisable;
-      backgroundbottom = AppColors.buttondisable_background;
+      buttonColor = AppColors.buttonDisable;
+      backgroundbottom = AppColors.buttonDisableBackground;
       buttonText = "จบเวลางาน";
       iconPath = 'assets/images/endwork.svg';
       fontSize = 27;
@@ -150,8 +148,8 @@ class _CheckinPageState extends State<CheckinPage>{
     }
     else if (isTimeout) {
 
-      buttonColor = AppColors.buttoncheckout;
-      backgroundbottom = AppColors.buttoncheckout_background;
+      buttonColor = AppColors.buttonCheckOut;
+      backgroundbottom = AppColors.buttonCheckOutBackground;
       buttonText = "เช็คเอาต์";
       iconPath = 'assets/images/click_checkin.svg';
       fontSize = 32;
@@ -159,16 +157,16 @@ class _CheckinPageState extends State<CheckinPage>{
     }
     else if (_hasCheckedIn) {
 
-      buttonColor = AppColors.buttondisable;
-      backgroundbottom = AppColors.buttondisable_background;
+      buttonColor = AppColors.buttonDisable;
+      backgroundbottom = AppColors.buttonDisableBackground;
       buttonText = "อยู่ในเวลางาน";
       iconPath = 'assets/images/intimejob.svg';
       fontSize = 26;
       isDisabled = true;
     }
     else {
-      buttonColor = AppColors.buttoncheckin;
-      backgroundbottom = AppColors.buttoncheckin_background;
+      buttonColor = AppColors.buttonCheckIn;
+      backgroundbottom = AppColors.buttonCheckInBackground;
       buttonText = "เช็คอิน";
       iconPath = 'assets/images/click_checkin.svg';
       fontSize = 32;
@@ -187,7 +185,7 @@ class _CheckinPageState extends State<CheckinPage>{
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.lightTextColor.withOpacity(0.2),
+                        color: AppColors.lightTextColor.withValues(alpha: 0.2),
                         blurRadius: 1,
                         spreadRadius: 2,
                       )
@@ -270,6 +268,8 @@ class _CheckinPageState extends State<CheckinPage>{
             const SizedBox(width: 5),
             Expanded(
               child: Text(
+                softWrap: true,
+                textAlign: TextAlign.center,
                 'กรุณาเช็คอินเข้างานภายในเวลา 08:30 หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา 00:00 ของทุกวัน ',
                 style: TextStyle(
                   fontSize: 11,
@@ -289,7 +289,7 @@ class _CheckinPageState extends State<CheckinPage>{
       width: double.infinity,
       padding:const EdgeInsets.all(16) ,
       decoration: BoxDecoration(
-        color: AppColors.backgroundColor,
+        color: Color(0xFFEAEAEA),
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
@@ -301,7 +301,7 @@ class _CheckinPageState extends State<CheckinPage>{
                 height: 20,
                 width: 20,
                 child: SvgPicture.asset(
-                    'assets/images/iicon.svg'
+                    'assets/images/icon.svg'
                 ),
               ),
               const SizedBox(width: 5),

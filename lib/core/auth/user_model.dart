@@ -1,22 +1,25 @@
-class User {
-  final String id;
-  final String name;
+class UserModel {
+  final int id;
   final String email;
-  final String role;
+  final String name;
+  final String? avatarUrl;
+  final List<String> roleType;
 
-  User({
+  UserModel({
     required this.id,
-    required this.name,
     required this.email,
-    required this.role,
+    required this.name,
+    this.avatarUrl,
+    required this.roleType,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['user_id'],
-      name: json['name'],
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'],
       email: json['email'],
-      role: json['role'],
+      name: json['name'],
+      avatarUrl: json['avatar'],
+      roleType: List<String>.from(json['role'] ?? []),
     );
   }
 }

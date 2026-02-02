@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/auth/user_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -34,5 +35,12 @@ class AuthApiService {
   Future<void> logout() async {
     final res = await dio.post('/auth/logout');
     debugPrint('logout = ${res.data}');
+  }
+
+  Future<UserModel> getMe() async {
+    final res = await dio.get('/auth/me');
+    debugPrint('getMe = ${res.data}');
+
+    return UserModel.fromJson(res.data);
   }
 }

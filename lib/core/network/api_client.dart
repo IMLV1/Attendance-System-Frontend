@@ -8,7 +8,7 @@ class ApiClient {
   ApiClient(this.dio);
 
   /// Attach access token to Authorization header
-  /// Format: Authorization: Bearer <token>
+  /// Format: Authorization: Bearer token
   void setToken(String token) {
     dio.options.headers['Authorization'] = 'Bearer $token';
   }

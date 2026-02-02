@@ -8,7 +8,7 @@ class Header {
 
   static AppBar subHeader(BuildContext context, {title = 'Default Title'}) {
 
-    int permissionLevel = 3;
+    // int permissionLevel = 3;
 
     return AppBar(
       backgroundColor: AppColors.barColor,
