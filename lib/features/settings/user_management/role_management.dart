@@ -187,75 +187,78 @@ class _RoleManagementState extends State<RoleManagement> {
                       spacing: 13,
                       children: [
                         /// ตำแหน่งหลัก
-                        Column(
-                          spacing: 5,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 6,
-                              children: [
-                                SvgPicture.asset(
-                                  'assets/images/role_management.svg',
-                                  height: 15,
-                                  width: 15,
-                                ),
-                                /// TODO: มาทำด้วย
-                                Text('ตำแหน่งหนัก (${roleManagement.mainRole.length})')
-                              ],
-                            ),
-                            // AppButtonListCard(
-                            //     items: dataTest,
-                            // ),
-                            SeparatorCard(
-                              separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
-                              children: [
-                                ...roleManagement.mainRole.map((m) {
-                                  return AppButton(
-                                      icon: 'icon_admin.svg',
-                                      iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
-                                      title: m.roleName,
-                                      subTitle: 'สมาชิก ${m.members.length} คน',
-                                      arrow: true
-                                  );
-                                })
-                              ],
-                            )
-                          ],
-                        ),
-                        Column(
-                          spacing: 5,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 6,
-                              children: [
-                                SvgPicture.asset(
-                                  'assets/images/role_management.svg',
-                                  height: 15,
-                                  width: 15,
-                                ),
-                                Text('ตำแหน่งเสริม (${roleManagement.specialRole.length})')
-                              ],
-                            ),
-                            // AppButtonListCard(
-                            //     items: dataTest,
-                            // ),
-                            SeparatorCard(
-                              separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
-                              children: [
-                              ...roleManagement.specialRole.map((m) {
-                                return AppButton(
-                                  icon: 'icon_admin.svg',
-                                  iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
-                                  title: m.roleName,
-                                  subTitle: 'สมาชิก ${m.members.length} คน',
-                                  arrow: true
-                                  );
-                                })
-                              ],
-                            )
-                          ],
-                        ),
+                        if (_filteredMainRole.isNotEmpty)
+                          Column(
+                            spacing: 5,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: 6,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/images/role_management.svg',
+                                    height: 15,
+                                    width: 15,
+                                  ),
+                                  /// TODO: มาทำด้วย
+                                  Text('ตำแหน่งหนัก (${_filteredMainRole.length})')
+                                ],
+                              ),
+                              // AppButtonListCard(
+                              //     items: dataTest,
+                              // ),
+                              SeparatorCard(
+                                separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                                children: [
+                                  ..._filteredMainRole.map((m) {
+                                    return AppButton(
+                                        icon: 'icon_admin.svg',
+                                        iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
+                                        title: m.roleName,
+                                        subTitle: 'สมาชิก ${m.members.length} คน',
+                                        arrow: true
+                                    );
+                                  })
+                                ],
+                              )
+                            ],
+                          ),
+                        /// ตำแหน่งเสริม
+                        if (_filteredSpecialRole.isNotEmpty)
+                          Column(
+                            spacing: 5,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: 6,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/images/role_management.svg',
+                                    height: 15,
+                                    width: 15,
+                                  ),
+                                  Text('ตำแหน่งเสริม (${_filteredSpecialRole.length})')
+                                ],
+                              ),
+                              // AppButtonListCard(
+                              //     items: dataTest,
+                              // ),
+                              SeparatorCard(
+                                separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                                children: [
+                                  ..._filteredSpecialRole.map((m) {
+                                    return AppButton(
+                                        icon: 'icon_admin.svg',
+                                        iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
+                                        title: m.roleName,
+                                        subTitle: 'สมาชิก ${m.members.length} คน',
+                                        arrow: true
+                                    );
+                                  })
+                                ],
+                              )
+                            ],
+                          ),
                       ],
                     ),
                   ),
