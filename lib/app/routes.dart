@@ -9,7 +9,7 @@ import 'package:attendance_system/features/settings/setting_page.dart';
 import 'package:attendance_system/features/main_feature/statistic_page.dart';
 import 'package:attendance_system/features/main_feature/time_request_page.dart';
 import 'package:attendance_system/features/settings/user_management/role_management.dart';
-import 'package:attendance_system/features/settings/user_management/user_management.dart';
+import 'package:attendance_system/features/settings/user_management/user/user_management.dart';
 import 'package:attendance_system/shared/widgets/base_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -21,26 +21,50 @@ import '../service_locator.dart';
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
   initialLocation: '/login',
-  redirect: (_, state) {
-    // final auth = getIt<AuthState>();
-    // final location = state.matchedLocation;
+  // redirect: (_, state) {
+  //
+  //   final location = state.matchedLocation;
+  //
+  //   if (location == '/') return 'login';
+  //   return null;
+  //
+  //   final auth = getIt<AuthState>();
+  //   final location = state.matchedLocation;
+  //
+  //   if (auth.status == AuthStatus.unknown) {
+  //     return location == '/splash' ? null : '/splash';
+  //   }
+  //
+  //   if (!auth.isLoggedIn) {
+  //     return location == '/login' ? null : '/login';
+  //   }
+  //
+  //   if (auth.isLoggedIn && (location == '/login' || location == '/splash')) {
+  //     return '/home';
+  //   }
+  //
+  //   return null;
 
-    // if (auth.status == AuthStatus.unknown) {
-    //   return location == '/splash' ? null : '/splash';
-    // }
-    //
-    // final isLogin = location == '/login';
-    //
-    // if (auth.status == AuthStatus.unauthenticated) {
-    //   return isLogin ? null : '/login';
-    // }
-    //
-    // if (auth.status == AuthStatus.authenticated && isLogin) {
-    //   return '/check-in';
-    // }
+    redirect: (_, state) {
+      final auth = getIt<AuthState>();
+      final location = state.matchedLocation;
 
-    return null;
-  },
+      if (auth.status == AuthStatus.unknown) {
+        return location == '/splash' ? null : '/splash';
+      }
+
+      final isLogin = location == '/login';
+
+      if (auth.status == AuthStatus.unauthenticated) {
+        return isLogin ? null : '/login';
+      }
+
+      if (auth.status == AuthStatus.authenticated && isLogin) {
+        return '/check-in';
+      }
+
+      return null;
+    },
 
   routes: [
     GoRoute(

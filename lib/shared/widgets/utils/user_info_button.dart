@@ -1,3 +1,5 @@
+import 'package:attendance_system/services/user_management/user_management_model.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -6,7 +8,7 @@ class UserInfoButton extends StatelessWidget {
   final Widget icon;
   final String title;
   final String subTitle;
-  final List<Map<String, String>> roles;
+  final List<Role> roles;
   final bool arrow;
   final VoidCallback? onPressed;
 
@@ -17,18 +19,24 @@ class UserInfoButton extends StatelessWidget {
 
     return ElevatedButton(
 
-        onPressed: onPressed ?? () {},
-        style: ElevatedButton.styleFrom(
-            elevation: 0,
-            padding: EdgeInsets.all(0),
-            shadowColor: Colors.transparent,
-            backgroundColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero)
-        ),
+      onPressed: onPressed ?? () {},
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        padding: EdgeInsets.all(0),
+        shadowColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero)
+      ),
 
-        child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 0),
-            child: Row(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+        child: Row(
+          spacing: 10,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Row(
+              spacing: 13,
               children: [
                 Container(
                   width: 40,
@@ -36,21 +44,79 @@ class UserInfoButton extends StatelessWidget {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
-                    color: Colors.red,
                   ),
-                  child: Center(child: icon)
+                  child: icon,
                 ),
-                Spacer(),
-                if (arrow) SizedBox(
-                    height: 10,
-                    width: 10,
-                    child: SvgPicture.asset(
-                      'assets/images/icon_next.svg',
-                    )
+
+                Expanded( // 👈 gives bounded width
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(fontSize: 14, color: Colors.black),
+                        softWrap: true,
+                      ),
+                      Text(
+                        subTitle,
+                        style: TextStyle(fontSize: 10, color: Color(0xFF7E7E7E)),
+                        softWrap: true,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             )
+            ),
+            Expanded(
+              flex: 2,
+              child: IntrinsicHeight(
+                child: Row(
+                  spacing: 10,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      width: 1,
+                      color: Colors.grey, // 👈 remove fixed height
+                    ),
+                    Expanded(
+                      child: Wrap(
+                        spacing: 5,
+                        runSpacing: 5,
+                        children: [
+                          ...roles.map((m) {
+                            return Container(
+                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(2),
+                                color: m.color.withAlpha((20 * 255 / 100).toInt()),
+                              ),
+                              child: Text(
+                                m.name as String,
+                                style: TextStyle(
+                                  color: m.color,
+                                  fontSize: 10
+                                ),
+                              )
+                            );
+                          })
+                        ]
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ),
+            if (arrow) SizedBox(
+              height: 10,
+              width: 10,
+              child: SvgPicture.asset(
+                'assets/images/icon_next.svg',
+              )
+            ),
+          ],
         )
+      )
     );
   }
 
