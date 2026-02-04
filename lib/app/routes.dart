@@ -8,7 +8,7 @@ import 'package:attendance_system/features/settings/admin_config/setting_leave_t
 import 'package:attendance_system/features/settings/setting_page.dart';
 import 'package:attendance_system/features/main_feature/statistic_page.dart';
 import 'package:attendance_system/features/main_feature/time_request_page.dart';
-import 'package:attendance_system/features/settings/user_management/role_management.dart';
+import 'package:attendance_system/features/settings/user_management/role/role_management.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_management.dart';
 import 'package:attendance_system/shared/widgets/base_view.dart';
 import 'package:flutter/material.dart';
@@ -21,50 +21,26 @@ import '../service_locator.dart';
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
   initialLocation: '/login',
-  // redirect: (_, state) {
-  //
-  //   final location = state.matchedLocation;
-  //
-  //   if (location == '/') return 'login';
-  //   return null;
-  //
-  //   final auth = getIt<AuthState>();
-  //   final location = state.matchedLocation;
-  //
-  //   if (auth.status == AuthStatus.unknown) {
-  //     return location == '/splash' ? null : '/splash';
-  //   }
-  //
-  //   if (!auth.isLoggedIn) {
-  //     return location == '/login' ? null : '/login';
-  //   }
-  //
-  //   if (auth.isLoggedIn && (location == '/login' || location == '/splash')) {
-  //     return '/home';
-  //   }
-  //
-  //   return null;
-
-    redirect: (_, state) {
-      final auth = getIt<AuthState>();
-      final location = state.matchedLocation;
-
-      if (auth.status == AuthStatus.unknown) {
-        return location == '/splash' ? null : '/splash';
-      }
-
-      final isLogin = location == '/login';
-
-      if (auth.status == AuthStatus.unauthenticated) {
-        return isLogin ? null : '/login';
-      }
-
-      if (auth.status == AuthStatus.authenticated && isLogin) {
-        return '/check-in';
-      }
-
-      return null;
-    },
+  redirect: (_, state) {
+    final auth = getIt<AuthState>();
+    final location = state.matchedLocation;
+  
+    if (auth.status == AuthStatus.unknown) {
+      return location == '/splash' ? null : '/splash';
+    }
+  
+    final isLogin = location == '/login';
+  
+    if (auth.status == AuthStatus.unauthenticated) {
+      return isLogin ? null : '/login';
+    }
+  
+    if (auth.status == AuthStatus.authenticated && isLogin) {
+      return '/check-in';
+    }
+  
+    return null;
+  },
 
   routes: [
     GoRoute(
@@ -131,28 +107,4 @@ final appRouter = GoRouter(
       ],
     ),
   ],
-
-  // routes: [
-  //   GoRoute(
-  //     path: '/splash',
-  //     builder: (_, __) => const Scaffold(
-  //       body: Center(child: CircularProgressIndicator()),
-  //     ),
-  //   ),
-  //   GoRoute(
-  //       path: '/login',
-  //       builder: (_, __) => MaterialApp(
-  //         debugShowCheckedModeBanner: false,
-  //         theme: AppTheme.lightTheme,
-  //         home: LoginPage(),
-  //       )
-  //   ),
-  //   GoRoute(
-  //    path: '/profile',//Profile Page
-  //     builder: (_, __) => MaterialApp(
-  //       theme: AppTheme.lightTheme,
-  //       home: ProfilePage(),
-  //     )
-  //   ),
-  // ],
 );

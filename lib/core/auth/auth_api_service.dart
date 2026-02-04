@@ -38,7 +38,7 @@ class AuthApiService {
   }
 
   Future<UserModel> getMe() async {
-    final res = await dio.get('/auth/me');
+    final res = await dio.get('/api/init');
     debugPrint('getMe = ${res.data}');
 
     return UserModel.fromJson(res.data);

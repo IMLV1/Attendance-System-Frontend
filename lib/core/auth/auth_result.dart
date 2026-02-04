@@ -11,7 +11,7 @@ class AuthResult {
 
   factory AuthResult.fromJson(Map<String, dynamic> json) {
     return AuthResult(
-      accessToken: json['accessToken'],
+      accessToken: json['access_token'],
       user: UserModel.fromJson(json['user']),
     );
   }
