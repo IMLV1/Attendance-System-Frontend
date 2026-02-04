@@ -1,5 +1,5 @@
 class UserModel {
-  final int id;
+  final String id;
   final String email;
   final String name;
   final String? avatarUrl;
@@ -15,10 +15,10 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'],
+      id: json['user_id'],
       email: json['email'],
       name: json['name'],
-      avatarUrl: json['avatar'],
+      avatarUrl: json['picture'],
       roleType: List<String>.from(json['role'] ?? []),
     );
   }
