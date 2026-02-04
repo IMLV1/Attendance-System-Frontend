@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import '../user_management/user_management_model.dart';
+
 class ProfileModel {
   final String staffId;
   final String citizenId;
@@ -33,24 +36,10 @@ class ProfileModel {
       nationality: json['nationality'] ?? '',
       phone: json['phone'] ?? '',
       email: json['email'] ?? '',
-      roles: (json['role_sys'] as List<dynamic>?)
+      roles: (json['roles'] as List<dynamic>?)
           ?.map((e) => Role.fromJson(e))
           .toList() ?? [],
       avatarUrl: json['picture'] ?? '',
-    );
-  }
-}
-
-class Role {
-  final String name;
-  final String colorHex;
-
-  Role({required this.name, required this.colorHex});
-
-  factory Role.fromJson(Map<String, dynamic> json) {
-    return Role(
-      name: json['role_name'] ?? '',
-      colorHex: json['role_color'] ?? '#000000',
     );
   }
 }

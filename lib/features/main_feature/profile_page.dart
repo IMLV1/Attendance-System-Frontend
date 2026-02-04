@@ -23,15 +23,10 @@ class MockProfile {
       "gender": "ชาย",
       "nationality": "ไทย",
       "phone": "098-445-1535",
-      "role_sys": [
-        {
-          "role_name": "คณบดี",
-          "role_color": "FF0000"
-        },
-        {
-          "role_name": "คนสวน",
-          "role_color": "FF21343"
-        }
+      'roles': [
+        {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+        {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
+        {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'}
       ],
       "picture":"https://tse3.mm.bing.net/th/id/OIP.QW_5l0R799_ZMX53fzcUYwHaHd?rs=1&pid=ImgDetMain&o=7&rm=3",
     };
@@ -159,16 +154,16 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
-                      // SeparatorCard(
-                      //   children: [
-                      //     TextRoleButton(
-                      //       disable: true,
-                      //       label: 'ตำแหน่งปัจจุบัน', 
-                      //       roles: profile.roles, 
-                      //       icon: SvgPicture.asset('assets/images/icon_role.svg'),
-                      //     )
-                      //   ],
-                      // )
+                      SeparatorCard(
+                        children: [
+                          TextRoleButton(
+                            disable: true,
+                            label: 'ตำแหน่งปัจจุบัน', 
+                            roles: profile.roles, 
+                            icon: SvgPicture.asset('assets/images/icon_role.svg'),
+                          )
+                        ],
+                      )
                     ],
                   ),
                 )
