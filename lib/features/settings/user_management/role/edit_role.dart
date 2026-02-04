@@ -126,7 +126,7 @@ class _EditRoleState extends State<EditRole> {
                               isDense: true,
                               filled: true,
                               fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide.none,
@@ -281,19 +281,20 @@ class _EditRoleState extends State<EditRole> {
                   )
                 ],
               ),
-              SeparatorCard(
-                separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
-                children: [
-                  ...widget.roleInfo.members.map((m) {
-                    return UserCancelCheckbox(
-                      icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
-                      title: m.thName,
-                      subTitle: m.enName,
-                      checkBox: false,
-                    );
-                  }),
-                ],
-              ),
+              if (widget.roleInfo.members.isNotEmpty)
+                SeparatorCard(
+                  separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                  children: [
+                    ...widget.roleInfo.members.map((m) {
+                      return UserCancelCheckbox(
+                        icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
+                        title: m.thName,
+                        subTitle: m.enName,
+                        checkBox: false,
+                      );
+                    }),
+                  ],
+                ),
             ],
           ),
         ),

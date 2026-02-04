@@ -140,7 +140,7 @@ class _RoleManagementState extends State<RoleManagement> {
       ),
       content: SafeArea(
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: AlwaysScrollableScrollPhysics(),
           child: Container(
             color: AppColors.backgroundColor,
             alignment: Alignment.topCenter,
@@ -186,7 +186,7 @@ class _RoleManagementState extends State<RoleManagement> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(50),
-                        borderSide: const BorderSide(
+                        borderSide: BorderSide(
                           color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
                           width: 1,
                         ),
@@ -248,7 +248,7 @@ class _RoleManagementState extends State<RoleManagement> {
                                     children: [
                                       ..._filteredMainRole.map((m) {
                                         return AppButton(
-                                          icon: m.roleName == 'ผู้ดูแลระบบ' ? 'icon_admin.svg' : 'role_management.svg',
+                                          icon: (m.roleName == 'ผู้ดูแลระบบ' || m.roleName.toLowerCase() == 'admin') ? 'icon_admin.svg' : 'role_management.svg',
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
