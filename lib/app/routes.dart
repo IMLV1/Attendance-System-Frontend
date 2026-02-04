@@ -21,26 +21,26 @@ import '../service_locator.dart';
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
   initialLocation: '/login',
-  redirect: (_, state) {
-    final auth = getIt<AuthState>();
-    final location = state.matchedLocation;
+  // redirect: (_, state) {
+  //   final auth = getIt<AuthState>();
+  //   final location = state.matchedLocation;
   
-    if (auth.status == AuthStatus.unknown) {
-      return location == '/splash' ? null : '/splash';
-    }
+  //   if (auth.status == AuthStatus.unknown) {
+  //     return location == '/splash' ? null : '/splash';
+  //   }
   
-    final isLogin = location == '/login';
+  //   final isLogin = location == '/login';
   
-    if (auth.status == AuthStatus.unauthenticated) {
-      return isLogin ? null : '/login';
-    }
+  //   if (auth.status == AuthStatus.unauthenticated) {
+  //     return isLogin ? null : '/login';
+  //   }
   
-    if (auth.status == AuthStatus.authenticated && isLogin) {
-      return '/check-in';
-    }
+  //   if (auth.status == AuthStatus.authenticated && isLogin) {
+  //     return '/check-in';
+  //   }
   
-    return null;
-  },
+  //   return null;
+  // },
 
   routes: [
     GoRoute(
