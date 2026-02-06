@@ -158,13 +158,13 @@ class BottomNavigation extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 12,
                 color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
               ),
               maxLines: 1,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
           ],
         ),
       ),
