@@ -259,8 +259,8 @@ class _CheckinPageState extends State<CheckinPage>{
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              height: 17,
-              width: 17,
+              height: 15,
+              width: 15,
               child: SvgPicture.asset(
                   'assets/images/iicon.svg'
               ),
@@ -298,10 +298,10 @@ class _CheckinPageState extends State<CheckinPage>{
           Row(
             children: [
               SizedBox(
-                height: 20,
-                width: 20,
+                height: 15,
+                width: 15,
                 child: SvgPicture.asset(
-                    'assets/images/icon.svg'
+                    'assets/images/i_icon.svg'
                 ),
               ),
               const SizedBox(width: 5),
@@ -316,6 +316,7 @@ class _CheckinPageState extends State<CheckinPage>{
           ),
           const SizedBox(height: 5),
           SeparatorCard(
+            separatorPadding: EdgeInsetsGeometry.only(left: 48, right: 10),
             children: [
               _buildStatusItem(iconPath: 'assets/images/in.svg', title: 'เช็คอิน', time: _hasCheckedIn ? currentTime : "---"),
               _buildStatusItem(iconPath: 'assets/images/out.svg', title: 'เช็คเอาท์', time:hasCheckedOut ? currentTime : '---'),
