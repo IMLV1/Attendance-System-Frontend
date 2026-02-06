@@ -2,13 +2,12 @@ import 'package:attendance_system/services/role_management/role_management_model
 import 'package:attendance_system/shared/widgets/utils/user_cancel_checkbox.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../../shared/widgets/app_scaffold.dart';
-import '../../../../shared/widgets/head_bar/header.dart';
-import '../../../../shared/widgets/utils/icon_text_button.dart';
-import '../../../../shared/widgets/utils/separator_card.dart';
+import '../../../shared/widgets/app_scaffold.dart';
+import '../../../shared/widgets/head_bar/header.dart';
+import '../../../shared/widgets/utils/icon_text_button.dart';
+import '../../../shared/widgets/utils/separator_card.dart';
 
 class EditRole extends StatefulWidget {
   final RoleSystem roleInfo;
@@ -140,6 +139,7 @@ class _EditRoleState extends State<EditRole> {
                                   customBorder: CircleBorder(),
                                   onTap: () {
                                     // TODO: cancel select
+
                                   },
                                   child: Padding(
                                     padding: EdgeInsets.all(6),
@@ -160,6 +160,32 @@ class _EditRoleState extends State<EditRole> {
                           customBorder: CircleBorder(),
                           onTap: () {
                             /// TODO: Color Pickup
+                            // Color tempColor = _roleColor;
+                            //
+                            // PushPopup(
+                            //   title: 'เลือกสีตำแหน่ง',
+                            //   buttonLabel: 'ตกลง',
+                            //   buttonAction: () {
+                            //     setState(() {
+                            //       _roleColor = tempColor;
+                            //     });
+                            //     Navigator.of(context).pop();
+                            //   },
+                            //   content: Material( // ⭐ สำคัญมาก
+                            //     color: Colors.transparent,
+                            //     child: SizedBox(
+                            //       height: 320,
+                            //       child: ColorPicker(
+                            //         pickerColor: _roleColor,
+                            //         onColorChanged: (color) {
+                            //           tempColor = color;
+                            //         },
+                            //         enableAlpha: false,
+                            //         displayThumbColor: true,
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ).showPopup(context);
                           },
                           child: Container(
                             width: 28,
