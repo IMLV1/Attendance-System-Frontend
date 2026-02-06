@@ -316,7 +316,7 @@ class _CheckinPageState extends State<CheckinPage>{
           ),
           const SizedBox(height: 5),
           SeparatorCard(
-            separatorPadding: EdgeInsetsGeometry.only(left: 48, right: 10),
+            separatorPadding: EdgeInsetsGeometry.only(left: 52, right: 10),
             children: [
               _buildStatusItem(iconPath: 'assets/images/in.svg', title: 'เช็คอิน', time: _hasCheckedIn ? currentTime : "---"),
               _buildStatusItem(iconPath: 'assets/images/out.svg', title: 'เช็คเอาท์', time:hasCheckedOut ? currentTime : '---'),
@@ -335,7 +335,7 @@ class _CheckinPageState extends State<CheckinPage>{
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 20),
           child: Row(
             children: [
               // ไอคอน
@@ -349,17 +349,17 @@ class _CheckinPageState extends State<CheckinPage>{
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
                 ),
               ),
               const Spacer(),
-              // เวลา หรือ ขีดๆ ---
+              // // เวลา หรือ ขีดๆ ---
               Text(
                 time,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 15,
                   fontWeight: FontWeight.w400,
                   color: AppColors.greyTextColor,
                 ),
