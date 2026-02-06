@@ -73,7 +73,7 @@ class SettingPage extends StatelessWidget {
                         //     debugPrint('sub: $val');
                         //   },
                         // ),
-                        // IconTextButton(icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
+                        //IconTextButton(icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
                       ]
                   ),
                   SeparatorCard(
