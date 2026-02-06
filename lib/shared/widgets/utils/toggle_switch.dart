@@ -37,7 +37,7 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ---------- MAIN SWITCH ----------
           Row(
@@ -81,11 +81,10 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
           // ---------- SUB SWITCH (SLIDE FROM TOP) ----------
           AnimatedSize(
             duration: Duration(milliseconds: 200),
+            alignment: Alignment.bottomCenter,
             curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
             child: AnimatedOpacity(
               duration: Duration(milliseconds: 180),
-              curve: Curves.easeInOut,
               opacity: showSub ? 1 : 0,
               child: showSub
                   ? Column(
