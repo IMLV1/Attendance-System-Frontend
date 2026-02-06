@@ -74,44 +74,54 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
             ],
           ),
 
-          // ---------- SUB SWITCH (SLIDE FROM TOP ONLY) ----------
-          AnimatedSlide(
+          // ---------- SUB SWITCH (SLIDE FROM TOP) ----------
+          AnimatedSize(
             duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            offset: showSub ? Offset.zero : const Offset(0, -0.2),
-            child: showSub
-                ? Padding(
-              padding: const EdgeInsets.only(left: 30, top: 8),
-              child: Column(
+            curve: Curves.easeInOut,
+            alignment: Alignment.topCenter,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeInOut,
+              opacity: showSub ? 1 : 0,
+              child: showSub
+                  ? Column(
                 children: [
-                  Divider(
-                    height: 0,
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 30),
+                    child: Divider(height: 0),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          widget.subLabel ?? 'จำเป็นต้องแนบ',
-                          style: const TextStyle(fontSize: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 30),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.subLabel ?? 'จำเป็นต้องแนบ',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
                         ),
-                      ),
-                      CupertinoSwitch(
-                        value: _subValue,
-                        activeTrackColor:
-                        AppColors.primaryColor,
-                        onChanged: (val) {
-                          setState(() => _subValue = val);
-                          widget.onSubChanged?.call(val);
-                        },
-                      ),
-                    ],
+                        CupertinoSwitch(
+                          value: _subValue,
+                          activeTrackColor: AppColors.primaryColor,
+                          onChanged: (val) {
+                            setState(() => _subValue = val);
+                            widget.onSubChanged?.call(val);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-            )
-                : const SizedBox(), // 👈 ซ่อนจริง
-          ),
+              )
+                  : const SizedBox(),
+            ),
+          )
+
         ],
       ),
     );
