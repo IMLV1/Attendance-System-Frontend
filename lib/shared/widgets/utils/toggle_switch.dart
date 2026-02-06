@@ -26,14 +26,14 @@ class ToggleSwitch extends StatefulWidget {
   State<ToggleSwitch> createState() => _ToggleSwitchState();
 }
 
-class _ToggleSwitchState extends State<ToggleSwitch>
-    with TickerProviderStateMixin {
-
+class _ToggleSwitchState extends State<ToggleSwitch> {
   bool _value = false;
   bool _subValue = false;
 
   @override
   Widget build(BuildContext context) {
+    final showSub = widget.subSwitch && _value;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       child: Column(
@@ -74,51 +74,43 @@ class _ToggleSwitchState extends State<ToggleSwitch>
             ],
           ),
 
-          // ---------- SUB SWITCH (ANIMATED + REAL HIDE) ----------
-          AnimatedSize(
-            alignment: Alignment.topCenter,
+          // ---------- SUB SWITCH (SLIDE FROM TOP ONLY) ----------
+          AnimatedSlide(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOutCubic,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 150),
-              opacity: (widget.subSwitch && _value) ? 1 : 0,
-              child: (widget.subSwitch && _value)
-                  ? Column(
+            offset: showSub ? Offset.zero : const Offset(0, -0.2),
+            child: showSub
+                ? Padding(
+              padding: const EdgeInsets.only(left: 30, top: 8),
+              child: Column(
                 children: [
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 30),
-                    child: Divider(
-                      height: 0,
-                    ),
+                  Divider(
+                    height: 0,
                   ),
                   const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 30),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.subLabel ?? 'จำเป็นต้องแนบ',
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.subLabel ?? 'จำเป็นต้องแนบ',
+                          style: const TextStyle(fontSize: 16),
                         ),
-                        CupertinoSwitch(
-                          value: _subValue,
-                          activeTrackColor:
-                          AppColors.primaryColor,
-                          onChanged: (val) {
-                            setState(() => _subValue = val);
-                            widget.onSubChanged?.call(val);
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+                      CupertinoSwitch(
+                        value: _subValue,
+                        activeTrackColor:
+                        AppColors.primaryColor,
+                        onChanged: (val) {
+                          setState(() => _subValue = val);
+                          widget.onSubChanged?.call(val);
+                        },
+                      ),
+                    ],
                   ),
                 ],
-              )
-                  : const SizedBox(), // 👈 ซ่อนจริง
-            ),
+              ),
+            )
+                : const SizedBox(), // 👈 ซ่อนจริง
           ),
         ],
       ),
