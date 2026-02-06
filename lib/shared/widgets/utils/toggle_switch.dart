@@ -35,7 +35,7 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
     final showSub = widget.subSwitch && _value;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,72 +53,79 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Text(
                   widget.label,
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 15),
                 ),
               ),
-              CupertinoSwitch(
-                value: _value,
-                activeTrackColor: AppColors.primaryColor,
-                onChanged: (val) {
-                  setState(() {
-                    _value = val;
-                    if (!val) _subValue = false;
-                  });
-                  widget.onChanged?.call(val);
-                },
-              ),
+              Spacer(),
+              Transform.scale(
+                scale: 0.85,
+                child: CupertinoSwitch(
+                  value: _value,
+                  activeTrackColor: AppColors.primaryColor,
+                  onChanged: (val) {
+                    setState(() {
+                      _value = val;
+                      if (!val) _subValue = false;
+                    });
+                    widget.onChanged?.call(val);
+                  },
+                ),
+              )
             ],
           ),
 
           // ---------- SUB SWITCH (SLIDE FROM TOP) ----------
           AnimatedSize(
-            duration: const Duration(milliseconds: 200),
+            duration: Duration(milliseconds: 200),
             curve: Curves.easeInOut,
             alignment: Alignment.topCenter,
             child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 180),
+              duration: Duration(milliseconds: 180),
               curve: Curves.easeInOut,
               opacity: showSub ? 1 : 0,
               child: showSub
                   ? Column(
                 children: [
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Padding(
-                    padding: const EdgeInsets.only(left: 30),
+                    padding: EdgeInsets.only(left: 30),
                     child: Divider(height: 0),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Padding(
-                    padding: const EdgeInsets.only(left: 30),
+                    padding: EdgeInsets.only(left: 30),
                     child: Row(
                       children: [
                         Expanded(
                           child: Text(
                             widget.subLabel ?? 'จำเป็นต้องแนบ',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
+                            style: TextStyle(
+                              fontSize: 15,
                             ),
                           ),
                         ),
-                        CupertinoSwitch(
-                          value: _subValue,
-                          activeTrackColor: AppColors.primaryColor,
-                          onChanged: (val) {
-                            setState(() => _subValue = val);
-                            widget.onSubChanged?.call(val);
-                          },
-                        ),
+                        Spacer(),
+                        Transform.scale(
+                          scale: 0.85,
+                          child: CupertinoSwitch(
+                            value: _subValue,
+                            activeTrackColor: AppColors.primaryColor,
+                            onChanged: (val) {
+                              setState(() => _subValue = val);
+                              widget.onSubChanged?.call(val);
+                            },
+                          ),
+                        )
                       ],
                     ),
                   ),
                 ],
               )
-                  : const SizedBox(),
+                  : SizedBox(),
             ),
           )
 

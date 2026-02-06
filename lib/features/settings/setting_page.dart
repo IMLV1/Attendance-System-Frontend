@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/auth/auth_state.dart';
+import '../../shared/widgets/utils/toggle_switch.dart';
 
 class SettingPage extends StatelessWidget {
 
@@ -47,7 +48,32 @@ class SettingPage extends StatelessWidget {
                       children: [
                         IconTextButton(icon: 'icon_approval.svg', label: 'อนุมัติคำขอ'),
                         IconTextButton(icon: 'icon_approval_history.svg', label: 'บันทึกการอนุมัติคำขอ'),
-                        IconTextButton(icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร')
+                        IconTextButton(icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
+                        // ToggleSwitch(
+                        //   icon: 'icon_role.svg',
+                        //   label: 'แนบเอกสาร',
+                        //   subSwitch: true,
+                        //   subLabel: 'จำเป็นต้องแนบ',
+                        //   onChanged: (val) {
+                        //     debugPrint('main: $val');
+                        //   },
+                        //   onSubChanged: (val) {
+                        //     debugPrint('sub: $val');
+                        //   },
+                        // ),
+                        // ToggleSwitch(
+                        //   icon: 'icon_role.svg',
+                        //   label: 'แนบเอกสาร',
+                        //   subSwitch: true,
+                        //   subLabel: 'จำเป็นต้องแนบ',
+                        //   onChanged: (val) {
+                        //     debugPrint('main: $val');
+                        //   },
+                        //   onSubChanged: (val) {
+                        //     debugPrint('sub: $val');
+                        //   },
+                        // ),
+                        // IconTextButton(icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
                       ]
                   ),
                   SeparatorCard(

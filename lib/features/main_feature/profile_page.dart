@@ -3,7 +3,7 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_role_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
-import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
+// import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -95,23 +95,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         separatorPadding: EdgeInsets.only(left: 45, right: 15),
                         children: [
                           ProfileButton(
-                            disable: true, 
+                            disable: true,
                             icon: Image.network(profile.avatarUrl, fit: BoxFit.cover), 
                             title: profile.thName, 
                             subTitle: profile.enName,
                           ),
-                          // ToggleSwitch(
-                          //   icon: 'icon_role.svg',
-                          //   label: 'แนบเอกสาร',
-                          //   subSwitch: true,
-                          //   subLabel: 'จำเป็นต้องแนบ',
-                          //   onChanged: (val) {
-                          //     debugPrint('main: $val');
-                          //   },
-                          //   onSubChanged: (val) {
-                          //     debugPrint('sub: $val');
-                          //   },
-                          // )
                         ]
                       ),
                       SeparatorCard(
