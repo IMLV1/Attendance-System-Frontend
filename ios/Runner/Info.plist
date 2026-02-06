@@ -56,10 +56,10 @@
                 </array>
             </dict>
         </array>
-
         <key>GIDClientID</key>
         <string>224641754766-8td61iugq14jpcpge92aq86tgco5s9cm.apps.googleusercontent.com</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+
 </dict>
 </plist>
