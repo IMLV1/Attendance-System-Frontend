@@ -14,6 +14,8 @@ class UserManagementModel {
   final List<Role> roles;
   final String avatarUrl;
 
+
+
   UserManagementModel({
     required this.id,
     required this.employeeId,
@@ -46,6 +48,32 @@ class UserManagementModel {
 
   static List<UserManagementModel> getList(Map<String, dynamic> json) {
     return [...json['data'].map((m) => UserManagementModel.fromJson(m))];
+  }
+
+  UserManagementModel copyWith({
+    String? id,
+    String? employeeId,
+    String? nameTH,
+    String? nameEN,
+    String? gender,
+    String? nationality,
+    String? phone,
+    String? email,
+    List<Role>? roles,
+    String? avatarUrl,
+  }) {
+    return UserManagementModel(
+      id: id ?? this.id,
+      employeeId: employeeId ?? this.employeeId,
+      nameTH: nameTH ?? this.nameTH,
+      nameEN: nameEN ?? this.nameEN,
+      gender: gender ?? this.gender,
+      nationality: nationality ?? this.nationality,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      roles: roles ?? this.roles,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+    );
   }
 }
 

@@ -2,68 +2,79 @@ import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class TextInputPopup extends PushPopup {
+class TextInputPopup {
+  final String title;
+  final String buttonLabel;
+  final void Function(String value)? onSubmit;
+  final bool backButton;
+  final String currentValue;
+  final String fieldLabel;
+  final double maxHeight;
+  final double minHeight;
+  final FlexFit fit;
 
-  final String label;
-  final String info;
-  final String value;
+  const TextInputPopup({
+    this.title = 'Default Title',
+    this.buttonLabel = '',
+    this.onSubmit,
+    this.backButton = true,
+    this.currentValue = '',
+    this.fieldLabel = '',
+    this.maxHeight = double.infinity,
+    this.minHeight = 0,
+    this.fit = FlexFit.loose
+  });
 
-  final TextEditingController controller = TextEditingController(text: "Default value");
+  void showPopup(BuildContext context) {
 
-  TextInputPopup({
-    required this.label, this.info = '', this.value = ''}) : super(
-    content: Column(
-      children: [
-        _TextInputContent(value: value, label: label)
-      ],
-    ),
-  );
-}
+    final TextEditingController controller = TextEditingController(text: currentValue);
 
-class _TextInputContent extends StatefulWidget {
-  final String value;
-  final String label;
-
-  const _TextInputContent({required this.value, required this.label});
-
-  @override
-  State<_TextInputContent> createState() => _TextInputContentState();
-}
-
-class _TextInputContentState extends State<_TextInputContent> {
-  late final TextEditingController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = TextEditingController(text: widget.value);
+    PushPopup(
+        title: title,
+        buttonLabel: buttonLabel,
+        minHeight: minHeight,
+        maxHeight: maxHeight,
+        fit: fit,
+        buttonAction: (context) {
+          Navigator.of(context).pop();
+          if (onSubmit != null) onSubmit!(controller.text);
+        },
+        content: Column(
+          children: [
+              TextField(
+                controller: controller,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  labelText: fieldLabel,
+                  isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderSide: const BorderSide(
+                      color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                      width: 1,
+                    ),
+                  ),
+                  suffixIcon: InkWell(
+                    customBorder: CircleBorder(),
+                    onTap: () {
+                      controller.clear();
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        size: 17,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        )
+    ).showPopup(context);
   }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      decoration: const InputDecoration(
-        isDense: true,
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-        EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-        border: OutlineInputBorder(
-          borderRadius:
-          BorderRadius.all(Radius.circular(5)),
-          borderSide: BorderSide(
-            color: Color(0xFFD9D9D9),
-            width: 1,
-          ),
-        ),
-      ),
-    );
-  }
 }

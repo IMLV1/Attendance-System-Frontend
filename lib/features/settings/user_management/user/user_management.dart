@@ -7,6 +7,7 @@ import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -283,7 +284,7 @@ class _UserManagementState extends State<UserManagement> {
                         ),
                         Expanded(
                           child: users.isEmpty
-                              ? const Center(child: CircularProgressIndicator())
+                              ? const Center(child: CupertinoActivityIndicator())
                               : SingleChildScrollView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             child: SeparatorCard(
@@ -291,12 +292,21 @@ class _UserManagementState extends State<UserManagement> {
                               children: [
                                 ...filteredUsers.map((m) {
                                   return UserInfoButton(
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute<void>(
+                                    onPressed: () async {
+                                      final updatedUser = await Navigator.of(context).push<UserManagementModel>(
+                                        MaterialPageRoute(
                                           builder: (context) => UserInfo(userInfo: m),
                                         ),
                                       );
+
+                                      if (updatedUser != null) {
+                                        final index = users.indexWhere((u) => u.id == updatedUser.id);
+
+                                        setState(() {
+                                          users[index] = updatedUser;
+                                        });
+                                      }
+
                                     },
                                     icon: Image.network(
                                       m.avatarUrl,

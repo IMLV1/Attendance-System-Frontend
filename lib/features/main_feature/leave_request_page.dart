@@ -85,7 +85,7 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                               });
                             }
                           },
-                        )
+                        ),
                       ],
                     ),
                     if (leaveType != null)

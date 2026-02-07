@@ -265,11 +265,11 @@ class _CheckinPageState extends State<CheckinPage>{
                   'assets/images/iicon.svg'
               ),
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 softWrap: true,
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.start,
                 'กรุณาเช็คอินเข้างานภายในเวลา 08:30 หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา 00:00 ของทุกวัน ',
                 style: TextStyle(
                   fontSize: 11,
