@@ -219,7 +219,7 @@ class _RoleManagementState extends State<RoleManagement> {
                           color: Color(0xFFE3E3E3),
                           borderRadius: BorderRadius.circular(22),
                         ),
-                        padding: EdgeInsetsGeometry.symmetric(vertical: 20, horizontal: 15),
+                        padding: EdgeInsetsGeometry.symmetric(vertical: 12, horizontal: 15),
                         width: double.infinity,
                         child: Column(
                           spacing: 13,
@@ -246,7 +246,7 @@ class _RoleManagementState extends State<RoleManagement> {
                                   //     items: dataTest,
                                   // ),
                                   SeparatorCard(
-                                    separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                                    separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 60),
                                     children: [
                                       ..._filteredMainRole.map((m) {
                                         return AppButton(
@@ -289,7 +289,7 @@ class _RoleManagementState extends State<RoleManagement> {
                                   //     items: dataTest,
                                   // ),
                                   SeparatorCard(
-                                    separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                                    separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 60),
                                     children: [
                                       ..._filteredSpecialRole.map((m) {
                                         return AppButton(

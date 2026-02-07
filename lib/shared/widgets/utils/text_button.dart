@@ -7,8 +7,9 @@ class TextButton extends StatelessWidget {
   final bool arrow;
   final VoidCallback? onPressed;
   final Color color;
+  final EdgeInsets padding;
 
-  const TextButton({super.key, required this.label, this.arrow = true, this.onPressed, this.color = Colors.black});
+  const TextButton({super.key, required this.label, this.arrow = true, this.onPressed, this.color = Colors.black, this.padding = const EdgeInsets.all(15)});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,7 @@ class TextButton extends StatelessWidget {
         ),
 
         child: Padding(
-            padding: EdgeInsets.all(15),
+            padding: padding,
             child: Row(
               children: [
                 Text(

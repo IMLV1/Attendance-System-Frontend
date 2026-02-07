@@ -3,11 +3,11 @@ import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
-import 'package:flutter/material.dart' hide TextButton;
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../shared/widgets/utils/separator_card.dart';
-import '../../shared/widgets/utils/text_button.dart';
+import '../../shared/widgets/utils/text_button.dart' as utils;
 
 class LeaveRequestPage extends StatefulWidget {
   const LeaveRequestPage({super.key});
@@ -35,41 +35,43 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
       content: SafeArea(
         child: SingleChildScrollView(
           physics: AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(15),
-          child: Column(
-            spacing: 6,
-            children: [
-              Row(
-                spacing: 5,
-                children: [
-                  SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: SvgPicture.asset(
-                      'assets/images/icon_req_lev.svg',
-                    ),
-                  ),
-                  Text(
-                    'รายละเอียดการลางาน',
-                    style: TextStyle(
-                      fontSize: 15,
-                    ),
-                  )
-                ],
-              ),
-              Container(
-                padding: EdgeInsets.all(16) ,
-                decoration: BoxDecoration(
-                  color: Color(0xFFEAEAEA),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 6,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+            child: Column(
+              spacing: 6,
+              children: [
+                Row(
+                  spacing: 5,
                   children: [
-                    SeparatorCard(
-                      children: [
-                        TextButton(
+                    SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: SvgPicture.asset(
+                        'assets/images/icon_req_lev.svg',
+                      ),
+                    ),
+                    Text(
+                      'รายละเอียดการลางาน',
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),
+                    )
+                  ],
+                ),
+                Container(
+                  padding: EdgeInsets.all(15) ,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFEAEAEA),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 6,
+                    children: [
+                      SeparatorCard(
+                        children: [
+                          utils.TextButton(
+                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                           label: leaveType ?? 'เลือกประเภทการลา',
                           color: leaveType == null ? Color(0xFF7D7D7D) : Colors.black,
                           onPressed: () async {
@@ -85,230 +87,233 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                               });
                             }
                           },
-                        )
-                      ],
-                    ),
-                    if (leaveType != null)
-                      Row(
-                        spacing: 6,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            height: 15,
-                            width: 15,
-                            child: SvgPicture.asset(
-                              'assets/images/iicon.svg'
+                        ),
+                          
+                        ],
+                      ),
+                      if (leaveType != null)
+                        Row(
+                          spacing: 6,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: 15,
+                              width: 15,
+                              child: SvgPicture.asset(
+                                  'assets/images/iicon.svg'
+                              ),
                             ),
-                          ),
-                          Expanded(
-                            child: Wrap(
-                              spacing: 5,
-                              children: [
-                                if (leaveType != null) ...[
-                                  Text(
-                                    /// TODO: Calculate ( Limit Day - Current Day )
-                                    'คุณใช้สิทธิ์$leaveTypeไปแล้ว 2 วัน และยังเหลือสิทธิ์ลาป่วยอีก 58 วัน',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ],
-                                InkWell(
-                                  onTap: () {
-                                    /// TODO: Direct Go to Somethings
-                                  },
-                                  child: Text(
-                                    'ดูข้อมูลเพิ่มเติม',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.blue,
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: Colors.blue,
+                            Expanded(
+                              child: Wrap(
+                                spacing: 5,
+                                children: [
+                                  if (leaveType != null) ...[
+                                    Text(
+                                      /// TODO: Calculate ( Limit Day - Current Day )
+                                      'คุณใช้สิทธิ์$leaveTypeไปแล้ว 2 วัน และยังเหลือสิทธิ์ลาป่วยอีก 58 วัน',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                  InkWell(
+                                    onTap: () {
+                                      /// TODO: Direct Go to Somethings
+                                    },
+                                    child: Text(
+                                      'ดูข้อมูลเพิ่มเติม',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.blue,
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: Colors.blue,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      /// TODO: Select Day On Here
+
+                      SizedBox(height: 2),
+                      TextField(
+                        maxLines: 1,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: 'ระบุหมายเหตุ...',
+                          hintStyle: TextStyle(
+                            color: Color(0xFF7D7D7D),
+                            fontSize: 15
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 13,
+                            horizontal: 15,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(22),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 3),
+                      SeparatorCard(
+                        separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                        children: [
+                          IconTextButton(
+                            icon: 'icon_upload_file.svg',
+                            label: 'อัพโหลดไฟล์',
+                            color: AppColors.primaryColor,
+                            onPressed: () {
+                              /// TODO: Upload File
+                            },
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(15),
+                            child: Text(
+                              'ยังไม่ได้อัพโหลดไฟล์',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFF7D7D7D), // สีจาง
+                              ),
                             ),
                           ),
                         ],
-                      ),
-                    /// TODO: Select Day On Here
-
-                    SizedBox(height: 5),
-                    TextField(
-                      maxLines: 1,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        hintText: 'ระบุหมายเหตุ...',
-                        hintStyle: TextStyle(
-                          color: Color(0xFF7D7D7D),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 14,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(22),
-                          borderSide: BorderSide.none,
-                        ),
+                      )
+                    ],
+                  ),
+                ),
+                SizedBox(height: 3),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // TODO: submit
+                    },
+                    icon: SvgPicture.asset(
+                      'assets/images/icon_send.svg',
+                      height: 18,
+                      width: 18,
+                      colorFilter: ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
                       ),
                     ),
-                    SizedBox(height: 3),
-                    SeparatorCard(
-                      separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                      children: [
-                        IconTextButton(
-                          icon: 'icon_upload_file.svg',
-                          label: 'อัพโหลดไฟล์',
-                          color: AppColors.primaryColor,
-                          onPressed: () {
-                            /// TODO: Upload File
-                          },
+                    label: Text(
+                      'ส่ง',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+                /// TODO: Flag is Over Limit Day
+                if (flag && leaveType != null) ...[
+                  Row(
+                    spacing: 6,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 15,
+                        width: 15,
+                        child: SvgPicture.asset(
+                          'assets/images/icon_alert.svg',
+                          colorFilter: ColorFilter.mode(Colors.red, BlendMode.srcIn),
                         ),
-                        Padding(
-                          padding: EdgeInsets.all(15),
-                          child: Text(
-                            'ยังไม่ได้อัพโหลดไฟล์',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Color(0xFF7D7D7D), // สีจาง
-                            ),
+                      ),
+                      Expanded(
+                        child: DefaultTextStyle(
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red,
+                          ),
+                          child: Wrap(
+                            spacing: 4,
+                            children: [
+                              Text(
+                                'คุณได้ใช้สิทธิ์การ$leaveTypeครบตามจำนวนที่กำหนดแล้ว หากคำขอนี้ได้รับการอนุมัติจำนวนวันลาของคุณจะเกินสิทธิ์ 2 วัน ซึ่งอาจส่งผลต่อการคำนวณตัวชี้วัดผลการปฏิบัติงาน',
+                              ),
+                              Text(
+                                  'กรุณากดปุ่มอีกครั้ง',
+                                  style: TextStyle(fontWeight: FontWeight.bold)
+                              ),
+                              Text('เพื่อดำเนินการต่อ',),
+                            ],
                           ),
                         ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(height: 3),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: submit
-                  },
-                  icon: SvgPicture.asset(
-                    'assets/images/icon_send.svg',
-                    height: 18,
-                    width: 18,
-                    colorFilter: ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
+                      )
+                    ],
                   ),
-                  label: Text(
-                    'ส่ง',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-              /// TODO: Flag is Over Limit Day
-              if (flag && leaveType != null) ...[
+                ],
+                SizedBox(height: 3),
                 Row(
-                  spacing: 6,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 5,
                   children: [
                     SizedBox(
-                      height: 15,
-                      width: 15,
+                      height: 20,
+                      width: 20,
                       child: SvgPicture.asset(
-                        'assets/images/icon_alert.svg',
-                        colorFilter: ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                        'assets/images/icon_time.svg',
                       ),
                     ),
-                    Expanded(
-                      child: DefaultTextStyle(
+                    Text(
+                      'ติดตามสถานะ',
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),
+                    ),
+                    Spacer(),
+                    InkWell(
+                      onTap: () {
+
+                      },
+                      child: Text(
+                        'ดูทั้งหมด',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.red,
-                        ),
-                        child: Wrap(
-                          spacing: 4,
-                          children: [
-                            Text(
-                              'คุณได้ใช้สิทธิ์การ$leaveTypeครบตามจำนวนที่กำหนดแล้ว หากคำขอนี้ได้รับการอนุมัติจำนวนวันลาของคุณจะเกินสิทธิ์ 2 วัน ซึ่งอาจส่งผลต่อการคำนวณตัวชี้วัดผลการปฏิบัติงาน',
-                            ),
-                            Text(
-                              'กรุณากดปุ่มอีกครั้ง',
-                              style: TextStyle(fontWeight: FontWeight.bold)
-                            ),
-                            Text('เพื่อดำเนินการต่อ',),
-                          ],
+                            fontSize: 15,
+                            color: AppColors.primaryColor
                         ),
                       ),
                     )
                   ],
                 ),
+                SeparatorCard(
+                  separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 15),
+                  children: [
+                    AppButton(
+                      icon: 'icon_success.svg',
+                      iconColor: Color(0xFF00B646),
+                      title: '17/09/2020 - 18/03/2021',
+                      subTitle: 'หมายเลขคำขอ: LEV000000065012',
+                      onPressed: () {
+                        /// TODO: Open Pop-Up
+                      },
+                    ),
+                    AppButton(
+                      icon: 'icon_success.svg',
+                      iconColor: Color(0xFF00B646),
+                      title: '17/09/2020 - 18/03/2021',
+                      subTitle: 'หมายเลขคำขอ: LEV000000065012',
+                      onPressed: () {
+                        /// TODO: Open Pop-Up
+                      },
+                    ),
+                  ],
+                )
               ],
-              SizedBox(height: 3),
-              Row(
-                spacing: 5,
-                children: [
-                  SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: SvgPicture.asset(
-                      'assets/images/icon_time.svg',
-                    ),
-                  ),
-                  Text(
-                    'ติดตามสถานะ',
-                    style: TextStyle(
-                      fontSize: 15,
-                    ),
-                  ),
-                  Spacer(),
-                  InkWell(
-                    onTap: () {
-
-                    },
-                    child: Text(
-                      'ดูทั้งหมด',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: AppColors.primaryColor
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              SeparatorCard(
-                separatorPadding: EdgeInsetsGeometry.only(left: 70, right: 15),
-                children: [
-                  AppButton(
-                    icon: 'icon_success.svg',
-                    iconColor: Color(0xFF00B646),
-                    title: '17/09/2020 - 18/03/2021',
-                    subTitle: 'หมายเลขคำขอ: LEV000000065012',
-                    onPressed: () {
-                      /// TODO: Open Pop-Up
-                    },
-                  ),
-                  AppButton(
-                    icon: 'icon_success.svg',
-                    iconColor: Color(0xFF00B646),
-                    title: '17/09/2020 - 18/03/2021',
-                    subTitle: 'หมายเลขคำขอ: LEV000000065012',
-                    onPressed: () {
-                      /// TODO: Open Pop-Up
-                    },
-                  ),
-                ],
-              )
-            ],
-          ),
+            ),
+          )
         )
       ),
     );
@@ -332,7 +337,7 @@ class LeaveType extends StatelessWidget {
           child: Column(
             children: [
               SeparatorCard(
-                separatorPadding: EdgeInsetsGeometry.only(left: 70, right: 15),
+                separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 15),
                 children: [
                   AppButton(
                     icon: 'icon_sick.svg',
