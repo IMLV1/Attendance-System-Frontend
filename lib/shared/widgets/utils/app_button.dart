@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 class AppButton extends StatelessWidget {
   final String icon;
   final String title;
-  final String subTitle;
+  final String? subTitle;
   final String? notation;
   final Color? iconColor;
   final bool arrow;
@@ -15,10 +15,10 @@ class AppButton extends StatelessWidget {
     super.key,
     required this.icon,
     required this.title,
-    required this.subTitle,
+    this.subTitle,
     this.notation,
     this.iconColor,
-    required this.arrow,
+    this.arrow = true,
     this.timeStamp,
     this.onPressed,
   });
@@ -68,12 +68,16 @@ class AppButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
-                  child: SvgPicture.asset(
-                    'assets/images/$icon',
+                  child: SizedBox(
                     width: 24,
                     height: 24,
-                    colorFilter: iconColor != null ? ColorFilter.mode(iconColor!, BlendMode.srcIn) : null,
-                  ),
+                    child: SvgPicture.asset(
+                      'assets/images/$icon',
+                      // width: 24,
+                      // height: 24,
+                      colorFilter: iconColor != null ? ColorFilter.mode(iconColor!, BlendMode.srcIn) : null,
+                    ),
+                  )
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -87,14 +91,16 @@ class AppButton extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subTitle,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF7E7E7E),
+                      if (subTitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subTitle!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF7E7E7E),
+                          ),
                         ),
-                      ),
+                      ],
                       if (notation != null) ...[
                         const SizedBox(height: 4),
                         Text(
