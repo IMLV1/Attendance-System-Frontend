@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 
 class Header {
 
-  static AppBar subHeader(BuildContext context, {title = 'Default Title'}) {
+  static AppBar subHeader(BuildContext context, {title = 'Default Title', VoidCallback? onBack}) {
 
     final width = MediaQuery
         .of(context)
@@ -37,7 +37,7 @@ class Header {
 
       leading: Navigator.of(context).canPop() ?
       IconButton(
-        onPressed: () {
+        onPressed: onBack ?? () {
           Navigator.of(context).pop();
         },
         icon: SvgPicture.asset(

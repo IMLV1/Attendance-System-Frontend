@@ -5,11 +5,13 @@ class SeparatorCard extends StatelessWidget {
 
   final List<Widget> children;
   final EdgeInsetsGeometry separatorPadding;
+  final BorderRadius borderRadius;
 
   const SeparatorCard({
     super.key,
     this.children = const [],
-    this.separatorPadding = const EdgeInsetsGeometry.all(0)
+    this.separatorPadding = const EdgeInsetsGeometry.all(0),
+    this.borderRadius = const BorderRadius.all(Radius.circular(25))
   });
 
   @override
@@ -37,7 +39,7 @@ class SeparatorCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
             color: AppColors.cardColor,
-            borderRadius: BorderRadius.circular(22)
+            borderRadius: borderRadius
         ),
         child: Column(
           children: withSeparator(children),
