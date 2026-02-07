@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../user_management/user_management_model.dart';
 
 class ProfileModel {

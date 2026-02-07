@@ -1,13 +1,13 @@
 import 'package:attendance_system/features/main_feature/checkin_page.dart';
 import 'package:attendance_system/features/main_feature/leave_request_page.dart';
 import 'package:attendance_system/features/main_feature/profile_page.dart';
+import 'package:attendance_system/features/main_feature/statistic_page.dart';
+import 'package:attendance_system/features/main_feature/time_request_page.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_attendance.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_attendance_request.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_budget_year.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_leave_type.dart';
 import 'package:attendance_system/features/settings/setting_page.dart';
-import 'package:attendance_system/features/main_feature/statistic_page.dart';
-import 'package:attendance_system/features/main_feature/time_request_page.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_management.dart';
 import 'package:attendance_system/shared/widgets/base_view.dart';
 import 'package:flutter/material.dart';
