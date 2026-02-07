@@ -5,6 +5,7 @@ class AppButton extends StatelessWidget {
   final String icon;
   final String title;
   final String? subTitle;
+  final FontWeight weightTitle;
   final String? notation;
   final Color? iconColor;
   final bool arrow;
@@ -21,6 +22,7 @@ class AppButton extends StatelessWidget {
     this.arrow = true,
     this.timeStamp,
     this.onPressed,
+    this.weightTitle = FontWeight.w700,
   });
 
   @override
@@ -37,89 +39,100 @@ class AppButton extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-          top: timeStamp == null ? 15 : 5,
-          bottom: 12,
-        ),
+        padding: EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // เวลา (ถ้ามี)
             if (timeStamp != null)
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
                   timeStamp!,
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
+                    fontSize: 12,
+                    color: Color(0xFF7C7C7C)
                   ),
                 ),
               ),
+
+            // const SizedBox(height: 10),
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // ไอคอน
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
-                    color: (iconColor ?? Color(0xFFC7C7C7)).withValues(alpha: 0.2),
+                    color: (iconColor ?? const Color(0xFFC7C7C7))
+                        .withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
                   child: SizedBox(
-                    width: 24,
-                    height: 24,
+                    width: 20,
+                    height: 20,
                     child: SvgPicture.asset(
                       'assets/images/$icon',
-                      // width: 24,
-                      // height: 24,
-                      colorFilter: iconColor != null ? ColorFilter.mode(iconColor!, BlendMode.srcIn) : null,
+                      colorFilter: iconColor != null
+                          ? ColorFilter.mode(
+                        iconColor!,
+                        BlendMode.srcIn,
+                      )
+                          : null,
                     ),
-                  )
+                  ),
                 ),
-                const SizedBox(width: 12),
+
+                const SizedBox(width: 10),
+
+                // ข้อความ
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: TextStyle(fontSize: 15, color: Colors.black, fontWeight: weightTitle),
                       ),
+
                       if (subTitle != null) ...[
-                        const SizedBox(height: 2),
                         Text(
                           subTitle!,
                           style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF7E7E7E),
+                            fontSize: 13,
+                            color: Color(0xFF7C7C7C),
                           ),
                         ),
                       ],
+
                       if (notation != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           notation!,
                           style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF9E9E9E),
+                            fontSize: 11,
+                            color: Color(0xFF7E7E7E),
                           ),
                         ),
                       ],
                     ],
                   ),
                 ),
+
+                // ลูกศร
                 if (arrow)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Icon(
-                      Icons.chevron_right,
-                      color: Colors.grey,
+                  const SizedBox(width: 10),
+
+                if (arrow)
+                  SizedBox(
+                    width: 10,
+                    height: 10,
+                    child: SvgPicture.asset(
+                      'assets/images/icon_next.svg',
                     ),
                   ),
               ],
