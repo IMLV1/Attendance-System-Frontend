@@ -188,7 +188,7 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                 SizedBox(height: 3),
                 SizedBox(
                   width: double.infinity,
-                  height: 48,
+                  height: 42,
                   child: ElevatedButton.icon(
                     onPressed: () {
                       // TODO: submit
