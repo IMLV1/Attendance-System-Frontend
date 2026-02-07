@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/auth/auth_state.dart';
-import '../../shared/widgets/utils/toggle_switch.dart';
 
 class SettingPage extends StatelessWidget {
 

@@ -1,7 +1,3 @@
-import 'dart:math';
-
-import 'package:attendance_system/core/utils/dimensions_ext.dart';
-import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:flutter/material.dart';
 
 class AppScaffold extends StatelessWidget {
