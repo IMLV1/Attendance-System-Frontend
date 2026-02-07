@@ -66,10 +66,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final profile = _profileData;
 
-    if (profile == null) {
-      return const Center(child: CupertinoActivityIndicator());
-    }
-
     return AppScaffold(
       header: Header.mainHeader(
         context,
@@ -77,7 +73,9 @@ class _ProfilePageState extends State<ProfilePage> {
           subTitle: 'User Profile',
           iconPath: 'icon_profile.svg'
       ),
-      content: Container(
+      content: profile == null
+          ? const Center(child: CupertinoActivityIndicator())
+          : Container(
         color: AppColors.backgroundColor,
         alignment: Alignment.topCenter,
         child: Padding(
