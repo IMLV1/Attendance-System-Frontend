@@ -67,7 +67,7 @@ class Header {
     );
   }
 
-  static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath = 'google_logo.svg'}) {
+  static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath = 'google_logo.svg', iconColor = Colors.white}) {
 
     final width = MediaQuery
         .of(context)
@@ -110,6 +110,10 @@ class Header {
                   'assets/images/$iconPath',
                   width: 28 * scaleFactor,
                   height: 28 * scaleFactor,
+                  colorFilter: ColorFilter.mode(
+                    iconColor,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
             ),
