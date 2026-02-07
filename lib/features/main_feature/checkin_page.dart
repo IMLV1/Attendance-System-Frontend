@@ -44,11 +44,11 @@ class _CheckinPageState extends State<CheckinPage>{
       ),
       content: SafeArea(
           child : SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+              physics: AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(height: 20),
                     _cardtime(),
                     SizedBox(height: 20),
                     _buttonCheckin(),
