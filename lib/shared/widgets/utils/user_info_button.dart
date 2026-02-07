@@ -1,5 +1,4 @@
 import 'package:attendance_system/services/user_management/user_management_model.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
