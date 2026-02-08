@@ -46,6 +46,7 @@ class Member {
     required this.avatarUrl,
   });
 
+
   factory Member.fromJson(Map<String, dynamic> json) {
     return Member(
       thName: json['thName'] ?? '',
