@@ -1,3 +1,5 @@
+import 'package:attendance_system/features/settings/user_management/user/assign_role.dart';
+import 'package:attendance_system/features/settings/user_management/user/max_leave.dart';
 import 'package:attendance_system/main.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -11,7 +13,9 @@ import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/text_role_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class UserInfo extends StatefulWidget {
 
@@ -154,6 +158,13 @@ class _UserInfoState extends State<UserInfo> {
                                         fieldLabel: 'เบอร์โทร',
                                         buttonLabel: 'บันทึก',
                                         maxHeight: 700,
+                                        inputFormatters: [
+                                          MaskTextInputFormatter(
+                                            mask: '###-###-####',
+                                            filter: { "#": RegExp(r'[0-9]') },
+                                          )
+                                        ],
+                                        keyboardType: TextInputType.phone,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.phone,
                                         onSubmit: (value) {
@@ -170,8 +181,27 @@ class _UserInfoState extends State<UserInfo> {
                               SeparatorCard(
                                   separatorPadding: EdgeInsets.only(left: 45, right: 15),
                                   children: [
-                                    TextRoleButton(disable: false, label: 'ตำแหน่งปัจจุบัน', roles: userInfo.roles, icon: SvgPicture.asset('assets/images/icon_role.svg')),
-                                    IconTextButton(icon: 'max_leave_count.svg', label: 'จำนวนวันลาสูงสุด')
+                                    TextRoleButton(onPressed: () async {
+                                      List<Role>? updatedRole = await Navigator.of(context).push(
+                                        MaterialPageRoute<List<Role>>(
+                                          builder: (context) => AssignRole(id: userInfo.id, name: userInfo.nameTH, roles: userInfo.roles)
+                                        ),
+                                      );
+
+                                      if (updatedRole != null) {
+                                        setState(() {
+                                          userInfo = userInfo.copyWith(roles: updatedRole);
+                                        });
+                                      }
+
+                                    }, label: 'ตำแหน่งปัจจุบัน', roles: [...userInfo.roles, Role(id: '0000000000', name: userInfo.initRole, color: Color(0xFF535353))], icon: SvgPicture.asset('assets/images/icon_role.svg')),
+                                    IconTextButton(onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) => MaxLeave(id: userInfo.id, name: userInfo.nameTH)
+                                        ),
+                                      );
+                                    }, icon: 'max_leave_count.svg', label: 'จำนวนวันลาสูงสุด')
                                   ]
                               ),
                               SeparatorCard(

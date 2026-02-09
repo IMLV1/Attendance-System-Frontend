@@ -98,7 +98,7 @@ class UserInfoButton extends StatelessWidget {
                                 ),
                               )
                             );
-                          })
+                          }),
                         ]
                       ),
                     ),

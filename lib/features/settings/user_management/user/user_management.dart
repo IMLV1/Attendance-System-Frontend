@@ -27,10 +27,10 @@ class MockData {
           'nationality': 'ไทย',
           'phone': '012-345-6789',
           'email': 'duaydee.t@eng.src.ku.ac.th',
+          'initial-role': 'วิศวกรรมคอมพิวเตอร์',
           'roles': [
-            {'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
-            {'role-name': 'รองคณบดี', 'role-color': 'FFA51D'},
-            {'role-name': 'วิศวกรรมคอมพิวเตอร์', 'role-color': '535353'}
+            {'role-id': '0000000001', 'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+            {'role-id': '0000000002', 'role-name': 'รองคณบดี', 'role-color': 'FFA51D'}
           ]
         }
       ]
@@ -314,7 +314,7 @@ class _UserManagementState extends State<UserManagement> {
                                     ),
                                     title: m.nameTH,
                                     subTitle: m.nameEN,
-                                    roles: m.roles,
+                                    roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
                                   );
                                 }),
                               ],
