@@ -293,10 +293,8 @@ class _RoleManagementState extends State<RoleManagement> {
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
-                                          arrow: true,
-                                          onPressed: () async {
-                                            final result =
-                                            await Navigator.of(context).push(
+                                          onPressed: () {
+                                            Navigator.of(context).push(
                                               MaterialPageRoute(
                                                 builder: (_) =>
                                                     EditRole(roleInfo: m),
@@ -344,10 +342,8 @@ class _RoleManagementState extends State<RoleManagement> {
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
-                                          arrow: true,
-                                          onPressed: () async {
-                                            final result =
-                                            await Navigator.of(context).push(
+                                          onPressed: () {
+                                            Navigator.of(context).push(
                                               MaterialPageRoute(
                                                 builder: (_) =>
                                                     EditRole(roleInfo: m),

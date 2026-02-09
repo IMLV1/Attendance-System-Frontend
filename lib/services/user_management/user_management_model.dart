@@ -13,8 +13,7 @@ class UserManagementModel {
   final String email;
   final List<Role> roles;
   final String avatarUrl;
-
-
+  final String initRole;
 
   UserManagementModel({
     required this.id,
@@ -26,7 +25,8 @@ class UserManagementModel {
     required this.phone,
     required this.email,
     required this.roles,
-    required this.avatarUrl
+    required this.avatarUrl,
+    required this.initRole
   });
 
   factory UserManagementModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +43,7 @@ class UserManagementModel {
           ?.map((e) => Role.fromJson(e))
           .toList() ?? [],
       avatarUrl: json['avatar-url'] ?? '',
+      initRole: json['initial-role'] ?? '',
     );
   }
 
@@ -61,6 +62,7 @@ class UserManagementModel {
     String? email,
     List<Role>? roles,
     String? avatarUrl,
+    String? initRole,
   }) {
     return UserManagementModel(
       id: id ?? this.id,
@@ -73,6 +75,7 @@ class UserManagementModel {
       email: email ?? this.email,
       roles: roles ?? this.roles,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      initRole: initRole ?? this.initRole,
     );
   }
 }
@@ -80,14 +83,16 @@ class UserManagementModel {
 class Role {
   final String name;
   final Color color;
+  final String id;
 
-  Role({required this.name, required this.color});
+  Role({required this.id, required this.name, required this.color});
 
   factory Role.fromJson(Map<String, dynamic> json) {
 
     String hex = (json['role-color'] ?? '000000').toString().toUpperCase();
 
     return Role(
+      id: json['role-id'] ?? '',
       name: json['role-name'] ?? '',
       color: Color(int.parse('FF$hex', radix: 16)),
     );
