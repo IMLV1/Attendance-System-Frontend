@@ -254,7 +254,6 @@ class _RoleManagementState extends State<RoleManagement> {
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
-                                          arrow: true,
                                           onPressed: () {
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
@@ -297,7 +296,6 @@ class _RoleManagementState extends State<RoleManagement> {
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
-                                          arrow: true,
                                           onPressed: () {
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
