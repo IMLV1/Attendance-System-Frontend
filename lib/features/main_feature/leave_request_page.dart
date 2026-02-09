@@ -23,7 +23,6 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return AppScaffold(
       header: Header.mainHeader(
         context,
@@ -33,10 +32,10 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
         iconColor: Colors.white
       ),
       content: SafeArea(
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Padding(
+        child: Expanded(
+          child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               spacing: 6,
               children: [
@@ -88,7 +87,6 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                             }
                           },
                         ),
-
                         ],
                       ),
                       if (leaveType != null)
@@ -148,7 +146,7 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: EdgeInsets.symmetric(
-                            vertical: 13,
+                            vertical: 11,
                             horizontal: 15,
                           ),
                           border: OutlineInputBorder(

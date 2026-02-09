@@ -25,10 +25,12 @@ class _RoleManagementState extends State<RoleManagement> {
   final roleManagement = RoleManagementModel(
     mainRole: [
       RoleSystem(
+        id: '1',
         roleName: "ผู้ดูแลระบบ",
         // roleColor: "FF3B30",
         members: [
           Member(
+            id: '1000',
             thName: "สมชาย ใจดี",
             enName: "SomChai Jaimee",
             avatarUrl: "https://example.com/avatar1.png",
@@ -36,40 +38,48 @@ class _RoleManagementState extends State<RoleManagement> {
         ],
       ),
       RoleSystem(
+        id: '2',
         roleName: "อาจารย์",
         roleColor: "007AFF",
         members: [
           Member(
+            id: '1001',
             thName: "ดร.กิตติพงศ์ ศรีสุข",
             enName: "Dr. KittiPong Sunrise",
             avatarUrl: "https://example.com/avatar3.png",
           ),
           Member(
+            id: '1002',
             thName: "วิภา แสนสวย",
             enName: "Wipe Sensuality",
             avatarUrl: "https://example.com/avatar2.png",
           ),
           Member(
+            id: '1003',
             thName: "วิภา แสนสวย",
             enName: "Wipe Sensuality",
             avatarUrl: "https://example.com/avatar2.png",
           ),
           Member(
+            id: '1004',
             thName: "วิภา แสนสวย",
             enName: "Wipe Sensuality",
             avatarUrl: "https://example.com/avatar2.png",
           ),
           Member(
+            id: '1005',
             thName: "วิภา แสนสวย",
             enName: "Wipe Sensuality",
             avatarUrl: "https://example.com/avatar2.png",
           ),
           Member(
+            id: '1006',
             thName: "วิภา แสนสวย",
             enName: "Wipe Sensuality",
             avatarUrl: "https://example.com/avatar2.png",
           ),
           Member(
+            id: '1007',
             thName: "วิภา แสนสวย",
             enName: "Wipe Sensuality",
             avatarUrl: "https://example.com/avatar2.png",
@@ -79,10 +89,12 @@ class _RoleManagementState extends State<RoleManagement> {
     ],
     specialRole: [
       RoleSystem(
+        id: '3',
         roleName: "หัวหน้าทีม",
         roleColor: "34C759",
         members: [
           Member(
+            id: '1008',
             thName: "นฤมล รัตนชัย",
             enName: "Naruto Attractant",
             avatarUrl: "https://example.com/avatar4.png",
@@ -93,44 +105,71 @@ class _RoleManagementState extends State<RoleManagement> {
   );
 
   late TextEditingController _controller;
-  late List<RoleSystem> _filteredMainRole;
-  late List<RoleSystem> _filteredSpecialRole;
+
+  late List<RoleSystem> _allMainRoles;
+  late List<RoleSystem> _allSpecialRoles;
+
+  List<RoleSystem> _filteredMainRoles = [];
+  List<RoleSystem> _filteredSpecialRoles = [];
 
   @override
   void initState() {
     super.initState();
-
     _controller = TextEditingController();
 
-    _filteredMainRole = roleManagement.mainRole;
-    _filteredSpecialRole = roleManagement.specialRole;
+    // clone list ป้องกัน side-effect
+    _allMainRoles = List.from(roleManagement.mainRole);
+    _allSpecialRoles = List.from(roleManagement.specialRole);
+
+    _applyFilter('');
   }
-
-  void _onSearchChanged(String value) {
-    final keyword = value.trim().toLowerCase();
-
-    setState(() {
-      if (keyword.isEmpty) {
-        _filteredMainRole = roleManagement.mainRole;
-        _filteredSpecialRole = roleManagement.specialRole;
-      } else {
-        _filteredMainRole = roleManagement.mainRole.where((role) =>
-            role.roleName.toLowerCase().contains(keyword))
-            .toList();
-
-        _filteredSpecialRole = roleManagement.specialRole
-            .where((role) =>
-            role.roleName.toLowerCase().contains(keyword))
-            .toList();
-      }
-    });
-  }
-
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  // ---------- filter ----------
+  void _applyFilter(String keyword) {
+    final key = keyword.trim().toLowerCase();
+
+    setState(() {
+      if (key.isEmpty) {
+        _filteredMainRoles = _allMainRoles;
+        _filteredSpecialRoles = _allSpecialRoles;
+      } else {
+        _filteredMainRoles = _allMainRoles
+            .where((r) => r.roleName.toLowerCase().contains(key))
+            .toList();
+
+        _filteredSpecialRoles = _allSpecialRoles
+            .where((r) => r.roleName.toLowerCase().contains(key))
+            .toList();
+      }
+    });
+  }
+
+  // ---------- update / delete ----------
+  void _updateRole(RoleSystem updated) {
+    setState(() {
+      _allMainRoles =
+          _allMainRoles.map((r) => r.id == updated.id ? updated : r).toList();
+
+      _allSpecialRoles = _allSpecialRoles
+          .map((r) => r.id == updated.id ? updated : r)
+          .toList();
+
+      _applyFilter(_controller.text);
+    });
+  }
+
+  void _removeRole(String id) {
+    setState(() {
+      _allMainRoles.removeWhere((r) => r.id == id);
+      _allSpecialRoles.removeWhere((r) => r.id == id);
+      _applyFilter(_controller.text);
+    });
   }
 
   @override
@@ -173,7 +212,7 @@ class _RoleManagementState extends State<RoleManagement> {
                   ),
                   TextField(
                     controller: _controller,
-                    onChanged: _onSearchChanged,
+                    onChanged: _applyFilter,
                     decoration: InputDecoration(
                       isDense: true,
                       filled: true,
@@ -212,7 +251,7 @@ class _RoleManagementState extends State<RoleManagement> {
                       ),
                     ),
                   ),
-                  if (_filteredMainRole.isNotEmpty || _filteredSpecialRole.isNotEmpty)
+                  if (_filteredMainRoles.isNotEmpty || _filteredSpecialRoles.isNotEmpty)
                     SingleChildScrollView(
                       child: Container(
                         decoration: BoxDecoration(
@@ -225,7 +264,7 @@ class _RoleManagementState extends State<RoleManagement> {
                           spacing: 13,
                           children: [
                             /// ตำแหน่งหลัก
-                            if (_filteredMainRole.isNotEmpty)
+                            if (_filteredMainRoles.isNotEmpty)
                               Column(
                                 spacing: 5,
                                 children: [
@@ -239,7 +278,7 @@ class _RoleManagementState extends State<RoleManagement> {
                                         width: 15,
                                       ),
                                       /// TODO: มาทำด้วย
-                                      Text('ตำแหน่งหนัก (${_filteredMainRole.length})')
+                                      Text('ตำแหน่งหนัก (${_filteredMainRoles.length})')
                                     ],
                                   ),
                                   // AppButtonListCard(
@@ -248,19 +287,27 @@ class _RoleManagementState extends State<RoleManagement> {
                                   SeparatorCard(
                                     separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 60),
                                     children: [
-                                      ..._filteredMainRole.map((m) {
+                                      ..._filteredMainRoles.map((m) {
                                         return AppButton(
                                           icon: (m.roleName == 'ผู้ดูแลระบบ' || m.roleName.toLowerCase() == 'admin') ? 'icon_admin.svg' : 'role_management.svg',
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
                                           arrow: true,
-                                          onPressed: () {
-                                            Navigator.of(context).push(
+                                          onPressed: () async {
+                                            final result =
+                                            await Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                builder: (context) => EditRole(roleInfo: m),
+                                                builder: (_) =>
+                                                    EditRole(roleInfo: m),
                                               ),
                                             );
+
+                                            if (result is RoleSystem) {
+                                              _updateRole(result);
+                                            } else if (result == true) {
+                                              _removeRole(m.id);
+                                            }
                                           },
                                         );
                                       })
@@ -269,7 +316,7 @@ class _RoleManagementState extends State<RoleManagement> {
                                 ],
                               ),
                             /// ตำแหน่งเสริม
-                            if (_filteredSpecialRole.isNotEmpty)
+                            if (_filteredSpecialRoles.isNotEmpty)
                               Column(
                                 spacing: 5,
                                 children: [
@@ -282,7 +329,7 @@ class _RoleManagementState extends State<RoleManagement> {
                                         height: 15,
                                         width: 15,
                                       ),
-                                      Text('ตำแหน่งเพิ่มเติม (${_filteredSpecialRole.length})')
+                                      Text('ตำแหน่งเพิ่มเติม (${_filteredSpecialRoles.length})')
                                     ],
                                   ),
                                   // AppButtonListCard(
@@ -291,19 +338,27 @@ class _RoleManagementState extends State<RoleManagement> {
                                   SeparatorCard(
                                     separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 60),
                                     children: [
-                                      ..._filteredSpecialRole.map((m) {
+                                      ..._filteredSpecialRoles.map((m) {
                                         return AppButton(
                                           icon: 'specialer.svg',
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
                                           arrow: true,
-                                          onPressed: () {
-                                            Navigator.of(context).push(
+                                          onPressed: () async {
+                                            final result =
+                                            await Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                builder: (context) => EditRole(roleInfo: m),
+                                                builder: (_) =>
+                                                    EditRole(roleInfo: m),
                                               ),
                                             );
+
+                                            if (result is RoleSystem) {
+                                              _updateRole(result);
+                                            } else if (result == true) {
+                                              _removeRole(m.id);
+                                            }
                                           },
                                         );
                                       })

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../services/role_management/role_management_service.dart';
 import '../../../shared/widgets/app_scaffold.dart';
 import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
@@ -22,46 +23,149 @@ class EditRole extends StatefulWidget {
 }
 
 class _EditRoleState extends State<EditRole> {
-  late final TextEditingController _controller;
-  late final String _originalValue;
-  final FocusNode _focusNode = FocusNode();
+  late RoleSystem _role;
+
+  late TextEditingController _nameController;
+  late TextEditingController _searchController;
+
+  late String _originalValue;
   late Color _roleColor;
 
+  final FocusNode _focusNode = FocusNode();
+  final RoleManagementService _service = RoleManagementService();
+
+  List<Member> _filteredMembers = [];
+
+  // ---------- utils ----------
   Color _hexToColor(String hex) {
     hex = hex.replaceAll('#', '');
     if (hex.length == 6) hex = 'FF$hex';
     return Color(int.parse(hex, radix: 16));
   }
 
+  // ---------- lifecycle ----------
   @override
   void initState() {
     super.initState();
-    _originalValue = widget.roleInfo.roleName;
-    _controller = TextEditingController(text: _originalValue);
-    _roleColor = widget.roleInfo.roleColor != null ? _hexToColor(widget.roleInfo.roleColor!) : const Color(0xFFFFA726);
+
+    _role = widget.roleInfo.copyWith(
+      members: List.from(widget.roleInfo.members),
+    );
+
+    _originalValue = _role.roleName;
+
+    _nameController = TextEditingController(text: _originalValue);
+    _searchController = TextEditingController();
+
+    _roleColor = _role.roleColor != null
+        ? _hexToColor(_role.roleColor!)
+        : const Color(0xFFFFA726);
+
+    _filteredMembers = _role.members;
+
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _validateName();
+      }
+    });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _nameController.dispose();
+    _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
-  // ---------- save ----------
+  // ---------- validate role name ----------
+  void _validateName() {
+    final value = _nameController.text.trim();
+
+    if (value.isEmpty) {
+      // ❌ ห้ามว่าง → คืนค่าเดิม
+      _nameController.text = _originalValue;
+    } else if (value != _originalValue) {
+      _finishEdit(value);
+    }
+  }
+
+  // ---------- update role ----------
   void _finishEdit(String value) {
     final newValue = value.trim();
-    if (newValue.isEmpty || newValue == _originalValue.trim()) return;
+
+    if (newValue.isEmpty || newValue == _originalValue) return;
+
     _save(newValue);
   }
 
-  void _save(String value) {
-    final colorHex = _roleColor.toARGB32().toRadixString(16).substring(2).toUpperCase();
+  Future<void> _save(String value) async {
+    try {
+      final colorHex = _roleColor.toARGB32()
+          .toRadixString(16)
+          .substring(2)
+          .toUpperCase();
 
-    debugPrint('name: $value');
-    debugPrint('color: $colorHex');
+      await _service.updateRole(
+        roleId: _role.id,
+        name: value,
+        color: colorHex,
+      );
 
-    // TODO: call API
+      final updated = _role.copyWith(
+        roleName: value,
+        roleColor: colorHex,
+      );
+
+      setState(() {
+        _role = updated;
+        _originalValue = value;
+      });
+
+      Navigator.of(context).pop(updated);
+    } catch (_) {
+      // TODO: show error snackbar
+    }
+  }
+
+
+  // ---------- search member ----------
+  void _onSearchChanged(String value) {
+    final key = value.trim().toLowerCase();
+
+    setState(() {
+      _filteredMembers = key.isEmpty
+          ? _role.members
+          : _role.members.where((m) =>
+      m.thName.toLowerCase().contains(key) ||
+          m.enName.toLowerCase().contains(key),
+      ).toList();
+    });
+  }
+
+
+  // ---------- delete member ----------
+  Future<void> _removeMember(String memberId) async {
+    await _service.deleteMember(
+      roleId: _role.id,
+      memberId: memberId,
+    );
+
+    setState(() {
+      final updatedMembers =
+      _role.members.where((m) => m.id != memberId).toList();
+
+      _role = _role.copyWith(members: updatedMembers);
+      _filteredMembers = updatedMembers;
+    });
+  }
+
+  Future<void> _deleteRole() async {
+    await _service.deleteRole(roleId: _role.id);
+
+    if (mounted) {
+      Navigator.of(context).pop(true); // กลับหน้าเดิม + บอกว่าลบแล้ว
+    }
   }
 
   // ---------- UI ----------
@@ -70,33 +174,28 @@ class _EditRoleState extends State<EditRole> {
     return AppScaffold(
       header: Header.subHeader(
         context,
-        title: 'แก้ไข: ${widget.roleInfo.roleName}',
+        title: 'แก้ไข: ${_role.roleName}',
       ),
       content: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            vertical: 20,
-            horizontal: 15,
-          ),
-          physics: AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             spacing: 20,
             children: [
+              /// ===== Role name =====
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 15,
-                ),
+                padding:
+                const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
                 decoration: BoxDecoration(
-                  color: Color(0xFFE3E3E3),
+                  color: const Color(0xFFE3E3E3),
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Column(
                   spacing: 13,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// title
                     Row(
                       spacing: 6,
                       children: [
@@ -105,49 +204,45 @@ class _EditRoleState extends State<EditRole> {
                           height: 15,
                           width: 15,
                         ),
-                        Text('ตำแหน่ง'),
+                        const Text('ตำแหน่ง'),
                       ],
                     ),
-                    /// input + color
                     Row(
                       spacing: 13,
                       children: [
                         Expanded(
                           child: TextField(
-                            controller: _controller,
+                            controller: _nameController,
                             focusNode: _focusNode,
                             textInputAction: TextInputAction.done,
                             decoration: InputDecoration(
                               hintText: 'กรุณาระบุตำแหน่ง',
-                              hintStyle: TextStyle(
+                              hintStyle: const TextStyle(
                                 color: Colors.black38,
+                                fontSize: 14,
                               ),
                               isDense: true,
                               filled: true,
                               fillColor: Colors.white,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              contentPadding:
+                              const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide.none,
                               ),
-                              suffixIcon: GestureDetector(
+                              suffixIcon: InkWell(
+                                customBorder: const CircleBorder(),
                                 onTap: () {
-                                  _controller.clear();
-                                  _focusNode.requestFocus();
+                                  _nameController.clear();
+                                  FocusScope.of(context).unfocus();
                                 },
-                                child: InkWell(
-                                  customBorder: CircleBorder(),
-                                  onTap: () {
-                                    // TODO: cancel select
-
-                                  },
-                                  child: Padding(
-                                    padding: EdgeInsets.all(6),
-                                    child: Icon(
-                                      CupertinoIcons.xmark_circle_fill,
-                                      size: 17,
-                                      color: Colors.black,
-                                    ),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(6),
+                                  child: Icon(
+                                    CupertinoIcons.xmark_circle_fill,
+                                    size: 17,
+                                    color: Colors.black,
                                   ),
                                 ),
                               ),
@@ -155,37 +250,10 @@ class _EditRoleState extends State<EditRole> {
                             onSubmitted: _finishEdit,
                           ),
                         ),
-                        /// color dot
                         InkWell(
-                          customBorder: CircleBorder(),
+                          customBorder: const CircleBorder(),
                           onTap: () {
-                            /// TODO: Color Pickup
-                            // Color tempColor = _roleColor;
-                            //
-                            // PushPopup(
-                            //   title: 'เลือกสีตำแหน่ง',
-                            //   buttonLabel: 'ตกลง',
-                            //   buttonAction: () {
-                            //     setState(() {
-                            //       _roleColor = tempColor;
-                            //     });
-                            //     Navigator.of(context).pop();
-                            //   },
-                            //   content: Material( // ⭐ สำคัญมาก
-                            //     color: Colors.transparent,
-                            //     child: SizedBox(
-                            //       height: 320,
-                            //       child: ColorPicker(
-                            //         pickerColor: _roleColor,
-                            //         onColorChanged: (color) {
-                            //           tempColor = color;
-                            //         },
-                            //         enableAlpha: false,
-                            //         displayThumbColor: true,
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ).showPopup(context);
+                            /// TODO: Select Color
                           },
                           child: Container(
                             width: 28,
@@ -194,7 +262,7 @@ class _EditRoleState extends State<EditRole> {
                               color: _roleColor,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Color(0xFF606060),
+                                color: const Color(0xFF606060),
                                 width: 2,
                               ),
                             ),
@@ -205,23 +273,28 @@ class _EditRoleState extends State<EditRole> {
                   ],
                 ),
               ),
-              /// delete
+
+              /// ===== Delete role =====
               SeparatorCard(
-                separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                separatorPadding:
+                const EdgeInsets.only(left: 45, right: 15),
                 children: [
                   IconTextButton(
                     arrow: false,
                     color: Colors.red,
                     icon: 'icon_delete.svg',
                     label: 'ลบตำแหน่ง',
+                    onPressed: () {
+                      /// TODO: Delete role
+                    },
                   ),
                 ],
               ),
-              /// Search bar + Add user
+
+              /// ===== Search & Add =====
               Column(
                 spacing: 6,
                 children: [
-                  /// Text
                   Row(
                     spacing: 6,
                     children: [
@@ -230,34 +303,33 @@ class _EditRoleState extends State<EditRole> {
                         height: 15,
                         width: 15,
                       ),
-                      Text('สมาชิกในสังกัด (${widget.roleInfo.members.length})'),
+                      Text('สมาชิกในสังกัด (${_filteredMembers.length})'),
                     ],
                   ),
                   Row(
                     spacing: 13,
                     children: [
-                      /// Search bar
                       Expanded(
                         child: TextField(
-                          // controller: _controller,
-                          // onChanged: _onSearchChanged,
+                          controller: _searchController,
+                          onChanged: _onSearchChanged,
                           decoration: InputDecoration(
                             isDense: true,
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: EdgeInsets.symmetric(vertical: 13, horizontal: 13),
+                            contentPadding:
+                            const EdgeInsets.symmetric(
+                                vertical: 13, horizontal: 13),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(50),
-                              borderSide: BorderSide(
-                                color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                width: 1,
+                              borderSide: const BorderSide(
+                                color: Color(0xFF7D7D7D),
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(50),
-                              borderSide: BorderSide(
-                                color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                width: 1,
+                              borderSide: const BorderSide(
+                                color: Color(0xFF7D7D7D),
                               ),
                             ),
                             hint: Row(
@@ -269,20 +341,20 @@ class _EditRoleState extends State<EditRole> {
                                   width: 15,
                                   height: 15,
                                 ),
-                                Text('ค้นหาตำแหน่ง...',
-                                    style: TextStyle(
-                                        color: Color(0xFF7D7D7D),
-                                        fontSize: 15
-                                    )
-                                )
+                                const Text(
+                                  'ค้นหาตำแหน่ง...',
+                                  style: TextStyle(
+                                    color: Color(0xFF7D7D7D),
+                                    fontSize: 15,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                         ),
                       ),
-                      /// Add User
                       InkWell(
-                        customBorder: CircleBorder(),
+                        customBorder: const CircleBorder(),
                         onTap: () {},
                         child: Container(
                           width: 44,
@@ -290,8 +362,7 @@ class _EditRoleState extends State<EditRole> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Color(0xFF7D7D7D),
-                              width: 1,
+                              color: const Color(0xFF7D7D7D),
                             ),
                           ),
                           child: Center(
@@ -304,19 +375,22 @@ class _EditRoleState extends State<EditRole> {
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
-              if (widget.roleInfo.members.isNotEmpty)
+
+              /// ===== Member list =====
+              if (_filteredMembers.isNotEmpty)
                 SeparatorCard(
                   separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
                   children: [
-                    ...widget.roleInfo.members.map((m) {
+                    ..._filteredMembers.map((m) {
                       return UserCancelCheckbox(
                         icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
                         title: m.thName,
                         subTitle: m.enName,
                         checkBox: false,
+                        onCancel: () => _removeMember(m.id),
                       );
                     }),
                   ],

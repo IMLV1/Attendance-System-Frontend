@@ -6,6 +6,7 @@ class UserCancelCheckbox extends StatelessWidget {
   final String title;
   final String subTitle;
   final bool checkBox;
+  final VoidCallback? onCancel;
 
   const UserCancelCheckbox({
     super.key,
@@ -13,6 +14,7 @@ class UserCancelCheckbox extends StatelessWidget {
     required this.title,
     required this.subTitle,
     this.checkBox = false,
+    this.onCancel,
   });
 
   @override
@@ -57,9 +59,7 @@ class UserCancelCheckbox extends StatelessWidget {
                 if (!checkBox)
                   InkWell(
                     customBorder: CircleBorder(),
-                    onTap: () {
-                      // TODO: cancel select
-                    },
+                    onTap: onCancel,
                     child: Padding(
                       padding: EdgeInsets.all(6),
                       child: Icon(
