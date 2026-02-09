@@ -1,6 +1,7 @@
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class TextInputPopup {
   final String title;
@@ -12,6 +13,8 @@ class TextInputPopup {
   final double maxHeight;
   final double minHeight;
   final FlexFit fit;
+  final TextInputType keyboardType;
+  final List<TextInputFormatter> inputFormatters;
 
   const TextInputPopup({
     this.title = 'Default Title',
@@ -22,7 +25,9 @@ class TextInputPopup {
     this.fieldLabel = '',
     this.maxHeight = double.infinity,
     this.minHeight = 0,
-    this.fit = FlexFit.loose
+    this.fit = FlexFit.loose,
+    this.keyboardType = TextInputType.text,
+    this.inputFormatters = const []
   });
 
   void showPopup(BuildContext context) {
@@ -42,8 +47,10 @@ class TextInputPopup {
         content: Column(
           children: [
               TextField(
+                keyboardType: keyboardType,
                 controller: controller,
                 textInputAction: TextInputAction.done,
+                inputFormatters: inputFormatters,
                 decoration: InputDecoration(
                   labelText: fieldLabel,
                   isDense: true,

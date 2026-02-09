@@ -11,6 +11,7 @@ class AppButton extends StatelessWidget {
   final bool arrow;
   final String? timeStamp;
   final VoidCallback? onPressed;
+  final Widget? arrowWidget;
 
   const AppButton({
     super.key,
@@ -23,6 +24,7 @@ class AppButton extends StatelessWidget {
     this.timeStamp,
     this.onPressed,
     this.weightTitle = FontWeight.w700,
+    this.arrowWidget,
   });
 
   @override
@@ -59,6 +61,7 @@ class AppButton extends StatelessWidget {
             // const SizedBox(height: 10),
 
             Row(
+              spacing: 10,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // ไอคอน
@@ -85,8 +88,6 @@ class AppButton extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                const SizedBox(width: 10),
 
                 // ข้อความ
                 Expanded(
@@ -123,18 +124,10 @@ class AppButton extends StatelessWidget {
                   ),
                 ),
 
-                // ลูกศร
                 if (arrow)
-                  const SizedBox(width: 10),
-
-                if (arrow)
-                  SizedBox(
-                    width: 10,
-                    height: 10,
-                    child: SvgPicture.asset(
-                      'assets/images/icon_next.svg',
-                    ),
-                  ),
+                  arrowWidget ?? SvgPicture.asset(
+                    'assets/images/icon_next.svg',
+                  )
               ],
             ),
           ],
