@@ -227,6 +227,7 @@ class _UserManagementState extends State<UserManagement> {
                                       child: TextField(
                                         controller: _controller,
                                         onChanged: _onSearchChanged,
+                                        textInputAction: TextInputAction.done,
                                         decoration: InputDecoration(
                                           isDense: true,
                                           filled: true,

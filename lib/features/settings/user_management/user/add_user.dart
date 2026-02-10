@@ -43,236 +43,240 @@ class _AddUserState extends State<AddUser> {
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
           child: Padding(
-            padding: EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 20),
+            padding: EdgeInsets.only(left: 10, right: 10, top: 20),
             child: Stack(
               children: [
                 Column(
-                    children: [
-                      Expanded(
-                          child: SingleChildScrollView(
-                              physics: AlwaysScrollableScrollPhysics(),
-                              child: Column(
-                                spacing: 13,
-                                children: [
-                                  SeparatorCard(
-                                      separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                                      children: [
-                                        IconTextValueButton(onPressed: () {
-                                          TextInputPopup(
-                                              title: 'อีเมล',
-                                              fieldLabel: 'อีเมล',
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              keyboardType: TextInputType.emailAddress,
-                                              fit: FlexFit.tight,
-                                              currentValue: userInfo.email,
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(email: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'อีเมล', value: userInfo.email, icon: 'email.svg'),
-                                        IconTextValueButton(onPressed: () {
-                                          TextInputPopup(
-                                              title: 'เลขประจำตัวประชาชน',
-                                              fieldLabel: 'เลขประจำตัวประชาชน',
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              fit: FlexFit.tight,
-                                              currentValue: userInfo.id,
-                                              keyboardType: TextInputType.number,
-                                              inputFormatters: [
-                                                FilteringTextInputFormatter.digitsOnly,
-                                                LengthLimitingTextInputFormatter(13),
-                                              ],
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(id: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'เลขประจำตัวประชาชน', value: userInfo.id, icon: 'national_id.svg',),
-                                      ]
-                                  ),
-
-                                  SeparatorCard(
-                                      separatorPadding: EdgeInsets.only(left: 15, right: 15),
-                                      children: [
-                                        TextValueButton(onPressed: () {
-                                          TextInputPopup(
-                                              title: 'รหัสบุคลากร',
-                                              fieldLabel: 'รหัสบุคลากร',
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              fit: FlexFit.tight,
-                                              currentValue: userInfo.employeeId,
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(employeeId: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'รหัสบุคลากร', value: userInfo.employeeId),
-                                        TextValueButton(onPressed: () {
-                                          TextInputPopup(
-                                              title: 'ชื่อ-นามสกุล',
-                                              fieldLabel: 'ชื่อ-นามสกุล',
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              fit: FlexFit.tight,
-                                              currentValue: userInfo.nameTH,
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(nameTH: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'ชื่อ-นามสกุล', value: userInfo.nameTH),
-                                        TextValueButton(onPressed: () {
-                                          TextInputPopup(
-                                              title: 'Full Name',
-                                              fieldLabel: 'Full Name',
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              fit: FlexFit.tight,
-                                              currentValue: userInfo.nameEN,
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(nameEN: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'Full Name', value: userInfo.nameEN),
-                                        TextValueButton(onPressed: () {
-                                          OptionPopup(
-                                              title: 'เพศ',
-                                              options: ['ชาย', 'หญิง', 'เกย์', 'กระเทย', 'มึงสิอิกะเทย', 'อื่นๆ'],
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              fit: FlexFit.tight,
-                                              selected: userInfo.gender,
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(gender: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'เพศ', value: userInfo.gender),
-                                        TextValueButton(onPressed: () {
-                                          OptionPopup(
-                                              title: 'สัญชาติ',
-                                              options: cachedThaiNationalities,
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              fit: FlexFit.tight,
-                                              selected: userInfo.nationality,
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(nationality: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'สัญชาติ', value: userInfo.nationality),
-                                        TextValueButton(onPressed: () {
-                                          TextInputPopup(
-                                              title: 'เบอร์โทร',
-                                              fieldLabel: 'เบอร์โทร',
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              inputFormatters: [
-                                                MaskTextInputFormatter(
-                                                  mask: '###-###-####',
-                                                  filter: { "#": RegExp(r'[0-9]') },
-                                                )
-                                              ],
-                                              keyboardType: TextInputType.phone,
-                                              fit: FlexFit.tight,
-                                              currentValue: userInfo.phone,
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(phone: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'เบอร์โทร', value: userInfo.phone),
-                                      ]
-                                  ),
-                                  SeparatorCard(
-                                      separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                                      children: [
-                                        IconTextValueButton(onPressed: () {
-                                          TextInputPopup(
-                                              title: 'สังกัด',
-                                              fieldLabel: 'สังกัด',
-                                              buttonLabel: 'บันทึก',
-                                              maxHeight: 700,
-                                              fit: FlexFit.tight,
-                                              currentValue: userInfo.initRole,
-                                              onSubmit: (value) {
-                                                setState(() {
-                                                  userInfo = userInfo.copyWith(initRole: value);
-                                                });
-                                              }
-                                          ).showPopup(context);
-                                        }, label: 'สังกัด', value: userInfo.initRole, icon: 'init_role.svg',),
-                                        IconTextButton(onPressed: () async {
-                                          MaxLeaveModel? updated = await Navigator.of(context).push(
-                                            MaterialPageRoute<MaxLeaveModel>(
-                                                builder: (context) => SetMaxLeave(maxLeave: maxLeave)
-                                            ),
-                                          );
-
-                                          if (updated != null) {
-                                            setState(() {
-                                              maxLeave = updated;
-                                            });
-                                          }
-                                        }, icon: 'max_leave_count.svg', label: 'จำนวนวันลาสูงสุด')
-                                      ]
-                                  ),
-                                ],
-                              )
-                          )
-                      )
-                    ]
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 42,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // TODO: submit
-                        },
-                        icon: SvgPicture.asset(
-                          'assets/images/create.svg',
-                          height: 18,
-                          width: 18,
-                          colorFilter: ColorFilter.mode(
-                            Colors.white,
-                            BlendMode.srcIn,
+                    Expanded(
+                        child: SingleChildScrollView(
+                            physics: AlwaysScrollableScrollPhysics(),
+                            child: Column(
+                              spacing: 13,
+                              children: [
+                                SeparatorCard(
+                                    separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                                    children: [
+                                      IconTextValueButton(onPressed: () {
+                                        TextInputPopup(
+                                            title: 'อีเมล',
+                                            fieldLabel: 'อีเมล',
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            keyboardType: TextInputType.emailAddress,
+                                            fit: FlexFit.tight,
+                                            currentValue: userInfo.email,
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(email: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'อีเมล', value: userInfo.email, icon: 'email.svg'),
+                                      IconTextValueButton(onPressed: () {
+                                        TextInputPopup(
+                                            title: 'เลขประจำตัวประชาชน',
+                                            fieldLabel: 'เลขประจำตัวประชาชน',
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            fit: FlexFit.tight,
+                                            currentValue: userInfo.id,
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter.digitsOnly,
+                                              LengthLimitingTextInputFormatter(13),
+                                            ],
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(id: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'เลขประจำตัวประชาชน', value: userInfo.id, icon: 'national_id.svg',),
+                                    ]
+                                ),
+
+                                SeparatorCard(
+                                    separatorPadding: EdgeInsets.only(left: 15, right: 15),
+                                    children: [
+                                      TextValueButton(onPressed: () {
+                                        TextInputPopup(
+                                            title: 'รหัสบุคลากร',
+                                            fieldLabel: 'รหัสบุคลากร',
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            fit: FlexFit.tight,
+                                            currentValue: userInfo.employeeId,
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(employeeId: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'รหัสบุคลากร', value: userInfo.employeeId),
+                                      TextValueButton(onPressed: () {
+                                        TextInputPopup(
+                                            title: 'ชื่อ-นามสกุล',
+                                            fieldLabel: 'ชื่อ-นามสกุล',
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            fit: FlexFit.tight,
+                                            currentValue: userInfo.nameTH,
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(nameTH: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'ชื่อ-นามสกุล', value: userInfo.nameTH),
+                                      TextValueButton(onPressed: () {
+                                        TextInputPopup(
+                                            title: 'Full Name',
+                                            fieldLabel: 'Full Name',
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            fit: FlexFit.tight,
+                                            currentValue: userInfo.nameEN,
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(nameEN: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'Full Name', value: userInfo.nameEN),
+                                      TextValueButton(onPressed: () {
+                                        OptionPopup(
+                                            title: 'เพศ',
+                                            options: ['ชาย', 'หญิง', 'เกย์', 'กระเทย', 'มึงสิอิกะเทย', 'อื่นๆ'],
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            fit: FlexFit.tight,
+                                            selected: userInfo.gender,
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(gender: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'เพศ', value: userInfo.gender),
+                                      TextValueButton(onPressed: () {
+                                        OptionPopup(
+                                            title: 'สัญชาติ',
+                                            options: cachedThaiNationalities,
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            fit: FlexFit.tight,
+                                            selected: userInfo.nationality,
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(nationality: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'สัญชาติ', value: userInfo.nationality),
+                                      TextValueButton(onPressed: () {
+                                        TextInputPopup(
+                                            title: 'เบอร์โทร',
+                                            fieldLabel: 'เบอร์โทร',
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            inputFormatters: [
+                                              MaskTextInputFormatter(
+                                                mask: '###-###-####',
+                                                filter: { "#": RegExp(r'[0-9]') },
+                                              )
+                                            ],
+                                            keyboardType: TextInputType.phone,
+                                            fit: FlexFit.tight,
+                                            currentValue: userInfo.phone,
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(phone: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'เบอร์โทร', value: userInfo.phone),
+                                    ]
+                                ),
+                                SeparatorCard(
+                                    separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                                    children: [
+                                      IconTextValueButton(onPressed: () {
+                                        TextInputPopup(
+                                            title: 'สังกัด',
+                                            fieldLabel: 'สังกัด',
+                                            buttonLabel: 'บันทึก',
+                                            maxHeight: 700,
+                                            fit: FlexFit.tight,
+                                            currentValue: userInfo.initRole,
+                                            onSubmit: (value) {
+                                              setState(() {
+                                                userInfo = userInfo.copyWith(initRole: value);
+                                              });
+                                            }
+                                        ).showPopup(context);
+                                      }, label: 'สังกัด', value: userInfo.initRole, icon: 'init_role.svg',),
+                                      IconTextButton(onPressed: () async {
+                                        MaxLeaveModel? updated = await Navigator.of(context).push(
+                                          MaterialPageRoute<MaxLeaveModel>(
+                                              builder: (context) => SetMaxLeave(maxLeave: maxLeave)
+                                          ),
+                                        );
+
+                                        if (updated != null) {
+                                          setState(() {
+                                            maxLeave = updated;
+                                          });
+                                        }
+                                      }, icon: 'max_leave_count.svg', label: 'จำนวนวันลาสูงสุด')
+                                    ]
+                                ),
+                                SizedBox(height: 60)
+                              ],
+                            )
+                        )
+                    )
+                  ]
+                ),
+                Padding(
+                  padding: EdgeInsetsGeometry.only(bottom: 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 42,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // TODO: submit
+                          },
+                          icon: SvgPicture.asset(
+                            'assets/images/create.svg',
+                            height: 18,
+                            width: 18,
+                            colorFilter: ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
                           ),
-                        ),
-                        label: Text(
-                          'สร้าง',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
+                          label: Text(
+                            'สร้าง',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 0,
                           ),
-                          elevation: 0,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 )
               ],
             )
