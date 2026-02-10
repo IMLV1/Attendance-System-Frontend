@@ -215,7 +215,7 @@ class _AddUserState extends State<AddUser> {
                                                 });
                                               }
                                           ).showPopup(context);
-                                        }, label: 'สังกัด', value: userInfo.phone, icon: 'init_role.svg',),
+                                        }, label: 'สังกัด', value: userInfo.initRole, icon: 'init_role.svg',),
                                         IconTextButton(onPressed: () async {
                                           MaxLeaveModel? updated = await Navigator.of(context).push(
                                             MaterialPageRoute<MaxLeaveModel>(
