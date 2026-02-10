@@ -184,7 +184,7 @@ class _UserInfoState extends State<UserInfo> {
                                     TextRoleButton(onPressed: () async {
                                       List<Role>? updatedRole = await Navigator.of(context).push(
                                         MaterialPageRoute<List<Role>>(
-                                          builder: (context) => AssignRole(id: userInfo.id, name: userInfo.nameTH, roles: userInfo.roles)
+                                          builder: (context) => AssignRole(id: userInfo.id, title: 'ตำแหน่ง: ${userInfo.nameTH}', roles: userInfo.roles)
                                         ),
                                       );
 
@@ -198,7 +198,7 @@ class _UserInfoState extends State<UserInfo> {
                                     IconTextButton(onPressed: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                            builder: (context) => MaxLeave(id: userInfo.id, name: userInfo.nameTH)
+                                            builder: (context) => MaxLeave(id: userInfo.id, title: 'จำนวนวันลา: ${userInfo.nameTH}')
                                         ),
                                       );
                                     }, icon: 'max_leave_count.svg', label: 'จำนวนวันลาสูงสุด')

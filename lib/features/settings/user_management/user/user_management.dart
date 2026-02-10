@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:attendance_system/features/settings/role_management/role_management.dart';
+import 'package:attendance_system/features/settings/user_management/user/add_user.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_info.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -179,7 +181,13 @@ class _UserManagementState extends State<UserManagement> {
                                               shadowColor: Colors.transparent,
                                               overlayColor: Colors.transparent,
                                             ),
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (context) => RoleManagement(),
+                                                ),
+                                              );
+                                            },
                                             child: Text(
                                               'ไปจัดการ',
                                               style: TextStyle(
@@ -261,7 +269,13 @@ class _UserManagementState extends State<UserManagement> {
                                     SizedBox(
                                       width: 55,
                                       child: ElevatedButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => AddUser(),
+                                              ),
+                                            );
+                                          },
                                           style: ElevatedButton.styleFrom(
                                             elevation: 0,
                                             shadowColor: Colors.transparent,

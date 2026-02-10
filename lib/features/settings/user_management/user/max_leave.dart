@@ -29,9 +29,9 @@ class MockData {
 class MaxLeave extends StatefulWidget {
 
   final String id;
-  final String name;
+  final String title;
 
-  const MaxLeave({super.key, required this.id, required this.name});
+  const MaxLeave({super.key, required this.id, this.title = 'จำนวนวันลา'});
 
   @override
   State<StatefulWidget> createState() => _MaxLeaveState();
@@ -40,12 +40,10 @@ class MaxLeave extends StatefulWidget {
 class _MaxLeaveState extends State<MaxLeave> {
 
   MaxLeaveModel? maxLeave;
-  late String name;
 
   @override
   void initState() {
     super.initState();
-    name = widget.name;
 
     _loadData();
   }
@@ -64,7 +62,7 @@ class _MaxLeaveState extends State<MaxLeave> {
       content: AppScaffold(
         header: Header.subHeader(
           context,
-          title: 'จำนวนวันลา: $name',
+          title: widget.title
         ),
         content: SafeArea(
           child: Container(
