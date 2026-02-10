@@ -53,10 +53,10 @@ class MockData {
 class AssignRole extends StatefulWidget {
 
   final String id;
-  final String name;
   final List<Role> roles;
+  final String title;
   
-  const AssignRole({super.key, required this.id, required this.name, required this.roles});
+  const AssignRole({super.key, required this.id, required this.roles, this.title = 'เพิ่มตำแหน่ง'});
 
   @override
   State<StatefulWidget> createState() => _AssignRoleState();
@@ -65,7 +65,6 @@ class AssignRole extends StatefulWidget {
 
 class _AssignRoleState extends State<AssignRole> {
 
-  late String name;
   late List<Role> roles;
 
   List<RoleModel> allRoles = [];
@@ -73,7 +72,6 @@ class _AssignRoleState extends State<AssignRole> {
   @override
   void initState() {
     super.initState();
-    name = widget.name;
     roles = widget.roles;
 
     _loadRoles();
@@ -92,7 +90,7 @@ class _AssignRoleState extends State<AssignRole> {
     return AppScaffold(
       header: Header.subHeader(
         context,
-        title: 'ตำแหน่ง: $name',
+        title: widget.title,
         onBack: () {
           Navigator.pop(context, roles);
         }
