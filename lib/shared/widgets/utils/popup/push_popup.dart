@@ -37,13 +37,13 @@ class PushPopup {
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: ConstrainedBox(constraints: BoxConstraints(minHeight: minHeight, maxHeight: maxHeight),
-                    child: Material(borderRadius: BorderRadius.circular(22), child: Container(
+                    child: Material(borderRadius: BorderRadius.circular(40), child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(22),
+                          top: Radius.circular(40),
                         ),
                       ),
                       child: SafeArea(

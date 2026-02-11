@@ -4,11 +4,10 @@ import 'package:get_it/get_it.dart';
 
 import '../../core/network/api_client.dart';
 
-class ProfileService {
+class UserManagementService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
-  Future<List<UserManagementModel>> getProfile() async {
-    final res = await dio.get('/system/user_management/users');
-    return UserManagementModel.getList(res.data);
+  Future<Response<dynamic>> getData() {
+    return dio.get('/system/user_management/users');
   }
 }

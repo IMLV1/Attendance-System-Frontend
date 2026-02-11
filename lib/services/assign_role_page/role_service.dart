@@ -5,11 +5,10 @@ import 'package:get_it/get_it.dart';
 
 import '../../core/network/api_client.dart';
 
-class ProfileService {
+class RoleService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
-  Future<List<RoleModel>> getProfile() async {
-    final res = await dio.get('/system/user_management/roles');
-    return RoleModel.getList(res.data);
+  Future<Response<dynamic>> getData() async {
+    return dio.get('/system/user_management/roles');
   }
 }
