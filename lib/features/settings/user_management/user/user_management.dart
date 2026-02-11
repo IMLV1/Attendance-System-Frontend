@@ -4,20 +4,25 @@ import 'package:attendance_system/features/settings/role_management/role_managem
 import 'package:attendance_system/features/settings/user_management/user/add_user.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_info.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
+import 'package:attendance_system/services/user_management/user_management_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class MockData {
-  Future<List<UserManagementModel>> getData() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+Future<Response> mockGetUser() async {
+  await Future.delayed(const Duration(milliseconds: 500));
 
-    final data = {
+  return Response(
+    requestOptions: RequestOptions(path: '/mock/user'),
+    statusCode: 200,
+    data: {
       'data': [
         {
           'id': '1100000000000',
@@ -34,12 +39,26 @@ class MockData {
             {'role-id': '0000000001', 'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
             {'role-id': '0000000002', 'role-name': 'รองคณบดี', 'role-color': 'FFA51D'}
           ]
-        }
+        },
+        {
+          'id': '1100000000001',
+          'name-th': 'ศ.ดร.บลาๆๆๆๆๆๆๆๆ นี่คือนามสกุล',
+          'name-en': 'Prof. Dr. ThisisSurName ThisIsLastName',
+          'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
+          'employee-id': '6630300327',
+          'gender': 'ชาย',
+          'nationality': 'ไทย',
+          'phone': '012-345-6789',
+          'email': 'duaydee.t@eng.src.ku.ac.th',
+          'initial-role': 'วิศวกรรมคอมพิวเตอร์',
+          'roles': [
+            {'role-id': '0000000001', 'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+            {'role-id': '0000000002', 'role-name': 'รองคณบดี', 'role-color': 'FFA51D'}
+          ]
+        },
       ]
-    };
-
-    return UserManagementModel.getList(data);
-  }
+    }
+  );
 }
 
 class UserManagement extends StatefulWidget {
@@ -56,21 +75,6 @@ class _UserManagementState extends State<UserManagement> {
 
   List<UserManagementModel> users = [];
   List<UserManagementModel> filteredUsers = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUsers();
-  }
-
-  Future<void> _loadUsers() async {
-    final data = await MockData().getData();
-
-    setState(() {
-      users = data;
-      filteredUsers = data;
-    });
-  }
 
   @override
   void dispose() {
@@ -298,43 +302,89 @@ class _UserManagementState extends State<UserManagement> {
                           ],
                         ),
                         Expanded(
-                          child: users.isEmpty
-                              ? const Center(child: CupertinoActivityIndicator())
-                              : SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            child: SeparatorCard(
-                              separatorPadding: const EdgeInsets.only(left: 70, right: 15),
-                              children: [
-                                ...filteredUsers.map((m) {
-                                  return UserInfoButton(
-                                    onPressed: () async {
-                                      final updatedUser = await Navigator.of(context).push<UserManagementModel>(
-                                        MaterialPageRoute(
-                                          builder: (context) => UserInfo(userInfo: m),
-                                        ),
-                                      );
+                          child: ServiceLoader(
+                            request: () => mockGetUser(), //UserManagementService().getData(),
+                            onSuccess: (jsonData) {
+                              final data = UserManagementModel.getList(jsonData);
+                              setState(() {
+                                users = data;
+                                filteredUsers = data;
+                              });
+                            },
+                            builder: () => SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: SeparatorCard(
+                                separatorPadding: const EdgeInsets.only(left: 70, right: 15),
+                                children: [
+                                  ...filteredUsers.map((m) {
+                                    return UserInfoButton(
+                                      onPressed: () async {
+                                        final updatedUser = await Navigator.of(context).push<UserManagementModel>(
+                                          MaterialPageRoute(
+                                            builder: (context) => UserInfo(userInfo: m),
+                                          ),
+                                        );
 
-                                      if (updatedUser != null) {
-                                        final index = users.indexWhere((u) => u.id == updatedUser.id);
+                                        if (updatedUser != null) {
+                                          final index = users.indexWhere((u) => u.id == updatedUser.id);
 
-                                        setState(() {
-                                          users[index] = updatedUser;
-                                        });
-                                      }
+                                          setState(() {
+                                            users[index] = updatedUser;
+                                          });
+                                        }
 
-                                    },
-                                    icon: Image.network(
-                                      m.avatarUrl,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    title: m.nameTH,
-                                    subTitle: m.nameEN,
-                                    roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
-                                  );
-                                }),
-                              ],
+                                      },
+                                      icon: Image.network(
+                                        m.avatarUrl,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      title: m.nameTH,
+                                      subTitle: m.nameEN,
+                                      roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
+                                    );
+                                  }),
+                                ],
+                              ),
                             ),
-                          ),
+                          )
+
+                          // child: users.isEmpty
+                          //     ? const Center(child: CupertinoActivityIndicator())
+                          //     : SingleChildScrollView(
+                          //   physics: const AlwaysScrollableScrollPhysics(),
+                          //   child: SeparatorCard(
+                          //     separatorPadding: const EdgeInsets.only(left: 70, right: 15),
+                          //     children: [
+                          //       ...filteredUsers.map((m) {
+                          //         return UserInfoButton(
+                          //           onPressed: () async {
+                          //             final updatedUser = await Navigator.of(context).push<UserManagementModel>(
+                          //               MaterialPageRoute(
+                          //                 builder: (context) => UserInfo(userInfo: m),
+                          //               ),
+                          //             );
+                          //
+                          //             if (updatedUser != null) {
+                          //               final index = users.indexWhere((u) => u.id == updatedUser.id);
+                          //
+                          //               setState(() {
+                          //                 users[index] = updatedUser;
+                          //               });
+                          //             }
+                          //
+                          //           },
+                          //           icon: Image.network(
+                          //             m.avatarUrl,
+                          //             fit: BoxFit.cover,
+                          //           ),
+                          //           title: m.nameTH,
+                          //           subTitle: m.nameEN,
+                          //           roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
+                          //         );
+                          //       }),
+                          //     ],
+                          //   ),
+                          // ),
                         )
                       ]
                   )

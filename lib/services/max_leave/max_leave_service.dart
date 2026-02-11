@@ -4,11 +4,10 @@ import 'package:get_it/get_it.dart';
 
 import '../../core/network/api_client.dart';
 
-class ProfileService {
+class MaxLeaveService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
-  Future<MaxLeaveModel> getProfile() async {
-    final res = await dio.get('/system/user_management/max_leaves');
-    return MaxLeaveModel.fromJson(res.data);
+  Future<Response<dynamic>> getData(String userId) async {
+    return dio.get('/system/user_management/max_leaves/${userId}');
   }
 }

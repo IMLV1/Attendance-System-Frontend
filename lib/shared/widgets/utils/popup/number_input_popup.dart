@@ -22,6 +22,7 @@ class NumberInputPopup {
   final double minValue;
   final double maxValue;
   final bool decimal;
+  final int decimalRange;
 
   const NumberInputPopup({
     this.title = 'Default Title',
@@ -37,7 +38,8 @@ class NumberInputPopup {
     this.step = 1,
     this.minValue = 0,
     this.maxValue = double.infinity,
-    this.decimal = false
+    this.decimal = false,
+    this.decimalRange = 0
   });
 
   void showPopup(BuildContext context) {
@@ -113,7 +115,7 @@ class NumberInputPopup {
                                 RegExp(r'^\d*(\.\d{0,2})?'),
                               ),
                               _Formatter(),
-                              DecimalTextInputFormatter(decimalRange: 0),
+                              DecimalTextInputFormatter(decimalRange: decimalRange),
                               _Formatter2(_formatter, minValue, maxValue),
                             ],
                             cursorColor: Colors.transparent,
