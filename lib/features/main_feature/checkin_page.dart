@@ -27,12 +27,59 @@ class _CheckinPageState extends State<CheckinPage>{
   bool isDisabled = false;
   bool hasCheckedOut = false;
 
+  late Timer _timer;
+  DateTime _lastResetDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    // เริ่มทำงาน Timer ทันทีที่เข้าหน้านี้
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _checkAndResetLogic();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel(); // ล้าง Timer เพื่อประหยัด Memory
+    super.dispose();
+  }
+
+  void _checkAndResetLogic() {
+    final now = DateTime.now();
+    // 1. Reset ทุกอย่างเมื่อถึงเวลา 08:30 ของวันใหม่
+    // เช็คว่าชั่วโมงคือ 8, นาทีคือ 30 และยังไม่ได้ Reset ในวันนี้
+    if (now.hour == 18 && now.minute == 16 && _lastResetDate.day != now.day) {
+      _resetDailyData(now);
+      debugPrint("--- TEST RESET WORKING ---");
+    }
+    // 2. หรือ Reset เมื่อผ่านเที่ยงคืน (กรณีแอปเปิดทิ้งไว้ข้ามคืน)
+    else if (now.day != _lastResetDate.day && now.hour >= 0) {
+      _resetDailyData(now);
+    }
+    // สั่ง Rebuild เพื่อให้ _getButtonState() ตรวจสอบเวลา 16:30 เพื่อเปลี่ยนปุ่ม
+    if (mounted) setState(() {});
+  }
+
+  void _resetDailyData(DateTime now) {
+    setState(() {
+      checkInTimeRecorded = "---";
+      checkOutTimeRecorded = "---";
+      _hasCheckedIn = false;
+      hasCheckedOut = false;
+      _lastResetDate = now;
+    });
+    debugPrint("ระบบทำการ Reset ข้อมูลประจำวันเรียบร้อยแล้ว");
+  }
+
   String _getButtonState() {
     final now = DateTime.now();
     final hour = now.hour;
     final minute = now.minute;
 
     if (hasCheckedOut) return "FINISHED";
+
+    if (!_hasCheckedIn) return "CHECK_IN_READY";
 
     bool isAfterWork = hour > 16 || (hour == 16 && minute >= 30);
     if (isAfterWork) {
