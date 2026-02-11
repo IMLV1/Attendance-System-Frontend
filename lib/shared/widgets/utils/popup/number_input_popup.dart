@@ -264,7 +264,7 @@ class _Formatter extends TextInputFormatter {
       );
     }
 
-    if (text.length <= 0) {
+    if (text.isEmpty) {
       return TextEditingValue(
           text: '0',
       );
