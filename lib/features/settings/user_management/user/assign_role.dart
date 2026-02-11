@@ -4,7 +4,7 @@ import 'package:attendance_system/services/user_management/user_management_model
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:attendance_system/shared/widgets/service_loader.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:dio/dio.dart';
@@ -99,7 +99,7 @@ class _AssignRoleState extends State<AssignRole> {
                 Expanded(
 
                   child: ServiceLoader(
-                      request: () => mockData(), //RoleService().getData(),
+                      request: () => RoleService().getData(),
                       onSuccess: (jsonData) {
                         final data = RoleModel.getList(jsonData);
                         setState(() {

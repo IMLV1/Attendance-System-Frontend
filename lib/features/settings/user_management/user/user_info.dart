@@ -70,7 +70,18 @@ class _UserInfoState extends State<UserInfo> {
                               SeparatorCard(
                                   separatorPadding: EdgeInsets.only(left: 45, right: 15),
                                   children: [
-                                    ProfileButton(disable: true, icon: Image.network(userInfo.avatarUrl, fit: BoxFit.cover), title: userInfo.nameTH, subTitle: userInfo.nameEN,)
+                                    ProfileButton(
+                                      disable: true,
+                                      icon: Image.network(
+                                        userInfo.avatarUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Image.asset(
+                                            'assets/images/profile.png',
+                                            fit: BoxFit.cover,
+                                          );
+                                        },
+                                    ), title: userInfo.nameTH, subTitle: userInfo.nameEN,)
                                   ]
                               ),
                               SeparatorCard(

@@ -9,12 +9,14 @@ class ServiceLoader extends StatefulWidget {
   final Future<Response> Function() request;
   final Widget Function() builder;
   final void Function(dynamic) onSuccess;
+  final Color color;
 
   const ServiceLoader({
     super.key,
     required this.request,
     required this.onSuccess,
     required this.builder,
+    this.color = Colors.black
   });
 
   @override
@@ -67,8 +69,8 @@ class _ServiceLoaderState extends State<ServiceLoader> {
   Widget build(BuildContext context) {
     switch (_state) {
       case ServiceState.loading:
-        return const Center(
-          child: CupertinoActivityIndicator(),
+        return Center(
+          child: CupertinoActivityIndicator(color: widget.color),
         );
 
       case ServiceState.error:

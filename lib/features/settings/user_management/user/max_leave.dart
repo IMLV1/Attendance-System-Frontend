@@ -3,7 +3,7 @@ import 'package:attendance_system/services/max_leave/max_leave_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:attendance_system/shared/widgets/service_loader.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/number_input_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
@@ -61,7 +61,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                 children: [
                   Expanded(
                     child: ServiceLoader(
-                        request: () => mockData(), //MaxLeaveService().getData(widget.id),
+                        request: () => MaxLeaveService().getData(widget.id),
                         onSuccess: (jsonData) {
                           final data = MaxLeaveModel.fromJson(jsonData);
                           setState(() {
