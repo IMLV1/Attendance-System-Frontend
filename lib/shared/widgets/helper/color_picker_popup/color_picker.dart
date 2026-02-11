@@ -75,12 +75,7 @@ class ColorPickerPopup {
             final g = int.tryParse(gCtrl.text) ?? 0;
             final b = int.tryParse(bCtrl.text) ?? 0;
 
-            final color = Color.fromARGB(
-              255,
-              r.clamp(0, 255),
-              g.clamp(0, 255),
-              b.clamp(0, 255),
-            );
+            final color = Color.fromARGB(255, r.clamp(0, 255), g.clamp(0, 255), b.clamp(0, 255));
 
             setState(() {
               hsv = HSVColor.fromColor(color);
