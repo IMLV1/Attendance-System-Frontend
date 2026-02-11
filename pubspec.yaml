@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  table_calendar: ^3.1.2
   flutter:
     sdk: flutter
   flutter_svg: ^2.2.3
@@ -47,7 +48,7 @@ dependencies:
   provider: ^6.1.5+1
   flutter_colorpicker: ^1.0.3
   mask_text_input_formatter: ^2.9.0
-  intl: ^0.18.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
