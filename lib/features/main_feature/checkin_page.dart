@@ -4,9 +4,13 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-// import '../../shared/widgets/utils/clock_realtime.dart';
+import '../../shared/widgets/utils/clock_realtime.dart';
+
 import '../../shared/widgets/utils/icon_text_button.dart';
 import '../../shared/widgets/utils/separator_card.dart';
+
+import 'dart:async';
+import 'package:intl/intl.dart';
 
 class CheckinPage extends StatefulWidget {
   const CheckinPage({super.key});
@@ -15,25 +19,31 @@ class CheckinPage extends StatefulWidget {
   State<CheckinPage> createState() => _CheckinPageState();
 }
 class _CheckinPageState extends State<CheckinPage>{
-  String currentTime = "08:30";
-  String currentDay = "วันพฤหัสบดีที่ 29 มกราคม 2569";
+
+  String checkInTimeRecorded = "---";
+  String checkOutTimeRecorded = "---";
 
   bool _hasCheckedIn = false;
   bool isDisabled = false;
   bool hasCheckedOut = false;
 
-  bool _isAfterCheckoutTime(String currentTimeStr) {
-    List<String> parts = currentTimeStr.split(':');
-    int hour = int.parse(parts[0]);
-    int minute = int.parse(parts[1]);
-    return (hour > 16 || (hour == 16 && minute >= 30));
+  String _getButtonState() {
+    final now = DateTime.now();
+    final hour = now.hour;
+    final minute = now.minute;
 
+    if (hasCheckedOut) return "FINISHED";
 
+    bool isAfterWork = hour > 16 || (hour == 16 && minute >= 30);
+    if (isAfterWork) {
+      return "CHECK_OUT_READY";
+    }
+    if (_hasCheckedIn) return "WORKING";
+    return "CHECK_IN_READY";
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
     return AppScaffold(
       hideNavigation: false,
       header: Header.mainHeader(
@@ -103,23 +113,23 @@ class _CheckinPageState extends State<CheckinPage>{
               ),
               child:Column(
                 children: [
-                  // const ClockWidget(),
-                  Text(
-                    currentTime,
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.unSelectMenuColor,
-                    ),
-                  ),
-                  Text(
-                    currentDay,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.lightTextColor,
-                    ),
-                  )
+                   const ClockWidget(),
+                  // Text(
+                  //   currentTime,
+                  //   style: TextStyle(
+                  //     fontSize: 40,
+                  //     fontWeight: FontWeight.w700,
+                  //     color: AppColors.unSelectMenuColor,
+                  //   ),
+                  // ),
+                  // Text(
+                  //   currentDay,
+                  //   style: TextStyle(
+                  //     fontSize: 15,
+                  //     fontWeight: FontWeight.w500,
+                  //     color: AppColors.lightTextColor,
+                  //   ),
+                  // )
                 ],
               )
           )
@@ -128,49 +138,48 @@ class _CheckinPageState extends State<CheckinPage>{
   }
 
   Widget _buttonCheckin () {
+    String state = _getButtonState(); // ดึงสถานะปัจจุบันตามเวลาจริง
 
-    bool isTimeout = _isAfterCheckoutTime(currentTime);
-
-    Color buttonColor,backgroundbottom;
+    Color buttonColor;
+    Color backgroundBottom;
     String buttonText;
     String iconPath;
     double fontSize ;
+    bool isDisabled = false;
 
+    switch (state) {
+      case "FINISHED":
+        buttonColor = AppColors.buttonDisable;
+        backgroundBottom = AppColors.buttonDisableBackground;
+        buttonText = "จบเวลางาน";
+        iconPath = 'assets/images/endwork.svg';
+        isDisabled = true;
+        fontSize = 27;
 
-    if (hasCheckedOut) {
-
-      buttonColor = AppColors.buttonDisable;
-      backgroundbottom = AppColors.buttonDisableBackground;
-      buttonText = "จบเวลางาน";
-      iconPath = 'assets/images/endwork.svg';
-      fontSize = 27;
-      isDisabled = true;
-    }
-    else if (isTimeout) {
-
-      buttonColor = AppColors.buttonCheckOut;
-      backgroundbottom = AppColors.buttonCheckOutBackground;
-      buttonText = "เช็คเอาต์";
-      iconPath = 'assets/images/click_checkin.svg';
-      fontSize = 32;
-      isDisabled = false;
-    }
-    else if (_hasCheckedIn) {
-
-      buttonColor = AppColors.buttonDisable;
-      backgroundbottom = AppColors.buttonDisableBackground;
-      buttonText = "อยู่ในเวลางาน";
-      iconPath = 'assets/images/intimejob.svg';
-      fontSize = 26;
-      isDisabled = true;
-    }
-    else {
-      buttonColor = AppColors.buttonCheckIn;
-      backgroundbottom = AppColors.buttonCheckInBackground;
-      buttonText = "เช็คอิน";
-      iconPath = 'assets/images/click_checkin.svg';
-      fontSize = 32;
-      isDisabled = false;
+        break;
+      case "CHECK_OUT_READY":
+        buttonColor = AppColors.buttonCheckOut;
+        backgroundBottom = AppColors.buttonCheckOutBackground;
+        buttonText = "เช็คเอาต์";
+        iconPath = 'assets/images/click_checkin.svg';
+        isDisabled = false;
+        fontSize =32;
+        break;
+      case "WORKING":
+        buttonColor = AppColors.buttonDisable;
+        backgroundBottom = AppColors.buttonDisableBackground;
+        buttonText = "อยู่ในเวลางาน";
+        iconPath = 'assets/images/intimejob.svg';
+        isDisabled = true;
+        fontSize = 26;
+        break;
+      default: // CHECK_IN_READY
+        buttonColor = AppColors.buttonCheckIn;
+        backgroundBottom = AppColors.buttonCheckInBackground;
+        buttonText = "เช็คอิน";
+        iconPath = 'assets/images/click_checkin.svg';
+        isDisabled = false;
+        fontSize = 32;
     }
     return Column(
       children: [
@@ -199,10 +208,14 @@ class _CheckinPageState extends State<CheckinPage>{
               child : InkWell(
                   onTap: isDisabled ? null : () {
                     setState(() {
-                      if (isTimeout) {
-                        hasCheckedOut = true; // กดตอนเย็น
+                      String nowTime = DateFormat('HH:mm').format(DateTime.now());
+
+                      if (state == "CHECK_OUT_READY") {
+                        checkOutTimeRecorded = nowTime; // บันทึกเวลาออก
+                        hasCheckedOut = true;
                       } else {
-                        _hasCheckedIn = true; // กดตอนเช้า
+                        checkInTimeRecorded = nowTime; // บันทึกเวลาเข้า
+                        _hasCheckedIn = true;
                       }
                     });
                     debugPrint("บันทึกสำเร็จ");
@@ -215,7 +228,7 @@ class _CheckinPageState extends State<CheckinPage>{
                         color: buttonColor,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: backgroundbottom, width: 12,
+                          color: backgroundBottom, width: 12,
                         )
                     ),
                     child: Column(
@@ -318,8 +331,8 @@ class _CheckinPageState extends State<CheckinPage>{
           SeparatorCard(
             separatorPadding: EdgeInsetsGeometry.only(left: 52, right: 10),
             children: [
-              _buildStatusItem(iconPath: 'assets/images/in.svg', title: 'เช็คอิน', time: _hasCheckedIn ? currentTime : "---"),
-              _buildStatusItem(iconPath: 'assets/images/out.svg', title: 'เช็คเอาท์', time:hasCheckedOut ? currentTime : '---'),
+              _buildStatusItem(iconPath: 'assets/images/in.svg', title: 'เช็คอิน', time: _hasCheckedIn ? checkInTimeRecorded : "---"),
+              _buildStatusItem(iconPath: 'assets/images/out.svg', title: 'เช็คเอาท์', time:hasCheckedOut ? checkOutTimeRecorded : '---'),
             ],
           )
         ],
