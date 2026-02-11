@@ -99,9 +99,9 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                             ),
                             child: Row(
                               children: [
-                                _buildPickerCell("จากวันที่", startDate, Icons.calendar_today_outlined),
+                                Expanded(child: _buildPickerCell("จากวันที่", startDate, Icons.calendar_today_outlined)),
                                 _buildVerticalLine(),
-                                _buildPickerCell("ถึงวันที่", endDate, Icons.calendar_today_outlined),
+                                Expanded(child: _buildPickerCell("ถึงวันที่", endDate, Icons.calendar_today_outlined),)
                               ],
                             ),
                           ),
@@ -145,8 +145,7 @@ class _TimeRequestPage extends State<TimeRequestPage> {
 
 
   Widget _buildPickerCell(String label, String value, IconData icon) {
-    return Expanded(
-      child: Padding(
+    return Padding(
         padding: const EdgeInsets.all(15.0),
         child: Row(
           children: [
@@ -161,7 +160,6 @@ class _TimeRequestPage extends State<TimeRequestPage> {
             ),
           ],
         ),
-      ),
     );
   }
 
