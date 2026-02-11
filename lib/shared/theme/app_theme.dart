@@ -1,5 +1,4 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -9,16 +8,6 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.backgroundColor,
     brightness: Brightness.light,
     fontFamily: 'Inter',
-    textTheme: defaultTargetPlatform == TargetPlatform.android
-        ? const TextTheme(
-      bodyLarge: TextStyle(fontFamily: 'Inter'),
-      bodyMedium: TextStyle(fontFamily: 'Inter'),
-      bodySmall: TextStyle(fontFamily: 'Inter'),
-      titleMedium: TextStyle(fontFamily: 'Inter'),
-      titleLarge: TextStyle(fontFamily: 'Inter'),
-      labelLarge: TextStyle(fontFamily: 'Inter'),
-    )
-        : null,
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.cardColor,
