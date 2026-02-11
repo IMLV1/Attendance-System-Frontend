@@ -33,4 +33,14 @@ class RoleManagementService {
       'system/role/$roleId',
     );
   }
+
+  /// update role type (main / special / admin / hr)
+  Future<void> updateRoletype({required String roleType, required roleId}) async {
+    await dio.put(
+      'system/role/$roleId/type',
+      data: {
+        'type' : roleType
+      },
+    );
+  }
 }
