@@ -13,11 +13,7 @@ class RoleManagementService {
   }
 
   /// update role name + color
-  Future<void> updateRole({
-    required String roleId,
-    required String name,
-    required String color,
-  }) async {
+  Future<void> updateRole({required String roleId, required String name, required String color,}) async {
     await dio.put(
       'system/role/$roleId',
       data: {
@@ -28,19 +24,13 @@ class RoleManagementService {
   }
 
   /// delete member from role
-  Future<void> deleteMember({
-    required String roleId,
-    required String memberId,
-  }) async {
+  Future<void> deleteMember({required String roleId, required String memberId,}) async {
     await dio.delete('system/role/$roleId/member/$memberId');
   }
 
-  Future<void> deleteRole({
-    required String roleId,
-  }) async {
+  Future<void> deleteRole({required String roleId,}) async {
     await dio.delete(
       'system/role/$roleId',
     );
   }
-
 }
