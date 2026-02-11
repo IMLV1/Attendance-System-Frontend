@@ -99,31 +99,32 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                             ),
                             child: Row(
                               children: [
-                                Expanded(child: _buildPickerCell("จากวันที่", startDate, Icons.calendar_today_outlined)),
+                                Expanded(child: _buildPickerCell("จากวันที่", startDate, Icons.calendar_today_outlined, h: 12, v: 10),),
                                 _buildVerticalLine(),
-                                Expanded(child: _buildPickerCell("ถึงวันที่", endDate, Icons.calendar_today_outlined),)
+                                Expanded(child: _buildPickerCell("ถึงวันที่", endDate, Icons.calendar_today_outlined, h: 12,v: 10),)
                               ],
                             ),
                           ),
 
                           const SizedBox(height: 10),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Expanded(
+                              Flexible(
                                 child: Container(
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(30),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: _buildPickerCell('เวลาเข้างาน', startTime,Icons.access_time),
                                 )
                               ),
                               const SizedBox(width: 10),
-                              Expanded(
+                              Flexible(
                                   child:Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
-                                      borderRadius: BorderRadius.circular(30),
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: _buildPickerCell('เวลาเข้าออกงาน', endTime,Icons.access_time),
                                   )
@@ -144,9 +145,9 @@ class _TimeRequestPage extends State<TimeRequestPage> {
   }
 
 
-  Widget _buildPickerCell(String label, String value, IconData icon) {
+  Widget _buildPickerCell(String label, String value, IconData icon , {double h = 10, double v = 4}) {
     return Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: EdgeInsets.symmetric(horizontal: h , vertical: v ),
         child: Row(
           children: [
             Icon(icon, size: 18, color: Colors.grey),
@@ -154,7 +155,7 @@ class _TimeRequestPage extends State<TimeRequestPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               ],
             ),
@@ -163,5 +164,5 @@ class _TimeRequestPage extends State<TimeRequestPage> {
     );
   }
 
-  Widget _buildVerticalLine() => Container(width: 2, height: 50, color: AppColors.lightTextColor);
+  Widget _buildVerticalLine() => Container(width: 2, height: 40, color: AppColors.lightTextColor);
 }
