@@ -386,7 +386,16 @@ class _EditRoleState extends State<EditRole> {
                   children: [
                     ..._filteredMembers.map((m) {
                       return UserCancelCheckbox(
-                        icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
+                        icon: Image.network(
+                          m.avatarUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/profile.png',
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        ),
                         title: m.thName,
                         subTitle: m.enName,
                         checkBox: false,
