@@ -7,6 +7,8 @@ import 'app/app.dart';
 import 'core/auth/auth_state.dart';
 import 'service_locator.dart';
 
+import 'package:intl/date_symbol_data_local.dart';
+
 List<String> cachedThaiNationalities = [];
 
 void prepareNationalities() {
@@ -22,6 +24,7 @@ void prepareNationalities() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('th_TH', null);
 
   /// Load env
   await dotenv.load(fileName: '.env');
