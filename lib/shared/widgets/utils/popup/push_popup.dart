@@ -13,6 +13,7 @@ class PushPopup {
   final double maxHeight;
   final double minHeight;
   final FlexFit fit;
+  final bool scroll;
 
   const PushPopup({
     this.title = 'Default Title',
@@ -22,7 +23,8 @@ class PushPopup {
     required this.content,
     this.maxHeight = double.infinity,
     this.minHeight = 0,
-    this.fit = FlexFit.loose
+    this.fit = FlexFit.loose,
+    this.scroll = true,
   });
 
   void showPopup(BuildContext context) {
@@ -132,10 +134,10 @@ class PushPopup {
 
                                 Flexible(
                                   fit: fit,
-                                  child: SingleChildScrollView(
+                                  child: scroll ? SingleChildScrollView(
                                     physics: const AlwaysScrollableScrollPhysics(),
                                     child: content,
-                                  )
+                                  ) : content,
                                 )
 
 
