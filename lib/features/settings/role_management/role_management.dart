@@ -31,6 +31,12 @@ Future<Response> mockGetRole() async {
           "type": "admin",
           "members": [
             {
+              "id": "EMP002",
+              "thName": "วรรณา สุขใจ",
+              "enName": "Wanna Sukjai",
+              "avatarUrl": "https://i.pravatar.cc/150?img=12"
+            },
+            {
               "id": "1000",
               "thName": "ผศ.ดร.ธีรพงศ์ พัฒนกุล",
               "enName": "Asst. Prof. Dr. Teerapong Pattanakul",
@@ -144,15 +150,22 @@ class _RoleManagementState extends State<RoleManagement> {
 
   void _updateRole(RoleSystem updated) {
     setState(() {
-      _allMainRoles =
-          _allMainRoles.map((r) => r.id == updated.id ? updated : r).toList();
+      _allMainRoles = _allMainRoles
+          .map((r) => r.id.toString() == updated.id.toString()
+          ? updated
+          : r)
+          .toList();
 
-      _allSpecialRoles =
-          _allSpecialRoles.map((r) => r.id == updated.id ? updated : r).toList();
+      _allSpecialRoles = _allSpecialRoles
+          .map((r) => r.id.toString() == updated.id.toString()
+          ? updated
+          : r)
+          .toList();
 
       _applyFilter(_controller.text, rebuild: false);
     });
   }
+
 
   void _removeRole(String id) {
     setState(() {
