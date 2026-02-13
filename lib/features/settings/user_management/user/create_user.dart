@@ -4,6 +4,7 @@ import 'package:attendance_system/features/settings/user_management/user/set_max
 import 'package:attendance_system/main.dart';
 import 'package:attendance_system/services/max_leave/max_leave_model.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
+import 'package:attendance_system/services/user_management/user_management_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -12,21 +13,32 @@ import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.da
 import 'package:attendance_system/shared/widgets/utils/popup/option_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/text_input_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:attendance_system/shared/widgets/utils/text_role_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
-class AddUser extends StatefulWidget {
+Future<Response> mockUpdate() async {
+  await Future.delayed(const Duration(milliseconds: 2000));
+
+  return Response(
+      requestOptions: RequestOptions(path: '/mock/user'),
+      statusCode: 200,
+  );
+}
+
+class CreateUser extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => _AddUserState();
+  State<StatefulWidget> createState() => _CreateUserState();
 
 }
 
-class _AddUserState extends State<AddUser> {
+class _CreateUserState extends State<CreateUser> {
 
   MaxLeaveModel maxLeave = MaxLeaveModel(sick: 0, personal: 0, vacation: 0, maternity: 0, paternity: 0, parental: 0);
   UserManagementModel userInfo = UserManagementModel(id: '', employeeId: '', nameTH: '', nameEN: '', gender: '', nationality: '', phone: '', email: '', roles: [], avatarUrl: '', initRole: '');
@@ -238,46 +250,67 @@ class _AddUserState extends State<AddUser> {
                     )
                   ]
                 ),
-                Padding(
-                  padding: EdgeInsetsGeometry.only(bottom: 20),
-                  child: Column(
+                Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: 42,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // TODO: submit
-                          },
-                          icon: SvgPicture.asset(
-                            'assets/images/create.svg',
-                            height: 18,
-                            width: 18,
-                            colorFilter: ColorFilter.mode(
-                              Colors.white,
-                              BlendMode.srcIn,
-                            ),
-                          ),
-                          label: Text(
-                            'สร้าง',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            elevation: 0,
-                          ),
-                        ),
-                      ),
+                      ServiceUpdater(
+                        request: () => UserManagementService().createUser(userInfo, maxLeave),
+                        onSuccess: () {
+                          Navigator.of(context).pop(userInfo);
+                        },
+                        color: Colors.white,
+                        builder: (trigger, state, loadingWidget, errorWidget) {
+                          return Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                height: 42,
+                                child: ElevatedButton.icon(
+                                  onPressed: (state != ServiceState.loading) ? () => trigger() : null,
+                                  icon: SvgPicture.asset(
+                                    'assets/images/create.svg',
+                                    height: 18,
+                                    width: 18,
+                                    colorFilter: ColorFilter.mode(
+                                      Colors.white,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                  label: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'สร้าง',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      if (state == ServiceState.loading) SizedBox(width: 10),
+                                      loadingWidget
+                                    ],
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    disabledBackgroundColor: Colors.grey,
+                                    backgroundColor: AppColors.primaryColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 25,
+                                child: errorWidget
+                              )
+                            ],
+                          );
+                        }
+                      )
                     ],
                   ),
-                )
               ],
             )
           )

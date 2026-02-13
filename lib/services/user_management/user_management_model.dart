@@ -78,6 +78,23 @@ class UserManagementModel {
       initRole: initRole ?? this.initRole,
     );
   }
+
+  @override
+  String toString() {
+    return {
+      'id': id,
+      'employeeId': employeeId,
+      'nameTH': nameTH,
+      'nameEN': nameEN,
+      'gender': gender,
+      'nationality': nationality,
+      'phone': phone,
+      'email': email,
+      'roles': roles,
+      'avatarUrl': avatarUrl,
+      'initRole': initRole,
+    }.toString();
+  }
 }
 
 class Role {
@@ -96,5 +113,14 @@ class Role {
       name: json['role-name'] ?? '',
       color: Color(int.parse('FF$hex', radix: 16)),
     );
+  }
+
+  @override
+  String toString() {
+    return {
+      'id': id,
+      'name': name,
+      'color': color,
+    }.toString();
   }
 }

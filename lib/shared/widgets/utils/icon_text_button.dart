@@ -8,6 +8,7 @@ class IconTextButton extends StatelessWidget {
   final bool arrow;
   final VoidCallback? onPressed;
   final Color color;
+  final Widget? arrowIcon;
 
   const IconTextButton({
     super.key,
@@ -15,7 +16,8 @@ class IconTextButton extends StatelessWidget {
     required this.label,
     this.arrow = true,
     this.onPressed,
-    this.color = Colors.black
+    this.color = Colors.black,
+    this.arrowIcon,
   });
 
   @override
@@ -52,13 +54,15 @@ class IconTextButton extends StatelessWidget {
                     )
                 ),
                 Spacer(),
-                if (arrow) SizedBox(
+                if (arrow)
+                  (arrowIcon == null) ? SizedBox(
                     height: 10,
                     width: 10,
                     child: SvgPicture.asset(
                       'assets/images/icon_next.svg',
                     )
-                ),
+                  ) :
+                  arrowIcon!
               ],
             )
         )

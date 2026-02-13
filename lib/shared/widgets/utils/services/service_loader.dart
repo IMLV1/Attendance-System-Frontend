@@ -9,12 +9,14 @@ class ServiceLoader extends StatefulWidget {
   final Future<Response> Function() request;
   final Widget Function() builder;
   final void Function(dynamic) onSuccess;
+  final Color color;
 
   const ServiceLoader({
     super.key,
     required this.request,
     required this.onSuccess,
     required this.builder,
+    this.color = Colors.black
   });
 
   @override
@@ -42,7 +44,7 @@ class _ServiceLoaderState extends State<ServiceLoader> {
 
       if (!mounted) return;
 
-      if (res.statusCode == 200) {
+      if (res.statusCode! >= 200 && res.statusCode! < 300) {
         widget.onSuccess(res.data);
         setState(() {
           _state = ServiceState.success;
@@ -65,10 +67,13 @@ class _ServiceLoaderState extends State<ServiceLoader> {
 
   @override
   Widget build(BuildContext context) {
+    
+    if (_errorMessage != null) print(_errorMessage);
+    
     switch (_state) {
       case ServiceState.loading:
-        return const Center(
-          child: CupertinoActivityIndicator(),
+        return Center(
+          child: CupertinoActivityIndicator(color: widget.color),
         );
 
       case ServiceState.error:
@@ -76,8 +81,7 @@ class _ServiceLoaderState extends State<ServiceLoader> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                  'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง...'),
+              Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง...'),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _load,

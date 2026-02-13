@@ -12,6 +12,7 @@ class ColorPickerPopup {
   final double maxHeight;
   final double minHeight;
   final FlexFit fit;
+  final bool scroll;
 
   const ColorPickerPopup({
     this.title = 'เลือกสี',
@@ -21,6 +22,7 @@ class ColorPickerPopup {
     this.maxHeight = 700,
     this.minHeight = 0,
     this.fit = FlexFit.tight,
+    this.scroll = false,
   });
 
   void showPopup(BuildContext context) {
@@ -52,6 +54,7 @@ class ColorPickerPopup {
       maxHeight: maxHeight,
       minHeight: minHeight,
       fit: fit,
+      scroll: scroll,
       buttonAction: (val) {
         Navigator.of(val).pop();
         if (onSubmit != null) onSubmit!(hsv.toColor());
