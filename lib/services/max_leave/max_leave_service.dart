@@ -8,7 +8,7 @@ class MaxLeaveService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
   Future<Response<dynamic>> getData(String userId) async {
-    return dio.get('/api/leave/quotas/${userId}');
+    return dio.get('/api/leave/quotas/$userId');
   }
 
   Future<Response<dynamic>> updateMaxLeave(String id, MaxLeaveModel maxLeave) {
