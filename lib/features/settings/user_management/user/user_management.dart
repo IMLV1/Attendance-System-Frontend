@@ -326,20 +326,27 @@ class _UserManagementState extends State<UserManagement> {
                                   ...filteredUsers.map((m) {
                                     return UserInfoButton(
                                       onPressed: () async {
-                                        final updatedUser = await Navigator.of(context).push<UserManagementModel>(
+                                        final ({int status, UserManagementModel? updatedUser})? res = await Navigator.of(context).push<({int status, UserManagementModel? updatedUser})>(
                                           MaterialPageRoute(
                                             builder: (context) => UserInfo(userInfo: m),
                                           ),
                                         );
 
-                                        if (updatedUser != null) {
-                                          final index = users.indexWhere((u) => u.id == updatedUser.id);
+                                        if (res != null) {
 
-                                          setState(() {
-                                            users[index] = updatedUser;
-                                          });
+                                          if (res.status == 0) {
+                                            final index = users.indexWhere((
+                                                u) =>
+                                            u.id == res.updatedUser!.id);
+                                            setState(() {
+                                              users[index] = res.updatedUser!;
+                                            });
+                                          } else if (res.status == 1) {
+                                            setState(() {
+                                              users.remove(m);
+                                            });
+                                          }
                                         }
-
                                       },
                                       icon: Image.network(
                                         m.avatarUrl,

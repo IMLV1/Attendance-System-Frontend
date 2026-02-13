@@ -254,7 +254,7 @@ class _CreateUserState extends State<CreateUser> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       ServiceUpdater(
-                        request: () => mockUpdate(), // UserManagementService().createUser(userInfo, maxLeave),
+                        request: () => UserManagementService().createUser(userInfo, maxLeave),
                         onSuccess: () {
                           Navigator.of(context).pop(userInfo);
                         },

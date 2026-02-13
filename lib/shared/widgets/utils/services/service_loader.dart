@@ -44,7 +44,7 @@ class _ServiceLoaderState extends State<ServiceLoader> {
 
       if (!mounted) return;
 
-      if (res.statusCode == 200) {
+      if (res.statusCode! >= 200 && res.statusCode! < 300) {
         widget.onSuccess(res.data);
         setState(() {
           _state = ServiceState.success;
@@ -67,6 +67,9 @@ class _ServiceLoaderState extends State<ServiceLoader> {
 
   @override
   Widget build(BuildContext context) {
+    
+    if (_errorMessage != null) print(_errorMessage);
+    
     switch (_state) {
       case ServiceState.loading:
         return Center(
@@ -78,8 +81,7 @@ class _ServiceLoaderState extends State<ServiceLoader> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                  'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง...'),
+              Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง...'),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _load,
