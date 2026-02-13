@@ -3,10 +3,6 @@ import 'package:dio/dio.dart';
 import '../auth/auth_repository.dart';
 import '../auth/token_storage.dart';
 
-/// Setup authentication interceptor for Dio
-///
-/// - Automatically attaches access token to every request
-/// - Handles 401 Unauthorized responses by logging out user
 void setupAuthInterceptor(
     Dio dio, {
       required AuthRepository authRepository,
