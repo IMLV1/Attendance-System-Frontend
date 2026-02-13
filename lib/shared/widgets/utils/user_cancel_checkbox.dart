@@ -1,13 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class UserCancelCheckbox extends StatefulWidget {
+class UserCancelCheckbox extends StatelessWidget {
   final Widget icon;
   final String title;
   final String subTitle;
   final bool checkBox;
   final VoidCallback? onCancel;
   final ValueChanged<bool>? onChanged;
+  final bool value;
 
   const UserCancelCheckbox({
     super.key,
@@ -17,14 +18,8 @@ class UserCancelCheckbox extends StatefulWidget {
     this.checkBox = false,
     this.onCancel,
     this.onChanged,
+    this.value = false,
   });
-
-  @override
-  State<UserCancelCheckbox> createState() => _UserCancelCheckboxState();
-}
-
-class _UserCancelCheckboxState extends State<UserCancelCheckbox> {
-  bool isChecked = false;
 
   @override
   Widget build(BuildContext context) {
@@ -43,22 +38,16 @@ class _UserCancelCheckboxState extends State<UserCancelCheckbox> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
                   ),
-                  child: widget.icon,
+                  child: icon,
                 ),
                 const SizedBox(width: 13),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(title),
                       Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        widget.subTitle,
+                        subTitle,
                         style: const TextStyle(
                           fontSize: 10,
                           color: Color(0xFF7E7E7E),
@@ -68,11 +57,10 @@ class _UserCancelCheckboxState extends State<UserCancelCheckbox> {
                   ),
                 ),
 
-                /// ❌ ปุ่มลบ
-                if (!widget.checkBox)
+                if (!checkBox)
                   InkWell(
                     customBorder: const CircleBorder(),
-                    onTap: widget.onCancel,
+                    onTap: onCancel,
                     child: const Padding(
                       padding: EdgeInsets.all(6),
                       child: Icon(
@@ -82,20 +70,15 @@ class _UserCancelCheckboxState extends State<UserCancelCheckbox> {
                       ),
                     ),
                   )
-
-                /// ☑️ Checkbox
                 else
                   Checkbox(
-                    value: isChecked,
-                    activeColor: Color(0xFF505050),
+                    value: value,
+                    activeColor: const Color(0xFF505050),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(5)
+                      borderRadius: BorderRadius.circular(5),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        isChecked = value ?? false;
-                      });
-                      widget.onChanged?.call(isChecked);
+                    onChanged: (val) {
+                      onChanged?.call(val ?? false);
                     },
                   ),
               ],

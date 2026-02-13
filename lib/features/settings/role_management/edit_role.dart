@@ -17,24 +17,27 @@ import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/option_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 import '../../../shared/widgets/utils/services/service_loader.dart';
+import '../../../shared/widgets/utils/services/service_updater.dart' hide ServiceState;
 
 Future<Response> getMemberAll() async {
   await Future.delayed(const Duration(milliseconds: 500));
 
-  final mockData = [
-    {
-      "id": "EMP001",
-      "thName": "สมชาย ใจดี",
-      "enName": "Somchai Jaidee",
-      "avatarUrl": "https://i.pravatar.cc/150?img=11"
-    },
-    {
-      "id": "EMP002",
-      "thName": "วรรณา สุขใจ",
-      "enName": "Wanna Sukjai",
-      "avatarUrl": "https://i.pravatar.cc/150?img=12"
-    },
-  ];
+  final mockData = {
+    'members' : [
+      {
+        "id": "EMP001",
+        "thName": "สมชาย ใจดี",
+        "enName": "Somchai Jaidee",
+        "avatarUrl": "https://i.pravatar.cc/150?img=11"
+      },
+      {
+        "id": "EMP002",
+        "thName": "วรรณา สุขใจ",
+        "enName": "Wanna Sukjai",
+        "avatarUrl": "https://i.pravatar.cc/150?img=12"
+      },
+    ]
+  };
 
   return Response(
     requestOptions: RequestOptions(path: '/system/role/all-user'),
@@ -56,25 +59,24 @@ class EditRole extends StatefulWidget {
 }
 
 class _EditRoleState extends State<EditRole> {
+
   late RoleSystem _role;
+
   Timer? _debounce;
+  Timer? _popupDebounce;
 
   late TextEditingController _nameController;
   late TextEditingController _searchController;
+  final TextEditingController _popupSearchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   late String _originalValue;
   late Color _roleColor;
 
-  final FocusNode _focusNode = FocusNode();
-
   List<Member> _filteredMembers = [];
-
-  // ---------- utils ----------
-  Color _hexToColor(String hex) {
-    hex = hex.replaceAll('#', '');
-    if (hex.length == 6) hex = 'FF$hex';
-    return Color(int.parse(hex, radix: 16));
-  }
+  List<Member> allMembers = [];
+  List<Member> addMembers = [];
+  List<Member> popupFilteredMembers = [];
 
   // ---------- lifecycle ----------
   @override
@@ -88,6 +90,11 @@ class _EditRoleState extends State<EditRole> {
     _originalValue = _role.roleName;
 
     _nameController = TextEditingController(text: _originalValue);
+
+    _nameController.addListener(() {
+      setState(() {});
+    });
+
     _searchController = TextEditingController();
 
     _roleColor = _role.roleColor != null
@@ -95,21 +102,25 @@ class _EditRoleState extends State<EditRole> {
         : const Color(0xFFFFA726);
 
     _filteredMembers = _role.members;
-
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus) {
-
-      }
-    });
   }
+
 
   @override
   void dispose() {
     _nameController.dispose();
     _searchController.dispose();
+    _popupSearchController.dispose();
     _focusNode.dispose();
     _debounce?.cancel();
+    _popupDebounce?.cancel();
     super.dispose();
+  }
+
+  // ---------- utils ----------
+  Color _hexToColor(String hex) {
+    hex = hex.replaceAll('#', '');
+    if (hex.length == 6) hex = 'FF$hex';
+    return Color(int.parse(hex, radix: 16));
   }
 
   // ---------- search member ----------
@@ -235,7 +246,7 @@ class _EditRoleState extends State<EditRole> {
                                             hintText: 'กรุณาระบุตำแหน่ง',
                                             hintStyle: const TextStyle(
                                               color: Colors.black38,
-                                              fontSize: 13,
+                                              fontSize: 14,
                                             ),
                                             isDense: true,
                                             filled: true,
@@ -434,22 +445,75 @@ class _EditRoleState extends State<EditRole> {
                                             'assets/images/create_user.svg',
                                             colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
                                           ),
-                                          onPressed: () {
+                                          
+
+                                          onPressed: () async {
+
+                                            _popupSearchController.clear();
+
+                                            addMembers = [];
+                                            popupFilteredMembers = [];
+
+                                            if (allMembers.isEmpty) {
+                                              final res = await getMemberAll();
+                                              final map = res.data as Map<String, dynamic>;
+                                              final list = map['members'] as List;
+
+                                              allMembers = list.map((e) => Member.fromJson(e)).toList();
+                                            }
+
+                                            popupFilteredMembers = allMembers
+                                                .where((m) => !_role.members.any((e) => e.id == m.id))
+                                                .toList();
+
                                             PushPopup(
                                               title: 'รหัสบุคลากร',
                                               buttonLabel: 'เพิ่ม',
                                               fit: FlexFit.tight,
                                               scroll: false,
+                                              buttonAction: (context) {
+                                                setState(() {
+                                                  for (var m in addMembers) {
+                                                    if (!_role.members.any((e) => e.id == m.id)) {
+                                                      _role.members.add(m);
+                                                    }
+                                                  }
+                                                  _filteredMembers = _role.members;
+                                                });
+
+                                                Navigator.pop(context);
+                                              },
                                               content: StatefulBuilder(
                                                 builder: (context, setStatePopup) {
-                                                  List<Member> allMembers = [];
+
+                                                  void onPopupSearchChanged(
+                                                      String value,
+                                                      void Function(void Function()) setStatePopup,
+                                                      ) {
+                                                    if (_popupDebounce?.isActive ?? false) {
+                                                      _popupDebounce!.cancel();
+                                                    }
+
+                                                    _popupDebounce = Timer(const Duration(milliseconds: 400), () {
+                                                      final key = value.trim().toLowerCase();
+
+                                                      setStatePopup(() {
+                                                        popupFilteredMembers = key.isEmpty
+                                                            ? allMembers
+                                                            : allMembers.where((m) =>
+                                                        m.thName.toLowerCase().contains(key) ||
+                                                            m.enName.toLowerCase().contains(key))
+                                                            .toList();
+                                                      });
+                                                    });
+                                                  }
 
                                                   return Column(
                                                     spacing: 16,
                                                     children: [
                                                       TextField(
-                                                        // controller: _controller,
-                                                        // onChanged: _onSearchChanged,
+                                                        controller: _popupSearchController,
+                                                        onChanged: (val) => onPopupSearchChanged(val, setStatePopup),
                                                         decoration: InputDecoration(
                                                           isDense: true,
                                                           filled: true,
@@ -488,29 +552,30 @@ class _EditRoleState extends State<EditRole> {
                                                           ),
                                                         ),
                                                       ),
-                                                      ServiceLoader(
-                                                        request: () => getMemberAll(),
-
-                                                        onSuccess: (jsonData) {
-                                                          final list = jsonData as List;
-
-                                                          setState(() {
-                                                            allMembers = list.map((e) => Member.fromJson(e)).toList();
-                                                          });
-                                                        },
-
-                                                        builder: () => SingleChildScrollView(
-                                                          child: SeparatorCard(
-                                                            children: [
-                                                              ...allMembers.map((m) {
-                                                                return UserCancelCheckbox(
-                                                                  icon: Image.network(m.avatarUrl),
-                                                                  title: m.thName,
-                                                                  subTitle: m.enName,
-                                                                );
-                                                              })
-                                                            ],
-                                                          ),
+                                                      SingleChildScrollView(
+                                                        child: SeparatorCard(
+                                                          children: [
+                                                            ...popupFilteredMembers.map((m) {
+                                                              return UserCancelCheckbox(
+                                                                icon: Image.network(m.avatarUrl),
+                                                                title: m.thName,
+                                                                subTitle: m.enName,
+                                                                checkBox: true,
+                                                                value: addMembers.any((e) => e.id == m.id),
+                                                                onChanged: (val) {
+                                                                  setStatePopup(() {
+                                                                    if (val) {
+                                                                      if (!addMembers.any((e) => e.id == m.id)) {
+                                                                        addMembers.add(m);
+                                                                      }
+                                                                    } else {
+                                                                      addMembers.removeWhere((e) => e.id == m.id);
+                                                                    }
+                                                                  });
+                                                                },
+                                                              );
+                                                            })
+                                                          ],
                                                         ),
                                                       )
                                                     ],
@@ -554,67 +619,84 @@ class _EditRoleState extends State<EditRole> {
                     )
                   ],
                 ),
-                // Column(
-                //   mainAxisAlignment: MainAxisAlignment.end,
-                //   children: [
-                //     ServiceUpdater(
-                //       request: () => UserManagementService().createUser(userInfo, maxLeave),
-                //       onSuccess: () {
-                //         Navigator.of(context).pop(userInfo);
-                //       },
-                //       color: Colors.white,
-                //       builder: (trigger, state, loadingWidget, errorWidget) {
-                //         return Column(
-                //           children: [
-                //             SizedBox(
-                //               width: double.infinity,
-                //               height: 42,
-                //               child: ElevatedButton.icon(
-                //                 onPressed: (state != ServiceState.loading) ? () => trigger() : null,
-                //                 icon: SvgPicture.asset(
-                //                   'assets/images/icon_send.svg',
-                //                   height: 18,
-                //                   width: 18,
-                //                   colorFilter: ColorFilter.mode(
-                //                     Colors.white,
-                //                     BlendMode.srcIn,
-                //                   ),
-                //                 ),
-                //                 label: Row(
-                //                   mainAxisAlignment: MainAxisAlignment.center,
-                //                   mainAxisSize: MainAxisSize.min,
-                //                   children: [
-                //                     Text(
-                //                       'เสร็จสิ้น',
-                //                       style: TextStyle(
-                //                         fontSize: 16,
-                //                         color: Colors.white,
-                //                       ),
-                //                     ),
-                //                     if (state == ServiceState.loading) SizedBox(width: 10),
-                //                     loadingWidget
-                //                   ],
-                //                 ),
-                //                 style: ElevatedButton.styleFrom(
-                //                   disabledBackgroundColor: Colors.grey,
-                //                   backgroundColor: AppColors.primaryColor,
-                //                   shape: RoundedRectangleBorder(
-                //                     borderRadius: BorderRadius.circular(30),
-                //                   ),
-                //                   elevation: 0,
-                //                 ),
-                //               ),
-                //             ),
-                //             SizedBox(
-                //                 height: 25,
-                //                 child: errorWidget
-                //             )
-                //           ],
-                //         );
-                //       }
-                //     )
-                //   ],
-                // ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ServiceUpdater(
+                      request: () => RoleManagementService().updateRole(
+                        _role.copyWith(
+                          roleName: _nameController.text.trim(),
+                          roleColor:
+                          '#${_roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+                        ),
+                      ),
+                      onSuccess: () {
+                        final updatedRole = _role.copyWith(
+                          roleName: _nameController.text.trim(),
+                          roleColor:
+                          '#${_roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+                        );
+
+                        Navigator.of(context).pop(updatedRole);
+                      },
+
+                      color: Colors.white,
+                      builder: (trigger, state, loadingWidget, errorWidget) {
+                        return Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              height: 42,
+                              child: ElevatedButton.icon(
+                                onPressed: (state != ServiceState.loading &&
+                                    _nameController.text.trim().isNotEmpty)
+                                    ? () => trigger()
+                                    : null,
+                                icon: SvgPicture.asset(
+                                  'assets/images/icon_send.svg',
+                                  height: 18,
+                                  width: 18,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                label: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'เสร็จสิ้น',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    if (state == ServiceState.loading)
+                                      const SizedBox(width: 10),
+                                    loadingWidget
+                                  ],
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  disabledBackgroundColor: Colors.grey,
+                                  backgroundColor: AppColors.primaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 25,
+                              child: errorWidget,
+                            )
+                          ],
+                        );
+                      },
+                    )
+                  ],
+                ),
               ],
             )
           ),

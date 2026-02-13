@@ -15,34 +15,20 @@ class RoleManagementService {
     return dio.get('/system/role/all-user');
   }
 
-  /// update role name + color
-  Future<void> updateRole({required String roleId, required String name, required String color,}) async {
-    await dio.put(
-      '/system/role/$roleId',
+  Future<Response<dynamic>> updateRole(RoleSystem element) {
+    return dio.put(
+      '/system/role/update/${element.id}',
       data: {
-        'roleName': name,
-        'roleColor': color,
-      },
-    );
-  }
-
-  /// delete member from role
-  Future<void> deleteMember({required String roleId, required String memberId,}) async {
-    await dio.delete('/system/role/$roleId/member/$memberId');
-  }
-
-  Future<void> deleteRole({required String roleId,}) async {
-    await dio.delete(
-      '/system/role/$roleId',
-    );
-  }
-
-  /// update role type (main / special / admin / hr)
-  Future<void> updateRoletype({required String roleType, required roleId}) async {
-    await dio.put(
-      '/system/role/$roleId/type',
-      data: {
-        'type' : roleType
+        'id': element.id,
+        'type': roleTypeToApi(element.type),
+        'color': element.roleColor,
+        'name': element.roleName,
+        'members': element.members.map((e) => {
+          'id': e.id,
+          'thName': e.thName,
+          'enName': e.enName,
+          'avatar': e.avatarUrl
+        }).toList(),
       },
     );
   }
