@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:attendance_system/features/settings/role_management/role_management.dart';
-import 'package:attendance_system/features/settings/user_management/user/add_user.dart';
+import 'package:attendance_system/features/settings/user_management/user/create_user.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_info.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/services/user_management/user_management_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:attendance_system/shared/widgets/service_loader.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:dio/dio.dart';
@@ -274,12 +274,19 @@ class _UserManagementState extends State<UserManagement> {
                                     SizedBox(
                                       width: 55,
                                       child: ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) => AddUser(),
+                                          onPressed: () async {
+                                            UserManagementModel? updatedUser = await Navigator.of(context).push(
+                                              MaterialPageRoute<UserManagementModel>(
+                                                builder: (context) => CreateUser(),
                                               ),
                                             );
+
+                                            if (updatedUser != null) {
+                                              setState(() {
+                                                users.add(updatedUser);
+                                                _onSearchChanged(_controller.text);
+                                              });
+                                            }
                                           },
                                           style: ElevatedButton.styleFrom(
                                             elevation: 0,
@@ -303,12 +310,12 @@ class _UserManagementState extends State<UserManagement> {
                         ),
                         Expanded(
                           child: ServiceLoader(
-                            request: () => mockGetUser(), //UserManagementService().getData(),
+                            request: () => UserManagementService().getData(),
                             onSuccess: (jsonData) {
                               final data = UserManagementModel.getList(jsonData);
                               setState(() {
                                 users = data;
-                                filteredUsers = data;
+                                _onSearchChanged(_controller.text);
                               });
                             },
                             builder: () => SingleChildScrollView(
@@ -319,24 +326,37 @@ class _UserManagementState extends State<UserManagement> {
                                   ...filteredUsers.map((m) {
                                     return UserInfoButton(
                                       onPressed: () async {
-                                        final updatedUser = await Navigator.of(context).push<UserManagementModel>(
+                                        final ({int status, UserManagementModel? updatedUser})? res = await Navigator.of(context).push<({int status, UserManagementModel? updatedUser})>(
                                           MaterialPageRoute(
                                             builder: (context) => UserInfo(userInfo: m),
                                           ),
                                         );
 
-                                        if (updatedUser != null) {
-                                          final index = users.indexWhere((u) => u.id == updatedUser.id);
+                                        if (res != null) {
 
-                                          setState(() {
-                                            users[index] = updatedUser;
-                                          });
+                                          if (res.status == 0) {
+                                            final index = users.indexWhere((
+                                                u) =>
+                                            u.id == res.updatedUser!.id);
+                                            setState(() {
+                                              users[index] = res.updatedUser!;
+                                            });
+                                          } else if (res.status == 1) {
+                                            setState(() {
+                                              users.remove(m);
+                                            });
+                                          }
                                         }
-
                                       },
                                       icon: Image.network(
                                         m.avatarUrl,
                                         fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Image.asset(
+                                            'assets/images/profile.png',
+                                            fit: BoxFit.cover,
+                                          );
+                                        },
                                       ),
                                       title: m.nameTH,
                                       subTitle: m.nameEN,

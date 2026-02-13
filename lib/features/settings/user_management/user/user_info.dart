@@ -2,14 +2,19 @@ import 'package:attendance_system/features/settings/user_management/user/assign_
 import 'package:attendance_system/features/settings/user_management/user/max_leave.dart';
 import 'package:attendance_system/main.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
+import 'package:attendance_system/services/user_management/user_management_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/option_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/service_popup/option_service_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/service_popup/text_service_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/text_input_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:attendance_system/shared/widgets/utils/text_role_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +52,7 @@ class _UserInfoState extends State<UserInfo> {
         context,
         title: 'แก้ไข: $userName',
         onBack: () {
-            Navigator.pop(context, userInfo);
+            Navigator.pop(context, (status: 0, updatedUser: userInfo));
         }
       ),
       content: SafeArea(
@@ -70,7 +75,18 @@ class _UserInfoState extends State<UserInfo> {
                               SeparatorCard(
                                   separatorPadding: EdgeInsets.only(left: 45, right: 15),
                                   children: [
-                                    ProfileButton(disable: true, icon: Image.network(userInfo.avatarUrl, fit: BoxFit.cover), title: userInfo.nameTH, subTitle: userInfo.nameEN,)
+                                    ProfileButton(
+                                      disable: true,
+                                      icon: Image.network(
+                                        userInfo.avatarUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Image.asset(
+                                            'assets/images/profile.png',
+                                            fit: BoxFit.cover,
+                                          );
+                                        },
+                                    ), title: userInfo.nameTH, subTitle: userInfo.nameEN,)
                                   ]
                               ),
                               SeparatorCard(
@@ -78,14 +94,15 @@ class _UserInfoState extends State<UserInfo> {
                                   children: [
                                     TextValueButton(label: 'เลขประจำตัวประชาชน', value: userInfo.id, disable: true),
                                     TextValueButton(onPressed: () {
-                                      TextInputPopup(
+                                      TextServicePopup(
                                         title: 'รหัสบุคลากร',
                                         fieldLabel: 'รหัสบุคลากร',
                                         buttonLabel: 'บันทึก',
                                         maxHeight: 700,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.employeeId,
-                                        onSubmit: (value) {
+                                        request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(employeeId: value)),
+                                        onSuccess: (value) {
                                           setState(() {
                                             userInfo = userInfo.copyWith(employeeId: value);
                                           });
@@ -93,14 +110,15 @@ class _UserInfoState extends State<UserInfo> {
                                       ).showPopup(context);
                                     }, label: 'รหัสบุคลากร', value: userInfo.employeeId),
                                     TextValueButton(onPressed: () {
-                                      TextInputPopup(
+                                      TextServicePopup(
                                         title: 'ชื่อ-นามสกุล',
                                         fieldLabel: 'ชื่อ-นามสกุล',
                                         buttonLabel: 'บันทึก',
                                         maxHeight: 700,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.nameTH,
-                                        onSubmit: (value) {
+                                        request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nameTH: value)),
+                                        onSuccess: (value) {
                                           setState(() {
                                             userInfo = userInfo.copyWith(nameTH: value);
                                           });
@@ -108,14 +126,15 @@ class _UserInfoState extends State<UserInfo> {
                                       ).showPopup(context);
                                     }, label: 'ชื่อ-นามสกุล', value: userInfo.nameTH),
                                     TextValueButton(onPressed: () {
-                                      TextInputPopup(
+                                      TextServicePopup(
                                         title: 'Full Name',
                                         fieldLabel: 'Full Name',
                                         buttonLabel: 'บันทึก',
                                         maxHeight: 700,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.nameEN,
-                                        onSubmit: (value) {
+                                        request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nameEN: value)),
+                                        onSuccess: (value) {
                                           setState(() {
                                             userInfo = userInfo.copyWith(nameEN: value);
                                           });
@@ -123,14 +142,15 @@ class _UserInfoState extends State<UserInfo> {
                                       ).showPopup(context);
                                     }, label: 'Full Name', value: userInfo.nameEN),
                                     TextValueButton(onPressed: () {
-                                      OptionPopup(
+                                      OptionServicePopup(
                                           title: 'เพศ',
                                           options: ['ชาย', 'หญิง', 'เกย์', 'กระเทย', 'มึงสิอิกะเทย', 'อื่นๆ'],
                                           buttonLabel: 'บันทึก',
                                           maxHeight: 700,
                                           fit: FlexFit.tight,
                                           selected: userInfo.gender,
-                                          onSubmit: (value) {
+                                          request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(gender: value)),
+                                          onSuccess: (value) {
                                             setState(() {
                                               userInfo = userInfo.copyWith(gender: value);
                                             });
@@ -138,14 +158,15 @@ class _UserInfoState extends State<UserInfo> {
                                       ).showPopup(context);
                                     }, label: 'เพศ', value: userInfo.gender),
                                     TextValueButton(onPressed: () {
-                                      OptionPopup(
+                                      OptionServicePopup(
                                           title: 'สัญชาติ',
                                           options: cachedThaiNationalities,
                                           buttonLabel: 'บันทึก',
                                           maxHeight: 700,
                                           fit: FlexFit.tight,
                                           selected: userInfo.nationality,
-                                          onSubmit: (value) {
+                                          request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nationality: value)),
+                                          onSuccess: (value) {
                                             setState(() {
                                               userInfo = userInfo.copyWith(nationality: value);
                                             });
@@ -153,7 +174,7 @@ class _UserInfoState extends State<UserInfo> {
                                       ).showPopup(context);
                                     }, label: 'สัญชาติ', value: userInfo.nationality),
                                     TextValueButton(onPressed: () {
-                                      TextInputPopup(
+                                      TextServicePopup(
                                         title: 'เบอร์โทร',
                                         fieldLabel: 'เบอร์โทร',
                                         buttonLabel: 'บันทึก',
@@ -167,13 +188,30 @@ class _UserInfoState extends State<UserInfo> {
                                         keyboardType: TextInputType.phone,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.phone,
-                                        onSubmit: (value) {
+                                        request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(phone: value)),
+                                        onSuccess: (value) {
                                           setState(() {
                                             userInfo = userInfo.copyWith(phone: value);
                                           });
                                         }
                                       ).showPopup(context);
                                     }, label: 'เบอร์โทร', value: userInfo.phone),
+                                    TextValueButton(onPressed: () {
+                                      TextServicePopup(
+                                          title: 'สังกัด',
+                                          fieldLabel: 'สังกัด',
+                                          buttonLabel: 'บันทึก',
+                                          maxHeight: 700,
+                                          fit: FlexFit.tight,
+                                          currentValue: userInfo.initRole,
+                                          request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(initRole: value)),
+                                          onSuccess: (value) {
+                                            setState(() {
+                                              userInfo = userInfo.copyWith(initRole: value);
+                                            });
+                                          }
+                                      ).showPopup(context);
+                                    }, label: 'สังกัด', value: userInfo.initRole),
                                     TextValueButton(label: 'อีเมล', value: userInfo.email, disable: true),
                                   ]
                               ),
@@ -194,7 +232,7 @@ class _UserInfoState extends State<UserInfo> {
                                         });
                                       }
 
-                                    }, label: 'ตำแหน่งปัจจุบัน', roles: [...userInfo.roles, Role(id: '0000000000', name: userInfo.initRole, color: Color(0xFF535353))], icon: SvgPicture.asset('assets/images/icon_role.svg')),
+                                    }, label: 'ตำแหน่งปัจจุบัน', roles: [...userInfo.roles], icon: SvgPicture.asset('assets/images/icon_role.svg')),
                                     IconTextButton(onPressed: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
@@ -204,12 +242,38 @@ class _UserInfoState extends State<UserInfo> {
                                     }, icon: 'max_leave_count.svg', label: 'จำนวนวันลาสูงสุด')
                                   ]
                               ),
-                              SeparatorCard(
-                                  separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                                  children: [
-                                    IconTextButton(arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
-                                  ]
-                              ),
+
+                              // SeparatorCard(
+                              //     separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                              //     children: [
+                              //       IconTextButton(onPressed: () {
+                              //         FloatingPopup(content: Column()).showPopup(context);
+                              //       }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
+                              //     ]
+                              // ),
+
+                              ServiceUpdater(
+                                  request: () => UserManagementService().deleteUser(userInfo.id),
+                                  onSuccess: () {
+                                    Navigator.pop(context, (status: 1, updatedUser: null));
+                                  },
+                                  builder: (trigger, state, loading, error) {
+                                    return Column(
+                                      children: [
+                                        SeparatorCard(
+                                            separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                                            children: [
+                                              IconTextButton(onPressed: trigger, arrowIcon: loading, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
+                                            ]
+                                        ),
+                                        SizedBox(
+                                          height: 20,
+                                          child: error,
+                                        )
+                                      ],
+                                    );
+                                  }
+                              )
                             ]
                         )
                     )

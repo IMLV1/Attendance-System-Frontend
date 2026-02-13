@@ -45,4 +45,16 @@ class MaxLeaveModel {
       parental: parental ?? this.parental,
     );
   }
+
+  @override
+  String toString() {
+    return {
+      'sick': sick,
+      'personal': personal,
+      'vacation': vacation,
+      'maternity': maternity,
+      'paternity': paternity,
+      'parental': parental,
+    }.toString();
+  }
 }

@@ -1,6 +1,8 @@
+import 'package:attendance_system/services/profile_page/profile_service.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/text_role_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
 // import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
@@ -47,20 +49,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
 
-  ProfileModel? _profileData; 
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final data = await MockProfile().getProfile();
-    setState(() {
-      _profileData = data; 
-    });
-  }
+  ProfileModel? _profileData;
 
   @override
   Widget build(BuildContext context) {
@@ -73,102 +62,118 @@ class _ProfilePageState extends State<ProfilePage> {
           subTitle: 'User Profile',
           iconPath: 'icon_profile.svg'
       ),
-      content: profile == null
-          ? const Center(child: CupertinoActivityIndicator())
-          : Container(
-        color: AppColors.backgroundColor,
-        alignment: Alignment.topCenter,
-        child: Padding(
-          padding: EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 20),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 13,
+      content: ServiceLoader(
+        request: () => ProfileService().getProfile(),
+        onSuccess: (jsonData) {
+          final data = ProfileModel.fromJson(jsonData);
+          setState(() {
+            _profileData = data;
+          });
+        },
+        builder: () => Container(
+            color: AppColors.backgroundColor,
+            alignment: Alignment.topCenter,
+            child: Padding(
+                padding: EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 20),
+                child: Column(
                     children: [
-                      SeparatorCard(
-                        separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                        children: [
-                          ProfileButton(
-                            disable: true,
-                            icon: Image.network(profile.avatarUrl, fit: BoxFit.cover), 
-                            title: profile.thName, 
-                            subTitle: profile.enName,
-                          ),
-                        ]
-                      ),
-                      SeparatorCard(
-                        separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 15),
-                        children: [
-                          TextValueButton(
-                            // color: Color(0xFF949494),
-                            disable: true,
-                            label: 'รหัสบุคลากร', 
-                            value: profile.staffId
-                          ),
-                          TextValueButton(
-                            // color: Color(0xFF949494),
-                            disable: true,
-                            label: 'เลขบัตรประจำตัวประชาชน', 
-                            value: profile.citizenId
-                          ),
-                          TextValueButton(
-                            // color: Color(0xFF949494),
-                            disable: true,
-                            label: 'ชื่อ-นามสกุล', 
-                            value: profile.thName
-                          ),
-                          TextValueButton(
-                            // color: Color(0xFF949494),
-                            disable: true,
-                            label: 'Full-name', 
-                            value: profile.enName
-                          ),
-                          TextValueButton(
-                            // color: Color(0xFF949494),
-                            disable: true,
-                            label: 'เพศ', 
-                            value: profile.gender
-                          ),
-                          TextValueButton(
-                            // color: Color(0xFF949494),
-                            disable: true,
-                            label: 'สัญชาติ', 
-                            value: profile.nationality
-                          ),
-                          TextValueButton(
-                            // color: Color(0xFF949494),
-                            disable: true,
-                            label: 'เบอร์โทร', 
-                            value: profile.phone
-                          ),
-                          TextValueButton(
-                            // color: Color(0xFF949494),
-                            disable: true,
-                            label: 'อีเมล', 
-                            value: profile.email
-                          ),
-                        ],
-                      ),
-                      SeparatorCard(
-                        children: [
-                          TextRoleButton(
-                            disable: true,
-                            label: 'ตำแหน่งปัจจุบัน', 
-                            roles: profile.roles, 
-                            icon: SvgPicture.asset('assets/images/icon_role.svg'),
-                          ),
-                        ],
+                      Expanded(
+                          child: SingleChildScrollView(
+                            physics: AlwaysScrollableScrollPhysics(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              spacing: 13,
+                              children: [
+                                SeparatorCard(
+                                    separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                                    children: [
+                                      ProfileButton(
+                                        disable: true,
+                                        icon: Image.network(
+                                          profile!.avatarUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Image.asset(
+                                              'assets/images/profile.png',
+                                              fit: BoxFit.cover,
+                                            );
+                                          },
+                                        ),
+                                        title: profile.thName,
+                                        subTitle: profile.enName,
+                                      ),
+                                    ]
+                                ),
+                                SeparatorCard(
+                                  separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 15),
+                                  children: [
+                                    TextValueButton(
+                                      // color: Color(0xFF949494),
+                                        disable: true,
+                                        label: 'รหัสบุคลากร',
+                                        value: profile.staffId
+                                    ),
+                                    TextValueButton(
+                                      // color: Color(0xFF949494),
+                                        disable: true,
+                                        label: 'เลขบัตรประจำตัวประชาชน',
+                                        value: profile.citizenId
+                                    ),
+                                    TextValueButton(
+                                      // color: Color(0xFF949494),
+                                        disable: true,
+                                        label: 'ชื่อ-นามสกุล',
+                                        value: profile.thName
+                                    ),
+                                    TextValueButton(
+                                      // color: Color(0xFF949494),
+                                        disable: true,
+                                        label: 'Full-name',
+                                        value: profile.enName
+                                    ),
+                                    TextValueButton(
+                                      // color: Color(0xFF949494),
+                                        disable: true,
+                                        label: 'เพศ',
+                                        value: profile.gender
+                                    ),
+                                    TextValueButton(
+                                      // color: Color(0xFF949494),
+                                        disable: true,
+                                        label: 'สัญชาติ',
+                                        value: profile.nationality
+                                    ),
+                                    TextValueButton(
+                                      // color: Color(0xFF949494),
+                                        disable: true,
+                                        label: 'เบอร์โทร',
+                                        value: profile.phone
+                                    ),
+                                    TextValueButton(
+                                      // color: Color(0xFF949494),
+                                        disable: true,
+                                        label: 'อีเมล',
+                                        value: profile.email
+                                    ),
+                                  ],
+                                ),
+                                SeparatorCard(
+                                  children: [
+                                    TextRoleButton(
+                                      disable: true,
+                                      label: 'ตำแหน่งปัจจุบัน',
+                                      roles: profile.roles,
+                                      icon: SvgPicture.asset('assets/images/icon_role.svg'),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          )
                       )
-                    ],
-                  ),
+                    ]
                 )
-              )
-            ]
-          )
+            )
         )
       )
     );

@@ -8,6 +8,20 @@ class MaxLeaveService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
   Future<Response<dynamic>> getData(String userId) async {
-    return dio.get('/system/user_management/max_leaves/${userId}');
+    return dio.get('/api/leave/quotas/${userId}');
+  }
+
+  Future<Response<dynamic>> updateMaxLeave(String id, MaxLeaveModel maxLeave) {
+    return dio.put(
+      '/system/user_management/update_max_leave/$id',
+      data: {
+        'sick': maxLeave.sick,
+        'personal': maxLeave.personal,
+        'vacation': maxLeave.vacation,
+        'maternity': maxLeave.maternity,
+        'paternity': maxLeave.paternity,
+        'parental': maxLeave.parental
+      },
+    );
   }
 }
