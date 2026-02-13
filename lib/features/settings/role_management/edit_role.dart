@@ -1,17 +1,47 @@
+import 'dart:async';
+
 import 'package:attendance_system/services/role_management/role_management_model.dart';
+import 'package:attendance_system/services/role_management/role_management_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/user_cancel_checkbox.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../services/role_management/role_management_service.dart';
 import '../../../shared/widgets/app_scaffold.dart';
 import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/helper/color_picker_popup/color_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/option_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
+import '../../../shared/widgets/utils/services/service_loader.dart';
+
+Future<Response> getMemberAll() async {
+  await Future.delayed(const Duration(milliseconds: 500));
+
+  final mockData = [
+    {
+      "id": "EMP001",
+      "thName": "สมชาย ใจดี",
+      "enName": "Somchai Jaidee",
+      "avatarUrl": "https://i.pravatar.cc/150?img=11"
+    },
+    {
+      "id": "EMP002",
+      "thName": "วรรณา สุขใจ",
+      "enName": "Wanna Sukjai",
+      "avatarUrl": "https://i.pravatar.cc/150?img=12"
+    },
+  ];
+
+  return Response(
+    requestOptions: RequestOptions(path: '/system/role/all-user'),
+    data: mockData,
+    statusCode: 200,
+  );
+}
 
 class EditRole extends StatefulWidget {
   final RoleSystem roleInfo;
@@ -27,6 +57,7 @@ class EditRole extends StatefulWidget {
 
 class _EditRoleState extends State<EditRole> {
   late RoleSystem _role;
+  Timer? _debounce;
 
   late TextEditingController _nameController;
   late TextEditingController _searchController;
@@ -35,7 +66,6 @@ class _EditRoleState extends State<EditRole> {
   late Color _roleColor;
 
   final FocusNode _focusNode = FocusNode();
-  final RoleManagementService _service = RoleManagementService();
 
   List<Member> _filteredMembers = [];
 
@@ -68,7 +98,7 @@ class _EditRoleState extends State<EditRole> {
 
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
-        _validateName();
+
       }
     });
   }
@@ -78,97 +108,28 @@ class _EditRoleState extends State<EditRole> {
     _nameController.dispose();
     _searchController.dispose();
     _focusNode.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
-  // ---------- validate role name ----------
-  void _validateName() {
-    final value = _nameController.text.trim();
-
-    if (value.isEmpty) {
-      // ❌ ห้ามว่าง → คืนค่าเดิม
-      _nameController.text = _originalValue;
-    } else if (value != _originalValue) {
-      _finishEdit(value);
-    }
-  }
-
-  // ---------- update role ----------
-  void _finishEdit(String value) {
-    final newValue = value.trim();
-
-    if (newValue.isEmpty || newValue == _originalValue) return;
-
-    _save(newValue);
-  }
-
-  Future<void> _save(String value) async {
-    try {
-      final colorHex = _roleColor.toARGB32()
-          .toRadixString(16)
-          .substring(2)
-          .toUpperCase();
-
-      await _service.updateRole(
-        roleId: _role.id,
-        name: value,
-        color: colorHex,
-      );
-
-      final updated = _role.copyWith(
-        roleName: value,
-        roleColor: colorHex,
-      );
-
-      setState(() {
-        _role = updated;
-        _originalValue = value;
-      });
-
-      Navigator.of(context).pop(updated);
-    } catch (_) {
-      // TODO: show error snackbar
-    }
-  }
-
-
   // ---------- search member ----------
   void _onSearchChanged(String value) {
-    final key = value.trim().toLowerCase();
-
-    setState(() {
-      _filteredMembers = key.isEmpty
-          ? _role.members
-          : _role.members.where((m) =>
-      m.thName.toLowerCase().contains(key) ||
-          m.enName.toLowerCase().contains(key),
-      ).toList();
-    });
-  }
-
-
-  // ---------- delete member ----------
-  Future<void> _removeMember(String memberId) async {
-    await _service.deleteMember(
-      roleId: _role.id,
-      memberId: memberId,
-    );
-
-    setState(() {
-      final updatedMembers =
-      _role.members.where((m) => m.id != memberId).toList();
-
-      _role = _role.copyWith(members: updatedMembers);
-      _filteredMembers = updatedMembers;
-    });
-  }
-
-  Future<void> _deleteRole() async {
-    await _service.deleteRole(roleId: _role.id);
-
-    if (mounted) {
-      Navigator.of(context).pop(true); // กลับหน้าเดิม + บอกว่าลบแล้ว
+    if (_debounce?.isActive ?? false) {
+      _debounce!.cancel();
     }
+
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      final key = value.trim().toLowerCase();
+
+      setState(() {
+        _filteredMembers = key.isEmpty
+            ? _role.members
+            : _role.members.where((m) =>
+        m.thName.toLowerCase().contains(key) ||
+            m.enName.toLowerCase().contains(key),
+        ).toList();
+      });
+    });
   }
 
   String getPermission() {
@@ -233,314 +194,427 @@ class _EditRoleState extends State<EditRole> {
                 Column(
                   children: [
                     Expanded(
-                        child: SingleChildScrollView(
-                          physics: AlwaysScrollableScrollPhysics(),
-                          child: Column(
-                            spacing: 20,
-                            children: [
-                              /// ===== Role name =====
-                              Container(
-                                width: double.infinity,
-                                padding:
-                                const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE3E3E3),
-                                  borderRadius: BorderRadius.circular(22),
-                                ),
-                                child: Column(
-                                  spacing: 13,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      spacing: 6,
-                                      children: [
-                                        SvgPicture.asset(
-                                          'assets/images/tag.svg',
-                                          height: 15,
-                                          width: 15,
-                                        ),
-                                        const Text('ตำแหน่ง'),
-                                      ],
-                                    ),
-                                    Row(
-                                      spacing: 13,
-                                      children: [
-                                        Expanded(
-                                          child: TextField(
-                                            controller: _nameController,
-                                            focusNode: _focusNode,
-                                            textInputAction: TextInputAction.done,
-                                            decoration: InputDecoration(
-                                              hintText: 'กรุณาระบุตำแหน่ง',
-                                              hintStyle: const TextStyle(
-                                                color: Colors.black38,
-                                                fontSize: 14,
-                                              ),
-                                              isDense: true,
-                                              filled: true,
-                                              fillColor: Colors.white,
-                                              contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                  horizontal: 16, vertical: 10),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(25),
-                                                borderSide: BorderSide.none,
-                                              ),
-                                              suffixIcon: InkWell(
-                                                customBorder: const CircleBorder(),
-                                                onTap: () {
-                                                  _nameController.clear();
-                                                  FocusScope.of(context).unfocus();
-                                                },
-                                                child: const Padding(
-                                                  padding: EdgeInsets.all(6),
-                                                  child: Icon(
-                                                    CupertinoIcons.xmark_circle_fill,
-                                                    size: 17,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            onSubmitted: _finishEdit,
-                                          ),
-                                        ),
-                                        InkWell(
-                                          customBorder: const CircleBorder(),
-                                          onTap: () {
-                                            /// TODO: Select Color
-                                            ColorPickerPopup(
-                                              selected: _roleColor,
-                                              onSubmit: (color) {
-                                                setState(() {
-                                                  _roleColor = color;
-                                                });
-                                              },
-                                            ).showPopup(context);
-                                          },
-                                          child: Container(
-                                            width: 28,
-                                            height: 28,
-                                            decoration: BoxDecoration(
-                                              color: _roleColor,
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: const Color(0xFF606060),
-                                                width: 2,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                      child: SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          spacing: 17,
+                          children: [
+                            /// ===== Role name =====
+                            Container(
+                              width: double.infinity,
+                              padding:
+                              const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE3E3E3),
+                                borderRadius: BorderRadius.circular(22),
                               ),
-
-                              /// ===== Delete role =====
-                              SeparatorCard(
-                                separatorPadding:
-                                const EdgeInsets.only(left: 45, right: 15),
-                                children: [
-                                  IconTextButton(
-                                    arrow: false,
-                                    color: Colors.red,
-                                    icon: 'icon_delete.svg',
-                                    label: 'ลบตำแหน่ง',
-                                    onPressed: () {
-                                      /// TODO: Delete role
-                                    },
-                                  ),
-                                ],
-                              ),
-                              /// กำหนดสิทธิ์การเข้าถึง
-                              SeparatorCard(
-                                separatorPadding:
-                                const EdgeInsets.only(left: 45, right: 15),
-                                children: [
-                                  IconTextButton(
-                                    arrow: false,
-                                    icon: 'icon_delete.svg',
-                                    label: 'ระดับสิทธิ์การเข้าถึง',
-                                    onPressed: ()  {
-                                      OptionPopup(
-                                        title: 'ระดับสิทธิ์การเข้าถึง',
-                                        options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
-                                        buttonLabel: 'บันทึก',
-                                        maxHeight: 700,
-                                        fit: FlexFit.tight,
-                                        selected: getPermission(),
-                                        onSubmit: (val) async {
-                                          final newType = permissionToRoleType(val);
-                                          if (newType == _role.type) return;
-
-                                          try {
-                                            await _service.updateRoletype(
-                                              roleId: _role.id,
-                                              roleType: roleTypeToApi(newType),
-                                            );
-
-                                            setState(() {
-                                              _role = _role.copyWith(type: newType);
-                                            });
-                                          } catch (_) {
-                                            // handle error ถ้าต้องการ
-                                          }
-                                        },
-                                      ).showPopup(context);
-                                    },
-                                  ),
-                                ],
-                              ),
-
-                              /// ===== Search & Add =====
-                              Column(
-                                spacing: 6,
+                              child: Column(
+                                spacing: 13,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     spacing: 6,
                                     children: [
                                       SvgPicture.asset(
-                                        'assets/images/icon_user.svg',
+                                        'assets/images/tag.svg',
                                         height: 15,
                                         width: 15,
                                       ),
-                                      Text('สมาชิกในสังกัด (${_filteredMembers.length})'),
+                                      const Text('ตำแหน่ง'),
                                     ],
                                   ),
-                                  /// ==== Searchbar ====
-                                  SizedBox(
-                                      width: double.infinity,
-                                      child: Row(
-                                        spacing: 10,
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
-                                              controller: SearchController(),
-                                              onChanged: _onSearchChanged,
-                                              decoration: InputDecoration(
-                                                isDense: true,
-                                                filled: true,
-                                                fillColor: Colors.white,
-                                                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(50),
-                                                  borderSide: const BorderSide(
-                                                    color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(50),
-                                                  borderSide: const BorderSide(
-                                                    color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                hint: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  spacing: 10,
-                                                  children: [
-                                                    SvgPicture.asset(
-                                                      'assets/images/search.svg',
-                                                      width: 15,
-                                                      height: 15,
-                                                    ),
-                                                    Text('ค้นหาผู้ใช้...',
-                                                        style: TextStyle(
-                                                            color: Color(0xFF7D7D7D),
-                                                            fontSize: 15
-                                                        )
-                                                    )
-                                                  ],
+                                  Row(
+                                    spacing: 13,
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _nameController,
+                                          focusNode: _focusNode,
+                                          textInputAction: TextInputAction.done,
+                                          decoration: InputDecoration(
+                                            hintText: 'กรุณาระบุตำแหน่ง',
+                                            hintStyle: const TextStyle(
+                                              color: Colors.black38,
+                                              fontSize: 13,
+                                            ),
+                                            isDense: true,
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(25),
+                                              borderSide: BorderSide.none,
+                                            ),
+                                            suffixIcon: InkWell(
+                                              customBorder: const CircleBorder(),
+                                              onTap: () {
+                                                _nameController.clear();
+                                                FocusScope.of(context).unfocus();
+                                              },
+                                              child: const Padding(
+                                                padding: EdgeInsets.all(6),
+                                                child: Icon(
+                                                  CupertinoIcons.xmark_circle_fill,
+                                                  size: 17,
+                                                  color: Colors.black,
                                                 ),
                                               ),
                                             ),
                                           ),
-                                          SizedBox(
-                                            width: 55,
-                                            child: ElevatedButton(
-                                                onPressed: () {},
-                                                style: ElevatedButton.styleFrom(
-                                                  elevation: 0,
-                                                  shadowColor: Colors.transparent,
-                                                  padding: EdgeInsets.all(0),
-                                                  side: const BorderSide(
-                                                    color: Color(0xFF7D7D7D),
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: SvgPicture.asset(
-                                                  'assets/images/create_user.svg',
-                                                  colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
-                                                )
+                                          onSubmitted: (val) {
+                                            final newName = val.trim();
+
+                                            if (newName.isEmpty) return;
+
+                                            setState(() {
+                                              _role = _role.copyWith(roleName: newName);
+                                            });
+
+                                            FocusScope.of(context).unfocus();
+                                          },
+                                        ),
+                                      ),
+                                      InkWell(
+                                        customBorder: const CircleBorder(),
+                                        onTap: () {
+                                          ColorPickerPopup(
+                                            selected: _roleColor,
+                                            onSubmit: (color) {
+                                              setState(() {
+                                                _roleColor = color;
+                                              });
+                                            },
+                                          ).showPopup(context);
+                                        },
+                                        child: Container(
+                                          width: 33,
+                                          height: 33,
+                                          decoration: BoxDecoration(
+                                            color: _roleColor,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: const Color(0xFF606060),
+                                              width: 2,
                                             ),
-                                          )
-                                        ],
-                                      )
-                                  )
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
+                            ),
 
-                              /// ===== Member list =====
-                              if (_filteredMembers.isNotEmpty)
-                                SeparatorCard(
-                                  separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                            /// ===== Delete role =====
+                            SeparatorCard(
+                              separatorPadding:
+                              const EdgeInsets.only(left: 45, right: 15),
+                              children: [
+                                IconTextButton(
+                                  arrow: false,
+                                  color: Colors.red,
+                                  icon: 'icon_delete.svg',
+                                  label: 'ลบตำแหน่ง',
+                                  onPressed: () {
+                                    /// TODO: Delete role
+                                  },
+                                ),
+                              ],
+                            ),
+                            /// กำหนดสิทธิ์การเข้าถึง
+                            SeparatorCard(
+                              separatorPadding:
+                              const EdgeInsets.only(left: 45, right: 15),
+                              children: [
+                                IconTextButton(
+                                  arrow: false,
+                                  icon: 'icon_delete.svg',
+                                  label: 'ระดับสิทธิ์การเข้าถึง',
+                                  onPressed: ()  {
+                                    OptionPopup(
+                                      title: 'ระดับสิทธิ์การเข้าถึง',
+                                      options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
+                                      buttonLabel: 'บันทึก',
+                                      maxHeight: 700,
+                                      fit: FlexFit.tight,
+                                      selected: getPermission(),
+                                      onSubmit: (val) {
+                                        final newType = permissionToRoleType(val);
+
+                                        if (newType == _role.type) return;
+
+                                        setState(() {
+                                          _role = _role.copyWith(type: newType);
+                                        });
+                                      },
+
+                                    ).showPopup(context);
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            /// ===== Search & Add =====
+                            Column(
+                              spacing: 6,
+                              children: [
+                                Row(
+                                  spacing: 6,
                                   children: [
-                                    ..._filteredMembers.map((m) {
-                                      return UserCancelCheckbox(
-                                        icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
-                                        title: m.thName,
-                                        subTitle: m.enName,
-                                        checkBox: false,
-                                        onCancel: () => _removeMember(m.id),
-                                      );
-                                    }),
+                                    SvgPicture.asset(
+                                      'assets/images/icon_user.svg',
+                                      height: 15,
+                                      width: 15,
+                                    ),
+                                    Text('สมาชิกในสังกัด (${_filteredMembers.length})'),
                                   ],
                                 ),
-                            ],
-                          ),
-                        )
+                                /// ==== Searchbar ====
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Row(
+                                    spacing: 10,
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _searchController,
+                                          onChanged: _onSearchChanged,
+                                          decoration: InputDecoration(
+                                            isDense: true,
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(50),
+                                              borderSide: const BorderSide(
+                                                color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                                width: 1,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(50),
+                                              borderSide: const BorderSide(
+                                                color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                                width: 1,
+                                              ),
+                                            ),
+                                            hint: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              spacing: 10,
+                                              children: [
+                                                SvgPicture.asset(
+                                                  'assets/images/search.svg',
+                                                  width: 15,
+                                                  height: 15,
+                                                ),
+                                                Text('ค้นหาผู้ใช้...',
+                                                  style: TextStyle(
+                                                      color: Color(0xFF7D7D7D),
+                                                      fontSize: 15
+                                                  )
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 55,
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            elevation: 0,
+                                            shadowColor: Colors.transparent,
+                                            padding: EdgeInsets.all(0),
+                                            side: const BorderSide(
+                                              color: Color(0xFF7D7D7D),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: SvgPicture.asset(
+                                            'assets/images/create_user.svg',
+                                            colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
+                                          ),
+                                          onPressed: () {
+                                            PushPopup(
+                                              title: 'รหัสบุคลากร',
+                                              buttonLabel: 'เพิ่ม',
+                                              fit: FlexFit.tight,
+                                              scroll: false,
+                                              content: StatefulBuilder(
+                                                builder: (context, setStatePopup) {
+                                                  List<Member> allMembers = [];
+
+                                                  return Column(
+                                                    spacing: 16,
+                                                    children: [
+                                                      TextField(
+                                                        // controller: _controller,
+                                                        // onChanged: _onSearchChanged,
+                                                        decoration: InputDecoration(
+                                                          isDense: true,
+                                                          filled: true,
+                                                          fillColor: Colors.white,
+                                                          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                                          border: OutlineInputBorder(
+                                                            borderRadius: BorderRadius.circular(50),
+                                                            borderSide: const BorderSide(
+                                                              color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                                              width: 1,
+                                                            ),
+                                                          ),
+                                                          focusedBorder: OutlineInputBorder(
+                                                            borderRadius: BorderRadius.circular(50),
+                                                            borderSide: const BorderSide(
+                                                              color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                                              width: 1,
+                                                            ),
+                                                          ),
+                                                          hint: Row(
+                                                            mainAxisSize: MainAxisSize.min,
+                                                            spacing: 10,
+                                                            children: [
+                                                              SvgPicture.asset(
+                                                                'assets/images/search.svg',
+                                                                width: 15,
+                                                                height: 15,
+                                                              ),
+                                                              Text('ค้นหาตำแหน่ง...',
+                                                                  style: TextStyle(
+                                                                      color: Color(0xFF7D7D7D),
+                                                                      fontSize: 15
+                                                                  )
+                                                              )
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      ServiceLoader(
+                                                        request: () => getMemberAll(),
+
+                                                        onSuccess: (jsonData) {
+                                                          final list = jsonData as List;
+
+                                                          setState(() {
+                                                            allMembers = list.map((e) => Member.fromJson(e)).toList();
+                                                          });
+                                                        },
+
+                                                        builder: () => SingleChildScrollView(
+                                                          child: SeparatorCard(
+                                                            children: [
+                                                              ...allMembers.map((m) {
+                                                                return UserCancelCheckbox(
+                                                                  icon: Image.network(m.avatarUrl),
+                                                                  title: m.thName,
+                                                                  subTitle: m.enName,
+                                                                );
+                                                              })
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  );
+                                                }
+                                              )
+                                            ).showPopup(context);
+                                          },
+                                        ),
+                                      )
+                                    ],
+                                  )
+                                )
+                              ],
+                            ),
+
+                            /// ===== Member list =====
+                            if (_filteredMembers.isNotEmpty)
+                              SeparatorCard(
+                                separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                                children: [
+                                  ..._filteredMembers.map((m) {
+                                    return UserCancelCheckbox(
+                                      icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
+                                      title: m.thName,
+                                      subTitle: m.enName,
+                                      checkBox: false,
+                                      onCancel: () {
+                                        setState(() {
+                                          _filteredMembers.removeWhere((e) => e.id == m.id);
+                                          _role.members.removeWhere((e) => e.id == m.id);
+                                        });
+                                      },
+                                    );
+                                  }),
+                                ],
+                              ),
+                          ],
+                        ),
+                      )
                     )
                   ],
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 42,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // TODO: submit
-                        },
-                        icon: SvgPicture.asset(
-                          'assets/images/icon_send.svg',
-                          height: 18,
-                          width: 18,
-                          colorFilter: ColorFilter.mode(
-                            Colors.white,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                        label: Text(
-                          'เสร็จสิ้น',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-                  ],
-                )
+                // Column(
+                //   mainAxisAlignment: MainAxisAlignment.end,
+                //   children: [
+                //     ServiceUpdater(
+                //       request: () => UserManagementService().createUser(userInfo, maxLeave),
+                //       onSuccess: () {
+                //         Navigator.of(context).pop(userInfo);
+                //       },
+                //       color: Colors.white,
+                //       builder: (trigger, state, loadingWidget, errorWidget) {
+                //         return Column(
+                //           children: [
+                //             SizedBox(
+                //               width: double.infinity,
+                //               height: 42,
+                //               child: ElevatedButton.icon(
+                //                 onPressed: (state != ServiceState.loading) ? () => trigger() : null,
+                //                 icon: SvgPicture.asset(
+                //                   'assets/images/icon_send.svg',
+                //                   height: 18,
+                //                   width: 18,
+                //                   colorFilter: ColorFilter.mode(
+                //                     Colors.white,
+                //                     BlendMode.srcIn,
+                //                   ),
+                //                 ),
+                //                 label: Row(
+                //                   mainAxisAlignment: MainAxisAlignment.center,
+                //                   mainAxisSize: MainAxisSize.min,
+                //                   children: [
+                //                     Text(
+                //                       'เสร็จสิ้น',
+                //                       style: TextStyle(
+                //                         fontSize: 16,
+                //                         color: Colors.white,
+                //                       ),
+                //                     ),
+                //                     if (state == ServiceState.loading) SizedBox(width: 10),
+                //                     loadingWidget
+                //                   ],
+                //                 ),
+                //                 style: ElevatedButton.styleFrom(
+                //                   disabledBackgroundColor: Colors.grey,
+                //                   backgroundColor: AppColors.primaryColor,
+                //                   shape: RoundedRectangleBorder(
+                //                     borderRadius: BorderRadius.circular(30),
+                //                   ),
+                //                   elevation: 0,
+                //                 ),
+                //               ),
+                //             ),
+                //             SizedBox(
+                //                 height: 25,
+                //                 child: errorWidget
+                //             )
+                //           ],
+                //         );
+                //       }
+                //     )
+                //   ],
+                // ),
               ],
             )
           ),

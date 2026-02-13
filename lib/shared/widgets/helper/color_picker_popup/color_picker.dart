@@ -89,6 +89,9 @@ class ColorPickerPopup {
 
           final color = hsv.toColor();
 
+          final double pickerLeft = (hsv.saturation * svWidth - pickerSize / 2).clamp(0.0, svWidth - pickerSize);
+          final double pickerTop = ((1 - hsv.value) * svHeight - pickerSize / 2).clamp(0.0, svHeight - pickerSize);
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -131,8 +134,8 @@ class ColorPickerPopup {
                           ),
                         ),
                         Positioned(
-                          left: hsv.saturation * svWidth - pickerSize / 2,
-                          top: (1 - hsv.value) * svHeight - pickerSize / 2,
+                          left: pickerLeft,
+                          top: pickerTop,
                           child: Container(
                             width: pickerSize,
                             height: pickerSize,
@@ -144,7 +147,7 @@ class ColorPickerPopup {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.25),
+                                  color: Colors.black.withValues(alpha: 0.25),
                                   blurRadius: 4,
                                 ),
                               ],

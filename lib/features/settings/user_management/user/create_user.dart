@@ -33,6 +33,8 @@ Future<Response> mockUpdate() async {
 }
 
 class CreateUser extends StatefulWidget {
+  const CreateUser({super.key});
+
   @override
   State<StatefulWidget> createState() => _CreateUserState();
 
