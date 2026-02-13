@@ -25,18 +25,10 @@ void prepareNationalities() {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('th_TH', null);
-
-  /// Load env
   await dotenv.load(fileName: '.env');
-
-  /// Setup DI
   await setupServiceLocator();
-
-  /// Init auth state (check token + /auth/me)
   await getIt<AuthState>().init();
-
   prepareNationalities();
-
   runApp(
     ChangeNotifierProvider<AuthState>.value(
       value: getIt<AuthState>(),

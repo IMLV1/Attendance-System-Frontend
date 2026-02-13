@@ -4,21 +4,13 @@ import 'auth_result.dart';
 import 'google_login_service.dart';
 import 'token_storage.dart';
 
-/// Authentication repository contract
 abstract class AuthRepository {
-  /// Login with Google and return auth result
   Future<AuthResult> loginWithGoogle();
-
-  /// Check if access token exists in local storage
   Future<bool> hasToken();
-
-  /// Logout user and clear all auth data
   Future<void> logout();
-
   Future<void> forceLogout();
 }
 
-/// Authentication repository implementation
 class AuthRepositoryImpl implements AuthRepository {
   final AuthApiService api;
   final TokenStorage storage;
@@ -34,11 +26,6 @@ class AuthRepositoryImpl implements AuthRepository {
       this.apiClient,
   );
 
-  /// Login flow:
-  /// 1. Sign in with Google
-  /// 2. Send Google token to backend
-  /// 3. Receive JWT access token
-  /// 4. Save token locally and attach to API client
   @override
   Future<AuthResult> loginWithGoogle() async {
     final googleToken = await google.login();
@@ -62,8 +49,6 @@ class AuthRepositoryImpl implements AuthRepository {
     return res;
   }
 
-  /// Check existing login state
-  /// If token exists, attach it to API client
   @override
   Future<bool> hasToken() async {
     final token = await storage.accessToken;
@@ -81,12 +66,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-
-  /// Logout flow:
-  /// 1. Notify backend (best effort)
-  /// 2. Clear local token storage
-  /// 3. Remove token from API client
-  /// 4. Logout from Google
   @override
   Future<void> logout() async {
     if (_isLoggingOut) return;
