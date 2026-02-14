@@ -18,7 +18,7 @@ class LoginPage extends StatelessWidget {
 
     return AppScaffold(
       hideNavigation: true,
-      header: Header.mainHeader(context),
+      // header: Header.mainHeader(context),
       content: SafeArea(
 
         child: Container(
