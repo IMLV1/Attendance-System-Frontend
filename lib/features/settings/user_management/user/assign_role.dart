@@ -5,9 +5,9 @@ import 'package:attendance_system/services/user_management/user_management_servi
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
@@ -232,8 +232,7 @@ class _AssignRoleState extends State<AssignRole> {
                             oldRoles = [...roles];
                           });
                         },
-                        color: Colors.white,
-                        builder: (trigger, state, loadingWidget, errorWidget) {
+                        builder: (trigger, state, errorMessage) {
 
                           return Column(
                             children: [
@@ -254,6 +253,7 @@ class _AssignRoleState extends State<AssignRole> {
                                   label: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     mainAxisSize: MainAxisSize.min,
+                                    spacing: 10,
                                     children: [
                                       Text(
                                         'บันทึก',
@@ -262,8 +262,7 @@ class _AssignRoleState extends State<AssignRole> {
                                           color: Colors.white,
                                         ),
                                       ),
-                                      if (state == .loading) SizedBox(width: 10),
-                                      loadingWidget
+                                      if (state == .loading) CupertinoActivityIndicator(color: Colors.white),
                                     ],
                                   ),
                                   style: ElevatedButton.styleFrom(
@@ -278,7 +277,13 @@ class _AssignRoleState extends State<AssignRole> {
                               ),
                               SizedBox(
                                   height: 25,
-                                  child: errorWidget
+                                  child: (state == ServiceUpdatorState.error) ?
+                                  Text(
+                                      'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                                      style: TextStyle(
+                                          color: Colors.red
+                                      )
+                                  ) : SizedBox()
                               )
                             ],
                           );

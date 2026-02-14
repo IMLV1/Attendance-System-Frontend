@@ -2,30 +2,23 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-enum ServiceState { loading, success, error, idle }
+enum ServiceUpdatorState { loading, success, error, idle }
 
 class ServiceUpdater extends StatefulWidget {
 
   final Future<Response> Function() request;
   final Widget Function(
     Function() trigger,
-    ServiceState state,
-    Widget loadingWidget,
-    Widget errorWidget
+    ServiceUpdatorState state,
+    String errorMessage,
   ) builder;
   final void Function() onSuccess;
-  final Color color;
-  final Widget defaultErrorWidget;
-  final Widget defaultLoadingWidget;
 
   const ServiceUpdater({
     super.key,
     required this.request,
     required this.onSuccess,
     required this.builder,
-    this.color = Colors.black,
-    this.defaultErrorWidget = const SizedBox(),
-    this.defaultLoadingWidget = const SizedBox(),
   });
 
   @override
@@ -35,13 +28,13 @@ class ServiceUpdater extends StatefulWidget {
 
 class _ServiceUpdaterState extends State<ServiceUpdater> {
 
-  ServiceState _state = ServiceState.idle;
+  ServiceUpdatorState _state = ServiceUpdatorState.idle;
   String? _errorMessage;
 
   Future<void> _load() async {
 
     setState(() {
-      _state = ServiceState.loading;
+      _state = ServiceUpdatorState.loading;
     });
 
     try {
@@ -51,12 +44,12 @@ class _ServiceUpdaterState extends State<ServiceUpdater> {
 
       if (res.statusCode! >= 200 && res.statusCode! < 300) {
         setState(() {
-          _state = ServiceState.success;
+          _state = ServiceUpdatorState.success;
         });
         widget.onSuccess();
       } else {
         setState(() {
-          _state = ServiceState.error;
+          _state = ServiceUpdatorState.error;
           _errorMessage = res.statusMessage;
         });
       }
@@ -65,12 +58,12 @@ class _ServiceUpdaterState extends State<ServiceUpdater> {
 
       if (e is DioException && e.response != null) {
         setState(() {
-          _state = ServiceState.error;
+          _state = ServiceUpdatorState.error;
           _errorMessage = e.response?.statusMessage ?? 'Unknown error';
         });
       } else {
         setState(() {
-          _state = ServiceState.error;
+          _state = ServiceUpdatorState.error;
           _errorMessage = e.toString();
         });
       }
@@ -79,29 +72,11 @@ class _ServiceUpdaterState extends State<ServiceUpdater> {
 
   @override
   Widget build(BuildContext context) {
-    print('');
-    print('==================');
-    print(_state);
-    if (_errorMessage != null) print(_errorMessage);
-    print('==================');
-    print('');
     
     return widget.builder(
       _load,
-
       _state,
-
-      (_state == ServiceState.loading) ?
-      CupertinoActivityIndicator(color: widget.color) : widget.defaultLoadingWidget,
-
-      (_state == ServiceState.error) ?
-      Text(
-        'เกิดข้อผิดพลาด: กรุณาลองใหม่อีกครั้ง',
-        style: TextStyle(
-          color: Colors.red
-        )
-      ) : widget.defaultErrorWidget
-
+      _errorMessage ?? 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...'
     );
   }
 
