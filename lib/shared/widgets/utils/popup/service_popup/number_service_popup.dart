@@ -4,6 +4,7 @@ import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -64,7 +65,7 @@ class NumberServicePopup {
           Navigator.of(context).pop();
           if (onSuccess != null) onSuccess!(_formatter.parse(controller.text).toDouble());
         },
-        builder: (trigger, state, load, error) =>  Column(
+        builder: (trigger, state, errorMessage) =>  Column(
           children: [
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -178,7 +179,13 @@ class NumberServicePopup {
                 ),
               ],
             ),
-            error
+            if (state == ServiceUpdatorState.error)
+              Text(
+                'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง...',
+                style: TextStyle(
+                    color: Colors.red
+                ),
+              ),
           ],
         )
     ).showPopup(context);

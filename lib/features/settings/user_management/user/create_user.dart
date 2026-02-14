@@ -260,15 +260,14 @@ class _CreateUserState extends State<CreateUser> {
                         onSuccess: () {
                           Navigator.of(context).pop(userInfo);
                         },
-                        color: Colors.white,
-                        builder: (trigger, state, loadingWidget, errorWidget) {
+                        builder: (trigger, state, errorMessage) {
                           return Column(
                             children: [
                               SizedBox(
                                 width: double.infinity,
                                 height: 42,
                                 child: ElevatedButton.icon(
-                                  onPressed: (state != ServiceState.loading) ? () => trigger() : null,
+                                  onPressed: (state != ServiceUpdatorState.loading) ? () => trigger() : null,
                                   icon: SvgPicture.asset(
                                     'assets/images/create.svg',
                                     height: 18,
@@ -281,6 +280,7 @@ class _CreateUserState extends State<CreateUser> {
                                   label: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     mainAxisSize: MainAxisSize.min,
+                                    spacing: 10,
                                     children: [
                                       Text(
                                         'สร้าง',
@@ -289,8 +289,7 @@ class _CreateUserState extends State<CreateUser> {
                                           color: Colors.white,
                                         ),
                                       ),
-                                      if (state == ServiceState.loading) SizedBox(width: 10),
-                                      loadingWidget
+                                      if (state == ServiceUpdatorState.loading) CupertinoActivityIndicator(color: Colors.white)
                                     ],
                                   ),
                                   style: ElevatedButton.styleFrom(
@@ -305,7 +304,13 @@ class _CreateUserState extends State<CreateUser> {
                               ),
                               SizedBox(
                                 height: 25,
-                                child: errorWidget
+                                child: Text(
+                                  'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.red
+                                  ),
+                                )
                               )
                             ],
                           );

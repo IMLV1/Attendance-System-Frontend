@@ -243,37 +243,49 @@ class _UserInfoState extends State<UserInfo> {
                                   ]
                               ),
 
-                              // SeparatorCard(
-                              //     separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                              //     children: [
-                              //       IconTextButton(onPressed: () {
-                              //         FloatingPopup(content: Column()).showPopup(context);
-                              //       }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
-                              //     ]
-                              // ),
+                              SeparatorCard(
+                                  separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                                  children: [
+                                    IconTextButton(onPressed: () {
+                                      FloatingPopup(
+                                        title: 'ลบผู้ใช้งาน',
+                                        description: 'คุณยืนยันที่จะลบผู้ใช้ ${userInfo.nameTH} หรือไม่ การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                                        buttons: (parent, context1) => [
+                                          FloatingPopupButton(onPressed: () {
+                                            Navigator.of(context1).pop();
+                                          }, text: 'Cancel', foregroundColor: Colors.white, backgroundColor: AppColors.primaryColor, ),
+                                          FloatingServicePopupButton(onSuccess: () {
+                                            Navigator.of(context1).pop();
+                                            Navigator.pop(context, (status: 1, updatedUser: null));
+                                          }, text: 'Delete', foregroundColor: Colors.red, request: () => UserManagementService().deleteUser(userInfo.id), setError: parent)
+                                        ]
+                                      ).showPopup(context);
+                                    }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
+                                  ]
+                              ),
 
-                              ServiceUpdater(
-                                  request: () => UserManagementService().deleteUser(userInfo.id),
-                                  onSuccess: () {
-                                    Navigator.pop(context, (status: 1, updatedUser: null));
-                                  },
-                                  builder: (trigger, state, loading, error) {
-                                    return Column(
-                                      children: [
-                                        SeparatorCard(
-                                            separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                                            children: [
-                                              IconTextButton(onPressed: trigger, arrowIcon: loading, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
-                                            ]
-                                        ),
-                                        SizedBox(
-                                          height: 20,
-                                          child: error,
-                                        )
-                                      ],
-                                    );
-                                  }
-                              )
+                              // ServiceUpdater(
+                              //     request: () => UserManagementService().deleteUser(userInfo.id),
+                              //     onSuccess: () {
+                              //       Navigator.pop(context, (status: 1, updatedUser: null));
+                              //     },
+                              //     builder: (trigger, state, loading, error) {
+                              //       return Column(
+                              //         children: [
+                              //           SeparatorCard(
+                              //               separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                              //               children: [
+                              //                 IconTextButton(onPressed: trigger, arrowIcon: loading, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
+                              //               ]
+                              //           ),
+                              //           SizedBox(
+                              //             height: 20,
+                              //             child: error,
+                              //           )
+                              //         ],
+                              //       );
+                              //     }
+                              // )
                             ]
                         )
                     )

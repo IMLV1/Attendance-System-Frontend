@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-enum ServiceState { loading, success, error }
+enum ServiceLoaderState { loading, success, error }
 
 class ServiceLoader extends StatefulWidget {
   final Future<Response> Function() request;
@@ -24,7 +24,7 @@ class ServiceLoader extends StatefulWidget {
 }
 
 class _ServiceLoaderState extends State<ServiceLoader> {
-  ServiceState _state = ServiceState.loading;
+  ServiceLoaderState _state = ServiceLoaderState.loading;
   String? _errorMessage;
 
   @override
@@ -36,7 +36,7 @@ class _ServiceLoaderState extends State<ServiceLoader> {
   Future<void> _load() async {
 
     setState(() {
-      _state = ServiceState.loading;
+      _state = ServiceLoaderState.loading;
     });
 
     try {
@@ -47,11 +47,11 @@ class _ServiceLoaderState extends State<ServiceLoader> {
       if (res.statusCode! >= 200 && res.statusCode! < 300) {
         widget.onSuccess(res.data);
         setState(() {
-          _state = ServiceState.success;
+          _state = ServiceLoaderState.success;
         });
       } else {
         setState(() {
-          _state = ServiceState.error;
+          _state = ServiceLoaderState.error;
           _errorMessage = res.statusMessage;
         });
       }
@@ -59,7 +59,7 @@ class _ServiceLoaderState extends State<ServiceLoader> {
       if (!mounted) return;
 
       setState(() {
-        _state = ServiceState.error;
+        _state = ServiceLoaderState.error;
         _errorMessage = e.toString();
       });
     }
@@ -71,12 +71,12 @@ class _ServiceLoaderState extends State<ServiceLoader> {
     if (_errorMessage != null) print(_errorMessage);
     
     switch (_state) {
-      case ServiceState.loading:
+      case ServiceLoaderState.loading:
         return Center(
           child: CupertinoActivityIndicator(color: widget.color),
         );
 
-      case ServiceState.error:
+      case ServiceLoaderState.error:
         return Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -96,7 +96,7 @@ class _ServiceLoaderState extends State<ServiceLoader> {
           ),
         );
 
-      case ServiceState.success:
+      case ServiceLoaderState.success:
         return widget.builder();
     }
   }
