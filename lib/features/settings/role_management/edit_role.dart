@@ -648,16 +648,14 @@ class _EditRoleState extends State<EditRole> {
 
                         Navigator.of(context).pop(updatedRole);
                       },
-
-                      color: Colors.white,
-                      builder: (trigger, state, loadingWidget, errorWidget) {
+                      builder: (trigger, state, errorMessage) {
                         return Column(
                           children: [
                             SizedBox(
                               width: double.infinity,
                               height: 42,
                               child: ElevatedButton.icon(
-                                onPressed: (state != ServiceState.loading &&
+                                onPressed: (state != ServiceUpdatorState.loading &&
                                     _nameController.text.trim().isNotEmpty)
                                     ? () => trigger()
                                     : null,
@@ -671,6 +669,7 @@ class _EditRoleState extends State<EditRole> {
                                   ),
                                 ),
                                 label: Row(
+                                  spacing: 10,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -681,9 +680,8 @@ class _EditRoleState extends State<EditRole> {
                                         color: Colors.white,
                                       ),
                                     ),
-                                    if (state == ServiceState.loading)
-                                      const SizedBox(width: 10),
-                                    loadingWidget
+                                    if (state == ServiceUpdatorState.loading)
+                                      CupertinoActivityIndicator(color: Colors.white)
                                   ],
                                 ),
                                 style: ElevatedButton.styleFrom(
@@ -697,8 +695,13 @@ class _EditRoleState extends State<EditRole> {
                               ),
                             ),
                             SizedBox(
-                              height: 20,
-                              child: errorWidget,
+                              height: 25,
+                              child: (state == ServiceUpdatorState.error) ?
+                              Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                                style: TextStyle(
+                                    color: Colors.red
+                                )
+                              ) : SizedBox()
                             )
                           ],
                         );

@@ -276,14 +276,14 @@ class _AssignRoleState extends State<AssignRole> {
                                 ),
                               ),
                               SizedBox(
-                                  height: 25,
-                                  child: (state == ServiceUpdatorState.error) ?
-                                  Text(
-                                      'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
-                                      style: TextStyle(
-                                          color: Colors.red
-                                      )
-                                  ) : SizedBox()
+                                height: 25,
+                                child: (state == ServiceUpdatorState.error) ?
+                                Text(
+                                    'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                                    style: TextStyle(
+                                        color: Colors.red
+                                    )
+                                ) : SizedBox()
                               )
                             ],
                           );
