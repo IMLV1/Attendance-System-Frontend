@@ -16,53 +16,17 @@ final getIt = GetIt.instance;
 Future<void> setupServiceLocator() async {
   ApiConfig.init();
 
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: ApiConfig.baseUrl,
-      headers: ApiConfig.defaultHeaders,
-      connectTimeout: ApiConfig.connectTimeout,
-      receiveTimeout: ApiConfig.receiveTimeout,
-    ),
-  );
-  getIt.registerSingleton<Dio>(dio);
+  getIt.registerLazySingleton<TokenStorage>(() => SecureTokenStorage());
 
-  getIt.registerLazySingleton<TokenStorage>(
-        () => SecureTokenStorage(),
-  );
+  getIt.registerLazySingleton<ApiClient>(() {
+    final dio = Dio(BaseOptions(baseUrl: ApiConfig.baseUrl, headers: ApiConfig.defaultHeaders, connectTimeout: ApiConfig.connectTimeout, receiveTimeout: ApiConfig.receiveTimeout));
+    setupAuthInterceptor(dio, authRepository: getIt<AuthRepository>(), tokenStorage: getIt<TokenStorage>());
+    return ApiClient(dio);
+  });
 
-  getIt.registerLazySingleton<ApiClient>(
-        () => ApiClient(dio),
-  );
-
-  getIt.registerLazySingleton<GoogleLoginService>(
-        () => GoogleLoginServiceImpl(),
-  );
-
-  getIt.registerLazySingleton<AuthApiService>(
-        () => AuthApiService(dio),
-  );
-
-  getIt.registerLazySingleton<ProfileService>(
-        () => ProfileService(),
-  );
-
-  getIt.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(
-      getIt<AuthApiService>(),
-      getIt<TokenStorage>(),
-      getIt<GoogleLoginService>(),
-      getIt<ApiClient>(),
-    ),
-  );
-
-  setupAuthInterceptor(
-    dio,
-    authRepository: getIt<AuthRepository>(),
-    tokenStorage: getIt<TokenStorage>(),
-  );
-
-
-  getIt.registerLazySingleton<AuthState>(
-        () => AuthState(getIt<AuthRepository>()),
-  );
+  getIt.registerLazySingleton<GoogleLoginService>(() => GoogleLoginServiceImpl());
+  getIt.registerLazySingleton<AuthApiService>(() => AuthApiService(getIt<ApiClient>().dio));
+  getIt.registerLazySingleton<ProfileService>(() => ProfileService());
+  getIt.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(getIt<AuthApiService>(), getIt<TokenStorage>(), getIt<GoogleLoginService>(), getIt<ApiClient>()));
+  getIt.registerLazySingleton<AuthState>(() => AuthState(getIt<AuthRepository>()));
 }
