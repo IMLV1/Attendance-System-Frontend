@@ -184,7 +184,7 @@ class _RoleManagementState extends State<RoleManagement> {
         context,
         title: 'จัดการตำแหน่ง'
       ),
-      content:  SafeArea(
+      content: SafeArea(
         child: Container(
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,

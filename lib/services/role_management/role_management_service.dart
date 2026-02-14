@@ -25,9 +25,6 @@ class RoleManagementService {
         'name': element.roleName,
         'members': element.members.map((e) => {
           'id': e.id,
-          'thName': e.thName,
-          'enName': e.enName,
-          'avatar': e.avatarUrl
         }).toList(),
       },
     );
