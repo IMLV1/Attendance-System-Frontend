@@ -1,6 +1,8 @@
 import 'package:attendance_system/shared/widgets/utils/option_pane.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -46,21 +48,28 @@ class OptionServicePopup {
         Navigator.of(context).pop();
         if (onSuccess != null) onSuccess!(current);
       },
-      builder: (trigger, state, load, error) =>
-      Column(
-        children: [
-          error,
+      builder: (trigger, state, errorMessage) {
 
-          OptionPane(
-            onSelected: (option) {
-              current = option;
-            },
-            selected: selected,
-            borderRadius: BorderRadius.zero,
-            options: options,
-          )
-        ],
-      )
+        return Column(
+          children: [
+            if (state == ServiceUpdatorState.error)
+              Text(
+                'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
+                style: TextStyle(
+                    color: Colors.red
+                ),
+              ),
+            OptionPane(
+              onSelected: (option) {
+                current = option;
+              },
+              selected: selected,
+              borderRadius: BorderRadius.zero,
+              options: options,
+            ),
+          ],
+        );
+      }
     ).showPopup(context);
   }
 

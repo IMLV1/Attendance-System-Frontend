@@ -16,9 +16,8 @@ class ServicePopup {
   final bool actionButton;
   final Widget Function(
       Function() trigger,
-      ServiceState state,
-      Widget loadingWidget,
-      Widget errorWidget
+      ServiceUpdatorState state,
+      String errorMessage
       ) builder;
   final double maxHeight;
   final double minHeight;
@@ -61,10 +60,9 @@ class ServicePopup {
                   ),
                 ),
                 child: ServiceUpdater(
-                  color: AppColors.primaryColor,
                   request: request,
                   onSuccess: () => onSuccess(context),
-                  builder: (trigger, state, load, error) {
+                  builder: (trigger, state, errorMessage) {
                     return SafeArea(
                       top: false,
                       child: ConstrainedBox(
@@ -123,7 +121,7 @@ class ServicePopup {
 
                                     if (actionButton) Align(
                                       alignment: Alignment.bottomRight,
-                                      child: (state == ServiceState.loading) ? load :
+                                      child: (state == ServiceUpdatorState.loading) ? CupertinoActivityIndicator(color: AppColors.primaryColor) :
                                       TextButton(
                                         style: TextButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -152,7 +150,7 @@ class ServicePopup {
                               fit: fit,
                               child: SingleChildScrollView(
                                 physics: const AlwaysScrollableScrollPhysics(),
-                                child: builder(trigger, state, load, error),
+                                child: builder(trigger, state, errorMessage),
                               )
                             )
                           ],

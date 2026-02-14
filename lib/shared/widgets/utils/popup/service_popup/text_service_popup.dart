@@ -1,5 +1,7 @@
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +51,7 @@ class TextServicePopup {
           Navigator.of(context).pop();
           if (onSuccess != null) onSuccess!(controller.text);
         },
-        builder: (trigger, state, load, error) => Column(
+        builder: (trigger, state, errorMessage) => Column(
           children: [
             TextField(
               keyboardType: keyboardType,
@@ -84,7 +86,13 @@ class TextServicePopup {
                 ),
               ),
             ),
-            error
+            if (state == ServiceUpdatorState.error)
+              Text(
+                'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
+                style: TextStyle(
+                    color: Colors.red
+                ),
+              ),
           ],
         )
     ).showPopup(context);

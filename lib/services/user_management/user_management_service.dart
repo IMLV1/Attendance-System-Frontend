@@ -73,16 +73,12 @@ class UserManagementService {
 
   Future<Response<dynamic>> deleteUser(String id) {
 
-    print('\x1B[32m$id\x1B[0m');
-
     Future<Response<dynamic>> response = dio.delete(
       '/system/user_management/delete',
       data: {
         'id': id
       }
     );
-
-    response.then((response) => print(response.data));
 
     return response;
   }
