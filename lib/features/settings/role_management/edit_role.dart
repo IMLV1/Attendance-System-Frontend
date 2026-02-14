@@ -36,6 +36,12 @@ Future<Response> getMemberAll() async {
         "enName": "Wanna Sukjai",
         "avatarUrl": "https://i.pravatar.cc/150?img=12"
       },
+      {
+        "id": "EMP003",
+        "thName": "sad asd",
+        "enName": "Wanna asd",
+        "avatarUrl": "https://i.pravatar.cc/150?img=12"
+      },
     ]
   };
 
@@ -152,7 +158,6 @@ class _EditRoleState extends State<EditRole> {
       case RoleType.mainRole:
         return 'ตำแหน่งหลัก';
       case RoleType.specialRole:
-      default:
         return 'ตำแหน่งเพิ่มเติม';
     }
   }
@@ -199,7 +204,7 @@ class _EditRoleState extends State<EditRole> {
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
           child: Padding(
-            padding: EdgeInsetsGeometry.only(left: 10, right: 10, top: 20, bottom: 20),
+            padding: EdgeInsetsGeometry.only(left: 10, right: 10, top: 20, bottom: 10),
             child: Stack(
               children: [
                 Column(
@@ -445,7 +450,7 @@ class _EditRoleState extends State<EditRole> {
                                             'assets/images/create_user.svg',
                                             colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
                                           ),
-                                          
+
 
                                           onPressed: () async {
 
@@ -456,6 +461,9 @@ class _EditRoleState extends State<EditRole> {
 
                                             if (allMembers.isEmpty) {
                                               final res = await getMemberAll();
+
+                                              if (!context.mounted) return;
+
                                               final map = res.data as Map<String, dynamic>;
                                               final list = map['members'] as List;
 
@@ -543,10 +551,10 @@ class _EditRoleState extends State<EditRole> {
                                                                 height: 15,
                                                               ),
                                                               Text('ค้นหาตำแหน่ง...',
-                                                                  style: TextStyle(
-                                                                      color: Color(0xFF7D7D7D),
-                                                                      fontSize: 15
-                                                                  )
+                                                                style: TextStyle(
+                                                                    color: Color(0xFF7D7D7D),
+                                                                    fontSize: 15
+                                                                )
                                                               )
                                                             ],
                                                           ),
@@ -554,6 +562,7 @@ class _EditRoleState extends State<EditRole> {
                                                       ),
                                                       SingleChildScrollView(
                                                         child: SeparatorCard(
+                                                          separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
                                                           children: [
                                                             ...popupFilteredMembers.map((m) {
                                                               return UserCancelCheckbox(
@@ -595,7 +604,7 @@ class _EditRoleState extends State<EditRole> {
                             /// ===== Member list =====
                             if (_filteredMembers.isNotEmpty)
                               SeparatorCard(
-                                separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 70),
+                                separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 68),
                                 children: [
                                   ..._filteredMembers.map((m) {
                                     return UserCancelCheckbox(
@@ -627,14 +636,14 @@ class _EditRoleState extends State<EditRole> {
                         _role.copyWith(
                           roleName: _nameController.text.trim(),
                           roleColor:
-                          '#${_roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+                          _roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2),
                         ),
                       ),
                       onSuccess: () {
                         final updatedRole = _role.copyWith(
                           roleName: _nameController.text.trim(),
                           roleColor:
-                          '#${_roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+                          _roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2),
                         );
 
                         Navigator.of(context).pop(updatedRole);
@@ -688,7 +697,7 @@ class _EditRoleState extends State<EditRole> {
                               ),
                             ),
                             SizedBox(
-                              height: 25,
+                              height: 20,
                               child: errorWidget,
                             )
                           ],

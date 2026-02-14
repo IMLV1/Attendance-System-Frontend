@@ -89,8 +89,11 @@ class ColorPickerPopup {
 
           final color = hsv.toColor();
 
-          final double pickerLeft = (hsv.saturation * svWidth - pickerSize / 2).clamp(0.0, svWidth - pickerSize);
-          final double pickerTop = ((1 - hsv.value) * svHeight - pickerSize / 2).clamp(0.0, svHeight - pickerSize);
+          const padding = 3.0;
+
+          final double pickerLeft = (hsv.saturation * svWidth - pickerSize / 2).clamp(padding, svWidth - pickerSize - padding);
+
+          final double pickerTop = ((1 - hsv.value) * svHeight - pickerSize / 2).clamp(padding, svHeight - pickerSize - padding);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,72 +173,66 @@ class ColorPickerPopup {
                 ),
               ),
               SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 14),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 18,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(22),
-                              gradient: LinearGradient(
-                                colors: [ Colors.red, Colors.yellow, Colors.green, Colors.cyan, Colors.blue, Colors.purple, Colors.red ]
-                              )
-                            ),
-                          ),
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              trackHeight: 0,
-                              activeTickMarkColor: Colors.transparent,
-                              inactiveTrackColor: Colors.transparent,
-                              disabledActiveTrackColor: Colors.transparent,
-                              disabledInactiveTrackColor: Colors.transparent,
-                              overlayShape: SliderComponentShape.noOverlay,
-                              tickMarkShape: SliderTickMarkShape.noTickMark,
-                              thumbColor: hsv.toColor(),
-                              thumbShape: HueThumbShape(),
-                            ),
-                            child: Slider(
-                              value: hsv.hue,
-                              min: 0,
-                              max: 360,
-                              onChanged: (val) => setState(() => hsv = hsv.withHue(val)),
+              Column(
+                children: [
+                  SizedBox(
+                    height: 18,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(22),
+                            gradient: LinearGradient(
+                              colors: [ Colors.red, Colors.yellow, Colors.green, Colors.cyan, Colors.blue, Colors.purple, Colors.red ]
                             )
+                          ),
+                        ),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 0,
+                            activeTickMarkColor: Colors.transparent,
+                            inactiveTrackColor: Colors.transparent,
+                            disabledActiveTrackColor: Colors.transparent,
+                            disabledInactiveTrackColor: Colors.transparent,
+                            overlayShape: SliderComponentShape.noOverlay,
+                            tickMarkShape: SliderTickMarkShape.noTickMark,
+                            thumbColor: hsv.toColor(),
+                            thumbShape: HueThumbShape(),
+                          ),
+                          child: Slider(
+                            value: hsv.hue,
+                            min: 0,
+                            max: 360,
+                            onChanged: (val) => setState(() => hsv = hsv.withHue(val)),
                           )
-                        ],
-                      ),
+                        )
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               SizedBox(height: 16),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14),
-                child: Row(
-                  children: [
-                    InputBox(label: 'Hex', flex: 2, controller: hexCtrl,
-                      onChanged: (v) {
-                        final hex = v.replaceAll('#', '');
-                        if (hex.length != 6) return;
+              Row(
+                children: [
+                  InputBox(label: 'Hex', flex: 2, controller: hexCtrl,
+                    onChanged: (v) {
+                      final hex = v.replaceAll('#', '');
+                      if (hex.length != 6) return;
 
-                        final val = int.tryParse(hex, radix: 16);
-                        if (val == null) return;
+                      final val = int.tryParse(hex, radix: 16);
+                      if (val == null) return;
 
-                        setState(() {
-                          hsv = HSVColor.fromColor(Color(0xFF000000 | val));
-                        });
-                      },
-                    ),
-                    InputBox(label: 'R', controller: rCtrl, onChanged: (_) => updateFromRGB(setState)),
-                    InputBox(label: 'G', controller: gCtrl, onChanged: (_) => updateFromRGB(setState)),
-                    InputBox(label: 'B', controller: bCtrl, onChanged: (_) => updateFromRGB(setState)),
-                  ],
-                ),
+                      setState(() {
+                        hsv = HSVColor.fromColor(Color(0xFF000000 | val));
+                      });
+                    },
+                  ),
+                  InputBox(label: 'R', controller: rCtrl, onChanged: (_) => updateFromRGB(setState)),
+                  InputBox(label: 'G', controller: gCtrl, onChanged: (_) => updateFromRGB(setState)),
+                  InputBox(label: 'B', controller: bCtrl, onChanged: (_) => updateFromRGB(setState)),
+                ],
               ),
             ],
           );
