@@ -304,13 +304,13 @@ class _CreateUserState extends State<CreateUser> {
                               ),
                               SizedBox(
                                 height: 25,
-                                child: Text(
-                                  'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.red
-                                  ),
-                                )
+                                child: (state == ServiceUpdatorState.error) ?
+                                Text(
+                                    'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                                    style: TextStyle(
+                                        color: Colors.red
+                                    )
+                                ) : SizedBox()
                               )
                             ],
                           );
