@@ -42,6 +42,7 @@ class CreateUser extends StatefulWidget {
 
 class _CreateUserState extends State<CreateUser> {
 
+  String? error;
   MaxLeaveModel maxLeave = MaxLeaveModel(sick: 0, personal: 0, vacation: 0, maternity: 0, paternity: 0, parental: 0);
   UserManagementModel userInfo = UserManagementModel(id: '', employeeId: '', nameTH: '', nameEN: '', gender: '', nationality: '', phone: '', email: '', roles: [], avatarUrl: '', initRole: '');
 
@@ -225,7 +226,6 @@ class _CreateUserState extends State<CreateUser> {
                                             fit: FlexFit.tight,
                                             currentValue: userInfo.phone,
                                             check: (value) {
-
                                               if (value == null) return null;
 
                                               final regex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
@@ -299,7 +299,27 @@ class _CreateUserState extends State<CreateUser> {
                                 width: double.infinity,
                                 height: 42,
                                 child: ElevatedButton.icon(
-                                  onPressed: (state != ServiceUpdatorState.loading) ? () => trigger() : null,
+                                  onPressed: (state != ServiceUpdatorState.loading) ? () {
+
+                                    if (
+                                      userInfo.email.isNotEmpty &&
+                                      userInfo.id.isNotEmpty &&
+                                      userInfo.employeeId.isNotEmpty &&
+                                      userInfo.nameTH.isNotEmpty &&
+                                      userInfo.nameEN.isNotEmpty &&
+                                      userInfo.gender.isNotEmpty &&
+                                      userInfo.nationality.isNotEmpty &&
+                                      userInfo.phone.isNotEmpty &&
+                                      userInfo.initRole.isNotEmpty
+                                    ) {
+                                      trigger();
+                                    } else {
+                                      setState(() {
+                                        error = 'เกิดข้อผิดพลาด: ข้อมูลไม่ครบถ้วน';
+                                      });
+                                    }
+
+                                  } : null,
                                   icon: SvgPicture.asset(
                                     'assets/images/create.svg',
                                     height: 18,
@@ -336,7 +356,14 @@ class _CreateUserState extends State<CreateUser> {
                               ),
                               SizedBox(
                                 height: 25,
-                                child: (state == ServiceUpdatorState.error) ?
+                                child: (error != null) ?
+                                Text(
+                                    error!,
+                                    style: TextStyle(
+                                        color: Colors.red
+                                    )
+                                )
+                                : (state == ServiceUpdatorState.error) ?
                                 Text(
                                     'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
                                     style: TextStyle(
