@@ -54,7 +54,7 @@ class _OptionPaneState extends State<OptionPane> {
               elevation: 0,
               padding: EdgeInsets.zero,
               shadowColor: Colors.transparent,
-              backgroundColor: Colors.transparent,
+              backgroundColor: Color(0xFFF6F6F6),
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.zero,
               ),
