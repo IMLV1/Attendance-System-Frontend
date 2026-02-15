@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/services/profile_page/profile_service.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -8,6 +9,7 @@ import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
 // import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 import '../../services/profile_page/profile_model.dart';
 import '../../shared/theme/app_colors.dart';
@@ -49,11 +51,12 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
 
-  ProfileModel? _profileData;
+  ProfileModel? profile;
 
   @override
   Widget build(BuildContext context) {
-    final profile = _profileData;
+
+    profile = context.watch<AuthState>().profile;
 
     return AppScaffold(
       header: Header.mainHeader(
@@ -62,15 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
           subTitle: 'User Profile',
           iconPath: 'icon_profile.svg'
       ),
-      content: ServiceLoader(
-        request: () => ProfileService().getProfile(),
-        onSuccess: (jsonData) {
-          final data = ProfileModel.fromJson(jsonData);
-          setState(() {
-            _profileData = data;
-          });
-        },
-        builder: () => Container(
+      content: Container(
             color: AppColors.backgroundColor,
             alignment: Alignment.topCenter,
             child: Padding(
@@ -99,8 +94,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                             );
                                           },
                                         ),
-                                        title: profile.thName,
-                                        subTitle: profile.enName,
+                                        title: profile!.thName,
+                                        subTitle: profile!.enName,
                                       ),
                                     ]
                                 ),
@@ -111,49 +106,49 @@ class _ProfilePageState extends State<ProfilePage> {
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'รหัสบุคลากร',
-                                        value: profile.staffId
+                                        value: profile!.staffId
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'เลขบัตรประจำตัวประชาชน',
-                                        value: profile.citizenId
+                                        value: profile!.citizenId
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'ชื่อ-นามสกุล',
-                                        value: profile.thName
+                                        value: profile!.thName
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'Full-name',
-                                        value: profile.enName
+                                        value: profile!.enName
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'เพศ',
-                                        value: profile.gender
+                                        value: profile!.gender
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'สัญชาติ',
-                                        value: profile.nationality
+                                        value: profile!.nationality
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'เบอร์โทร',
-                                        value: profile.phone
+                                        value: profile!.phone
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'อีเมล',
-                                        value: profile.email
+                                        value: profile!.email
                                     ),
                                   ],
                                 ),
@@ -162,7 +157,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     TextRoleButton(
                                       disable: true,
                                       label: 'ตำแหน่งปัจจุบัน',
-                                      roles: profile.roles,
+                                      roles: profile!.roles,
                                       icon: SvgPicture.asset('assets/images/icon_role.svg'),
                                     ),
                                   ],
@@ -174,7 +169,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     ]
                 )
             )
-        )
       )
     );
   }
