@@ -12,7 +12,7 @@ class ConfigAttendanceTimeService {
 
   Future<Response<dynamic>> update(ConfigAttendanceTimeModel data) async {
     return dio.put(
-        '/system/config/attendance_time/get',
+        '/system/config/attendance_time/update',
         data: {
           'auto-checkout': data.autoCheckout,
           'cutoff-time': {
