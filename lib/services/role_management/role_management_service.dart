@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../core/network/api_client.dart';
 import 'role_management_model.dart';
+import 'package:uuid/uuid.dart';
 
 class RoleManagementService {
   final Dio dio = GetIt.I<ApiClient>().dio;
@@ -11,8 +12,12 @@ class RoleManagementService {
     return dio.get('/system/role');
   }
 
-  Future<Response<dynamic>> getAllUser(RoleSystem e) async {
+  Future<Response<dynamic>> getUser(RoleSystem e) async {
     return dio.get('/system/role/all-user/${e.id}');
+  }
+
+  Future<Response<dynamic>> getAllUser() async {
+    return dio.get('/system/role/create/all-user');
   }
 
   Future<Response<dynamic>> updateRole(RoleSystem element) async {
@@ -20,6 +25,23 @@ class RoleManagementService {
       '/system/role/update/${element.id}',
       data: {
         'id': element.id,
+        'type': roleTypeToApi(element.type),
+        'color': element.roleColor,
+        'name': element.roleName,
+        'members': element.members.map((e) => {
+          'id': e.id,
+        }).toList(),
+      },
+    );
+  }
+
+  Future<Response<dynamic>> createRole(RoleSystem element) async {
+    final uuid = Uuid();
+
+    return dio.post(
+      '/system/role/create',
+      data: {
+        'id': uuid.v4(),
         'type': roleTypeToApi(element.type),
         'color': element.roleColor,
         'name': element.roleName,
