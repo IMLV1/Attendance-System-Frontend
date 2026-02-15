@@ -1,7 +1,9 @@
+import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class BottomNavigation extends StatelessWidget {
 
@@ -141,32 +143,40 @@ class BottomNavigation extends StatelessWidget {
         onTap: () {
           context.go(path);
         },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                'assets/images/$iconPath',
-                width: 35,
-                height: 35,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Icon(Icons.person, color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, size: 35),
+        child: Transform.translate(
+            offset: Offset(-2, 0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: Image.network(
+                  context.watch<AuthState>().user?.avatarUrl ?? '',
+                  width: 35,
+                  height: 35,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/profile.png',
+                      fit: BoxFit.cover,
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
+                ),
+                maxLines: 1,
+                textAlign: TextAlign.center,
               ),
-              maxLines: 1,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-          ],
-        ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        )
       ),
     );
   }

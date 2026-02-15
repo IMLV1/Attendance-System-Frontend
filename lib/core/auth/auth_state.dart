@@ -1,4 +1,7 @@
 import 'package:attendance_system/core/auth/user_model.dart';
+import 'package:attendance_system/services/profile_page/profile_model.dart';
+import 'package:attendance_system/services/profile_page/profile_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_repository.dart';
@@ -11,6 +14,7 @@ class AuthState extends ChangeNotifier {
   AuthStatus status = AuthStatus.unknown;
 
   UserModel? user;
+  ProfileModel? profile;
 
   AuthState(this.repo);
 
@@ -27,6 +31,11 @@ class AuthState extends ChangeNotifier {
       final result = await repo.loginWithGoogle();
       user = result.user;
       status = AuthStatus.authenticated;
+
+      Response response = await ProfileService().getProfile();
+      if (response.statusCode == 200) {
+        profile = ProfileModel.fromJson(response.data);
+      }
     } catch (e) {
       status = AuthStatus.unauthenticated;
       rethrow;
