@@ -24,61 +24,41 @@ Future<Response> mockGetRole() async {
     requestOptions: RequestOptions(path: '/system/role'),
     statusCode: 200,
     data: {
-      "mainRole": [
+      "roles": [
         {
-          "id": "0",
-          "roleName": "ผู้ดูแลระบบ",
+          "id": "1",
+          "roleName": "Admin",
+          "roleColor": "FF0000",
           "type": "admin",
           "members": [
             {
-              "id": "EMP002",
-              "thName": "วรรณา สุขใจ",
-              "enName": "Wanna Sukjai",
-              "avatarUrl": "https://i.pravatar.cc/150?img=12"
-            },
-            {
-              "id": "1000",
-              "thName": "ผศ.ดร.ธีรพงศ์ พัฒนกุล",
-              "enName": "Asst. Prof. Dr. Teerapong Pattanakul",
-              "avatarUrl": "https://i.pravatar.cc/150?img=1"
-            },
-            {
-              "id": "1001",
-              "thName": "กิตติชัย ใจกล้า",
-              "enName": "Kittichai Jaikla",
-              "avatarUrl": "https://i.pravatar.cc/150?img=2"
+              "id": "u1",
+              "thName": "สมชาย ใจดี",
+              "enName": "Somchai Jaidee",
+              "avatarUrl": "https://example.com/avatar.png"
             }
           ]
         },
         {
-          "id": "1",
-          "roleName": "ฝ่ายบุคคล",
-          "roleColor": "FF9500",
+          "id": "2",
+          "roleName": "HR",
+          "roleColor": "00FF00",
           "type": "hr",
-          "members": [
-            {
-              "id": "1002",
-              "thName": "วรรณภา ศรีสวัสดิ์",
-              "enName": "Wannapa Srisawat",
-              "avatarUrl": "https://i.pravatar.cc/150?img=3"
-            }
-          ]
-        }
-      ],
-      "specialRole": [
+          "members": []
+        },
         {
           "id": "3",
-          "roleName": "หัวหน้าทีมพัฒนาแอป",
-          "roleColor": "34C759",
-          "type": "specialRole",
-          "members": [
-            {
-              "id": "1003",
-              "thName": "นฤมล รัตนชัย",
-              "enName": "Narumon Rattanachai",
-              "avatarUrl": "https://i.pravatar.cc/150?img=4"
-            }
-          ]
+          "roleName": "Employee",
+          "roleColor": "0000FF",
+          "type": "main",
+          "members": []
+        },
+        {
+          "id": "4",
+          "roleName": "Project Manager",
+          "roleColor": "FFFF00",
+          "type": "special",
+          "members": []
         }
       ]
     }
@@ -136,43 +116,70 @@ class _RoleManagementState extends State<RoleManagement> {
       _filteredMainRoles = _allMainRoles;
       _filteredSpecialRoles = _allSpecialRoles;
     } else {
-      _filteredMainRoles = _allMainRoles
-          .where((r) => r.roleName.toLowerCase().contains(key))
-          .toList();
-
-      _filteredSpecialRoles = _allSpecialRoles
-          .where((r) => r.roleName.toLowerCase().contains(key))
-          .toList();
+      _filteredMainRoles = _allMainRoles.where((r) => r.roleName.toLowerCase().contains(key)).toList();
+      _filteredSpecialRoles = _allSpecialRoles.where((r) => r.roleName.toLowerCase().contains(key)).toList();
     }
-
     if (rebuild) setState(() {});
   }
 
-  void _updateRole(RoleSystem updated) {
+
+  void _updateRole(RoleSystem updatedRole) {
     setState(() {
-      _allMainRoles = _allMainRoles
-          .map((r) => r.id.toString() == updated.id.toString()
-          ? updated
-          : r)
-          .toList();
+      if (updatedRole.type == RoleType.specialRole) {
+        final index = _allSpecialRoles
+          .indexWhere((e) => e.id == updatedRole.id
+        );
 
-      _allSpecialRoles = _allSpecialRoles
-          .map((r) => r.id.toString() == updated.id.toString()
-          ? updated
-          : r)
-          .toList();
+        if (index != -1) {
+          _allSpecialRoles[index] = updatedRole;
+        }
+      } else if (updatedRole.type == RoleType.admin || updatedRole.type == RoleType.hr) {
+        final index = _allMainRoles
+          .indexWhere((e) => e.id == updatedRole.id
+        );
 
-      _applyFilter(_controller.text, rebuild: false);
+        if (index != -1) {
+          _allMainRoles[index] = updatedRole;
+        }
+
+      } else {
+        final newId = updatedRole.members.map((e) => e.id).toSet();
+
+        final index = _allMainRoles
+          .indexWhere((e) => e.id == updatedRole.id);
+
+        if (index == -1) return;
+
+        _allMainRoles[index] = updatedRole;
+
+        for (int i = 0; i < _allMainRoles.length; i++) {
+          if (i == index) continue;
+
+          if (_allMainRoles[i].type == RoleType.mainRole) {
+            final role = _allMainRoles[i];
+            _allMainRoles[i] = role.copyWith(
+              members: role.members
+                  .where((e) => !newId.contains(e.id))
+                  .toList(),
+            );
+          }
+        }
+      }
+
+      _applyFilter(_controller.text);
     });
   }
 
 
-  void _removeRole(String id) {
+  void _removeRole(String roleId) {
     setState(() {
-      _allMainRoles.removeWhere((r) => r.id == id);
-      _allSpecialRoles.removeWhere((r) => r.id == id);
 
-      _applyFilter(_controller.text, rebuild: false);
+      _allMainRoles.removeWhere((role) => role.id == roleId);
+      _allSpecialRoles.removeWhere((role) => role.id == roleId);
+
+      _filteredMainRoles = List.from(_allMainRoles);
+      _filteredSpecialRoles = List.from(_allSpecialRoles);
+
     });
   }
 
@@ -201,14 +208,43 @@ class _RoleManagementState extends State<RoleManagement> {
                       icon: 'icon_create_role.svg',
                       label: 'สร้างตำแหน่งใหม่...',
                       color: AppColors.primaryColor,
-                      onPressed: () {
-                        /// ไปหน้าอื่น
-                        Navigator.push(
+                      onPressed: () async {
+
+                        final RoleSystem? newRole = await Navigator.push<RoleSystem>(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CreateRole(),
-                          )
+                            builder: (context) => const CreateRole(),
+                          ),
                         );
+
+                        if (newRole == null) return;
+
+                        setState(() {
+                          if (newRole.type == RoleType.specialRole) {
+                            _allSpecialRoles.add(newRole);
+                          } else {
+                            _allMainRoles.add(newRole);
+
+                            if (newRole.type == RoleType.mainRole) {
+                              final newId = newRole.members.map((e) => e.id).toSet();
+
+                              final index = _allMainRoles.length - 1;
+
+                              for (int i = 0; i < _allMainRoles.length; i++) {
+                                if (i == index) continue;
+
+                                final role = _allMainRoles[i];
+                                if (role.type == RoleType.mainRole) {
+                                  _allMainRoles[i] = role.copyWith(
+                                    members: role.members
+                                        .where((e) => !newId.contains(e.id))
+                                        .toList(),
+                                  );
+                                }
+                              }
+                            }
+                          }
+                        });
                       },
                     )
                   ],
@@ -265,14 +301,14 @@ class _RoleManagementState extends State<RoleManagement> {
                   )
                 ),
                 ServiceLoader(
-                  // request: () => RoleManagementService().getRoleManagementModel(),
-                  request: () => mockGetRole(),
+                  request: () => RoleManagementService().getRoleManagementModel(),
+                  // request: () => mockGetRole(),
                   onSuccess: (jsonData) {
                     final data = RoleManagementModel.fromJson(jsonData);
                     setState(() {
                       response = data;
-                      _allMainRoles = List.from(data.mainRole);
-                      _allSpecialRoles = List.from(data.specialRole);
+                      _allMainRoles = data.mainRole;
+                      _allSpecialRoles = data.specialRole;
                       _applyFilter(_controller.text, rebuild: false);
                     });
                   },
@@ -310,27 +346,33 @@ class _RoleManagementState extends State<RoleManagement> {
                                     separatorPadding: const EdgeInsets.only(left: 60, right: 15),
                                     children: [
                                       ..._filteredMainRoles.map((m) {
-                                        ///icon_personnel_info.svg
+                                        /// 'icon_personnel_info.svg' 'icon_admin.svg' 'role_management.svg' 'specialer.svg'
                                         return AppButton(
-                                          icon: (m.roleName == 'ผู้ดูแลระบบ' || m.roleName.toLowerCase() == 'admin') ? 'icon_admin.svg' : 'role_management.svg',
+                                          icon: switch (m.type) {
+                                            RoleType.admin => 'icon_admin.svg',
+                                            RoleType.hr => 'icon_personnel_info.svg',
+                                            RoleType.mainRole => 'role_management.svg',
+                                            RoleType.specialRole => 'specialer.svg',
+                                          },
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           weightTitle: FontWeight.normal,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
                                           arrow: true,
                                           onPressed: () async {
-                                            final result =
-                                            await Navigator.of(context).push(
+                                            final result = await Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                builder: (_) =>
-                                                    EditRole(roleInfo: m),
+                                                builder: (_) => EditRole(roleInfo: m),
                                               ),
                                             );
 
-                                            if (result is RoleSystem) {
-                                              _updateRole(result);
-                                            } else if (result == true) {
-                                              _removeRole(m.id);
+                                            if (result != null) {
+                                              if (result is Map && result['status'] == 1) {
+                                                _removeRole(m.id);
+                                              }
+                                              else if (result is RoleSystem) {
+                                                _updateRole(result);
+                                              }
                                             }
                                           },
                                         );
@@ -362,25 +404,31 @@ class _RoleManagementState extends State<RoleManagement> {
                                     children: [
                                       ..._filteredSpecialRoles.map((m) {
                                         return AppButton(
-                                          icon: 'specialer.svg',
+                                          icon: switch (m.type) {
+                                            RoleType.admin => 'icon_admin.svg',
+                                            RoleType.hr => 'icon_personnel_info.svg',
+                                            RoleType.mainRole => 'role_management.svg',
+                                            RoleType.specialRole => 'specialer.svg',
+                                          },
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           weightTitle: FontWeight.normal,
                                           subTitle: 'สมาชิก ${m.members.length} คน',
                                           arrow: true,
                                           onPressed: () async {
-                                            final result =
-                                            await Navigator.of(context).push(
+                                            final result = await Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                builder: (_) =>
-                                                    EditRole(roleInfo: m),
+                                                builder: (_) => EditRole(roleInfo: m),
                                               ),
                                             );
 
-                                            if (result is RoleSystem) {
-                                              _updateRole(result);
-                                            } else if (result == true) {
-                                              _removeRole(m.id);
+                                            if (result != null) {
+                                              if (result is Map && result['status'] == 1) {
+                                                _removeRole(m.id);
+                                              }
+                                              else if (result is RoleSystem) {
+                                                _updateRole(result);
+                                              }
                                             }
                                           },
                                         );

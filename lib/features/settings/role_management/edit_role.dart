@@ -4,6 +4,7 @@ import 'package:attendance_system/services/role_management/role_management_model
 import 'package:attendance_system/services/role_management/role_management_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/user_cancel_checkbox.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,10 +15,10 @@ import '../../../shared/widgets/app_scaffold.dart';
 import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/helper/color_picker_popup/color_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
+import '../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../shared/widgets/utils/popup/option_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
-import '../../../shared/widgets/utils/services/service_loader.dart';
-import '../../../shared/widgets/utils/services/service_updater.dart' hide ServiceState;
+import '../../../shared/widgets/utils/services/service_updater.dart';
 
 Future<Response> getMemberAll() async {
   await Future.delayed(const Duration(milliseconds: 500));
@@ -46,7 +47,7 @@ Future<Response> getMemberAll() async {
   };
 
   return Response(
-    requestOptions: RequestOptions(path: '/system/role/all-user'),
+    requestOptions: RequestOptions(path: '/system/role/all-user/1'),
     data: mockData,
     statusCode: 200,
   );
@@ -83,30 +84,22 @@ class _EditRoleState extends State<EditRole> {
   List<Member> allMembers = [];
   List<Member> addMembers = [];
   List<Member> popupFilteredMembers = [];
+  bool _popupLoaded = false;
 
   // ---------- lifecycle ----------
   @override
   void initState() {
     super.initState();
-
     _role = widget.roleInfo.copyWith(
       members: List.from(widget.roleInfo.members),
     );
-
     _originalValue = _role.roleName;
-
     _nameController = TextEditingController(text: _originalValue);
-
     _nameController.addListener(() {
       setState(() {});
     });
-
     _searchController = TextEditingController();
-
-    _roleColor = _role.roleColor != null
-        ? _hexToColor(_role.roleColor!)
-        : const Color(0xFFFFA726);
-
+    _roleColor = _role.roleColor != null ? _hexToColor(_role.roleColor!) : const Color(0xFFFFA726);
     _filteredMembers = _role.members;
   }
 
@@ -139,13 +132,20 @@ class _EditRoleState extends State<EditRole> {
       final key = value.trim().toLowerCase();
 
       setState(() {
-        _filteredMembers = key.isEmpty
-            ? _role.members
-            : _role.members.where((m) =>
-        m.thName.toLowerCase().contains(key) ||
-            m.enName.toLowerCase().contains(key),
-        ).toList();
+        _filteredMembers = key.isEmpty ? _role.members : _role.members.where((m) => m.thName.toLowerCase().contains(key) || m.enName.toLowerCase().contains(key)).toList();
       });
+    });
+  }
+
+  void _filterPopupMembers(String key, void Function(void Function()) setStatePopup) {
+    final searchKey = key.trim().toLowerCase();
+
+    setStatePopup(() {
+      popupFilteredMembers = allMembers.where((m) {
+        final matchSearch = searchKey.isEmpty || m.thName.toLowerCase().contains(searchKey) || m.enName.toLowerCase().contains(searchKey);
+        final notInRole = !_role.members.any((e) => e.id == m.id);
+        return matchSearch && notInRole;
+      }).toList();
     });
   }
 
@@ -189,7 +189,6 @@ class _EditRoleState extends State<EditRole> {
         return 'special';
     }
   }
-
 
   // ---------- UI ----------
   @override
@@ -248,7 +247,7 @@ class _EditRoleState extends State<EditRole> {
                                           focusNode: _focusNode,
                                           textInputAction: TextInputAction.done,
                                           decoration: InputDecoration(
-                                            hintText: 'กรุณาระบุตำแหน่ง',
+                                            hintText: 'กรุณาระบุชื่อตำแหน่ง',
                                             hintStyle: const TextStyle(
                                               color: Colors.black38,
                                               fontSize: 14,
@@ -323,52 +322,71 @@ class _EditRoleState extends State<EditRole> {
 
                             /// ===== Delete role =====
                             SeparatorCard(
-                              separatorPadding:
-                              const EdgeInsets.only(left: 45, right: 15),
-                              children: [
-                                IconTextButton(
-                                  arrow: false,
-                                  color: Colors.red,
-                                  icon: 'icon_delete.svg',
-                                  label: 'ลบตำแหน่ง',
-                                  onPressed: () {
-                                    /// TODO: Delete role
-                                  },
-                                ),
-                              ],
+                                separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                                children: [
+                                  IconTextButton(onPressed: () {
+                                    FloatingPopup(
+                                        title: 'ลบตำแหน่ง',
+                                        description: 'คุณยืนยันที่จะลบตำแหน่ง ${_role.roleName} หรือไม่ การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                                        buttons: (parent, context1) => [
+                                          FloatingPopupButton(
+                                            text: 'ยกเลิก',
+                                            foregroundColor: Colors.white,
+                                            backgroundColor: AppColors.primaryColor,
+                                            onPressed: () {
+                                              Navigator.of(context1).pop();
+                                            },
+                                          ),
+                                          FloatingServicePopupButton(
+                                            text: 'ยันยัน',
+                                            foregroundColor: Colors.red,
+                                            request: () => RoleManagementService().deleteRole(_role),
+                                            setError: parent,
+                                            onSuccess: () {
+                                              Navigator.of(context1).pop();
+
+                                              Navigator.pop(context, {
+                                                'status': 1,
+                                              });
+                                            },
+                                          )
+                                        ]
+                                    ).showPopup(context);
+                                  }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบตำแหน่ง')
+                                ]
                             ),
                             /// กำหนดสิทธิ์การเข้าถึง
-                            SeparatorCard(
-                              separatorPadding:
-                              const EdgeInsets.only(left: 45, right: 15),
-                              children: [
-                                IconTextButton(
-                                  arrow: false,
-                                  icon: 'icon_delete.svg',
-                                  label: 'ระดับสิทธิ์การเข้าถึง',
-                                  onPressed: ()  {
-                                    OptionPopup(
-                                      title: 'ระดับสิทธิ์การเข้าถึง',
-                                      options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
-                                      buttonLabel: 'บันทึก',
-                                      maxHeight: 700,
-                                      fit: FlexFit.tight,
-                                      selected: getPermission(),
-                                      onSubmit: (val) {
-                                        final newType = permissionToRoleType(val);
-
-                                        if (newType == _role.type) return;
-
-                                        setState(() {
-                                          _role = _role.copyWith(type: newType);
-                                        });
-                                      },
-
-                                    ).showPopup(context);
-                                  },
-                                ),
-                              ],
-                            ),
+                            // SeparatorCard(
+                            //   separatorPadding:
+                            //   const EdgeInsets.only(left: 45, right: 15),
+                            //   children: [
+                            //     IconTextButton(
+                            //       arrow: false,
+                            //       icon: 'icon_delete.svg',
+                            //       label: 'ระดับสิทธิ์การเข้าถึง',
+                            //       onPressed: ()  {
+                            //         OptionPopup(
+                            //           title: 'ระดับสิทธิ์การเข้าถึง',
+                            //           options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
+                            //           buttonLabel: 'บันทึก',
+                            //           maxHeight: 700,
+                            //           fit: FlexFit.tight,
+                            //           selected: getPermission(),
+                            //           onSubmit: (val) {
+                            //             final newType = permissionToRoleType(val);
+                            //
+                            //             if (newType == _role.type) return;
+                            //
+                            //             setState(() {
+                            //               _role = _role.copyWith(type: newType);
+                            //             });
+                            //           },
+                            //
+                            //         ).showPopup(context);
+                            //       },
+                            //     ),
+                            //   ],
+                            // ),
 
                             /// ===== Search & Add =====
                             Column(
@@ -458,21 +476,7 @@ class _EditRoleState extends State<EditRole> {
 
                                             addMembers = [];
                                             popupFilteredMembers = [];
-
-                                            if (allMembers.isEmpty) {
-                                              final res = await getMemberAll();
-
-                                              if (!context.mounted) return;
-
-                                              final map = res.data as Map<String, dynamic>;
-                                              final list = map['members'] as List;
-
-                                              allMembers = list.map((e) => Member.fromJson(e)).toList();
-                                            }
-
-                                            popupFilteredMembers = allMembers
-                                                .where((m) => !_role.members.any((e) => e.id == m.id))
-                                                .toList();
+                                            _popupLoaded = false;
 
                                             PushPopup(
                                               title: 'รหัสบุคลากร',
@@ -481,47 +485,42 @@ class _EditRoleState extends State<EditRole> {
                                               scroll: false,
                                               buttonAction: (context) {
                                                 setState(() {
+                                                  final newMembers = List<Member>.from(_role.members);
+
                                                   for (var m in addMembers) {
-                                                    if (!_role.members.any((e) => e.id == m.id)) {
-                                                      _role.members.add(m);
+                                                    if (!newMembers.any((e) => e.id == m.id)) {
+                                                      newMembers.add(m);
                                                     }
                                                   }
+
+                                                  _role = _role.copyWith(members: newMembers);
+
                                                   _filteredMembers = _role.members;
                                                 });
+
 
                                                 Navigator.pop(context);
                                               },
                                               builder: (_) => StatefulBuilder(
                                                 builder: (context, setStatePopup) {
 
-                                                  void onPopupSearchChanged(
-                                                      String value,
-                                                      void Function(void Function()) setStatePopup,
-                                                      ) {
-                                                    if (_popupDebounce?.isActive ?? false) {
-                                                      _popupDebounce!.cancel();
-                                                    }
-
-                                                    _popupDebounce = Timer(const Duration(milliseconds: 400), () {
-                                                      final key = value.trim().toLowerCase();
-
-                                                      setStatePopup(() {
-                                                        popupFilteredMembers = key.isEmpty
-                                                            ? allMembers
-                                                            : allMembers.where((m) =>
-                                                        m.thName.toLowerCase().contains(key) ||
-                                                            m.enName.toLowerCase().contains(key))
-                                                            .toList();
-                                                      });
-                                                    });
-                                                  }
-
                                                   return Column(
                                                     spacing: 16,
                                                     children: [
                                                       TextField(
                                                         controller: _popupSearchController,
-                                                        onChanged: (val) => onPopupSearchChanged(val, setStatePopup),
+                                                        onChanged: (val) {
+
+                                                          if (_popupDebounce?.isActive ?? false) {
+                                                            _popupDebounce!.cancel();
+                                                          }
+
+                                                          _popupDebounce = Timer(
+                                                            const Duration(milliseconds: 400),
+                                                                () => _filterPopupMembers(val, setStatePopup),
+                                                          );
+
+                                                        },
                                                         decoration: InputDecoration(
                                                           isDense: true,
                                                           filled: true,
@@ -560,32 +559,51 @@ class _EditRoleState extends State<EditRole> {
                                                           ),
                                                         ),
                                                       ),
-                                                      SingleChildScrollView(
-                                                        child: SeparatorCard(
-                                                          separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
-                                                          children: [
-                                                            ...popupFilteredMembers.map((m) {
-                                                              return UserCancelCheckbox(
-                                                                icon: Image.network(m.avatarUrl),
-                                                                title: m.thName,
-                                                                subTitle: m.enName,
-                                                                checkBox: true,
-                                                                value: addMembers.any((e) => e.id == m.id),
-                                                                onChanged: (val) {
-                                                                  setStatePopup(() {
-                                                                    if (val) {
-                                                                      if (!addMembers.any((e) => e.id == m.id)) {
-                                                                        addMembers.add(m);
+                                                      ServiceLoader(
+                                                        request: () => RoleManagementService().getUser(_role),
+                                                        // request: () => getMemberAll(),
+                                                        onSuccess: (res) {
+
+                                                          final map = res as Map<String, dynamic>;
+                                                          final list = map['members'] as List;
+
+                                                          final loaded =
+                                                          list.map((e) => Member.fromJson(e)).toList();
+
+                                                          allMembers = loaded;
+
+                                                          _filterPopupMembers(
+                                                            _popupSearchController.text,
+                                                            setStatePopup,
+                                                          );
+                                                        },
+                                                        builder: () => SingleChildScrollView(
+                                                          child: SeparatorCard(
+                                                            separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
+                                                            children: [
+                                                              ...popupFilteredMembers.map((m) {
+                                                                return UserCancelCheckbox(
+                                                                  icon: Image.network(m.avatarUrl),
+                                                                  title: m.thName,
+                                                                  subTitle: m.enName,
+                                                                  checkBox: true,
+                                                                  value: addMembers.any((e) => e.id == m.id),
+                                                                  onChanged: (val) {
+                                                                    setStatePopup(() {
+                                                                      if (val) {
+                                                                        if (!addMembers.any((e) => e.id == m.id)) {
+                                                                          addMembers.add(m);
+                                                                        }
+                                                                      } else {
+                                                                        addMembers.removeWhere((e) => e.id == m.id);
                                                                       }
-                                                                    } else {
-                                                                      addMembers.removeWhere((e) => e.id == m.id);
-                                                                    }
-                                                                  });
-                                                                },
-                                                              );
-                                                            })
-                                                          ],
-                                                        ),
+                                                                    });
+                                                                  },
+                                                                );
+                                                              })
+                                                            ],
+                                                          ),
+                                                        )
                                                       )
                                                     ],
                                                   );
@@ -614,10 +632,14 @@ class _EditRoleState extends State<EditRole> {
                                       checkBox: false,
                                       onCancel: () {
                                         setState(() {
-                                          _filteredMembers.removeWhere((e) => e.id == m.id);
-                                          _role.members.removeWhere((e) => e.id == m.id);
+                                          final newMembers = List<Member>.from(_role.members)
+                                            ..removeWhere((e) => e.id == m.id);
+
+                                          _role = _role.copyWith(members: newMembers);
+
+                                          _filteredMembers = _role.members;
                                         });
-                                      },
+                                      }
                                     );
                                   }),
                                 ],
@@ -646,7 +668,7 @@ class _EditRoleState extends State<EditRole> {
                           _roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2),
                         );
 
-                        Navigator.of(context).pop(updatedRole);
+                        Navigator.pop(context, updatedRole);
                       },
                       builder: (trigger, state, errorMessage) {
                         return Column(
@@ -660,7 +682,7 @@ class _EditRoleState extends State<EditRole> {
                                     ? () => trigger()
                                     : null,
                                 icon: SvgPicture.asset(
-                                  'assets/images/icon_send.svg',
+                                  'assets/images/save.svg',
                                   height: 18,
                                   width: 18,
                                   colorFilter: const ColorFilter.mode(
@@ -674,7 +696,7 @@ class _EditRoleState extends State<EditRole> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Text(
-                                      'เสร็จสิ้น',
+                                      'บันทึก',
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Colors.white,
