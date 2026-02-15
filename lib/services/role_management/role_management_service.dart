@@ -29,4 +29,16 @@ class RoleManagementService {
       },
     );
   }
+
+  Future<Response<dynamic>> deleteRole(RoleSystem element) {
+
+    Future<Response<dynamic>> response = dio.delete(
+        '/system/role/delete',
+        data: {
+          'id': element.id
+        }
+    );
+
+    return response;
+  }
 }

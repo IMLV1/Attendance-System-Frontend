@@ -8,9 +8,9 @@ RoleType roleTypeFromJson(String? value) {
       return RoleType.admin;
     case 'hr':
       return RoleType.hr;
-    case 'specialRole':
+    case 'special':
       return RoleType.specialRole;
-    case 'mainRole':
+    case 'main':
     default:
       return RoleType.mainRole;
   }

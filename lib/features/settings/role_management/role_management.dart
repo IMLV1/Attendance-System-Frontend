@@ -130,12 +130,16 @@ class _RoleManagementState extends State<RoleManagement> {
   }
 
   void _applyFilter(String keyword, {bool rebuild = true}) {
+
     final key = keyword.trim().toLowerCase();
 
     if (key.isEmpty) {
+
       _filteredMainRoles = _allMainRoles;
       _filteredSpecialRoles = _allSpecialRoles;
+
     } else {
+
       _filteredMainRoles = _allMainRoles
           .where((r) => r.roleName.toLowerCase().contains(key))
           .toList();
@@ -143,36 +147,59 @@ class _RoleManagementState extends State<RoleManagement> {
       _filteredSpecialRoles = _allSpecialRoles
           .where((r) => r.roleName.toLowerCase().contains(key))
           .toList();
+
     }
 
     if (rebuild) setState(() {});
   }
 
-  void _updateRole(RoleSystem updated) {
+
+  void _updateRole(RoleSystem updatedRole) {
     setState(() {
-      _allMainRoles = _allMainRoles
-          .map((r) => r.id.toString() == updated.id.toString()
-          ? updated
-          : r)
-          .toList();
+      if (updatedRole.type == RoleType.specialRole) {
 
-      _allSpecialRoles = _allSpecialRoles
-          .map((r) => r.id.toString() == updated.id.toString()
-          ? updated
-          : r)
-          .toList();
+        final index = _allSpecialRoles.indexWhere((r) => r.id == updatedRole.id);
 
-      _applyFilter(_controller.text, rebuild: false);
+        if (index != -1) {
+          _allSpecialRoles[index] = updatedRole;
+        }
+
+      } else {
+
+        final newIds = updatedRole.members.map((m) => m.id).toSet();
+
+        for (int i = 0; i < _allMainRoles.length; i++) {
+
+          final role = _allMainRoles[i];
+
+          if (role.id == updatedRole.id) {
+
+            _allMainRoles[i] = updatedRole;
+
+          } else {
+
+            final cleanedMembers = role.members.where((m) => !newIds.contains(m.id)).toList();
+
+            _allMainRoles[i] = role.copyWith(members: cleanedMembers);
+
+          }
+        }
+      }
+
+      _applyFilter(_controller.text);
     });
   }
 
 
-  void _removeRole(String id) {
+  void _removeRole(String roleId) {
     setState(() {
-      _allMainRoles.removeWhere((r) => r.id == id);
-      _allSpecialRoles.removeWhere((r) => r.id == id);
 
-      _applyFilter(_controller.text, rebuild: false);
+      _allMainRoles.removeWhere((role) => role.id == roleId);
+      _allSpecialRoles.removeWhere((role) => role.id == roleId);
+
+      _filteredMainRoles = List.from(_allMainRoles);
+      _filteredSpecialRoles = List.from(_allSpecialRoles);
+
     });
   }
 
@@ -271,8 +298,8 @@ class _RoleManagementState extends State<RoleManagement> {
                     final data = RoleManagementModel.fromJson(jsonData);
                     setState(() {
                       response = data;
-                      _allMainRoles = List.from(data.mainRole);
-                      _allSpecialRoles = List.from(data.specialRole);
+                      _allMainRoles = data.mainRole;
+                      _allSpecialRoles = data.specialRole;
                       _applyFilter(_controller.text, rebuild: false);
                     });
                   },
@@ -319,18 +346,19 @@ class _RoleManagementState extends State<RoleManagement> {
                                           subTitle: 'สมาชิก ${m.members.length} คน',
                                           arrow: true,
                                           onPressed: () async {
-                                            final result =
-                                            await Navigator.of(context).push(
+                                            final result = await Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                builder: (_) =>
-                                                    EditRole(roleInfo: m),
+                                                builder: (_) => EditRole(roleInfo: m),
                                               ),
                                             );
 
-                                            if (result is RoleSystem) {
-                                              _updateRole(result);
-                                            } else if (result == true) {
-                                              _removeRole(m.id);
+                                            if (result != null) {
+                                              if (result is Map && result['status'] == 1) {
+                                                _removeRole(m.id);
+                                              }
+                                              else if (result is RoleSystem) {
+                                                _updateRole(result);
+                                              }
                                             }
                                           },
                                         );
@@ -369,18 +397,19 @@ class _RoleManagementState extends State<RoleManagement> {
                                           subTitle: 'สมาชิก ${m.members.length} คน',
                                           arrow: true,
                                           onPressed: () async {
-                                            final result =
-                                            await Navigator.of(context).push(
+                                            final result = await Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                builder: (_) =>
-                                                    EditRole(roleInfo: m),
+                                                builder: (_) => EditRole(roleInfo: m),
                                               ),
                                             );
 
-                                            if (result is RoleSystem) {
-                                              _updateRole(result);
-                                            } else if (result == true) {
-                                              _removeRole(m.id);
+                                            if (result != null) {
+                                              if (result is Map && result['status'] == 1) {
+                                                _removeRole(m.id);
+                                              }
+                                              else if (result is RoleSystem) {
+                                                _updateRole(result);
+                                              }
                                             }
                                           },
                                         );

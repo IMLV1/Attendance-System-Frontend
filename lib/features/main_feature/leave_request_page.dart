@@ -70,23 +70,23 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                       SeparatorCard(
                         children: [
                           utils.TextButton(
-                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                          label: leaveType ?? 'เลือกประเภทการลา',
-                          color: leaveType == null ? Color(0xFF7D7D7D) : Colors.black,
-                          onPressed: () async {
-                            /// TODO: Select Leave Request
-                            final result = await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const LeaveType(),
-                              ),
-                            );
-                            if (result != null) {
-                              setState(() {
-                                leaveType = result;
-                              });
-                            }
-                          },
-                        ),
+                            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                            label: leaveType ?? 'เลือกประเภทการลา',
+                            color: leaveType == null ? Color(0xFF7D7D7D) : Colors.black,
+                            onPressed: () async {
+                              /// TODO: Select Leave Request
+                              final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const LeaveType(),
+                                ),
+                              );
+                              if (result != null) {
+                                setState(() {
+                                  leaveType = result;
+                                });
+                              }
+                            },
+                          ),
                         ],
                       ),
                       if (leaveType != null)

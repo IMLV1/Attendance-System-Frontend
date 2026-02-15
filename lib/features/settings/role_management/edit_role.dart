@@ -14,10 +14,10 @@ import '../../../shared/widgets/app_scaffold.dart';
 import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/helper/color_picker_popup/color_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
+import '../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../shared/widgets/utils/popup/option_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
-import '../../../shared/widgets/utils/services/service_loader.dart';
-import '../../../shared/widgets/utils/services/service_updater.dart' hide ServiceState;
+import '../../../shared/widgets/utils/services/service_updater.dart';
 
 Future<Response> getMemberAll() async {
   await Future.delayed(const Duration(milliseconds: 500));
@@ -323,19 +323,38 @@ class _EditRoleState extends State<EditRole> {
 
                             /// ===== Delete role =====
                             SeparatorCard(
-                              separatorPadding:
-                              const EdgeInsets.only(left: 45, right: 15),
-                              children: [
-                                IconTextButton(
-                                  arrow: false,
-                                  color: Colors.red,
-                                  icon: 'icon_delete.svg',
-                                  label: 'ลบตำแหน่ง',
-                                  onPressed: () {
-                                    /// TODO: Delete role
-                                  },
-                                ),
-                              ],
+                                separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                                children: [
+                                  IconTextButton(onPressed: () {
+                                    FloatingPopup(
+                                        title: 'ลบตำแหน่ง',
+                                        description: 'คุณยืนยันที่จะลบตำแหน่ง ${_role.roleName} หรือไม่ การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                                        buttons: (parent, context1) => [
+                                          FloatingPopupButton(
+                                            text: 'ยกเลิก',
+                                            foregroundColor: Colors.white,
+                                            backgroundColor: AppColors.primaryColor,
+                                            onPressed: () {
+                                              Navigator.of(context1).pop();
+                                            },
+                                          ),
+                                          FloatingServicePopupButton(
+                                            text: 'ยันยัน',
+                                            foregroundColor: Colors.red,
+                                            request: () => RoleManagementService().deleteRole(_role),
+                                            setError: parent,
+                                            onSuccess: () {
+                                              Navigator.of(context1).pop();
+
+                                              Navigator.pop(context, {
+                                                'status': 1,
+                                              });
+                                            },
+                                          )
+                                        ]
+                                    ).showPopup(context);
+                                  }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบตำแหน่ง')
+                                ]
                             ),
                             /// กำหนดสิทธิ์การเข้าถึง
                             SeparatorCard(
@@ -481,13 +500,19 @@ class _EditRoleState extends State<EditRole> {
                                               scroll: false,
                                               buttonAction: (context) {
                                                 setState(() {
+                                                  final newMembers = List<Member>.from(_role.members);
+
                                                   for (var m in addMembers) {
-                                                    if (!_role.members.any((e) => e.id == m.id)) {
-                                                      _role.members.add(m);
+                                                    if (!newMembers.any((e) => e.id == m.id)) {
+                                                      newMembers.add(m);
                                                     }
                                                   }
+
+                                                  _role = _role.copyWith(members: newMembers);
+
                                                   _filteredMembers = _role.members;
                                                 });
+
 
                                                 Navigator.pop(context);
                                               },
@@ -614,10 +639,14 @@ class _EditRoleState extends State<EditRole> {
                                       checkBox: false,
                                       onCancel: () {
                                         setState(() {
-                                          _filteredMembers.removeWhere((e) => e.id == m.id);
-                                          _role.members.removeWhere((e) => e.id == m.id);
+                                          final newMembers = List<Member>.from(_role.members)
+                                            ..removeWhere((e) => e.id == m.id);
+
+                                          _role = _role.copyWith(members: newMembers);
+
+                                          _filteredMembers = _role.members;
                                         });
-                                      },
+                                      }
                                     );
                                   }),
                                 ],
@@ -646,7 +675,7 @@ class _EditRoleState extends State<EditRole> {
                           _roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2),
                         );
 
-                        Navigator.of(context).pop(updatedRole);
+                        Navigator.pop(context, updatedRole);
                       },
                       builder: (trigger, state, errorMessage) {
                         return Column(
