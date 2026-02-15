@@ -23,10 +23,10 @@ String roleTypeToApi(RoleType type) {
     case RoleType.hr:
       return 'hr';
     case RoleType.specialRole:
-      return 'specialRole';
+      return 'special';
     case RoleType.mainRole:
     default:
-      return 'mainRole';
+      return 'main';
   }
 }
 
@@ -51,15 +51,11 @@ class RoleManagementModel {
   });
 
   factory RoleManagementModel.fromJson(Map<String, dynamic> json) {
-    final List rawMain =
-    (json['mainRoles'] ?? json['mainRole'] ?? []) as List;
-    final List rawSpecial =
-    (json['specialRoles'] ?? json['specialRole'] ?? []) as List;
+    final List rawRoles = json['roles'] ?? [];
 
-    final roles = [
-      ...rawMain.map((e) => RoleSystem.fromJson(e)),
-      ...rawSpecial.map((e) => RoleSystem.fromJson(e)),
-    ];
+    final roles = rawRoles
+        .map((e) => RoleSystem.fromJson(e))
+        .toList();
 
     return RoleManagementModel(
       mainRole: roles
@@ -68,10 +64,13 @@ class RoleManagementModel {
           r.type == RoleType.hr ||
           r.type == RoleType.admin)
           .toList(),
-      specialRole:
-      roles.where((r) => r.type == RoleType.specialRole).toList(),
+
+      specialRole: roles
+          .where((r) => r.type == RoleType.specialRole)
+          .toList(),
     );
   }
+
 }
 
 // ================= ROLE =================

@@ -24,61 +24,41 @@ Future<Response> mockGetRole() async {
     requestOptions: RequestOptions(path: '/system/role'),
     statusCode: 200,
     data: {
-      "mainRole": [
+      "roles": [
         {
-          "id": "0",
-          "roleName": "ผู้ดูแลระบบ",
+          "id": "1",
+          "roleName": "Admin",
+          "roleColor": "FF0000",
           "type": "admin",
           "members": [
             {
-              "id": "EMP002",
-              "thName": "วรรณา สุขใจ",
-              "enName": "Wanna Sukjai",
-              "avatarUrl": "https://i.pravatar.cc/150?img=12"
-            },
-            {
-              "id": "1000",
-              "thName": "ผศ.ดร.ธีรพงศ์ พัฒนกุล",
-              "enName": "Asst. Prof. Dr. Teerapong Pattanakul",
-              "avatarUrl": "https://i.pravatar.cc/150?img=1"
-            },
-            {
-              "id": "1001",
-              "thName": "กิตติชัย ใจกล้า",
-              "enName": "Kittichai Jaikla",
-              "avatarUrl": "https://i.pravatar.cc/150?img=2"
+              "id": "u1",
+              "thName": "สมชาย ใจดี",
+              "enName": "Somchai Jaidee",
+              "avatarUrl": "https://example.com/avatar.png"
             }
           ]
         },
         {
-          "id": "1",
-          "roleName": "ฝ่ายบุคคล",
-          "roleColor": "FF9500",
+          "id": "2",
+          "roleName": "HR",
+          "roleColor": "00FF00",
           "type": "hr",
-          "members": [
-            {
-              "id": "1002",
-              "thName": "วรรณภา ศรีสวัสดิ์",
-              "enName": "Wannapa Srisawat",
-              "avatarUrl": "https://i.pravatar.cc/150?img=3"
-            }
-          ]
-        }
-      ],
-      "specialRole": [
+          "members": []
+        },
         {
           "id": "3",
-          "roleName": "หัวหน้าทีมพัฒนาแอป",
-          "roleColor": "34C759",
-          "type": "specialRole",
-          "members": [
-            {
-              "id": "1003",
-              "thName": "นฤมล รัตนชัย",
-              "enName": "Narumon Rattanachai",
-              "avatarUrl": "https://i.pravatar.cc/150?img=4"
-            }
-          ]
+          "roleName": "Employee",
+          "roleColor": "0000FF",
+          "type": "main",
+          "members": []
+        },
+        {
+          "id": "4",
+          "roleName": "Project Manager",
+          "roleColor": "FFFF00",
+          "type": "special",
+          "members": []
         }
       ]
     }

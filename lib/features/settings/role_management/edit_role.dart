@@ -357,37 +357,37 @@ class _EditRoleState extends State<EditRole> {
                                 ]
                             ),
                             /// กำหนดสิทธิ์การเข้าถึง
-                            SeparatorCard(
-                              separatorPadding:
-                              const EdgeInsets.only(left: 45, right: 15),
-                              children: [
-                                IconTextButton(
-                                  arrow: false,
-                                  icon: 'icon_delete.svg',
-                                  label: 'ระดับสิทธิ์การเข้าถึง',
-                                  onPressed: ()  {
-                                    OptionPopup(
-                                      title: 'ระดับสิทธิ์การเข้าถึง',
-                                      options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
-                                      buttonLabel: 'บันทึก',
-                                      maxHeight: 700,
-                                      fit: FlexFit.tight,
-                                      selected: getPermission(),
-                                      onSubmit: (val) {
-                                        final newType = permissionToRoleType(val);
-
-                                        if (newType == _role.type) return;
-
-                                        setState(() {
-                                          _role = _role.copyWith(type: newType);
-                                        });
-                                      },
-
-                                    ).showPopup(context);
-                                  },
-                                ),
-                              ],
-                            ),
+                            // SeparatorCard(
+                            //   separatorPadding:
+                            //   const EdgeInsets.only(left: 45, right: 15),
+                            //   children: [
+                            //     IconTextButton(
+                            //       arrow: false,
+                            //       icon: 'icon_delete.svg',
+                            //       label: 'ระดับสิทธิ์การเข้าถึง',
+                            //       onPressed: ()  {
+                            //         OptionPopup(
+                            //           title: 'ระดับสิทธิ์การเข้าถึง',
+                            //           options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
+                            //           buttonLabel: 'บันทึก',
+                            //           maxHeight: 700,
+                            //           fit: FlexFit.tight,
+                            //           selected: getPermission(),
+                            //           onSubmit: (val) {
+                            //             final newType = permissionToRoleType(val);
+                            //
+                            //             if (newType == _role.type) return;
+                            //
+                            //             setState(() {
+                            //               _role = _role.copyWith(type: newType);
+                            //             });
+                            //           },
+                            //
+                            //         ).showPopup(context);
+                            //       },
+                            //     ),
+                            //   ],
+                            // ),
 
                             /// ===== Search & Add =====
                             Column(
@@ -479,7 +479,7 @@ class _EditRoleState extends State<EditRole> {
                                             popupFilteredMembers = [];
 
                                             if (allMembers.isEmpty) {
-                                              final res = await getMemberAll();
+                                              final res = await RoleManagementService().getAllUser(_role);
 
                                               if (!context.mounted) return;
 
@@ -689,7 +689,7 @@ class _EditRoleState extends State<EditRole> {
                                     ? () => trigger()
                                     : null,
                                 icon: SvgPicture.asset(
-                                  'assets/images/icon_send.svg',
+                                  'assets/images/save.svg',
                                   height: 18,
                                   width: 18,
                                   colorFilter: const ColorFilter.mode(
@@ -703,7 +703,7 @@ class _EditRoleState extends State<EditRole> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Text(
-                                      'เสร็จสิ้น',
+                                      'บันทึก',
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Colors.white,

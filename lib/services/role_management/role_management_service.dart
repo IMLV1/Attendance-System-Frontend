@@ -11,11 +11,11 @@ class RoleManagementService {
     return dio.get('/system/role');
   }
 
-  Future<Response<dynamic>> getAllUser() async {
-    return dio.get('/system/role/all-user');
+  Future<Response<dynamic>> getAllUser(RoleSystem e) async {
+    return dio.get('/system/role/all-user/${e.id}');
   }
 
-  Future<Response<dynamic>> updateRole(RoleSystem element) {
+  Future<Response<dynamic>> updateRole(RoleSystem element) async {
     return dio.put(
       '/system/role/update/${element.id}',
       data: {
