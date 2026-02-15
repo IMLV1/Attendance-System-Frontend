@@ -108,6 +108,9 @@ class _AssignRoleState extends State<AssignRole> {
                         child: ServiceLoader(
                             request: () => RoleService().getData(),
                             onSuccess: (jsonData) {
+
+                              print(jsonData);
+
                               final data = RoleModel.getList(jsonData);
                               setState(() {
                                 allRoles = data;
