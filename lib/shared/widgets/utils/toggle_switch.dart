@@ -11,6 +11,8 @@ class ToggleSwitch extends StatefulWidget {
   final bool subSwitch;
   final String? subLabel;
   final ValueChanged<bool>? onSubChanged;
+  final bool value;
+  final bool subValue;
 
   const ToggleSwitch({
     super.key,
@@ -20,6 +22,8 @@ class ToggleSwitch extends StatefulWidget {
     this.subSwitch = false,
     this.subLabel,
     this.onSubChanged,
+    this.value = false,
+    this.subValue = false,
   });
 
   @override
@@ -29,6 +33,13 @@ class ToggleSwitch extends StatefulWidget {
 class _ToggleSwitchState extends State<ToggleSwitch> {
   bool _value = false;
   bool _subValue = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _value = widget.value;
+    _subValue = widget.subValue;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +66,7 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
               ),
               SizedBox(width: 10),
               Expanded(
+                flex: 3,
                 child: Text(
                   widget.label,
                   style: TextStyle(fontSize: 15),

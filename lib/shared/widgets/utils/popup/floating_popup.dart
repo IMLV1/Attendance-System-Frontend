@@ -9,7 +9,7 @@ class FloatingPopup {
   final String title;
   final double width;
   final String description;
-  final List<Widget> Function(void Function(String errorMessage), BuildContext context) buttons;
+  final List<Widget> Function(void Function(String errorMessage) setError, BuildContext context) buttons;
 
   FloatingPopup({this.title = 'Default Title', this.description = 'Default description', required this.buttons, this.width = 300});
 
