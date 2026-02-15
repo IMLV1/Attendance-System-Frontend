@@ -346,9 +346,14 @@ class _RoleManagementState extends State<RoleManagement> {
                                     separatorPadding: const EdgeInsets.only(left: 60, right: 15),
                                     children: [
                                       ..._filteredMainRoles.map((m) {
-                                        ///icon_personnel_info.svg
+                                        /// 'icon_personnel_info.svg' 'icon_admin.svg' 'role_management.svg' 'specialer.svg'
                                         return AppButton(
-                                          icon: (m.roleName == 'ผู้ดูแลระบบ' || m.roleName.toLowerCase() == 'admin') ? 'icon_admin.svg' : 'role_management.svg',
+                                          icon: switch (m.type) {
+                                            RoleType.admin => 'icon_admin.svg',
+                                            RoleType.hr => 'icon_personnel_info.svg',
+                                            RoleType.mainRole => 'role_management.svg',
+                                            RoleType.specialRole => 'specialer.svg',
+                                          },
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           weightTitle: FontWeight.normal,
@@ -399,7 +404,12 @@ class _RoleManagementState extends State<RoleManagement> {
                                     children: [
                                       ..._filteredSpecialRoles.map((m) {
                                         return AppButton(
-                                          icon: 'specialer.svg',
+                                          icon: switch (m.type) {
+                                            RoleType.admin => 'icon_admin.svg',
+                                            RoleType.hr => 'icon_personnel_info.svg',
+                                            RoleType.mainRole => 'role_management.svg',
+                                            RoleType.specialRole => 'specialer.svg',
+                                          },
                                           iconColor: m.roleColor != null ? Color(int.parse('0xFF${m.roleColor}')) : null,
                                           title: m.roleName,
                                           weightTitle: FontWeight.normal,

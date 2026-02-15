@@ -284,7 +284,7 @@ class _CreateRoleState extends State<CreateRole> {
                                 children: [
                                   IconTextButton(
                                     arrow: false,
-                                    icon: 'icon_delete.svg',
+                                    icon: 'icon_key.svg',
                                     label: 'ระดับสิทธิ์การเข้าถึง',
                                     onPressed: ()  {
                                       OptionPopup(
