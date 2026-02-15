@@ -123,7 +123,7 @@ class NumberInputPopup {
 
                               isDense: true,
                               filled: true,
-                              fillColor: Colors.white,
+                              fillColor: Color(0xFFF6F6F6),
                               isCollapsed: true, // สำคัญ
                               contentPadding: EdgeInsets.all(0),
                               border: OutlineInputBorder(
