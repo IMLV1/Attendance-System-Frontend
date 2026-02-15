@@ -57,7 +57,7 @@ class ServicePopup {
                           width: double.infinity,
                           padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
                           decoration: const BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.backgroundColor,
                             borderRadius: BorderRadius.vertical(
                               top: Radius.circular(40),
                             ),
