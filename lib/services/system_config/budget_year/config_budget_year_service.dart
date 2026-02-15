@@ -2,7 +2,7 @@ import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
-class BudgetYearService {
+class ConfigBudgetYearService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
   Future<Response<dynamic>> getData() async {

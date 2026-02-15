@@ -8,6 +8,12 @@ class WheelSelector extends StatefulWidget {
   final int initialLeftIndex;
   final int? initialRightIndex;
 
+  final double height;
+  final double leftWidth;
+  final double rightWidth;
+  final double spacing;
+  final bool looping;
+
   final void Function(int leftIndex, int? rightIndex) onChanged;
 
   const WheelSelector({
@@ -17,6 +23,11 @@ class WheelSelector extends StatefulWidget {
     this.initialLeftIndex = 0,
     this.initialRightIndex,
     required this.onChanged,
+    this.height = 200,
+    this.leftWidth = 110,
+    this.rightWidth = 110,
+    this.spacing = 6,
+    this.looping = true
   });
 
   @override
@@ -31,13 +42,6 @@ class _WheelSelectorState extends State<WheelSelector> {
   FixedExtentScrollController? _rightController;
 
   static const double _itemExtent = 40;
-  static const double _pickerHeight = 216;
-
-  // 👇 ปรับความกว้างได้ตรงนี้
-  static const double _leftWidth = 110;
-  static const double _rightWidth = 110;
-  static const double _spacing = 6;
-
   @override
   void initState() {
     super.initState();
@@ -57,7 +61,7 @@ class _WheelSelectorState extends State<WheelSelector> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: _pickerHeight,
+      height: widget.height,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -66,8 +70,9 @@ class _WheelSelectorState extends State<WheelSelector> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
-                width: _leftWidth,
+                width: widget.leftWidth,
                 child: CupertinoPicker(
+                  looping: widget.looping,
                   scrollController: _leftController,
                   itemExtent: _itemExtent,
                   selectionOverlay: const SizedBox(),
@@ -82,10 +87,11 @@ class _WheelSelectorState extends State<WheelSelector> {
               ),
 
               if (widget.rightItems != null) ...[
-                SizedBox(width: _spacing),
+                SizedBox(width: widget.spacing),
                 SizedBox(
-                  width: _rightWidth,
+                  width: widget.rightWidth,
                   child: CupertinoPicker(
+                    looping: widget.looping,
                     scrollController: _rightController,
                     itemExtent: _itemExtent,
                     selectionOverlay: const SizedBox(),
@@ -108,7 +114,7 @@ class _WheelSelectorState extends State<WheelSelector> {
               height: _itemExtent,
               decoration: BoxDecoration(
                 color: Colors.grey.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(15),
               ),
             ),
           ),

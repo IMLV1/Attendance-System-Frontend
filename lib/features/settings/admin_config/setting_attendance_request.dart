@@ -79,10 +79,6 @@ class SettingAttendanceRequest extends StatelessWidget {
 
                         },
                       ),
-                    ],
-                  ),
-                  SeparatorCard(
-                    children: [
                       ToggleSwitch(
                         icon: 'icon_attach_evidence.svg',
                         label: 'แนบไฟล์หลักฐาน',
@@ -96,7 +92,7 @@ class SettingAttendanceRequest extends StatelessWidget {
                         },
                       ),
                     ],
-                  )
+                  ),
                 ]
               )
             )
