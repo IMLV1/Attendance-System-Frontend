@@ -15,6 +15,7 @@ class TextInputPopup {
   final FlexFit fit;
   final TextInputType keyboardType;
   final List<TextInputFormatter> inputFormatters;
+  final String? Function(String?)? check;
 
   const TextInputPopup({
     this.title = 'Default Title',
@@ -27,11 +28,13 @@ class TextInputPopup {
     this.minHeight = 0,
     this.fit = FlexFit.loose,
     this.keyboardType = TextInputType.text,
-    this.inputFormatters = const []
+    this.inputFormatters = const [],
+    this.check
   });
 
   void showPopup(BuildContext context) {
 
+    final formKey = GlobalKey<FormState>();
     final TextEditingController controller = TextEditingController(text: currentValue);
 
     PushPopup(
@@ -41,12 +44,21 @@ class TextInputPopup {
         maxHeight: maxHeight,
         fit: fit,
         buttonAction: (context) {
-          Navigator.of(context).pop();
-          if (onSubmit != null) onSubmit!(controller.text);
+
+          formKey.currentState!.validate();
+
+          if (check?.call(controller.text) == null) {
+            Navigator.of(context).pop();
+            if (onSubmit != null) onSubmit!(controller.text);
+          }
         },
-        content: Column(
+        builder: (_) => Column(
           children: [
-              TextField(
+
+            Form(
+              key: formKey,
+              child: TextFormField(
+                validator: check,
                 keyboardType: keyboardType,
                 controller: controller,
                 textInputAction: TextInputAction.done,
@@ -79,6 +91,7 @@ class TextInputPopup {
                   ),
                 ),
               ),
+            ),
           ],
         )
     ).showPopup(context);

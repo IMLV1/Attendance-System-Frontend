@@ -516,7 +516,7 @@ class _EditRoleState extends State<EditRole> {
 
                                                 Navigator.pop(context);
                                               },
-                                              content: StatefulBuilder(
+                                              builder: (_) => StatefulBuilder(
                                                 builder: (context, setStatePopup) {
 
                                                   void onPopupSearchChanged(

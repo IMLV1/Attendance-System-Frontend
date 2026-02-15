@@ -58,7 +58,7 @@ class NumberInputPopup {
           Navigator.of(context).pop();
           if (onSubmit != null) onSubmit!(_formatter.parse(controller.text).toDouble());
         },
-        content: Column(
+        builder: (_) => Column(
           children: [
             Row(
               mainAxisSize: MainAxisSize.min,
