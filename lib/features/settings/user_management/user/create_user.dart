@@ -80,6 +80,9 @@ class _CreateUserState extends State<CreateUser> {
                                             keyboardType: TextInputType.emailAddress,
                                             fit: FlexFit.tight,
                                             currentValue: userInfo.email,
+                                            check: (value) {
+                                              return (value?.isEmpty ?? true) ? 'อีเมลไม่ถูกต้อง' : null;
+                                            },
                                             onSubmit: (value) {
                                               setState(() {
                                                 userInfo = userInfo.copyWith(email: value);
@@ -95,6 +98,9 @@ class _CreateUserState extends State<CreateUser> {
                                             maxHeight: 700,
                                             fit: FlexFit.tight,
                                             currentValue: userInfo.id,
+                                            check: (value) {
+                                              return (value?.isEmpty ?? true) ? 'เลขประจำตัวประชาชนไม่ถูกต้อง' : null;
+                                            },
                                             keyboardType: TextInputType.number,
                                             inputFormatters: [
                                               FilteringTextInputFormatter.digitsOnly,
@@ -121,6 +127,9 @@ class _CreateUserState extends State<CreateUser> {
                                             maxHeight: 700,
                                             fit: FlexFit.tight,
                                             currentValue: userInfo.employeeId,
+                                            check: (value) {
+                                              return (value?.isEmpty ?? true) ? 'รหัสบุคลากรไม่ถูกต้อง' : null;
+                                            },
                                             onSubmit: (value) {
                                               setState(() {
                                                 userInfo = userInfo.copyWith(employeeId: value);
@@ -136,6 +145,9 @@ class _CreateUserState extends State<CreateUser> {
                                             maxHeight: 700,
                                             fit: FlexFit.tight,
                                             currentValue: userInfo.nameTH,
+                                            check: (value) {
+                                              return (value?.isEmpty ?? true) ? 'ชื่อไม่ถูกต้อง' : null;
+                                            },
                                             onSubmit: (value) {
                                               setState(() {
                                                 userInfo = userInfo.copyWith(nameTH: value);
@@ -151,6 +163,9 @@ class _CreateUserState extends State<CreateUser> {
                                             maxHeight: 700,
                                             fit: FlexFit.tight,
                                             currentValue: userInfo.nameEN,
+                                            check: (value) {
+                                              return (value?.isEmpty ?? true) ? 'ชื่อไม่ถูกต้อง' : null;
+                                            },
                                             onSubmit: (value) {
                                               setState(() {
                                                 userInfo = userInfo.copyWith(nameEN: value);
@@ -166,6 +181,9 @@ class _CreateUserState extends State<CreateUser> {
                                             maxHeight: 700,
                                             fit: FlexFit.tight,
                                             selected: userInfo.gender,
+                                            check: (value) {
+                                              return (value?.isEmpty ?? true) ? 'กรุณาระบุเพศ' : null;
+                                            },
                                             onSubmit: (value) {
                                               setState(() {
                                                 userInfo = userInfo.copyWith(gender: value);
@@ -181,6 +199,9 @@ class _CreateUserState extends State<CreateUser> {
                                             maxHeight: 700,
                                             fit: FlexFit.tight,
                                             selected: userInfo.nationality,
+                                            check: (value) {
+                                              return (value?.isEmpty ?? true) ? 'กรุณาระบุสัญชาติ' : null;
+                                            },
                                             onSubmit: (value) {
                                               setState(() {
                                                 userInfo = userInfo.copyWith(nationality: value);
@@ -203,6 +224,14 @@ class _CreateUserState extends State<CreateUser> {
                                             keyboardType: TextInputType.phone,
                                             fit: FlexFit.tight,
                                             currentValue: userInfo.phone,
+                                            check: (value) {
+
+                                              if (value == null) return null;
+
+                                              final regex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
+
+                                              return (value.isEmpty || !regex.hasMatch(value)) ? 'เบอร์โทรไม่ถูกต้อง' : null;
+                                            },
                                             onSubmit: (value) {
                                               setState(() {
                                                 userInfo = userInfo.copyWith(phone: value);
@@ -223,6 +252,9 @@ class _CreateUserState extends State<CreateUser> {
                                             maxHeight: 700,
                                             fit: FlexFit.tight,
                                             currentValue: userInfo.initRole,
+                                            check: (value) {
+                                              return (value?.isEmpty ?? true) ? 'กรุณาระบุสังกัด' : null;
+                                            },
                                             onSubmit: (value) {
                                               setState(() {
                                                 userInfo = userInfo.copyWith(initRole: value);

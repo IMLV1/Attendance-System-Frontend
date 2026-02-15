@@ -28,7 +28,7 @@ class _TimeRequestPage extends State<TimeRequestPage> {
       buttonAction: (context) {
         Navigator.pop(context);
       },
-      content: CalendarTimePopupContent(
+      builder: (_) => CalendarTimePopupContent(
         onSave: (start, end, checkIn, checkOut) {
           setState(() {
             if (start != null)

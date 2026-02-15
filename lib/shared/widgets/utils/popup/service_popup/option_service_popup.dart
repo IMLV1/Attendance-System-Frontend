@@ -18,7 +18,7 @@ class OptionServicePopup {
   final double maxHeight;
   final double minHeight;
   final FlexFit fit;
-
+  final String? Function(String?)? check;
 
   const OptionServicePopup({
     this.title = 'Default Title',
@@ -30,11 +30,13 @@ class OptionServicePopup {
     required this.options,
     this.maxHeight = double.infinity,
     this.minHeight = 0,
-    this.fit = FlexFit.loose
+    this.fit = FlexFit.loose,
+    this.check
   });
 
   void showPopup(BuildContext context) {
 
+    String? validationError;
     String current = selected;
 
     ServicePopup(
@@ -48,27 +50,35 @@ class OptionServicePopup {
         Navigator.of(context).pop();
         if (onSuccess != null) onSuccess!(current);
       },
+      check: () {
+        validationError = check?.call(current);
+        return validationError;
+      },
       builder: (trigger, state, errorMessage) {
-
         return Column(
-          children: [
-            if (state == ServiceUpdatorState.error)
-              Text(
-                'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
-                style: TextStyle(
-                    color: Colors.red
+              children: [
+                if (validationError == null &&
+                    state == ServiceUpdatorState.error)
+                  const Text(
+                    'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
+                    style: TextStyle(color: Colors.red),
+                  ),
+
+                if (validationError != null)
+                  Text(
+                    validationError!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                OptionPane(
+                  onSelected: (option) {
+                    current = option;
+                  },
+                  selected: selected,
+                  borderRadius: BorderRadius.zero,
+                  options: options,
                 ),
-              ),
-            OptionPane(
-              onSelected: (option) {
-                current = option;
-              },
-              selected: selected,
-              borderRadius: BorderRadius.zero,
-              options: options,
-            ),
-          ],
-        );
+              ],
+            );
       }
     ).showPopup(context);
   }
