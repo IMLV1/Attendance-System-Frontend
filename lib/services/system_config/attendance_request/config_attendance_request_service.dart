@@ -12,7 +12,7 @@ class ConfigAttendanceRequestService {
 
   Future<Response<dynamic>> update(ConfigAttendanceRequestModel data) async {
     return dio.put(
-      '/system/config/attendance_request/get',
+      '/system/config/attendance_request/update',
       data: {
         'request-need-signature': data.requestNeedSignature,
         'approve-need-signature': data.approveNeedSignature,
