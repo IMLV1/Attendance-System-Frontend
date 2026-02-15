@@ -1,5 +1,5 @@
-import 'package:attendance_system/services/system_config/budget_year/budget_year_model.dart';
-import 'package:attendance_system/services/system_config/budget_year/budget_year_service.dart';
+import 'package:attendance_system/services/system_config/budget_year/config_budget_year_model.dart';
+import 'package:attendance_system/services/system_config/budget_year/config_budget_year_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -95,7 +95,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                             Navigator.pop(context);
                           },
                           text: 'บันทึก',
-                          request: () => BudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
+                          request: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
                           setError: setError
                       )
                     ];
@@ -115,10 +115,10 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                         children: [
                           Expanded(
                             child: ServiceLoader(
-                              request: () => BudgetYearService().getData(),
+                              request: () => ConfigBudgetYearService().getData(),
                               onSuccess: (jsonData) {
                                 setState(() {
-                                  final data = BudgetYearModel.fromJson(jsonData);
+                                  final data = ConfigBudgetYearModel.fromJson(jsonData);
                                   setState(() {
 
                                     selectedDayIndex = data.day - 1;
