@@ -101,6 +101,9 @@ class _UserInfoState extends State<UserInfo> {
                                         maxHeight: 700,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.employeeId,
+                                        check: (value) {
+                                          return (value?.isEmpty ?? true) ? 'รหัสบุคลากรไม่ถูกต้อง' : null;
+                                        },
                                         request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(employeeId: value)),
                                         onSuccess: (value) {
                                           setState(() {
@@ -117,6 +120,9 @@ class _UserInfoState extends State<UserInfo> {
                                         maxHeight: 700,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.nameTH,
+                                        check: (value) {
+                                          return (value?.isEmpty ?? true) ? 'ชื่อไม่ถูกต้อง' : null;
+                                        },
                                         request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nameTH: value)),
                                         onSuccess: (value) {
                                           setState(() {
@@ -133,6 +139,9 @@ class _UserInfoState extends State<UserInfo> {
                                         maxHeight: 700,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.nameEN,
+                                        check: (value) {
+                                          return (value?.isEmpty ?? true) ? 'ชื่อไม่ถูกต้อง' : null;
+                                        },
                                         request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nameEN: value)),
                                         onSuccess: (value) {
                                           setState(() {
@@ -149,6 +158,9 @@ class _UserInfoState extends State<UserInfo> {
                                           maxHeight: 700,
                                           fit: FlexFit.tight,
                                           selected: userInfo.gender,
+                                          check: (value) {
+                                            return (value?.isEmpty ?? true) ? 'กรุณาระบุเพศ' : null;
+                                          },
                                           request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(gender: value)),
                                           onSuccess: (value) {
                                             setState(() {
@@ -165,6 +177,9 @@ class _UserInfoState extends State<UserInfo> {
                                           maxHeight: 700,
                                           fit: FlexFit.tight,
                                           selected: userInfo.nationality,
+                                          check: (value) {
+                                            return (value?.isEmpty ?? true) ? 'กรุณาระบุสัญชาติ' : null;
+                                          },
                                           request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nationality: value)),
                                           onSuccess: (value) {
                                             setState(() {
@@ -188,6 +203,14 @@ class _UserInfoState extends State<UserInfo> {
                                         keyboardType: TextInputType.phone,
                                         fit: FlexFit.tight,
                                         currentValue: userInfo.phone,
+                                        check: (value) {
+
+                                          if (value == null) return null;
+
+                                          final regex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
+
+                                          return (value.isEmpty || !regex.hasMatch(value)) ? 'เบอร์โทรไม่ถูกต้อง' : null;
+                                        },
                                         request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(phone: value)),
                                         onSuccess: (value) {
                                           setState(() {
@@ -204,6 +227,9 @@ class _UserInfoState extends State<UserInfo> {
                                           maxHeight: 700,
                                           fit: FlexFit.tight,
                                           currentValue: userInfo.initRole,
+                                          check: (value) {
+                                            return (value?.isEmpty ?? true) ? 'กรุณาระบุสังกัด' : null;
+                                          },
                                           request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(initRole: value)),
                                           onSuccess: (value) {
                                             setState(() {
@@ -253,39 +279,16 @@ class _UserInfoState extends State<UserInfo> {
                                         buttons: (parent, context1) => [
                                           FloatingPopupButton(onPressed: () {
                                             Navigator.of(context1).pop();
-                                          }, text: 'Cancel', foregroundColor: Colors.white, backgroundColor: AppColors.primaryColor, ),
+                                          }, text: 'ยกเลิก', foregroundColor: Colors.white, backgroundColor: AppColors.primaryColor, ),
                                           FloatingServicePopupButton(onSuccess: () {
                                             Navigator.of(context1).pop();
                                             Navigator.pop(context, (status: 1, updatedUser: null));
-                                          }, text: 'Delete', foregroundColor: Colors.red, request: () => UserManagementService().deleteUser(userInfo.id), setError: parent)
+                                          }, text: 'ลบ', foregroundColor: Colors.red, request: () => UserManagementService().deleteUser(userInfo.id), setError: parent)
                                         ]
                                       ).showPopup(context);
                                     }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
                                   ]
                               ),
-
-                              // ServiceUpdater(
-                              //     request: () => UserManagementService().deleteUser(userInfo.id),
-                              //     onSuccess: () {
-                              //       Navigator.pop(context, (status: 1, updatedUser: null));
-                              //     },
-                              //     builder: (trigger, state, loading, error) {
-                              //       return Column(
-                              //         children: [
-                              //           SeparatorCard(
-                              //               separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                              //               children: [
-                              //                 IconTextButton(onPressed: trigger, arrowIcon: loading, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')
-                              //               ]
-                              //           ),
-                              //           SizedBox(
-                              //             height: 20,
-                              //             child: error,
-                              //           )
-                              //         ],
-                              //       );
-                              //     }
-                              // )
                             ]
                         )
                     )

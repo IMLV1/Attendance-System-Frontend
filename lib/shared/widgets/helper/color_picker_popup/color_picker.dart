@@ -59,7 +59,7 @@ class ColorPickerPopup {
         Navigator.of(val).pop();
         if (onSubmit != null) onSubmit!(hsv.toColor());
       },
-      content: StatefulBuilder(
+      builder: (_) => StatefulBuilder(
         builder: (context, setState) {
           const svWidth = 380.0;
           const svHeight = 280.0;

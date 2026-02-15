@@ -13,7 +13,7 @@ class OptionPopup {
   final double maxHeight;
   final double minHeight;
   final FlexFit fit;
-
+  final String? Function(String?)? check;
 
   const OptionPopup({
     this.title = 'Default Title',
@@ -24,11 +24,13 @@ class OptionPopup {
     required this.options,
     this.maxHeight = double.infinity,
     this.minHeight = 0,
-    this.fit = FlexFit.loose
+    this.fit = FlexFit.loose,
+    this.check
   });
 
   void showPopup(BuildContext context) {
 
+    String? validationError;
     String current = selected;
 
     PushPopup(
@@ -38,16 +40,32 @@ class OptionPopup {
       maxHeight: maxHeight,
       minHeight: minHeight,
       buttonAction: (context) {
-        Navigator.of(context).pop();
-        if (onSubmit != null) onSubmit!(current);
+
+        validationError = check?.call(current);
+
+        if (validationError == null) {
+          Navigator.of(context).pop();
+          if (onSubmit != null) onSubmit!(current);
+        }
       },
-      content: OptionPane(
-        onSelected: (option) {
-          current = option;
-        },
-        selected: selected,
-        borderRadius: BorderRadius.zero,
-        options: options,
+      builder: (_) => Column(
+        children: [
+
+          if (validationError != null)
+            Text(
+              validationError!,
+              style: const TextStyle(color: Colors.red),
+            ),
+
+          OptionPane(
+            onSelected: (option) {
+              current = option;
+            },
+            selected: selected,
+            borderRadius: BorderRadius.zero,
+            options: options,
+          )
+        ],
       )
     ).showPopup(context);
   }
