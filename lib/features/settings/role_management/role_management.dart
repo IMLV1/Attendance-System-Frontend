@@ -110,26 +110,15 @@ class _RoleManagementState extends State<RoleManagement> {
   }
 
   void _applyFilter(String keyword, {bool rebuild = true}) {
-
     final key = keyword.trim().toLowerCase();
 
     if (key.isEmpty) {
-
       _filteredMainRoles = _allMainRoles;
       _filteredSpecialRoles = _allSpecialRoles;
-
     } else {
-
-      _filteredMainRoles = _allMainRoles
-          .where((r) => r.roleName.toLowerCase().contains(key))
-          .toList();
-
-      _filteredSpecialRoles = _allSpecialRoles
-          .where((r) => r.roleName.toLowerCase().contains(key))
-          .toList();
-
+      _filteredMainRoles = _allMainRoles.where((r) => r.roleName.toLowerCase().contains(key)).toList();
+      _filteredSpecialRoles = _allSpecialRoles.where((r) => r.roleName.toLowerCase().contains(key)).toList();
     }
-
     if (rebuild) setState(() {});
   }
 
@@ -137,31 +126,42 @@ class _RoleManagementState extends State<RoleManagement> {
   void _updateRole(RoleSystem updatedRole) {
     setState(() {
       if (updatedRole.type == RoleType.specialRole) {
-
-        final index = _allSpecialRoles.indexWhere((r) => r.id == updatedRole.id);
+        final index = _allSpecialRoles
+          .indexWhere((e) => e.id == updatedRole.id
+        );
 
         if (index != -1) {
           _allSpecialRoles[index] = updatedRole;
         }
+      } else if (updatedRole.type == RoleType.admin || updatedRole.type == RoleType.hr) {
+        final index = _allMainRoles
+          .indexWhere((e) => e.id == updatedRole.id
+        );
+
+        if (index != -1) {
+          _allMainRoles[index] = updatedRole;
+        }
 
       } else {
+        final newId = updatedRole.members.map((e) => e.id).toSet();
 
-        final newIds = updatedRole.members.map((m) => m.id).toSet();
+        final index = _allMainRoles
+          .indexWhere((e) => e.id == updatedRole.id);
+
+        if (index == -1) return;
+
+        _allMainRoles[index] = updatedRole;
 
         for (int i = 0; i < _allMainRoles.length; i++) {
+          if (i == index) continue;
 
-          final role = _allMainRoles[i];
-
-          if (role.id == updatedRole.id) {
-
-            _allMainRoles[i] = updatedRole;
-
-          } else {
-
-            final cleanedMembers = role.members.where((m) => !newIds.contains(m.id)).toList();
-
-            _allMainRoles[i] = role.copyWith(members: cleanedMembers);
-
+          if (_allMainRoles[i].type == RoleType.mainRole) {
+            final role = _allMainRoles[i];
+            _allMainRoles[i] = role.copyWith(
+              members: role.members
+                  .where((e) => !newId.contains(e.id))
+                  .toList(),
+            );
           }
         }
       }
@@ -208,14 +208,43 @@ class _RoleManagementState extends State<RoleManagement> {
                       icon: 'icon_create_role.svg',
                       label: 'สร้างตำแหน่งใหม่...',
                       color: AppColors.primaryColor,
-                      onPressed: () {
-                        /// ไปหน้าอื่น
-                        Navigator.push(
+                      onPressed: () async {
+
+                        final RoleSystem? newRole = await Navigator.push<RoleSystem>(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CreateRole(),
-                          )
+                            builder: (context) => const CreateRole(),
+                          ),
                         );
+
+                        if (newRole == null) return;
+
+                        setState(() {
+                          if (newRole.type == RoleType.specialRole) {
+                            _allSpecialRoles.add(newRole);
+                          } else {
+                            _allMainRoles.add(newRole);
+
+                            if (newRole.type == RoleType.mainRole) {
+                              final newId = newRole.members.map((e) => e.id).toSet();
+
+                              final index = _allMainRoles.length - 1;
+
+                              for (int i = 0; i < _allMainRoles.length; i++) {
+                                if (i == index) continue;
+
+                                final role = _allMainRoles[i];
+                                if (role.type == RoleType.mainRole) {
+                                  _allMainRoles[i] = role.copyWith(
+                                    members: role.members
+                                        .where((e) => !newId.contains(e.id))
+                                        .toList(),
+                                  );
+                                }
+                              }
+                            }
+                          }
+                        });
                       },
                     )
                   ],
@@ -272,8 +301,8 @@ class _RoleManagementState extends State<RoleManagement> {
                   )
                 ),
                 ServiceLoader(
-                  // request: () => RoleManagementService().getRoleManagementModel(),
-                  request: () => mockGetRole(),
+                  request: () => RoleManagementService().getRoleManagementModel(),
+                  // request: () => mockGetRole(),
                   onSuccess: (jsonData) {
                     final data = RoleManagementModel.fromJson(jsonData);
                     setState(() {
