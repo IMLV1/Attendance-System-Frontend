@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // อย่าลืมเพิ่ม intl ใน pubspec.yaml นะครับ
+import 'package:ntp/ntp.dart';
+import 'package:intl/intl.dart';
 
 class ClockWidget extends StatefulWidget {
   const ClockWidget({super.key});
@@ -10,53 +12,66 @@ class ClockWidget extends StatefulWidget {
 }
 
 class _ClockWidgetState extends State<ClockWidget> {
-  late Timer _timer;
-  String _currentTime = '';
-  String _currentDay = '';
+  DateTime? _networkTime;
+  Timer? _timer;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _updateTime();
-    // ตั้ง Timer ให้ทำงานทุกๆ 1 วินาที
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _updateTime());
+    _syncTime();
   }
 
-  void _updateTime() {
-    final DateTime now = DateTime.now();
-    setState(() {
-      // ปรับ Format ตามที่คุณต้องการได้ที่นี่
-      _currentTime = DateFormat('HH:mm').format(now);
-      _currentDay = DateFormat('EEEE d MMMM yyyy', 'th').format(now); // แบบภาษาไทย
+  // ฟังก์ชันดึงเวลาจาก Network
+  Future<void> _syncTime() async {
+    try {
+      // ดึงเวลาจาก Google NTP Server (เสถียรและฟรี)
+      DateTime ntpTime = await NTP.now(lookUpAddress: 'time.google.com');
+
+      if (mounted) {
+        setState(() {
+          _networkTime = ntpTime;
+          _isLoading = false;
+        });
+        _startClock();
+      }
+    } catch (e) {
+      // หากดึงไม่ได้ (เช่น ไม่มีเน็ต)
+      debugPrint("NTP Error: $e");
+      // คุณอาจจะเลือกหยุดแอป หรือแจ้งให้ต่อเน็ตก่อนใช้งาน
+    }
+  }
+
+  void _startClock() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted && _networkTime != null) {
+        setState(() {
+          _networkTime = _networkTime!.add(const Duration(seconds: 1));
+        });
+      }
     });
   }
 
   @override
   void dispose() {
-    _timer.cancel(); // สำคัญมาก: ต้องคืน Memory เมื่อไม่ได้ใช้ Widget นี้แล้ว
+    _timer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) return const Text("กำลังซิงค์เวลา...");
+
     return Column(
       children: [
         Text(
-          _currentTime,
-          style: const TextStyle(
-            fontSize: 40,
-            fontWeight: FontWeight.w700,
-            // color: AppColors.unSelectMenuColor, // นำสีจากไฟล์ AppColors ของคุณมาใส่
-          ),
+          DateFormat('HH:mm').format(_networkTime!),
+          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
         ),
         Text(
-          _currentDay,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            // color: AppColors.lightTextColor, // นำสีจากไฟล์ AppColors ของคุณมาใส่
-          ),
-        )
+          DateFormat('EEEE d MMMM yyyy', 'th').format(_networkTime!),
+          style: const TextStyle(fontSize: 15, color: AppColors.lightTextColor),
+        ),
       ],
     );
   }
