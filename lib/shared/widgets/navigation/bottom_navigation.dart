@@ -151,7 +151,7 @@ class BottomNavigation extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(50),
                 child: Image.network(
-                  context.watch<AuthState>().user?.avatarUrl ?? '',
+                  context.watch<AuthState>().profile?.avatarUrl ?? '',
                   width: 35,
                   height: 35,
                   fit: BoxFit.cover,
@@ -159,6 +159,8 @@ class BottomNavigation extends StatelessWidget {
                     return Image.asset(
                       'assets/images/profile.png',
                       fit: BoxFit.cover,
+                      width: 35,
+                      height: 35,
                     );
                   },
                 ),
