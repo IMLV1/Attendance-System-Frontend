@@ -15,64 +15,64 @@ Future<Response> mockData() async {
   await Future.delayed(const Duration(milliseconds: 200));
 
   return Response(
-      requestOptions: RequestOptions(path: '/mock/user'),
-      statusCode: 200,
-      data: {
-        'sick': {
-          'request-need-signature': false,
-          'approve-need-signature': true,
-          'allow-retroactive': false,
-          'specify-remark': true,
-          'required-remark': true,
-          'evidence-file': true,
-          'required-evidence-file': true,
-        },
-        'personal': {
-          'request-need-signature': false,
-          'approve-need-signature': true,
-          'allow-retroactive': false,
-          'specify-remark': true,
-          'required-remark': true,
-          'evidence-file': true,
-          'required-evidence-file': true,
-        },
-        'vacation': {
-          'request-need-signature': false,
-          'approve-need-signature': true,
-          'allow-retroactive': false,
-          'specify-remark': true,
-          'required-remark': true,
-          'evidence-file': true,
-          'required-evidence-file': true,
-        },
-        'maternity': {
-          'request-need-signature': false,
-          'approve-need-signature': true,
-          'allow-retroactive': false,
-          'specify-remark': true,
-          'required-remark': true,
-          'evidence-file': true,
-          'required-evidence-file': true,
-        },
-        'paternity': {
-          'request-need-signature': false,
-          'approve-need-signature': true,
-          'allow-retroactive': false,
-          'specify-remark': true,
-          'required-remark': true,
-          'evidence-file': true,
-          'required-evidence-file': true,
-        },
-        'parental': {
-          'request-need-signature': false,
-          'approve-need-signature': true,
-          'allow-retroactive': false,
-          'specify-remark': true,
-          'required-remark': true,
-          'evidence-file': true,
-          'required-evidence-file': true,
-        },
-      }
+    requestOptions: RequestOptions(path: '/mock/user'),
+    statusCode: 200,
+    data: {
+      'sick': {
+        'request-need-signature': false,
+        'approve-need-signature': true,
+        'allow-retroactive': false,
+        'specify-remark': true,
+        'required-remark': true,
+        'evidence-file': true,
+        'required-evidence-file': true,
+      },
+      'personal': {
+        'request-need-signature': false,
+        'approve-need-signature': true,
+        'allow-retroactive': false,
+        'specify-remark': true,
+        'required-remark': true,
+        'evidence-file': true,
+        'required-evidence-file': true,
+      },
+      'vacation': {
+        'request-need-signature': false,
+        'approve-need-signature': true,
+        'allow-retroactive': false,
+        'specify-remark': true,
+        'required-remark': true,
+        'evidence-file': true,
+        'required-evidence-file': true,
+      },
+      'maternity': {
+        'request-need-signature': false,
+        'approve-need-signature': true,
+        'allow-retroactive': false,
+        'specify-remark': true,
+        'required-remark': true,
+        'evidence-file': true,
+        'required-evidence-file': true,
+      },
+      'paternity': {
+        'request-need-signature': false,
+        'approve-need-signature': true,
+        'allow-retroactive': false,
+        'specify-remark': true,
+        'required-remark': true,
+        'evidence-file': true,
+        'required-evidence-file': true,
+      },
+      'parental': {
+        'request-need-signature': false,
+        'approve-need-signature': true,
+        'allow-retroactive': false,
+        'specify-remark': true,
+        'required-remark': true,
+        'evidence-file': true,
+        'required-evidence-file': true,
+      },
+    }
   );
 }
 
@@ -143,7 +143,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                         children: [
                           Expanded(
                               child: ServiceLoader(
-                                  request: () => mockData(), // ConfigAttendanceTimeService().getData(),
+                                  request: () => ConfigLeaveService().getData(),
                                   onSuccess: (jsonData) {
                                     setState(() {
                                       final data = ConfigLeaveModel.fromJson(jsonData);
