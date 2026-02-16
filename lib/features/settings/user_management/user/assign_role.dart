@@ -154,7 +154,12 @@ class _AssignRoleState extends State<AssignRole> {
 
                                           ...allRoles.where((m) => roles.map((m) => m.id).toList().contains(m.id)).map((m) {
                                             return AppButton(
-                                              icon: (m.type == RoleType.main) ? 'role_management.svg' : 'specialer.svg',
+                                              icon: switch (m.type) {
+                                                RoleType.admin => 'icon_admin.svg',
+                                                RoleType.hr => 'icon_hr.svg',
+                                                RoleType.main => 'role_management.svg',
+                                                RoleType.special => 'specialer.svg',
+                                              },
                                               iconColor: m.color,
                                               title: m.name,
                                               subTitle: 'ใต้สังกัด ${m.member} คน',
@@ -194,7 +199,12 @@ class _AssignRoleState extends State<AssignRole> {
 
                                           ...allRoles.where((m) => !roles.map((m) => m.id).toList().contains(m.id)).map((m) {
                                             return AppButton(
-                                              icon: (m.type == RoleType.main) ? 'role_management.svg' : 'specialer.svg',
+                                              icon: switch (m.type) {
+                                                RoleType.admin => 'icon_admin.svg',
+                                                RoleType.hr => 'icon_hr.svg',
+                                                RoleType.main => 'role_management.svg',
+                                                RoleType.special => 'specialer.svg',
+                                              },
                                               iconColor: m.color,
                                               title: m.name,
                                               subTitle: 'ใต้สังกัด ${m.member} คน',
