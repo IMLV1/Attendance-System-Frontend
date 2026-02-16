@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../shared/widgets/utils/calendar.dart';
-import '../../shared/widgets/utils/popup/option_popup.dart';
 
 class TimeRequestPage extends StatefulWidget {
   const TimeRequestPage({super.key});
@@ -31,10 +30,12 @@ class _TimeRequestPage extends State<TimeRequestPage> {
       builder: (_) => CalendarTimePopupContent(
         onSave: (start, end, checkIn, checkOut) {
           setState(() {
-            if (start != null)
+            if (start != null) {
               startDate = "${start.day}/${start.month}/${start.year + 543}";
-            if (end != null)
+            }
+            if (end != null) {
               endDate = "${end.day}/${end.month}/${end.year + 543}";
+            }
             startTime = checkIn;
             endTime = checkOut;
           });
@@ -99,9 +100,9 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                             ),
                             child: Row(
                               children: [
-                                Expanded(child: _buildPickerCell("จากวันที่", startDate, Icons.calendar_today_outlined, h: 12, v: 10),),
+                                Expanded(child: _buildPickerCell("จากวันที่", startDate, 'assets/images/calendar_in.svg', h: 12, v: 10),),
                                 _buildVerticalLine(),
-                                Expanded(child: _buildPickerCell("ถึงวันที่", endDate, Icons.calendar_today_outlined, h: 12,v: 10),)
+                                Expanded(child: _buildPickerCell("ถึงวันที่", endDate, 'assets/images/calendar_out.svg', h: 12,v: 10),)
                               ],
                             ),
                           ),
@@ -116,7 +117,7 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: _buildPickerCell('เวลาเข้างาน', startTime,Icons.access_time),
+                                  child: _buildPickerCell('เวลาเข้างาน', startTime,'assets/images/clock_calendar.svg'),
                                 )
                               ),
                               const SizedBox(width: 10),
@@ -126,7 +127,7 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(20),
                                     ),
-                                    child: _buildPickerCell('เวลาเข้าออกงาน', endTime,Icons.access_time),
+                                    child: _buildPickerCell('เวลาเข้าออกงาน', endTime,'assets/images/clock_calendar.svg'),
                                   )
                               )
                             ],
@@ -144,18 +145,23 @@ class _TimeRequestPage extends State<TimeRequestPage> {
     );
   }
 
-
-  Widget _buildPickerCell(String label, String value, IconData icon , {double h = 10, double v = 4}) {
+  Widget _buildPickerCell(String label, String value, String iconPath , {double h = 10, double v = 4}) {
     return Padding(
         padding: EdgeInsets.symmetric(horizontal: h , vertical: v ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: Colors.grey),
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: SvgPicture.asset(
+                iconPath,
+              ),
+            ),
             const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(label, style: const TextStyle(fontSize: 12, color: AppColors.lightTextColor)),
                 Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               ],
             ),
