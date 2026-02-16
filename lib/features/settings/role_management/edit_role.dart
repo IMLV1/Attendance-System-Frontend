@@ -174,7 +174,13 @@ class _EditRoleState extends State<EditRole> {
       final key = value.trim().toLowerCase();
 
       setState(() {
-        _filteredMembers = key.isEmpty ? _role.members : _role.members.where((m) => m.thName.toLowerCase().contains(key) || m.enName.toLowerCase().contains(key)).toList();
+        _filteredMembers = key.isEmpty ? _role.members : _role.members
+            .where((m) => m.thName
+            .toLowerCase()
+            .contains(key) || m.enName
+            .toLowerCase()
+            .contains(key))
+            .toList();
       });
     });
   }
@@ -631,34 +637,34 @@ class _EditRoleState extends State<EditRole> {
                                                         },
                                                         builder: () => Expanded(
                                                           child: ClipRRect(
-                                                              borderRadius: BorderRadius.circular(20),
-                                                              child: SingleChildScrollView(
-                                                                child: SeparatorCard(
-                                                                  separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
-                                                                  children: [
-                                                                    ...popupFilteredMembers.map((m) {
-                                                                      return UserCancelCheckbox(
-                                                                        icon: Image.network(m.avatarUrl),
-                                                                        title: m.thName,
-                                                                        subTitle: m.enName,
-                                                                        checkBox: true,
-                                                                        value: addMembers.any((e) => e.id == m.id),
-                                                                        onChanged: (val) {
-                                                                          setStatePopup(() {
-                                                                            if (val) {
-                                                                              if (!addMembers.any((e) => e.id == m.id)) {
-                                                                                addMembers.add(m);
-                                                                              }
-                                                                            } else {
-                                                                              addMembers.removeWhere((e) => e.id == m.id);
+                                                            borderRadius: BorderRadius.circular(20),
+                                                            child: SingleChildScrollView(
+                                                              child: SeparatorCard(
+                                                                separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
+                                                                children: [
+                                                                  ...popupFilteredMembers.map((m) {
+                                                                    return UserCancelCheckbox(
+                                                                      icon: Image.network(m.avatarUrl),
+                                                                      title: m.thName,
+                                                                      subTitle: m.enName,
+                                                                      checkBox: true,
+                                                                      value: addMembers.any((e) => e.id == m.id),
+                                                                      onChanged: (val) {
+                                                                        setStatePopup(() {
+                                                                          if (val) {
+                                                                            if (!addMembers.any((e) => e.id == m.id)) {
+                                                                              addMembers.add(m);
                                                                             }
-                                                                          });
-                                                                        },
-                                                                      );
-                                                                    })
-                                                                  ],
-                                                                ),
-                                                              )
+                                                                          } else {
+                                                                            addMembers.removeWhere((e) => e.id == m.id);
+                                                                          }
+                                                                        });
+                                                                      },
+                                                                    );
+                                                                  })
+                                                                ],
+                                                              ),
+                                                            )
                                                           ),
                                                         )
                                                       )

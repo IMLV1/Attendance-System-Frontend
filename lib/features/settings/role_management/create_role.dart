@@ -176,409 +176,409 @@ class _CreateRoleState extends State<CreateRole> {
                 Column(
                   children: [
                     Expanded(
-                        child: SingleChildScrollView(
-                          physics: AlwaysScrollableScrollPhysics(),
-                          child: Column(
-                            spacing: 17,
-                            children: [
-                              /// ===== Role name =====
-                              Container(
-                                width: double.infinity,
-                                padding:
-                                const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE3E3E3),
-                                  borderRadius: BorderRadius.circular(22),
-                                ),
-                                child: Column(
-                                  spacing: 13,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      spacing: 6,
-                                      children: [
-                                        SvgPicture.asset(
-                                          'assets/images/tag.svg',
-                                          height: 15,
-                                          width: 15,
-                                        ),
-                                        const Text('ตำแหน่ง'),
-                                      ],
-                                    ),
-                                    Row(
-                                      spacing: 13,
-                                      children: [
-                                        Expanded(
-                                          child: TextField(
-                                            controller: _nameController,
-                                            focusNode: _focusNode,
-                                            textInputAction: TextInputAction.done,
-                                            decoration: InputDecoration(
-                                              hintText: 'กรุณาระบุชื่อตำแหน่ง',
-                                              hintStyle: const TextStyle(
-                                                color: Colors.black38,
-                                                fontSize: 14,
-                                              ),
-                                              isDense: true,
-                                              filled: true,
-                                              fillColor: Colors.white,
-                                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(25),
-                                                borderSide: BorderSide.none,
-                                              ),
-                                              suffixIcon: InkWell(
-                                                customBorder: const CircleBorder(),
-                                                onTap: () {
-                                                  _nameController.clear();
-                                                  FocusScope.of(context).unfocus();
-                                                },
-                                                child: const Padding(
-                                                  padding: EdgeInsets.all(6),
-                                                  child: Icon(
-                                                    CupertinoIcons.xmark_circle_fill,
-                                                    size: 17,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            onSubmitted: (val) {
-                                              final newName = val.trim();
-
-                                              if (newName.isEmpty) return;
-
-                                              setState(() {
-                                                newRole = newRole.copyWith(roleName: newName);
-                                              });
-
-                                              FocusScope.of(context).unfocus();
-                                            },
-                                          ),
-                                        ),
-                                        InkWell(
-                                          customBorder: const CircleBorder(),
-                                          onTap: () {
-                                            ColorPickerPopup(
-                                              selected: _roleColor,
-                                              onSubmit: (color) {
-                                                setState(() {
-                                                  _roleColor = color;
-
-                                                  newRole = newRole.copyWith(
-                                                    roleColor: _colorToHex(color),
-                                                  );
-                                                });
-                                              },
-                                            ).showPopup(context);
-                                          },
-                                          child: Container(
-                                            width: 33,
-                                            height: 33,
-                                            decoration: BoxDecoration(
-                                              color: _roleColor,
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: const Color(0xFF606060),
-                                                width: 2,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                      child: SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          spacing: 17,
+                          children: [
+                            /// ===== Role name =====
+                            Container(
+                              width: double.infinity,
+                              padding:
+                              const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE3E3E3),
+                                borderRadius: BorderRadius.circular(22),
                               ),
-                              /// กำหนดสิทธิ์การเข้าถึง
-                              SeparatorCard(
-                                separatorPadding:
-                                const EdgeInsets.only(left: 45, right: 15),
-                                children: [
-                                  IconTextButton(
-                                    arrow: false,
-                                    icon: 'icon_key.svg',
-                                    label: 'ระดับสิทธิ์การเข้าถึง',
-                                    onPressed: ()  {
-                                      OptionPopup(
-                                        title: 'ระดับสิทธิ์การเข้าถึง',
-                                        options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
-                                        buttonLabel: 'บันทึก',
-                                        maxHeight: 700,
-                                        fit: FlexFit.tight,
-                                        selected: getPermission(newRole),
-                                        onSubmit: (val) {
-
-                                          setState(() {
-                                            newRole = newRole.copyWith(type: permissionToRoleType(val));
-                                          });
-                                        },
-
-                                      ).showPopup(context);
-                                    },
-                                  ),
-                                ],
-                              ),
-
-                              /// ===== Search & Add =====
-                              Column(
-                                spacing: 6,
+                              child: Column(
+                                spacing: 13,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     spacing: 6,
                                     children: [
                                       SvgPicture.asset(
-                                        'assets/images/icon_user.svg',
+                                        'assets/images/tag.svg',
                                         height: 15,
                                         width: 15,
                                       ),
-                                      Text('สมาชิกในสังกัด (2)'),
+                                      const Text('ตำแหน่ง'),
                                     ],
                                   ),
-                                  /// ==== Searchbar ====
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: Row(
-                                      spacing: 10,
-                                      children: [
-                                        Expanded(
-                                          child: TextField(
-                                            controller: _searchController,
-                                            onChanged: _onSearchChanged,
-                                            decoration: InputDecoration(
-                                              isDense: true,
-                                              filled: true,
-                                              fillColor: Colors.white,
-                                              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(50),
-                                                borderSide: const BorderSide(
-                                                  color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                                  width: 1,
+                                  Row(
+                                    spacing: 13,
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _nameController,
+                                          focusNode: _focusNode,
+                                          textInputAction: TextInputAction.done,
+                                          decoration: InputDecoration(
+                                            hintText: 'กรุณาระบุชื่อตำแหน่ง',
+                                            hintStyle: const TextStyle(
+                                              color: Colors.black38,
+                                              fontSize: 14,
+                                            ),
+                                            isDense: true,
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(25),
+                                              borderSide: BorderSide.none,
+                                            ),
+                                            suffixIcon: InkWell(
+                                              customBorder: const CircleBorder(),
+                                              onTap: () {
+                                                _nameController.clear();
+                                                FocusScope.of(context).unfocus();
+                                              },
+                                              child: const Padding(
+                                                padding: EdgeInsets.all(6),
+                                                child: Icon(
+                                                  CupertinoIcons.xmark_circle_fill,
+                                                  size: 17,
+                                                  color: Colors.black,
                                                 ),
                                               ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(50),
-                                                borderSide: const BorderSide(
-                                                  color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                                  width: 1,
-                                                ),
-                                              ),
-                                              hint: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                spacing: 10,
-                                                children: [
-                                                  SvgPicture.asset(
-                                                    'assets/images/search.svg',
-                                                    width: 15,
-                                                    height: 15,
-                                                  ),
-                                                  Text('ค้นหาผู้ใช้...',
-                                                    style: TextStyle(
-                                                        color: Color(0xFF7D7D7D),
-                                                        fontSize: 15
-                                                    )
-                                                  )
-                                                ],
-                                              ),
+                                            ),
+                                          ),
+                                          onSubmitted: (val) {
+                                            final newName = val.trim();
+
+                                            if (newName.isEmpty) return;
+
+                                            setState(() {
+                                              newRole = newRole.copyWith(roleName: newName);
+                                            });
+
+                                            FocusScope.of(context).unfocus();
+                                          },
+                                        ),
+                                      ),
+                                      InkWell(
+                                        customBorder: const CircleBorder(),
+                                        onTap: () {
+                                          ColorPickerPopup(
+                                            selected: _roleColor,
+                                            onSubmit: (color) {
+                                              setState(() {
+                                                _roleColor = color;
+
+                                                newRole = newRole.copyWith(
+                                                  roleColor: _colorToHex(color),
+                                                );
+                                              });
+                                            },
+                                          ).showPopup(context);
+                                        },
+                                        child: Container(
+                                          width: 33,
+                                          height: 33,
+                                          decoration: BoxDecoration(
+                                            color: _roleColor,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: const Color(0xFF606060),
+                                              width: 2,
                                             ),
                                           ),
                                         ),
-                                        SizedBox(
-                                          width: 55,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              elevation: 0,
-                                              shadowColor: Colors.transparent,
-                                              padding: EdgeInsets.all(0),
-                                              side: const BorderSide(
-                                                color: Color(0xFF7D7D7D),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            /// กำหนดสิทธิ์การเข้าถึง
+                            SeparatorCard(
+                              separatorPadding:
+                              const EdgeInsets.only(left: 45, right: 15),
+                              children: [
+                                IconTextButton(
+                                  arrow: false,
+                                  icon: 'icon_key.svg',
+                                  label: 'ระดับสิทธิ์การเข้าถึง',
+                                  onPressed: ()  {
+                                    OptionPopup(
+                                      title: 'ระดับสิทธิ์การเข้าถึง',
+                                      options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
+                                      buttonLabel: 'บันทึก',
+                                      maxHeight: 700,
+                                      fit: FlexFit.tight,
+                                      selected: getPermission(newRole),
+                                      onSubmit: (val) {
+
+                                        setState(() {
+                                          newRole = newRole.copyWith(type: permissionToRoleType(val));
+                                        });
+                                      },
+
+                                    ).showPopup(context);
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            /// ===== Search & Add =====
+                            Column(
+                              spacing: 6,
+                              children: [
+                                Row(
+                                  spacing: 6,
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/images/icon_user.svg',
+                                      height: 15,
+                                      width: 15,
+                                    ),
+                                    Text('สมาชิกในสังกัด (${_filteredMembers.length})'),
+                                  ],
+                                ),
+                                /// ==== Searchbar ====
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Row(
+                                    spacing: 10,
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _searchController,
+                                          onChanged: _onSearchChanged,
+                                          decoration: InputDecoration(
+                                            isDense: true,
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(50),
+                                              borderSide: const BorderSide(
+                                                color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
                                                 width: 1,
                                               ),
                                             ),
-                                            child: SvgPicture.asset(
-                                              'assets/images/create_user.svg',
-                                              colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(50),
+                                              borderSide: const BorderSide(
+                                                color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                                width: 1,
+                                              ),
                                             ),
+                                            hint: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              spacing: 10,
+                                              children: [
+                                                SvgPicture.asset(
+                                                  'assets/images/search.svg',
+                                                  width: 15,
+                                                  height: 15,
+                                                ),
+                                                Text('ค้นหาผู้ใช้...',
+                                                  style: TextStyle(
+                                                      color: Color(0xFF7D7D7D),
+                                                      fontSize: 15
+                                                  )
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 55,
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            elevation: 0,
+                                            shadowColor: Colors.transparent,
+                                            padding: EdgeInsets.all(0),
+                                            side: const BorderSide(
+                                              color: Color(0xFF7D7D7D),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: SvgPicture.asset(
+                                            'assets/images/create_user.svg',
+                                            colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
+                                          ),
 
-                                            onPressed: () async {
-                                              _popupSearchController.clear();
+                                          onPressed: () async {
+                                            _popupSearchController.clear();
 
-                                              addMembers = [];
-                                              popupFilteredMembers = [];
+                                            addMembers = [];
+                                            popupFilteredMembers = [];
 
-                                              PushPopup(
-                                                title: 'เพิ่มสมาชิก',
-                                                buttonLabel: 'เพิ่ม',
-                                                fit: FlexFit.tight,
-                                                scroll: false,
-                                                buttonAction: (context) {
-                                                  setState(() {
-                                                    final newMembers = List<Member>.from(newRole.members);
+                                            PushPopup(
+                                              title: 'เพิ่มสมาชิก',
+                                              buttonLabel: 'เพิ่ม',
+                                              fit: FlexFit.tight,
+                                              scroll: false,
+                                              buttonAction: (context) {
+                                                setState(() {
+                                                  final newMembers = List<Member>.from(newRole.members);
 
-                                                    for (var m in addMembers) {
-                                                      if (!newMembers.any((e) => e.id == m.id)) {
-                                                        newMembers.add(m);
-                                                      }
+                                                  for (var m in addMembers) {
+                                                    if (!newMembers.any((e) => e.id == m.id)) {
+                                                      newMembers.add(m);
                                                     }
+                                                  }
 
-                                                    newRole = newRole.copyWith(members: newMembers);
+                                                  newRole = newRole.copyWith(members: newMembers);
 
-                                                    _filteredMembers = newRole.members;
-                                                  });
+                                                  _filteredMembers = newRole.members;
+                                                });
 
 
-                                                  Navigator.pop(context);
-                                                },
-                                                builder: (_) => StatefulBuilder(
-                                                  builder: (context, setStatePopup) {
+                                                Navigator.pop(context);
+                                              },
+                                              builder: (_) => StatefulBuilder(
+                                                builder: (context, setStatePopup) {
 
-                                                    return Column(
-                                                      spacing: 16,
-                                                      children: [
-                                                        TextField(
-                                                          controller: _popupSearchController,
-                                                          onChanged: (val) {
+                                                  return Column(
+                                                    spacing: 16,
+                                                    children: [
+                                                      TextField(
+                                                        controller: _popupSearchController,
+                                                        onChanged: (val) {
 
-                                                            if (_popupDebounce?.isActive ?? false) {
-                                                              _popupDebounce!.cancel();
-                                                            }
+                                                          if (_popupDebounce?.isActive ?? false) {
+                                                            _popupDebounce!.cancel();
+                                                          }
 
-                                                            _popupDebounce = Timer(
-                                                              const Duration(milliseconds: 400),
-                                                                  () => _filterPopupMembers(val, setStatePopup),
-                                                            );
+                                                          _popupDebounce = Timer(
+                                                            const Duration(milliseconds: 400),
+                                                                () => _filterPopupMembers(val, setStatePopup),
+                                                          );
 
-                                                          },
-                                                          decoration: InputDecoration(
-                                                            isDense: true,
-                                                            filled: true,
-                                                            fillColor: Colors.white,
-                                                            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                                                            border: OutlineInputBorder(
-                                                              borderRadius: BorderRadius.circular(50),
-                                                              borderSide: const BorderSide(
-                                                                color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                                                width: 1,
-                                                              ),
-                                                            ),
-                                                            focusedBorder: OutlineInputBorder(
-                                                              borderRadius: BorderRadius.circular(50),
-                                                              borderSide: const BorderSide(
-                                                                color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                                                width: 1,
-                                                              ),
-                                                            ),
-                                                            hint: Row(
-                                                              mainAxisSize: MainAxisSize.min,
-                                                              spacing: 10,
-                                                              children: [
-                                                                SvgPicture.asset(
-                                                                  'assets/images/search.svg',
-                                                                  width: 15,
-                                                                  height: 15,
-                                                                ),
-                                                                Text('ค้นหาตำแหน่ง...',
-                                                                    style: TextStyle(
-                                                                        color: Color(0xFF7D7D7D),
-                                                                        fontSize: 15
-                                                                    )
-                                                                )
-                                                              ],
+                                                        },
+                                                        decoration: InputDecoration(
+                                                          isDense: true,
+                                                          filled: true,
+                                                          fillColor: Colors.white,
+                                                          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                                          border: OutlineInputBorder(
+                                                            borderRadius: BorderRadius.circular(50),
+                                                            borderSide: const BorderSide(
+                                                              color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                                              width: 1,
                                                             ),
                                                           ),
-                                                        ),
-                                                        ServiceLoader(
-                                                          request: () => RoleManagementService().getAllUser(),
-                                                          onSuccess: (res) {
-                                                            final map = res as Map<String, dynamic>;
-                                                            final list = map['members'] as List;
-
-                                                            final loaded =
-                                                            list.map((e) => Member.fromJson(e)).toList();
-
-                                                            allMembers = loaded;
-
-                                                            _filterPopupMembers(
-                                                              _popupSearchController.text,
-                                                              setStatePopup,
-                                                            );
-                                                          },
-                                                          builder: () => Expanded(
-                                                            child: ClipRRect(
-                                                              borderRadius: BorderRadius.circular(20),
-                                                              child: SingleChildScrollView(
-                                                                child: SeparatorCard(
-                                                                separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
-                                                                  children: [
-                                                                    ...popupFilteredMembers.map((m) {
-                                                                      return UserCancelCheckbox(
-                                                                        icon: Image.network(m.avatarUrl),
-                                                                        title: m.thName,
-                                                                        subTitle: m.enName,
-                                                                        checkBox: true,
-                                                                        value: addMembers.any((e) => e.id == m.id),
-                                                                        onChanged: (val) {
-                                                                          setStatePopup(() {
-                                                                            if (val) {
-                                                                              if (!addMembers.any((e) => e.id == m.id)) {
-                                                                                addMembers.add(m);
-                                                                              }
-                                                                            } else {
-                                                                              addMembers.removeWhere((e) => e.id == m.id);
-                                                                            }
-                                                                          });
-                                                                        },
-                                                                      );
-                                                                    })
-                                                                  ],
-                                                                ),
-                                                              )
+                                                          focusedBorder: OutlineInputBorder(
+                                                            borderRadius: BorderRadius.circular(50),
+                                                            borderSide: const BorderSide(
+                                                              color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                                              width: 1,
                                                             ),
-                                                          )
+                                                          ),
+                                                          hint: Row(
+                                                            mainAxisSize: MainAxisSize.min,
+                                                            spacing: 10,
+                                                            children: [
+                                                              SvgPicture.asset(
+                                                                'assets/images/search.svg',
+                                                                width: 15,
+                                                                height: 15,
+                                                              ),
+                                                              Text('ค้นหาตำแหน่ง...',
+                                                                  style: TextStyle(
+                                                                      color: Color(0xFF7D7D7D),
+                                                                      fontSize: 15
+                                                                  )
+                                                              )
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      ServiceLoader(
+                                                        request: () => RoleManagementService().getAllUser(),
+                                                        onSuccess: (res) {
+                                                          final map = res as Map<String, dynamic>;
+                                                          final list = map['members'] as List;
+
+                                                          final loaded =
+                                                          list.map((e) => Member.fromJson(e)).toList();
+
+                                                          allMembers = loaded;
+
+                                                          _filterPopupMembers(
+                                                            _popupSearchController.text,
+                                                            setStatePopup,
+                                                          );
+                                                        },
+                                                        builder: () => Expanded(
+                                                          child: ClipRRect(
+                                                            borderRadius: BorderRadius.circular(20),
+                                                            child: SingleChildScrollView(
+                                                              child: SeparatorCard(
+                                                              separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
+                                                                children: [
+                                                                  ...popupFilteredMembers.map((m) {
+                                                                    return UserCancelCheckbox(
+                                                                      icon: Image.network(m.avatarUrl),
+                                                                      title: m.thName,
+                                                                      subTitle: m.enName,
+                                                                      checkBox: true,
+                                                                      value: addMembers.any((e) => e.id == m.id),
+                                                                      onChanged: (val) {
+                                                                        setStatePopup(() {
+                                                                          if (val) {
+                                                                            if (!addMembers.any((e) => e.id == m.id)) {
+                                                                              addMembers.add(m);
+                                                                            }
+                                                                          } else {
+                                                                            addMembers.removeWhere((e) => e.id == m.id);
+                                                                          }
+                                                                        });
+                                                                      },
+                                                                    );
+                                                                  })
+                                                                ],
+                                                              ),
+                                                            )
+                                                          ),
                                                         )
-                                                      ],
-                                                    );
-                                                  }
-                                                )
-                                              ).showPopup(context);
-                                            },
-                                          ),
-                                        )
-                                      ],
-                                    )
+                                                      )
+                                                    ],
+                                                  );
+                                                }
+                                              )
+                                            ).showPopup(context);
+                                          },
+                                        ),
+                                      )
+                                    ],
                                   )
+                                )
+                              ],
+                            ),
+
+                            /// ===== Member list =====
+                            if (_filteredMembers.isNotEmpty)
+                              SeparatorCard(
+                                separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 68),
+                                children: [
+                                  ..._filteredMembers.map((m) {
+                                    return UserCancelCheckbox(
+                                      icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
+                                      title: m.thName,
+                                      subTitle: m.enName,
+                                      checkBox: false,
+                                      onCancel: () {
+                                        setState(() {
+                                          final newMembers = List<Member>.from(newRole.members)
+                                            ..removeWhere((e) => e.id == m.id);
+
+                                          newRole = newRole.copyWith(members: newMembers);
+
+                                          _filteredMembers = newRole.members;
+                                        });
+                                      }
+                                    );
+                                  }),
                                 ],
                               ),
-
-                              /// ===== Member list =====
-                              if (_filteredMembers.isNotEmpty)
-                                SeparatorCard(
-                                  separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 68),
-                                  children: [
-                                    ..._filteredMembers.map((m) {
-                                      return UserCancelCheckbox(
-                                          icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
-                                          title: m.thName,
-                                          subTitle: m.enName,
-                                          checkBox: false,
-                                          onCancel: () {
-                                            setState(() {
-                                              final newMembers = List<Member>.from(newRole.members)
-                                                ..removeWhere((e) => e.id == m.id);
-
-                                              newRole = newRole.copyWith(members: newMembers);
-
-                                              _filteredMembers = newRole.members;
-                                            });
-                                          }
-                                      );
-                                    }),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        )
+                          ],
+                        ),
+                      )
                     )
                   ],
                 ),
@@ -598,9 +598,9 @@ class _CreateRoleState extends State<CreateRole> {
                               height: 42,
                               child: ElevatedButton.icon(
                                 onPressed: (state != ServiceUpdatorState.loading &&
-                                    _nameController.text.trim().isNotEmpty)
-                                    ? () => trigger()
-                                    : null,
+                                  _nameController.text.trim().isNotEmpty)
+                                  ? () => trigger()
+                                  : null,
                                 icon: SvgPicture.asset(
                                   'assets/images/create.svg',
                                   height: 18,
@@ -640,9 +640,9 @@ class _CreateRoleState extends State<CreateRole> {
                               height: 25,
                               child: (state == ServiceUpdatorState.error) ?
                               Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
-                                  style: TextStyle(
-                                      color: Colors.red
-                                  )
+                                style: TextStyle(
+                                    color: Colors.red
+                                )
                               ) : SizedBox()
                             )
                           ],
