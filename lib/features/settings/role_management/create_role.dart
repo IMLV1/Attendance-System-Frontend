@@ -332,7 +332,7 @@ class _CreateRoleState extends State<CreateRole> {
                                         height: 15,
                                         width: 15,
                                       ),
-                                      Text('สมาชิกในสังกัด (2)'),
+                                      Text('สมาชิกในสังกัด (${_filteredMembers.length})'),
                                     ],
                                   ),
                                   /// ==== Searchbar ====
