@@ -101,9 +101,16 @@ class _CreateRoleState extends State<CreateRole> {
 
     setStatePopup(() {
       popupFilteredMembers = allMembers.where((m) {
-        final matchSearch = searchKey.isEmpty || m.thName.toLowerCase().contains(searchKey) || m.enName.toLowerCase().contains(searchKey);
-        final notInRole = !newRole.members.any((e) => e.id == m.id);
+
+        final th = m.thName.trim().toLowerCase();
+        final en = m.enName.trim().toLowerCase();
+
+        final matchSearch = searchKey.isEmpty || th.contains(searchKey) || en.contains(searchKey);
+
+        final notInRole = !newRole.members.any((e) => e.id.trim() == m.id.trim());
+
         return matchSearch && notInRole;
+
       }).toList();
     });
   }
@@ -390,7 +397,7 @@ class _CreateRoleState extends State<CreateRole> {
 
                                             onPressed: () async {
                                               PushPopup(
-                                                title: 'รหัสบุคลากร',
+                                                title: 'เพิ่มสมาชิก',
                                                 buttonLabel: 'เพิ่ม',
                                                 fit: FlexFit.tight,
                                                 scroll: false,
@@ -476,31 +483,36 @@ class _CreateRoleState extends State<CreateRole> {
                                                               setStatePopup,
                                                             );
                                                           },
-                                                          builder: () => SingleChildScrollView(
-                                                            child: SeparatorCard(
-                                                              separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
-                                                              children: [
-                                                                ...popupFilteredMembers.map((m) {
-                                                                  return UserCancelCheckbox(
-                                                                    icon: Image.network(m.avatarUrl),
-                                                                    title: m.thName,
-                                                                    subTitle: m.enName,
-                                                                    checkBox: true,
-                                                                    value: addMembers.any((e) => e.id == m.id),
-                                                                    onChanged: (val) {
-                                                                      setStatePopup(() {
-                                                                        if (val) {
-                                                                          if (!addMembers.any((e) => e.id == m.id)) {
-                                                                            addMembers.add(m);
-                                                                          }
-                                                                        } else {
-                                                                          addMembers.removeWhere((e) => e.id == m.id);
-                                                                        }
-                                                                      });
-                                                                    },
-                                                                  );
-                                                                })
-                                                              ],
+                                                          builder: () => Expanded(
+                                                            child: ClipRRect(
+                                                              borderRadius: BorderRadius.circular(20),
+                                                              child: SingleChildScrollView(
+                                                                child: SeparatorCard(
+                                                                separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
+                                                                  children: [
+                                                                    ...popupFilteredMembers.map((m) {
+                                                                      return UserCancelCheckbox(
+                                                                        icon: Image.network(m.avatarUrl),
+                                                                        title: m.thName,
+                                                                        subTitle: m.enName,
+                                                                        checkBox: true,
+                                                                        value: addMembers.any((e) => e.id == m.id),
+                                                                        onChanged: (val) {
+                                                                          setStatePopup(() {
+                                                                            if (val) {
+                                                                              if (!addMembers.any((e) => e.id == m.id)) {
+                                                                                addMembers.add(m);
+                                                                              }
+                                                                            } else {
+                                                                              addMembers.removeWhere((e) => e.id == m.id);
+                                                                            }
+                                                                          });
+                                                                        },
+                                                                      );
+                                                                    })
+                                                                  ],
+                                                                ),
+                                                              )
                                                             ),
                                                           )
                                                         )
