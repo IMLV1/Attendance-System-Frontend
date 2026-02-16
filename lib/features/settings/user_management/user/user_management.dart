@@ -312,7 +312,8 @@ class _UserManagementState extends State<UserManagement> {
                           child: ServiceLoader(
                             request: () => UserManagementService().getData(),
                             onSuccess: (jsonData) {
-                              final data = UserManagementModel.getList(jsonData);
+                              final List<UserManagementModel> data = UserManagementModel.getList(jsonData);
+
                               setState(() {
                                 users = data;
                                 _onSearchChanged(_controller.text);
