@@ -174,7 +174,13 @@ class _EditRoleState extends State<EditRole> {
       final key = value.trim().toLowerCase();
 
       setState(() {
-        _filteredMembers = key.isEmpty ? _role.members : _role.members.where((m) => m.thName.toLowerCase().contains(key) || m.enName.toLowerCase().contains(key)).toList();
+        _filteredMembers = key.isEmpty ? _role.members : _role.members
+            .where((m) => m.thName
+            .toLowerCase()
+            .contains(key) || m.enName
+            .toLowerCase()
+            .contains(key))
+            .toList();
       });
     });
   }

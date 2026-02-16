@@ -9,11 +9,11 @@ class RoleManagementService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
   Future<Response<dynamic>> getRoleManagementModel() async {
-    return dio.get('/system/role');
+    return dio.get('/system/role_management/role');
   }
 
   Future<Response<dynamic>> getUser(RoleSystem e) async {
-    return dio.get('/system/role/all-user/${e.id}');
+    return dio.get('/system/role_management/all-user/${e.id}');
   }
 
   Future<Response<dynamic>> getAllUser() async {
@@ -22,7 +22,7 @@ class RoleManagementService {
 
   Future<Response<dynamic>> updateRole(RoleSystem element) async {
     return dio.put(
-      '/system/role/update/${element.id}',
+      '/system/role_management/update/${element.id}',
       data: {
         'id': element.id,
         'type': roleTypeToApi(element.type),
@@ -37,11 +37,13 @@ class RoleManagementService {
 
   Future<Response<dynamic>> createRole(RoleSystem element) async {
     final uuid = Uuid();
+    final newId = uuid.v4();
 
+    print(newId);
     return dio.post(
       '/system/role/create',
       data: {
-        'id': uuid.v4(),
+        'id': newId,
         'type': roleTypeToApi(element.type),
         'color': element.roleColor,
         'name': element.roleName,
@@ -55,7 +57,7 @@ class RoleManagementService {
   Future<Response<dynamic>> deleteRole(RoleSystem element) {
 
     Future<Response<dynamic>> response = dio.delete(
-        '/system/role/delete',
+        '/system/role_management/delete',
         data: {
           'id': element.id
         }
