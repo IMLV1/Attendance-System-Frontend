@@ -6,8 +6,8 @@ import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../shared/widgets/utils/separator_card.dart';
-import '../../shared/widgets/utils/text_button.dart' as utils;
+import '../../../shared/widgets/utils/separator_card.dart';
+import '../../../shared/widgets/utils/text_button.dart' as utils;
 
 class LeaveRequestPage extends StatefulWidget {
   const LeaveRequestPage({super.key});
