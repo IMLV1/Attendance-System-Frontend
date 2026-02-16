@@ -23,6 +23,14 @@ class AuthState extends ChangeNotifier {
   Future<void> init() async {
     final ok = await repo.hasToken();
     status = ok ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+
+    if (status == AuthStatus.authenticated) {
+      Response response = await ProfileService().getProfile();
+      if (response.statusCode == 200) {
+        profile = ProfileModel.fromJson(response.data);
+      }
+    }
+
     notifyListeners();
   }
 
