@@ -1920,6 +1920,8 @@ class _EditRoleState extends State<EditRole> {
   }
 
   void _filterPopupMembers(String key, void Function(void Function()) setStatePopup) {
+    if (!mounted) return;
+
     final searchKey = key.trim().toLowerCase();
 
     setStatePopup(() {
