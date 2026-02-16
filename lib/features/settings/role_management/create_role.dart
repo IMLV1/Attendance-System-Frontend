@@ -97,6 +97,8 @@ class _CreateRoleState extends State<CreateRole> {
   }
 
   void _filterPopupMembers(String key, void Function(void Function()) setStatePopup) {
+    if (!mounted) return;
+
     final searchKey = key.trim().toLowerCase();
 
     setStatePopup(() {
@@ -261,7 +263,11 @@ class _CreateRoleState extends State<CreateRole> {
                                               selected: _roleColor,
                                               onSubmit: (color) {
                                                 setState(() {
-                                                  newRole = newRole.copyWith(roleColor: _colorToHex(color));
+                                                  _roleColor = color;
+
+                                                  newRole = newRole.copyWith(
+                                                    roleColor: _colorToHex(color),
+                                                  );
                                                 });
                                               },
                                             ).showPopup(context);
@@ -396,6 +402,11 @@ class _CreateRoleState extends State<CreateRole> {
                                             ),
 
                                             onPressed: () async {
+                                              _popupSearchController.clear();
+
+                                              addMembers = [];
+                                              popupFilteredMembers = [];
+
                                               PushPopup(
                                                 title: 'เพิ่มสมาชิก',
                                                 buttonLabel: 'เพิ่ม',
@@ -403,7 +414,17 @@ class _CreateRoleState extends State<CreateRole> {
                                                 scroll: false,
                                                 buttonAction: (context) {
                                                   setState(() {
-                                                    newRole = newRole.copyWith(members: addMembers);
+                                                    final newMembers = List<Member>.from(newRole.members);
+
+                                                    for (var m in addMembers) {
+                                                      if (!newMembers.any((e) => e.id == m.id)) {
+                                                        newMembers.add(m);
+                                                      }
+                                                    }
+
+                                                    newRole = newRole.copyWith(members: newMembers);
+
+                                                    _filteredMembers = newRole.members;
                                                   });
 
 
