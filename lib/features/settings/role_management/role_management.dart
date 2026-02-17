@@ -388,6 +388,8 @@ class _RoleManagementState extends State<RoleManagement> {
                               }
                             }
                           }
+
+                          _applyFilter(_controller.text, rebuild: false);
                         });
                       },
                     )
@@ -488,40 +490,64 @@ class _RoleManagementState extends State<RoleManagement> {
 
                                 SeparatorCard(
                                   borderRadius: const BorderRadius.all(Radius.circular(22)),
-                                  separatorPadding:
-                                  const EdgeInsets.only(left: 60, right: 15),
-                                  children: _filteredMainRoles.map((m) {
-                                    return AppButton(
-                                      icon: switch (m.type) {
-                                        RoleType.admin => 'icon_admin.svg',
-                                        RoleType.hr => 'icon_hr.svg',
-                                        RoleType.mainRole => 'role_management.svg',
-                                        RoleType.specialRole => 'specialer.svg',
-                                      },
-                                      iconColor: m.roleColor != null
-                                          ? Color(int.parse('0xFF${m.roleColor}'))
-                                          : null,
-                                      title: m.roleName,
-                                      weightTitle: FontWeight.normal,
-                                      subTitle: 'สมาชิกในสังกัด ${m.members.length} คน',
-                                      arrow: true,
-                                      onPressed: () async {
-                                        final result = await Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) => EditRole(roleInfo: m),
-                                          ),
-                                        );
+                                  separatorPadding: const EdgeInsets.only(left: 60, right: 15),
+                                  children: () {
 
-                                        if (result != null) {
-                                          if (result is Map && result['status'] == 1) {
-                                            _removeRole(m.id);
-                                          } else if (result is RoleSystem) {
-                                            _updateRole(result);
-                                          }
+                                    // ✅ ใส่ตรงนี้
+                                    final sortedRoles = List<RoleSystem>.from(_filteredMainRoles);
+
+                                    sortedRoles.sort((a, b) {
+                                      int order(RoleType type) {
+                                        switch (type) {
+                                          case RoleType.admin:
+                                            return 0;
+                                          case RoleType.hr:
+                                            return 1;
+                                          case RoleType.mainRole:
+                                            return 2;
+                                          case RoleType.specialRole:
+                                            return 3;
                                         }
-                                      },
-                                    );
-                                  }).toList(),
+                                      }
+
+                                      return order(a.type).compareTo(order(b.type));
+                                    });
+
+                                    // ✅ แล้ว map จาก sortedRoles แทน
+                                    return sortedRoles.map((m) {
+                                      return AppButton(
+                                        icon: switch (m.type) {
+                                          RoleType.admin => 'icon_admin.svg',
+                                          RoleType.hr => 'icon_hr.svg',
+                                          RoleType.mainRole => 'role_management.svg',
+                                          RoleType.specialRole => 'specialer.svg',
+                                        },
+                                        iconColor: m.roleColor != null
+                                            ? Color(int.parse('0xFF${m.roleColor}'))
+                                            : null,
+                                        title: m.roleName,
+                                        weightTitle: FontWeight.normal,
+                                        subTitle: 'สมาชิกในสังกัด ${m.members.length} คน',
+                                        arrow: true,
+                                        onPressed: () async {
+                                          final result = await Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => EditRole(roleInfo: m),
+                                            ),
+                                          );
+
+                                          if (result != null) {
+                                            if (result is Map && result['status'] == 1) {
+                                              _removeRole(m.id);
+                                            } else if (result is RoleSystem) {
+                                              _updateRole(result);
+                                            }
+                                          }
+                                        },
+                                      );
+                                    }).toList();
+
+                                  } (),
                                 ),
 
                               ],

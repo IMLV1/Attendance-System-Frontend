@@ -10,7 +10,7 @@ class UserManagementService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
   Future<Response<dynamic>> getData() {
-    return dio.get('/api/users');
+    return dio.get('/system/user_management/users');
   }
 
   Future<Response<dynamic>> createUser(UserManagementModel userInfo, MaxLeaveModel maxLeave) {
