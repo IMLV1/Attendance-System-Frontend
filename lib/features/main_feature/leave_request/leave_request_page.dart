@@ -1,17 +1,24 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
+import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../../../shared/widgets/utils/separator_card.dart';
 import '../../../shared/widgets/utils/text_button.dart' as utils;
@@ -26,14 +33,20 @@ class LeaveRequestPage extends StatefulWidget {
 class _LeaveRequestPage extends State<LeaveRequestPage> {
 
   String? leaveType;
-  bool flag = true;
+  LeaveSetting? setting;
 
   List<PlatformFile> allFiles = [];
 
   final MenuController _menuController = MenuController();
+  final TextEditingController _textEditingController = TextEditingController();
+
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _rangeStart;
+  DateTime? _rangeEnd;
 
   @override
   Widget build(BuildContext context) {
+
     return AppScaffold(
       header: Header.mainHeader(
         context,
@@ -86,7 +99,7 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: 10,
+                                spacing: 13,
                                 children: [
                                   Column(
                                     spacing: 6,
@@ -98,22 +111,22 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                                             color: leaveType == null ? Color(0xFF7D7D7D) : Colors.black,
                                             onPressed: () async {
                                               /// TODO: Select Leave Request
-                                              final result = await Navigator.of(context).push(
+                                              final (leaveType, setting) = await Navigator.of(context).push(
                                                 MaterialPageRoute(
                                                   builder: (_) => const LeaveType(),
                                                 ),
                                               );
-                                              if (result != null) {
+                                              if (leaveType != null) {
                                                 setState(() {
-                                                  leaveType = result;
+                                                  this.leaveType = leaveType;
+                                                  this.setting = setting;
                                                 });
                                               }
                                             },
                                           ),
                                         ],
                                       ),
-                                      if (leaveType != null)
-                                        Row(
+                                      if (leaveType != null) Row(
                                           spacing: 6,
                                           crossAxisAlignment: CrossAxisAlignment.center,
                                           children: [
@@ -161,7 +174,120 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                                         ),
                                     ],
                                   ),
-                                  TextField(
+                                  if (leaveType != null) ElevatedButton(
+                                    onPressed: () {
+                                      PushPopup(
+                                        title: 'เลือกวันที่',
+                                        fit: FlexFit.tight,
+                                        maxHeight: 700,
+                                        builder: (context) {
+                                          return TableCalendar(
+                                            locale: 'th_TH',
+                                            firstDay: DateTime.now().subtract(Duration(days: 10)),
+                                            lastDay: DateTime.now().add(Duration(days: 10)),
+                                            focusedDay: _focusedDay,
+                                            rangeStartDay: _rangeStart,
+                                            rangeEndDay: _rangeEnd,
+                                            rangeSelectionMode: RangeSelectionMode.enforced,
+                                            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+                                            onRangeSelected: (start, end, focusedDay) {
+                                              setState(() {
+                                                _rangeStart = start;
+                                                _rangeEnd = end;
+                                                _focusedDay = focusedDay;
+                                              });
+                                            },
+                                            calendarStyle: CalendarStyle(
+                                              // 1. สีไฮไลต์ช่วงวันที่ (จะขึ้นก็ต่อเมื่อเราเริ่มเลือกแล้ว)
+                                              rangeHighlightColor: const Color(0xFFE3F2FD),
+
+                                              rangeStartDecoration: const BoxDecoration(
+                                                color: Color(0xFF4A80F0),
+                                                shape: BoxShape.circle,
+                                              ),
+
+                                              rangeEndDecoration: const BoxDecoration(
+                                                color: Color(0xFF4A80F0),
+                                                shape: BoxShape.circle,
+                                              ),
+
+                                              // --- แก้ไขจุดนี้: ปิดสีฟ้าของวันที่ปัจจุบันออก ---
+
+                                              // 2. ปรับ Today ให้ไม่มีพื้นหลังสีฟ้า (ทำให้ดูเหมือนยังไม่ได้เลือก)
+                                              todayDecoration: BoxDecoration(
+                                                color: Colors.transparent, // ทำให้โปร่งใส
+                                                shape: BoxShape.circle,
+                                              ),
+
+                                              // 3. ปรับสีตัวเลขของวันนี้ให้เป็นสีดำปกติ (ไม่ใช่สีขาว) เพื่อให้มองเห็นบนพื้นขาว
+                                              todayTextStyle: const TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+
+                                              // 4. ส่วนวันที่ถูกเลือก (เมื่อจิ้มแล้วถึงจะขึ้นสีฟ้า)
+                                              selectedDecoration: const BoxDecoration(
+                                                color: Color(0xFF4A80F0),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ).showPopup(context);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      shadowColor: Colors.transparent,
+                                      overlayColor: Colors.transparent,
+                                      elevation: 0,
+                                      minimumSize: Size(0, 0),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    child: Container(
+                                      padding: EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 15),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(15)
+                                      ),
+                                      child: Row(
+                                        spacing: 10,
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              spacing: 10,
+                                              children: [
+                                                SvgPicture.asset('assets/images/calendar_in.svg'),
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('จากวันที่'),
+                                                    Text('---'),
+                                                  ],
+                                                )
+                                              ],
+                                            )
+                                          ),
+                                          Container(width: 1.5, height: 40, color: Color(0xFFB1B1B1)),
+                                          Expanded(
+                                            child: Row(
+                                              spacing: 10,
+                                              children: [
+                                                SvgPicture.asset('assets/images/calendar_out.svg'),
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('ถึงวันที่'),
+                                                    Text('---'),
+                                                  ],
+                                                )
+                                              ],
+                                            )
+                                          )
+                                        ],
+                                      )
+                                    )
+                                  ),
+                                  if (leaveType != null && setting!.specifyRemark) TextField(
+                                    controller: _textEditingController,
                                     maxLines: 1,
                                     decoration: InputDecoration(
                                       isDense: true,
@@ -182,7 +308,7 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                                       ),
                                     ),
                                   ),
-                                  SeparatorCard(
+                                  if (leaveType != null && setting!.evidenceFile) SeparatorCard(
                                     separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
                                     children: [
                                       MenuAnchor(
@@ -388,135 +514,75 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                                       )
                                     ],
                                   )
+                                  /*ServiceUpdater(
+                                      request: () => UserManagementService().updateRole(widget.id, roles),
+                                      onSuccess: () {
+                                        setState(() {
+                                          oldRoles = [...roles];
+                                        });
+                                      },
+                                      builder: (trigger, state, errorMessage) {
+
+                                        return Column(
+                                          children: [
+                                            SizedBox(
+                                              width: double.infinity,
+                                              height: 42,
+                                              child: ElevatedButton.icon(
+                                                onPressed: (state != .loading) ? () => trigger() : null,
+                                                icon: SvgPicture.asset(
+                                                  'assets/images/save.svg',
+                                                  height: 18,
+                                                  width: 18,
+                                                  colorFilter: ColorFilter.mode(
+                                                    Colors.white,
+                                                    BlendMode.srcIn,
+                                                  ),
+                                                ),
+                                                label: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 10,
+                                                  children: [
+                                                    Text(
+                                                      'บันทึก',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                    if (state == .loading) CupertinoActivityIndicator(color: Colors.white),
+                                                  ],
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                  disabledBackgroundColor: Colors.grey,
+                                                  backgroundColor: AppColors.primaryColor,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(30),
+                                                  ),
+                                                  elevation: 0,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                                height: 25,
+                                                child: (state == ServiceUpdatorState.error) ?
+                                                Text(
+                                                    'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                                                    style: TextStyle(
+                                                        color: Colors.red
+                                                    )
+                                                ) : SizedBox()
+                                            )
+                                          ],
+                                        );
+                                      }
+                                  )*/
                                 ],
                               ),
                             ),
                           ],
                         )
-
-                        /*SizedBox(
-                          width: double.infinity,
-                          height: 42,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              // TODO: submit
-                            },
-                            icon: SvgPicture.asset(
-                              'assets/images/icon_send.svg',
-                              height: 18,
-                              width: 18,
-                              colorFilter: ColorFilter.mode(
-                                Colors.white,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                            label: Text(
-                              'ส่ง',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              elevation: 0,
-                            ),
-                          ),
-                        ),*/
-                        /*if (flag && leaveType != null) ...[
-                          Row(
-                            spacing: 6,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                height: 15,
-                                width: 15,
-                                child: SvgPicture.asset(
-                                  'assets/images/icon_alert.svg',
-                                  colorFilter: ColorFilter.mode(Colors.red, BlendMode.srcIn),
-                                ),
-                              ),
-                              Expanded(
-                                child: DefaultTextStyle(
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.red,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 4,
-                                    children: [
-                                      Text(
-                                        'คุณได้ใช้สิทธิ์การ$leaveTypeครบตามจำนวนที่กำหนดแล้ว หากคำขอนี้ได้รับการอนุมัติจำนวนวันลาของคุณจะเกินสิทธิ์ 2 วัน ซึ่งอาจส่งผลต่อการคำนวณตัวชี้วัดผลการปฏิบัติงาน',
-                                      ),
-                                      Text(
-                                          'กรุณากดปุ่มอีกครั้ง',
-                                          style: TextStyle(fontWeight: FontWeight.bold)
-                                      ),
-                                      Text('เพื่อดำเนินการต่อ',),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ],*/
-                        /*Row(
-                          spacing: 5,
-                          children: [
-                            SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: SvgPicture.asset(
-                                'assets/images/icon_time.svg',
-                              ),
-                            ),
-                            Text(
-                              'ติดตามสถานะ',
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                            Spacer(),
-                            InkWell(
-                              onTap: () {
-
-                              },
-                              child: Text(
-                                'ดูทั้งหมด',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    color: AppColors.primaryColor
-                                ),
-                              ),
-                            )
-                          ],
-                        ),*/
-                        /*SeparatorCard(
-                          separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 15),
-                          children: [
-                            AppButton(
-                              icon: 'icon_success.svg',
-                              iconColor: Color(0xFF00B646),
-                              title: '17/09/2020 - 18/03/2021',
-                              subTitle: 'หมายเลขคำขอ: LEV000000065012',
-                              onPressed: () {
-                                /// TODO: Open Pop-Up
-                              },
-                            ),
-                            AppButton(
-                              icon: 'icon_success.svg',
-                              iconColor: Color(0xFF00B646),
-                              title: '17/09/2020 - 18/03/2021',
-                              subTitle: 'หมายเลขคำขอ: LEV000000065012',
-                              onPressed: () {
-                                /// TODO: Open Pop-Up
-                              },
-                            ),
-                          ],
-                        )*/
                       ],
                     )
                   )
@@ -524,77 +590,6 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
               ]
             )
           )
-        )
-      )
-    );
-  }
-}
-
-class LeaveType extends StatelessWidget {
-  const LeaveType({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      header: Header.subHeader(
-        context,
-        title: 'เลือกประเภทการลา'
-      ),
-      content: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(15),
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              SeparatorCard(
-                separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 15),
-                children: [
-                  AppButton(
-                    icon: 'icon_sick.svg',
-                    title: 'ลาป่วย',
-                    onPressed: () {
-                      Navigator.pop(context, 'ลาป่วย');
-                    },
-                  ),
-                  AppButton(
-                    icon: 'icon_leave_personal.svg',
-                    title: 'ลากิจส่วนตัว',
-                    onPressed: () {
-                      Navigator.pop(context, 'ลากิจส่วนตัว');
-                    },
-                  ),
-                  AppButton(
-                    icon: 'icon_vacation.svg',
-                    title: 'ลาพักผ่อน',
-                    onPressed: () {
-                      Navigator.pop(context, 'ลาพักผ่อน');
-                    },
-                  ),
-                  AppButton(
-                    icon: 'icon_maternity_leave.svg',
-                    title: 'ลาคลอดบุตร',
-                    onPressed: () {
-                      Navigator.pop(context, 'ลาคลอดบุตร');
-                    },
-                  ),
-                  AppButton(
-                    icon: 'icon_leave_assist_childbirth.svg',
-                    title: 'ลาช่วยเหลือภริยาคลอดบุตร',
-                    onPressed: () {
-                      Navigator.pop(context, 'ลาช่วยเหลือภริยาคลอดบุตร');
-                    },
-                  ),
-                  AppButton(
-                    icon: 'icon_taking_care_child.svg',
-                    title: 'ลากิจเพื่อเลี้ยงดูบุตร',
-                    onPressed: () {
-                      Navigator.pop(context, 'ลากิจเพื่อเลี้ยงดูบุตร');
-                    },
-                  ),
-                ],
-              )
-            ],
-          ),
         )
       )
     );
@@ -615,7 +610,6 @@ String _formatBytes(int bytes, {int decimals = 2}) {
 
   return '${size.toStringAsFixed(decimals).replaceAll(RegExp(r'\.?0+$'), '')} ${suffixes[i]}';
 }
-
 Future<PlatformFile?> _pickDocumentOrImage(BuildContext context) async {
   return await showModalBottomSheet<PlatformFile>(
     context: context,
@@ -665,7 +659,6 @@ Future<PlatformFile?> _pickDocumentOrImage(BuildContext context) async {
     },
   );
 }
-
 int _generateRandomNumber(int digits) {
   if (digits <= 0) {
     throw ArgumentError('Digits must be greater than 0');
@@ -678,3 +671,127 @@ int _generateRandomNumber(int digits) {
 
   return min + random.nextInt(max - min + 1);
 }
+
+/*SizedBox(
+                          width: double.infinity,
+                          height: 42,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // TODO: submit
+                            },
+                            icon: SvgPicture.asset(
+                              'assets/images/icon_send.svg',
+                              height: 18,
+                              width: 18,
+                              colorFilter: ColorFilter.mode(
+                                Colors.white,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            label: Text(
+                              'ส่ง',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),*/
+/*if (flag && leaveType != null) ...[
+                          Row(
+                            spacing: 6,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                height: 15,
+                                width: 15,
+                                child: SvgPicture.asset(
+                                  'assets/images/icon_alert.svg',
+                                  colorFilter: ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                                ),
+                              ),
+                              Expanded(
+                                child: DefaultTextStyle(
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.red,
+                                  ),
+                                  child: Wrap(
+                                    spacing: 4,
+                                    children: [
+                                      Text(
+                                        'คุณได้ใช้สิทธิ์การ$leaveTypeครบตามจำนวนที่กำหนดแล้ว หากคำขอนี้ได้รับการอนุมัติจำนวนวันลาของคุณจะเกินสิทธิ์ 2 วัน ซึ่งอาจส่งผลต่อการคำนวณตัวชี้วัดผลการปฏิบัติงาน',
+                                      ),
+                                      Text(
+                                          'กรุณากดปุ่มอีกครั้ง',
+                                          style: TextStyle(fontWeight: FontWeight.bold)
+                                      ),
+                                      Text('เพื่อดำเนินการต่อ',),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ],*/
+/*Row(
+                          spacing: 5,
+                          children: [
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: SvgPicture.asset(
+                                'assets/images/icon_time.svg',
+                              ),
+                            ),
+                            Text(
+                              'ติดตามสถานะ',
+                              style: TextStyle(
+                                fontSize: 15,
+                              ),
+                            ),
+                            Spacer(),
+                            InkWell(
+                              onTap: () {
+
+                              },
+                              child: Text(
+                                'ดูทั้งหมด',
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: AppColors.primaryColor
+                                ),
+                              ),
+                            )
+                          ],
+                        ),*/
+/*SeparatorCard(
+                          separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 15),
+                          children: [
+                            AppButton(
+                              icon: 'icon_success.svg',
+                              iconColor: Color(0xFF00B646),
+                              title: '17/09/2020 - 18/03/2021',
+                              subTitle: 'หมายเลขคำขอ: LEV000000065012',
+                              onPressed: () {
+                                /// TODO: Open Pop-Up
+                              },
+                            ),
+                            AppButton(
+                              icon: 'icon_success.svg',
+                              iconColor: Color(0xFF00B646),
+                              title: '17/09/2020 - 18/03/2021',
+                              subTitle: 'หมายเลขคำขอ: LEV000000065012',
+                              onPressed: () {
+                                /// TODO: Open Pop-Up
+                              },
+                            ),
+                          ],
+                        )*/
