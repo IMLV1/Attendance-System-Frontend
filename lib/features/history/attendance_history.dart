@@ -165,41 +165,143 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
   Widget _buildVerticalLine() => Container(width: 2, height: 40, color: AppColors.lightTextColor);
 
   //ตัวอย่าง (ข้อมูลปลอม) เอาไว้โชว์ UI ก่อน
+  //from database
   final List<Map<String,dynamic>> _mock = [
     {
-      "day": "22",
-      "dow": "พุธ",// dow = day of week
-      "bgColor": const Color(0xFFEAF5EE), // สีพื้นหลังของกล่องวันที่ด้านซ้าย //green พาสเทล
-      "in": "08.30",
-      "out": "--:--",
-      "statusText": "ไม่สมบูรณ์",
-      "statusBg": const Color(0xFFFFE5E5), // สีพื้นหลังของชิปสถานะ // ชมพูอ่อนมาก / แดงอ่อนพาสเทล (พื้นหลังแจ้งเตือนอ่อนๆ)
-      "statusFg": const Color(0xFFD32F2F), // สีตัวหนังสือ + ไอคอนในชิปสถานะ //แดงเข้ม (แนวแดงเตือน/ผิดพลาด)
-      "duration": "-- ชั่วโมง",
+      "day": "24",
+      "dow": "ศุกร์",
+      "in": "09.30",
+      "out": "18.30"
+    },
+    {
+      "day": "23",
+      "dow": "พฤหัสบดี",
+      "in": "07.30",
+      "out": "22.30"
+    },
+    {
+      "day": "22",//from database
+      "dow": "พุธ",// dow = day of week //from database
+      "in": "08.30", //from database
+      "out": "--:--", //from database
     },
     {
       "day": "21",
       "dow": "อังคาร",
-      "bgColor": const Color(0xFFF7ECF1),
       "in": "08:42",
       "out": "16:30",
-      "statusText": "สาย 12 นาที",
-      "statusBg": const Color(0xFFFFF3CD),
-      "statusFg": const Color(0xFFB26A00),
-      "duration": "7.48 ชั่วโมง",
     },
     {
       "day": "20",
       "dow": "จันทร์",
-      "bgColor": const Color(0xFFFFF3CD),
       "in": "08:30",
       "out": "21:30",
-      "statusText": "ตรงเวลา",
-      "statusBg": const Color(0xFFE6F4EA),
-      "statusFg": const Color(0xFF1E8E3E),
-      "duration": "13.00 ชั่วโมง",
     },
   ];
+
+  static const int _stdInHour = 8;
+  static const int _stdInMinute = 30;
+
+  //ถ้า string นั้นว่าง return true
+  bool _isMissingTime (String t){
+    final s = t.trim();
+    return s.isEmpty || s == '--:--' || s == '--.--' || s == '-';
+  }
+
+  /// รองรับ "08.30" หรือ "08:30"
+  DateTime _parseTime(String t) {
+    final s = t.trim().replaceAll('.', ':');
+    final parts = s.split(':');
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+    return DateTime(2000, 1, 1, h, m);
+  }
+  // แปลง String เวลา ("08.30"/"08:30") เป็น DateTime โดย **fix วันที่เป็น 2000-01-01**
+  // Parse เวลาเป็น DateTime (กำหนดวันที่คงที่ไว้เพื่อใช้เปรียบเทียบเวลา)
+  // รองรับ . หรือ : และคืนค่าเป็น DateTime ของวันสมมติ 2000-01-01
+
+  /// duration แบบ H.MM (ชั่วโมง.นาที) ตามภาพ เช่น 7.48, 13.00
+  String _formatHourDotMinute(Duration d) {
+    if (d.isNegative) return '--.--';
+    final totalMin = d.inMinutes;
+    final h = totalMin ~/ 60;
+    final m = totalMin % 60;
+    return '$h.${m.toString().padLeft(2, '0')}';
+  }
+
+  //ประจำวันจ้า
+  Color _badgeColorByDow(String dow) {
+    switch (dow.trim()) {
+      case 'จันทร์':
+        return const Color(0xFFFFF3CD); // เหลืองอ่อน
+      case 'อังคาร':
+        return const Color(0xFFF7ECFE); // ชมพูอ่อน (ตาม mock เดิมคุณ)
+      case 'พุธ':
+        return const Color(0xFFEAF5EE); // เขียวอ่อน
+      case 'พฤหัสบดี':
+        return const Color(0xFFFFE0B2); // Orange
+      case 'ศุกร์':
+        return const Color(0xFFBBDEFB); // Blue
+      case 'เสาร์':
+        return const Color(0xFFE1BEE7);//ม่วงอ่อนพาสเทล
+      case 'อาทิตย์':
+        return const Color(0xFFFFE5E5); //แดงอ่อนพาสเทล
+      default:
+        return const Color(0xFFF2F4F7); //grey
+    }
+  }
+
+  Map<String,dynamic> _computeUi({
+    required String dow,
+    required String timeIn,
+    required String timeOut,
+  }) {
+    final badgeColor = _badgeColorByDow(dow);
+
+    //boolean เดี๋ยวจะเอาไปใช้ต่อ ตอนเทียบเงือนไข
+    final inMissing = _isMissingTime(timeIn);//inMissing = true ถ้า timeIn เป็นค่าว่าง หรือ --:--
+    final outMissing = _isMissingTime(timeOut);// outMissing = true ถ้า timeOut เป็นค่าว่าง หรือ --:--
+
+    // 1) ไม่สมบูรณ์ (ตามภาพ: out เป็น --:-- => ไม่สมบูรณ์)
+    if (inMissing || outMissing) {
+      return {
+        "bgColor": badgeColor,
+        "statusText": "ไม่สมบูรณ์",
+        "statusBg": const Color(0xFFFFE5E5),//ชมพูอ่อนมาก
+        "statusFg": const Color(0xFFD32F2F),//แดงเข้ม
+        "duration": "--.-- ชั่วโมง",
+        "statusIconAsset": "assets/images/warning2_outline__attendance.svg", // ไอคอน
+      };
+    }
+
+    final inDt = _parseTime(timeIn);
+    final outDt = _parseTime(timeOut);
+    final stdDt = DateTime(2000, 1, 1, _stdInHour, _stdInMinute);
+
+    final lateMinutes = inDt.difference(stdDt).inMinutes; // >0 คือสาย
+    final duration = _formatHourDotMinute(outDt.difference(inDt));
+
+    // 2) สาย X นาที (ตามภาพ)
+    if (lateMinutes > 0) {
+      return {
+        "bgColor": badgeColor,
+        "statusText": "สาย $lateMinutes นาที",
+        "statusBg": const Color(0xFFFFF3CD),//เหลืองอ่อนมาก
+        "statusFg": const Color(0xFFB26A00),//เหลืองทองเข้ม
+        "duration": "$duration ชั่วโมง",
+        "statusIconAsset": "assets/images/warning_outline__attendance.svg",
+      };
+    }
+
+    return {
+      "bgColor": badgeColor,
+      "statusText": "ตรงเวลา",
+      "statusBg": const Color(0xFFE6F4EA),//เขียวอ่อนมาก
+      "statusFg": const Color(0xFF1E8E3E),//เขียวเข้ม
+      "duration": "$duration ชั่วโมง",
+      "statusIconAsset": "assets/images/check_circle__attendance.svg", // <- ต้องมีไฟล์นี้ (ถ้าไม่มีดูหมายเหตุด้านล่าง)
+    };
+  }
 
   Widget _buildHistoryList() {
     //ก้อนสีขาว ใหญ่
@@ -214,16 +316,24 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
         separatorBuilder: (_,__) => const Divider(height: 20),
         itemBuilder: (context,index){
           final item = _mock[index];
+
+          final ui = _computeUi(
+            dow: item["dow"],
+            timeIn: item["in"],
+            timeOut: item["out"],
+          );
+
           return _historyRow(
             day: item["day"],
             dow: item["dow"],
-            badgeColor: item["bgColor"],
+            badgeColor: ui["bgColor"],
             timeIn: item["in"],
             timeOut: item["out"],
-            statusText: item["statusText"],
-            statusBg: item["statusBg"],
-            statusFg: item["statusFg"],
-            duration: item["duration"]
+            statusText: ui["statusText"],
+            statusBg: ui["statusBg"],
+            statusFg: ui["statusFg"],
+            duration: ui["duration"],
+            statusIconAsset: ui["statusIconAsset"],
           );
         },
       ),
@@ -240,6 +350,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     required Color statusBg,
     required Color statusFg,
     required String duration,
+    required String statusIconAsset,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -290,9 +401,10 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                         children: [
                           //icon
                           SvgPicture.asset(
-                            'assets/images/error_outline__attendance.svg',
+                            statusIconAsset,
                             width: 16*1.25,
                             height: 16*1.25,
+                            colorFilter: ColorFilter.mode(statusFg, BlendMode.srcIn), // ให้ไอคอนเป็นสีเดียวกับตัวหนังสือ
                           ),
                           const SizedBox(width: 6),
                           Text(
