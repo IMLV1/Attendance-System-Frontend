@@ -1,4 +1,6 @@
 // ================= ENUM =================
+import 'package:uuid/uuid.dart';
+
 enum RoleType { mainRole, specialRole, hr, admin, }
 
 // ================= UTILS =================
@@ -82,12 +84,14 @@ class RoleSystem {
   final RoleType type;
 
   RoleSystem({
-    required this.id,
+    String? id,
     required this.roleName,
     this.roleColor,
     required this.members,
     required this.type,
-  });
+  }) : id = (id?.isNotEmpty == true)
+      ? id!
+      : const Uuid().v7();
 
   RoleSystem copyWith({
     String? roleName,
@@ -122,9 +126,11 @@ class RoleSystem {
       'roleName': roleName,
       'roleColor': roleColor,
       'type': roleTypeToApi(type),
+      'members': members.map((e) => e.id).toList(),
     };
   }
 }
+
 
 // ================= MEMBER =================
 class Member {

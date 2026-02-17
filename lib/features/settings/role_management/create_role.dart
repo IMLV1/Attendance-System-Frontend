@@ -28,8 +28,8 @@ class CreateRole extends StatefulWidget {
 
 class _CreateRoleState extends State<CreateRole> {
 
-  late RoleSystem newRole = RoleSystem(id: '', roleName: '', members: [], type: RoleType.specialRole, roleColor: '7E7E7E');
-
+  late RoleSystem newRole = RoleSystem(roleName: '', members: [], type: RoleType.specialRole, roleColor: '7E7E7E');
+  
   Timer? _debounce;
   Timer? _popupDebounce;
 
@@ -249,15 +249,10 @@ class _CreateRoleState extends State<CreateRole> {
                                               ),
                                             ),
                                           ),
+                                          onChanged: (val) {
+                                            newRole = newRole.copyWith(roleName: val.trim());
+                                          },
                                           onSubmitted: (val) {
-                                            final newName = val.trim();
-
-                                            if (newName.isEmpty) return;
-
-                                            setState(() {
-                                              newRole = newRole.copyWith(roleName: newName);
-                                            });
-
                                             FocusScope.of(context).unfocus();
                                           },
                                         ),

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:attendance_system/features/main_feature/time_request/time_request_popup.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -10,7 +11,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
@@ -112,86 +112,7 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                         Navigator.pop(context);
                       },
 
-                      builder: (_) => StatefulBuilder(
-                        builder: (context, setStatePopup) {
-                          DateTime focusedDay = DateTime.now();
-                          DateTime? rangeStart;
-                          DateTime? rangeEnd;
-
-                          return Column(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-
-                                child: TableCalendar(
-                                  locale: 'th_TH',
-                                  firstDay: DateTime(2020, 1, 1),
-                                  lastDay: DateTime(3000, 12, 31),
-
-                                  focusedDay: focusedDay,
-                                  rangeStartDay: rangeStart,
-                                  rangeEndDay: rangeEnd,
-
-                                  rangeSelectionMode: RangeSelectionMode.enforced,
-
-                                  headerStyle: const HeaderStyle(
-                                    formatButtonVisible: false,
-                                    titleCentered: true,
-                                  ),
-
-                                  onRangeSelected: (start, end, focusedDay) {
-
-                                    setStatePopup(() {
-                                      rangeStart = start;
-                                      rangeEnd = end;
-                                      focusedDay = focusedDay;
-                                    });
-                                  },
-
-                                  calendarStyle: const CalendarStyle(
-
-                                    rangeHighlightColor: Color(0xFFE3F2FD),
-
-                                    rangeStartDecoration: BoxDecoration(
-                                      color: Color(0xFF4A80F0),
-                                      shape: BoxShape.circle,
-                                    ),
-
-                                    rangeEndDecoration: BoxDecoration(
-                                      color: Color(0xFF4A80F0),
-                                      shape: BoxShape.circle,
-                                    ),
-
-                                    todayDecoration: BoxDecoration(
-                                      color: Colors.transparent,
-                                      shape: BoxShape.circle,
-                                    ),
-
-                                    todayTextStyle: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-
-                                    selectedDecoration: BoxDecoration(
-                                      color: Color(0xFF4A80F0),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SeparatorCard(
-                                children: [
-
-                                ],
-                              )
-                            ],
-                          );
-                        },
-                      ),
+                      builder: (_) => TimeRequestPopup(),
                     ).showPopup(context);
                   },
                   child: Container(
@@ -682,13 +603,27 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                                 //     _nameController.text.trim().isNotEmpty)
                                 //     ? () => trigger()
                                 //     : null,
-                                icon: SvgPicture.asset('assets/images/icon_send.svg', height: 18, width: 18, colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn)),
+                                icon: SvgPicture.asset(
+                                  'assets/images/icon_send.svg',
+                                  height: 18,
+                                  width: 18,
+                                  colorFilter: ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn
+                                  )
+                                ),
                                 label: Row(
                                   spacing: 10,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text('ส่ง', style: TextStyle(fontSize: 16, color: Colors.white)),
+                                    Text(
+                                      'ส่ง',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white
+                                      )
+                                    ),
                                     if (state == ServiceUpdatorState.loading)
                                       CupertinoActivityIndicator(color: Colors.white)
                                   ],
@@ -706,7 +641,8 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                             SizedBox(
                               height: 25,
                               child: (state == ServiceUpdatorState.error) ?
-                              Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                              Text(
+                                'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
                                 style: TextStyle(
                                     color: Colors.red
                                 )
