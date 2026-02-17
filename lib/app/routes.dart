@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/auth/auth_state.dart';
 import '../features/auth/login_page.dart';
+import '../features/history/attendance_history.dart';
 import '../features/settings/role_management/role_management.dart';
 import '../service_locator.dart';
 
@@ -105,6 +106,10 @@ final appRouter = GoRouter(
           path: '/settings/role-management',
           builder: (_, _) => const RoleManagement(),
         ),
+        GoRoute(
+            path: '/history/attendance',
+            builder: (_, _) => const AttendanceHistory(),
+        )
       ],
     ),
   ],
