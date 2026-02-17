@@ -380,38 +380,38 @@ class _EditRoleState extends State<EditRole> {
 
                             /// ===== Delete role =====
                             SeparatorCard(
-                                separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                                children: [
-                                  IconTextButton(onPressed: () {
-                                    FloatingPopup(
-                                        title: 'ลบตำแหน่ง',
-                                        description: 'คุณยืนยันที่จะลบตำแหน่ง ${_role.roleName} หรือไม่ การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
-                                        buttons: (parent, context1) => [
-                                          FloatingPopupButton(
-                                            text: 'ยกเลิก',
-                                            foregroundColor: Colors.white,
-                                            backgroundColor: AppColors.primaryColor,
-                                            onPressed: () {
-                                              Navigator.of(context1).pop();
-                                            },
-                                          ),
-                                          FloatingServicePopupButton(
-                                            text: 'ยันยัน',
-                                            foregroundColor: Colors.red,
-                                            request: () => RoleManagementService().deleteRole(_role),
-                                            setError: parent,
-                                            onSuccess: () {
-                                              Navigator.of(context1).pop();
+                              separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                              children: [
+                                IconTextButton(onPressed: () {
+                                  FloatingPopup(
+                                      title: 'ลบตำแหน่ง',
+                                      description: 'คุณยืนยันที่จะลบตำแหน่ง ${_role.roleName} หรือไม่ การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                                      buttons: (parent, context1) => [
+                                        FloatingPopupButton(
+                                          text: 'ยกเลิก',
+                                          foregroundColor: Colors.white,
+                                          backgroundColor: AppColors.primaryColor,
+                                          onPressed: () {
+                                            Navigator.of(context1).pop();
+                                          },
+                                        ),
+                                        FloatingServicePopupButton(
+                                          text: 'ยันยัน',
+                                          foregroundColor: Colors.red,
+                                          request: () => RoleManagementService().deleteRole(_role),
+                                          setError: parent,
+                                          onSuccess: () {
+                                            Navigator.of(context1).pop();
 
-                                              Navigator.pop(context, {
-                                                'status': 1,
-                                              });
-                                            },
-                                          )
-                                        ]
-                                    ).showPopup(context);
-                                  }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบตำแหน่ง')
-                                ]
+                                            Navigator.pop(context, {
+                                              'status': 1,
+                                            });
+                                          },
+                                        )
+                                      ]
+                                  ).showPopup(context);
+                                }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบตำแหน่ง')
+                              ]
                             ),
                             /// กำหนดสิทธิ์การเข้าถึง
                             // SeparatorCard(
