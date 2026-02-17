@@ -3,17 +3,18 @@ import 'dart:math';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:table_calendar/table_calendar.dart';
 
-import '../../shared/widgets/utils/icon_text_button.dart';
-import '../../shared/widgets/utils/popup/calendar_popup.dart';
-import '../../shared/widgets/utils/separator_card.dart';
-import '../../shared/widgets/utils/services/service_updater.dart';
+import '../../../shared/widgets/utils/icon_text_button.dart';
+import '../../../shared/widgets/utils/separator_card.dart';
+import '../../../shared/widgets/utils/services/service_updater.dart';
 
 int _generateRandomNumber(int digits) {
   if (digits <= 0) {
@@ -99,13 +100,98 @@ class _TimeRequestPage extends State<TimeRequestPage> {
                 ),
                 InkWell(
                   onTap: () async {
-                    CalendarPopup(
-                      mode: CalendarPopupMode.dateTime,
-                      onSubmit: (date) {
+                    PushPopup(
+                      title: 'เลือกวันที่',
+                      buttonLabel: 'บันทึก',
+                      fit: FlexFit.tight,
+                      buttonAction: (context) {
                         setState(() {
-
+                          // ค่า _rangeStart และ _rangeEnd จะถูกเก็บไว้แล้ว
                         });
+
+                        Navigator.pop(context);
                       },
+
+                      builder: (_) => StatefulBuilder(
+                        builder: (context, setStatePopup) {
+                          DateTime focusedDay = DateTime.now();
+                          DateTime? rangeStart;
+                          DateTime? rangeEnd;
+
+                          return Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+
+                                child: TableCalendar(
+                                  locale: 'th_TH',
+                                  firstDay: DateTime(2020, 1, 1),
+                                  lastDay: DateTime(3000, 12, 31),
+
+                                  focusedDay: focusedDay,
+                                  rangeStartDay: rangeStart,
+                                  rangeEndDay: rangeEnd,
+
+                                  rangeSelectionMode: RangeSelectionMode.enforced,
+
+                                  headerStyle: const HeaderStyle(
+                                    formatButtonVisible: false,
+                                    titleCentered: true,
+                                  ),
+
+                                  onRangeSelected: (start, end, focusedDay) {
+
+                                    setStatePopup(() {
+                                      rangeStart = start;
+                                      rangeEnd = end;
+                                      focusedDay = focusedDay;
+                                    });
+                                  },
+
+                                  calendarStyle: const CalendarStyle(
+
+                                    rangeHighlightColor: Color(0xFFE3F2FD),
+
+                                    rangeStartDecoration: BoxDecoration(
+                                      color: Color(0xFF4A80F0),
+                                      shape: BoxShape.circle,
+                                    ),
+
+                                    rangeEndDecoration: BoxDecoration(
+                                      color: Color(0xFF4A80F0),
+                                      shape: BoxShape.circle,
+                                    ),
+
+                                    todayDecoration: BoxDecoration(
+                                      color: Colors.transparent,
+                                      shape: BoxShape.circle,
+                                    ),
+
+                                    todayTextStyle: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+
+                                    selectedDecoration: BoxDecoration(
+                                      color: Color(0xFF4A80F0),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SeparatorCard(
+                                children: [
+
+                                ],
+                              )
+                            ],
+                          );
+                        },
+                      ),
                     ).showPopup(context);
                   },
                   child: Container(
