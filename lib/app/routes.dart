@@ -2,7 +2,7 @@ import 'package:attendance_system/features/main_feature/checkin_page.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_request_page.dart';
 import 'package:attendance_system/features/main_feature/profile_page.dart';
 import 'package:attendance_system/features/main_feature/statistic_page.dart';
-import 'package:attendance_system/features/main_feature/time_request_page.dart';
+import 'package:attendance_system/features/main_feature/time_request/time_request_page.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_attendance.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_attendance_request.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_budget_year.dart';
