@@ -28,13 +28,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  table_calendar: ^3.1.2
   flutter:
     sdk: flutter
-  flutter_svg: ^2.2.3
-  sealed_countries: any
-  ntp: ^2.0.0
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -53,6 +48,10 @@ dependencies:
   uuid: ^4.0.0
   file_picker: ^8.0.0
   image_picker: ^1.0.7
+  flutter_svg: ^2.2.3
+  sealed_countries: any
+  ntp: ^2.0.0
+  table_calendar: ^3.1.2
 
 dev_dependencies:
   flutter_test:
