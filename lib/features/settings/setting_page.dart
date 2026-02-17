@@ -37,7 +37,12 @@ class SettingPage extends StatelessWidget {
                   SeparatorCard(
                     separatorPadding: EdgeInsets.only(left: 45, right: 15),
                     children: [
-                      IconTextButton(icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
+                      //(onPressed: () {
+                      //                           context.push('/settings/user-management');
+                      //                         }
+                      IconTextButton(onPressed: () {
+                        context.push('/history/attendance');
+                      },icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
                       IconTextButton(icon: 'icon_leave_history.svg', label: 'บันทึกการลางาน'),
                       IconTextButton(icon: 'icon_attendance_request_history.svg', label: 'บันทึกคำขออนุมัติเวลางาน')
                     ]
