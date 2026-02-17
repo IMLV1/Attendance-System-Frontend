@@ -338,32 +338,34 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
       },
 
       // เนื้อหาด้านใน popup (ตัว UI ที่ให้เลือกวัน)
-      content: CalendarTimePopupContent(
-        // callback ที่ถูกเรียกเมื่อผู้ใช้กด Save ภายใน content นี้
-        // โดยจะส่งค่าที่ผู้ใช้เลือกกลับมา: start, end, checkIn, checkOut
-          onSave: (start,end,checkIn,checkOut){
-            // setState เพื่ออัปเดตค่าที่เก็บใน State และให้ UI รีเฟรช
-            setState(() {
-              // ถ้ามีการเลือกวันเริ่มต้น (ไม่เป็น null) ให้แปลงเป็นข้อความ
-              if (start != null){
-                // แปลง DateTime -> "วัน/เดือน/ปี" และ +543 เพื่อเป็นปี พ.ศ.
-                startDate = "${start.day}/${start.month}/${start.year}";
-              }
+       builder: (BuildContext context) {
+        return CalendarTimePopupContent(
+          // callback ที่ถูกเรียกเมื่อผู้ใช้กด Save ภายใน content นี้
+          // โดยจะส่งค่าที่ผู้ใช้เลือกกลับมา: start, end, checkIn, checkOut
+            onSave: (start,end,checkIn,checkOut){
+              // setState เพื่ออัปเดตค่าที่เก็บใน State และให้ UI รีเฟรช
+              setState(() {
+                // ถ้ามีการเลือกวันเริ่มต้น (ไม่เป็น null) ให้แปลงเป็นข้อความ
+                if (start != null){
+                  // แปลง DateTime -> "วัน/เดือน/ปี" และ +543 เพื่อเป็นปี พ.ศ.
+                  startDate = "${start.day}/${start.month}/${start.year}";
+                }
 
-              // ถ้ามีการเลือกวันสิ้นสุด (ไม่เป็น null) ให้แปลงเป็นข้อความ
-              if (end != null) {
-                // แปลง DateTime -> "วัน/เดือน/ปี" และ +543 เพื่อเป็นปี พ.ศ.
-                endDate = "${end.day}/${end.month}/${end.year + 543}";
-              }
+                // ถ้ามีการเลือกวันสิ้นสุด (ไม่เป็น null) ให้แปลงเป็นข้อความ
+                if (end != null) {
+                  // แปลง DateTime -> "วัน/เดือน/ปี" และ +543 เพื่อเป็นปี พ.ศ.
+                  endDate = "${end.day}/${end.month}/${end.year + 543}";
+                }
 
-              // ในฟิลเตอร์นี้ "ไม่เอาเวลา"
-              // ดังนั้นไม่ต้อง set ค่า startTime / endTime
-            });
+                // ในฟิลเตอร์นี้ "ไม่เอาเวลา"
+                // ดังนั้นไม่ต้อง set ค่า startTime / endTime
+              });
 
-            // ปิด Popup หลังจากบันทึกค่าเสร็จ
-            Navigator.pop(context);
-          }
-      )
+              // ปิด Popup หลังจากบันทึกค่าเสร็จ
+              Navigator.pop(context);
+            }
+        );
+      }
     ).showPopup(context);
   }
 }
