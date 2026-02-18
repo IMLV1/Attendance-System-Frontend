@@ -204,7 +204,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
   final List<Map<String, dynamic>> _mock = [
     // ===== กุมภาพันธ์ 2027 =====
     {"date": "2027-02-28", "dow": "อาทิตย์", "checkIn": "16:30", "checkOut": "16:30"},
-    {"date": "2027-02-27", "dow": "เสาร์",   "checkIn": "09:10", "checkOut": "18:00"},
+    {"date": "2027-02-27", "dow": "เสาร์",   "checkIn": "14:45", "checkOut": "18:00"},
     {"date": "2027-02-26", "dow": "ศุกร์",    "checkIn": "08:45", "checkOut": "17:40"},
     {"date": "2027-02-25", "dow": "พฤหัสบดี","checkIn": "08:30", "checkOut": "18:20"},
     {"date": "2027-02-24", "dow": "พุธ",      "checkIn": "08:55", "checkOut": "17:30"},
@@ -234,8 +234,6 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     {"date": "2026-12-22", "dow": "อังคาร",   "checkIn": "08:30", "checkOut": null}, // ไม่สมบูรณ์
   ];
 
-
-
   static const int _stdInHour = 8;
   static const int _stdInMinute = 30;
 
@@ -257,13 +255,22 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
   // Parse เวลาเป็น DateTime (กำหนดวันที่คงที่ไว้เพื่อใช้เปรียบเทียบเวลา)
   // รองรับ . หรือ : และคืนค่าเป็น DateTime ของวันสมมติ 2000-01-01
 
-  /// duration แบบ H.MM (ชั่วโมง.นาที) ตามภาพ เช่น 7.48, 13.00
-  String _formatHourDotMinute(Duration d) {
-    if (d.isNegative) return '--.--';
+  /// duration แบบ H:MM เช่น 7:48, 13:00
+  /// ใช้เมื่อคุณมี “ผลต่างเวลา” อยู่แล้ว เช่น checkOut - checkIn
+  String _formatHourMinute(Duration d) {
+    if (d.isNegative) return '--:--';
     final totalMin = d.inMinutes;
     final h = totalMin ~/ 60;
     final m = totalMin % 60;
-    return '$h.${m.toString().padLeft(2, '0')}';
+    return '$h:${m.toString().padLeft(2, '0')}';
+  }
+
+  /// รับ Int -> แปลง "นาที" เป็นรูปแบบ H:MM (เช่น 60 -> 1:00, 75 -> 1:15)
+  String _formatMinutesToHourMinute(int minutes) {
+    if (minutes <= 0) return '0:00';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return '$h:${m.toString().padLeft(2, '0')}';
   }
 
   //ประจำวันจ้า
@@ -316,13 +323,22 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     final stdDt = DateTime(2000, 1, 1, _stdInHour, _stdInMinute);
 
     final lateMinutes = inDt.difference(stdDt).inMinutes; // >0 คือสาย
-    final duration = _formatHourDotMinute(outDt.difference(inDt));
+    final duration = _formatHourMinute(outDt.difference(inDt));
 
     // 2) สาย X นาที (ตามภาพ)
     if (lateMinutes > 0) {
+      late String lateText;//late ใน Dart แปลว่า “เดี๋ยวค่อยกำหนดค่าให้ทีหลัง” (แต่สัญญาว่า ก่อนใช้งานจริง จะต้องมีค่าแน่นอน)
+
+      if(lateMinutes >= 60){
+        lateText = "สาย ${_formatMinutesToHourMinute(lateMinutes)} ชม.";
+      }
+      else{
+        lateText = "สาย $lateMinutes นาที";
+      }
+
       return {
         "bgColor": badgeColor,
-        "statusText": "สาย $lateMinutes นาที",
+        "statusText": lateText,
         "statusBg": const Color(0xFFFFF3CD),//เหลืองอ่อนมาก
         "statusFg": const Color(0xFFB26A00),//เหลืองทองเข้ม
         "duration": "$duration ชั่วโมง",
