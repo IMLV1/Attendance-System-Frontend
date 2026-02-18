@@ -1,11 +1,16 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get_it/get_it.dart';
 import 'package:ntp/ntp.dart';
 
+import '../../services/check-in/check-in_model.dart';
+import '../../services/check-in/check-in_service.dart';
+import '../../services/check-in/holiday_service.dart';
 import '../../shared/widgets/utils/clock_realtime.dart';
 import '../../shared/widgets/utils/radar_animation.dart';
 
@@ -14,6 +19,8 @@ import '../../shared/widgets/utils/separator_card.dart';
 
 import 'dart:async';
 import 'package:intl/intl.dart';
+
+import '../../shared/widgets/utils/services/service_loader.dart';
 
 class CheckinPage extends StatefulWidget {
   const CheckinPage({super.key});
@@ -42,6 +49,59 @@ class _CheckinPageState extends State<CheckinPage>{
   void initState() {
     super.initState();
     _syncInitialTime(); // ซิงค์เวลาโลกครั้งแรก
+      _loadInitialState(DateTime.now());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final attendanceService = GetIt.I<AttendanceService>();
+      await attendanceService.clearLocalState(); // สมมติว่ามีฟังก์ชันล้างข้อมูลใน Service
+      debugPrint("🧹 ข้อมูลถูก Reset ใหม่ทั้งหมด (Build ใหม่)");
+    });
+  }
+  // เพิ่มฟังก์ชันเหล่านี้ภายในคลาส _CheckinPageState
+
+Future<void> _loadInitialState(DateTime networkTime) async {
+    final attendanceService = GetIt.I<AttendanceService>();
+
+    // แก้ตรงนี้: ส่ง networkTime เข้าไปให้ Service เช็ควันที่ให้เบ็ดเสร็จ
+    final savedState = await attendanceService.getLocalState(networkTime);
+
+    if (savedState != null) {
+      // ถ้า Service คืนค่ามา แสดงว่าเป็นของวันนี้แน่นอน
+      setState(() {
+        checkInTimeRecorded = savedState.checkInTime ?? "---";
+        checkOutTimeRecorded = savedState.checkOutTime ?? "---";
+        _hasCheckedIn = savedState.hasCheckedIn;
+        hasCheckedOut = savedState.hasCheckedOut;
+      });
+    } else {
+      // ถ้าคืน null แสดงว่าเป็นวันใหม่ หรือไม่มีข้อมูล
+      setState(() {
+        checkInTimeRecorded = "---";
+        checkOutTimeRecorded = "---";
+        _hasCheckedIn = false;
+        hasCheckedOut = false;
+      });
+    }
+  }
+
+  Future<void> _saveCurrentState() async {
+    if (_currentNetworkTime == null) return;
+
+    final attendanceService = GetIt.I<AttendanceService>();
+    final today = DateFormat('yyyy-MM-dd').format(_currentNetworkTime!);
+
+    final attendanceData = AttendanceModel(
+      checkInTime: checkInTimeRecorded,
+      checkOutTime: checkOutTimeRecorded,
+      hasCheckedIn: _hasCheckedIn,
+      hasCheckedOut: hasCheckedOut,
+      lastUpdateDate: today,
+    );
+
+    // 2. ใช้ attendanceData (ข้อมูล) ในการ Print และ Save
+    debugPrint("กำลังบันทึกลง Local Storage: ${attendanceData.toJson()}");
+
+    // 3. เรียก Service ให้บันทึก "ข้อมูล" ลงไป
+    await attendanceService.saveLocalState(attendanceData);
   }
 
   Future<void> _syncInitialTime() async {
@@ -51,16 +111,6 @@ class _CheckinPageState extends State<CheckinPage>{
       _currentNetworkTime = DateTime.now(); // ถ้าเน็ตล่ม ให้ถอยไปใช้เวลาเครื่อง
     }
 
-    // เริ่ม Timer ให้เดินวินาทีละครั้ง
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted && _currentNetworkTime != null) {
-        setState(() {
-          // บวกเวลาเพิ่ม 1 วินาทีในทุกๆ วินาทีที่ผ่านไป
-          _currentNetworkTime = _currentNetworkTime!.add(const Duration(seconds: 1));
-          _checkAndResetLogic();
-        });
-      }
-    });
   }
 
   @override
@@ -73,7 +123,8 @@ class _CheckinPageState extends State<CheckinPage>{
     final now = DateTime.now();
     // 1. Reset ทุกอย่างเมื่อถึงเวลา 08:30 ของวันใหม่
     // เช็คว่าชั่วโมงคือ 8, นาทีคือ 30 และยังไม่ได้ Reset ในวันนี้
-    if (now.hour == 8 && now.minute == 30 && _lastResetDate.day != now.day) {
+    //&& _lastResetDate.day != now.day
+    if (now.hour == 8 && now.minute == 30 ) {
       _resetDailyData(now);
       debugPrint("--- TEST RESET WORKING ---");
     }
@@ -97,21 +148,26 @@ class _CheckinPageState extends State<CheckinPage>{
   }
 
   String _getButtonState() {
+    if (_currentNetworkTime == null) return "CHECK_IN_READY";
+
     final now = _currentNetworkTime!;
     final hour = now.hour;
     final minute = now.minute;
 
-    // เช็ควันหยุดสุดสัปดาห์ (ใช้เวลาเน็ตเช็ควัน)
+    bool isAfterWork = hour > 16 || (hour == 16 && minute >= 30);
+
     if (hasCheckedOut) return "FINISHED";
 
+    if (isAfterWork) {
+      if (_hasCheckedIn) {
+        return "CHECK_OUT_READY";
+      } else {
+        return "ABSENT";
+      }
+    }
     if (!_hasCheckedIn) return "CHECK_IN_READY";
 
-    bool isAfterWork = hour > 16 || (hour == 16 && minute >= 30);
-    if (isAfterWork) {
-      return "CHECK_OUT_READY";
-    }
-    if (_hasCheckedIn) return "WORKING";
-    return "CHECK_IN_READY";
+    return "WORKING";
   }
 
   bool _checkIsWeekend() {
@@ -122,60 +178,90 @@ class _CheckinPageState extends State<CheckinPage>{
 
   @override
   Widget build(BuildContext context) {
-    if (_currentNetworkTime == null) {
-      return AppScaffold(
-        header: Header.mainHeader(context, title: 'ลงเวลาปฏิบัติงาน'),
-        content: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: AppColors.buttonCheckIn),
-              const SizedBox(height: 20),
-              Text(
-                "กำลังโหลดข้อมูล...",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.greyTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return AppScaffold(
       hideNavigation: false,
       header: Header.mainHeader(
-        context,
-        title: 'ลงเวลาปฏิบัติงาน',
-        subTitle: 'Time Attendance',
-        iconPath: 'checkin_title_logo.svg'
+          context,
+          title: 'ลงเวลาปฏิบัติงาน',
+          subTitle: 'Time Attendance',
+          iconPath: 'checkin_title_logo.svg'
       ),
-      content: SafeArea(
-          child : SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+      content: ServiceLoader(
+        request: () async {
+          try {
+            final time = await NTP.now(lookUpAddress: 'time.google.com');
+            return Response(
+              requestOptions: RequestOptions(path: ''),
+              data: time,
+              statusCode: 200,
+            );
+          } catch (e) {
+            return Response(
+              requestOptions: RequestOptions(path: ''),
+              statusCode: 500,
+              statusMessage: "ไม่สามารถเชื่อมต่อเวลาได้",
+            );
+          }
+        },
+          onSuccess: (data) async {
+            if (_currentNetworkTime == null) {
+              DateTime ntpNow = data as DateTime;
+              _currentNetworkTime = ntpNow;
+
+              // 1. เพิ่มการ Fetch วันหยุดที่นี่
+              final holidayService = GetIt.I<HolidayService>();
+              bool holidayStatus = await holidayService.checkTodayIsHoliday(ntpNow);
+
+              if (mounted) {
+                setState(() {
+                  isPublicHoliday = holidayStatus; // อัปเดตสถานะวันหยุด
+                });
+
+                // 2. โหลดสถานะ Local และเริ่ม Timer ตามเดิม
+                await _loadInitialState(_currentNetworkTime!);
+                _startTimerLogic();
+              }
+            }
+          },
+        builder: () => SafeArea(
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _cardtime(),
+                _buttonCheckin(),
+                const SizedBox(height: 10),
+                _currentstate(),
+                const SizedBox(height: 10),
+                SeparatorCard(
+                  separatorPadding: const EdgeInsets.all(10),
                   children: [
-                    _cardtime(),
-                    _buttonCheckin(),
-                    SizedBox(height: 10),
-                    _currentstate(),
-                    SizedBox(height: 10),
-                    SeparatorCard(
-                      separatorPadding: EdgeInsets.all(10),
-                      children: [
-                        IconTextButton(icon:'icon_attendance_history.svg' , label:'ดูบันทึกการเข้า-ออกงาน' )
-                      ],
+                    IconTextButton(
+                        icon: 'icon_attendance_history.svg',
+                        label: 'ดูบันทึกการเข้า-ออกงาน'
                     )
-                  ]
-              )
-          )
+                  ],
+                )
+              ],
+            ),
+          ),
+        ),
       ),
     );
+  }
+
+// แยกฟังก์ชันการเริ่ม Timer
+  void _startTimerLogic() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted && _currentNetworkTime != null) {
+        setState(() {
+          _currentNetworkTime = _currentNetworkTime!.add(const Duration(seconds: 1));
+          _checkAndResetLogic();
+        });
+      }
+    });
   }
 
   Widget _cardtime () {
@@ -214,22 +300,6 @@ class _CheckinPageState extends State<CheckinPage>{
               child:Column(
                 children: [
                    const ClockWidget(),
-                  // Text(
-                  //   currentTime,
-                  //   style: TextStyle(
-                  //     fontSize: 40,
-                  //     fontWeight: FontWeight.w700,
-                  //     color: AppColors.unSelectMenuColor,
-                  //   ),
-                  // ),
-                  // Text(
-                  //   currentDay,
-                  //   style: TextStyle(
-                  //     fontSize: 15,
-                  //     fontWeight: FontWeight.w500,
-                  //     color: AppColors.lightTextColor,
-                  //   ),
-                  // )
                 ],
               )
           )
@@ -270,6 +340,15 @@ class _CheckinPageState extends State<CheckinPage>{
     }
     else {
       switch (state) {
+
+        // case "ABSENT":
+        //   buttonColor = AppColors.buttonDisable;
+        //   buttonText = "ขาดงาน";
+        //   iconPath = 'assets/images/absent.svg';
+        //   isDisabled = true;
+        //   fontSize = 27;
+        //   break;
+
         case "FINISHED":
           buttonColor = AppColors.buttonDisable;
           buttonText = "จบเวลางาน";
@@ -326,29 +405,39 @@ class _CheckinPageState extends State<CheckinPage>{
             Material(
               color: Colors.transparent,
               child : InkWell(
-                  onTap: isDisabled ? null : () async { // 1. เติม async ตรงนี้
+                  onTap: isDisabled ? null : () async {
                     try {
-                      // 2. แสดง Loading หรือสั่นเล็กน้อยเพื่อบอกผู้ใช้ว่ากำลังประมวลผล
                       HapticFeedback.mediumImpact();
 
+                      // 1. ดึงเวลามาตรฐานจาก NTP
                       DateTime ntpTime = await NTP.now(lookUpAddress: 'time.google.com');
 
-                      // 4. แปลงเวลา NTP ที่ได้เป็น Format ที่ต้องการ
+                      // 2. แปลงเวลาสำหรับแสดงผลบน UI (HH:mm)
                       String nowTime = DateFormat('HH:mm').format(ntpTime);
 
                       setState(() {
                         if (state == "CHECK_OUT_READY") {
-                          checkOutTimeRecorded = nowTime; // บันทึกเวลาออกจริงจากเน็ต
+                          checkOutTimeRecorded = nowTime;
                           hasCheckedOut = true;
                         } else {
-                          checkInTimeRecorded = nowTime; // บันทึกเวลาเข้าจริงจากเน็ต
+                          checkInTimeRecorded = nowTime;
                           _hasCheckedIn = true;
                         }
                       });
 
-                      debugPrint("บันทึกสำเร็จด้วยเวลา NTP: $nowTime");
+                      // 3. บันทึกสถานะลงเครื่อง (Local Storage) เพื่อให้ปิดแอปแล้วจำได้
+                      // โดยเรียกใช้ฟังก์ชันที่คุณเขียนไว้ ซึ่งจะใช้ AttendanceModel ในการบันทึก
+                      await _saveCurrentState();
 
-                      // (เพิ่มเติม) คุณอาจจะโชว์ Dialog หรือ SnackBar ว่าบันทึกสำเร็จแล้ว
+                      String requestType = (state == "CHECK_OUT_READY") ? "CHECK_OUT" : "CHECK_IN";
+
+                      // 4. ส่งข้อมูลไปที่ Server (แยกวันที่และเวลาใน Service เรียบร้อยแล้ว)
+                      // สมมติใช้ userId จากระบบของคุณ (ตัวอย่าง: 'U001')
+                      final attendanceService = GetIt.I<AttendanceService>();
+                      await attendanceService.postAttendance(ntpTime, requestType );
+
+                      debugPrint("บันทึกสำเร็จลงทั้ง Local และ Server: $nowTime");
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('บันทึกเวลา $nowTime น. เรียบร้อยแล้ว')),
                       );
@@ -357,7 +446,7 @@ class _CheckinPageState extends State<CheckinPage>{
                       debugPrint("เกิดข้อผิดพลาด: $e");
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('ไม่สามารถดึงเวลาจริงได้ กรุณาตรวจสอบอินเทอร์เน็ต'),
+                          content: Text('ไม่สามารถบันทึกได้ กรุณาตรวจสอบอินเทอร์เน็ต'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -365,8 +454,8 @@ class _CheckinPageState extends State<CheckinPage>{
                   },
                   customBorder: CircleBorder(),
                   child: Container(
-                    width: 200,
-                    height: 200,
+                    width: 190,
+                    height: 190,
                     decoration: BoxDecoration(
                         color: buttonColor,
                         shape: BoxShape.circle,
@@ -438,6 +527,7 @@ class _CheckinPageState extends State<CheckinPage>{
   }
 
   Widget _currentstate () {
+    String state = _getButtonState();
     return Container(
       width: double.infinity,
       padding:const EdgeInsets.all(16) ,
@@ -471,7 +561,8 @@ class _CheckinPageState extends State<CheckinPage>{
           SeparatorCard(
             separatorPadding: EdgeInsetsGeometry.only(left: 52, right: 10),
             children: [
-              _buildStatusItem(iconPath: 'assets/images/in.svg', title: 'เช็คอิน', time: _hasCheckedIn ? checkInTimeRecorded : "---"),
+              // state == "ABSENT" ? "ขาดงาน" :
+              _buildStatusItem(iconPath: 'assets/images/in.svg', title: 'เช็คอิน', time: (_hasCheckedIn ? checkInTimeRecorded : "---")),
               _buildStatusItem(iconPath: 'assets/images/out.svg', title: 'เช็คเอาท์', time:hasCheckedOut ? checkOutTimeRecorded : '---'),
             ],
           )
@@ -498,7 +589,6 @@ class _CheckinPageState extends State<CheckinPage>{
                 child: SvgPicture.asset(iconPath),
               ),
               const SizedBox(width: 12),
-              // ข้อความหัวข้อ
               Text(
                 title,
                 style: const TextStyle(
@@ -508,7 +598,6 @@ class _CheckinPageState extends State<CheckinPage>{
                 ),
               ),
               const Spacer(),
-              // // เวลา หรือ ขีดๆ ---
               Text(
                 time,
                 style: const TextStyle(
@@ -520,7 +609,6 @@ class _CheckinPageState extends State<CheckinPage>{
             ],
           ),
         ),
-        // เส้นคั่น (แสดงเฉพาะแถวที่ไม่ใช่แถวสุดท้าย)
       ],
     );
   }
