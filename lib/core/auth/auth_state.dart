@@ -1,6 +1,8 @@
 import 'package:attendance_system/core/auth/user_model.dart';
 import 'package:attendance_system/services/profile_page/profile_model.dart';
 import 'package:attendance_system/services/profile_page/profile_service.dart';
+import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
+import 'package:attendance_system/services/system_config/leave/config_leave_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +17,7 @@ class AuthState extends ChangeNotifier {
 
   UserModel? user;
   ProfileModel? profile;
+  ConfigLeaveModel? leaveConfig;
 
   AuthState(this.repo);
 
@@ -25,9 +28,17 @@ class AuthState extends ChangeNotifier {
     status = ok ? AuthStatus.authenticated : AuthStatus.unauthenticated;
 
     if (status == AuthStatus.authenticated) {
-      Response response = await ProfileService().getProfile();
-      if (response.statusCode == 200) {
-        profile = ProfileModel.fromJson(response.data);
+      {
+        Response response = await ProfileService().getProfile();
+        if (response.statusCode == 200) {
+          profile = ProfileModel.fromJson(response.data);
+        }
+      }
+      {
+        Response response = await ConfigLeaveService().getData();
+        if (response.statusCode == 200) {
+          leaveConfig = ConfigLeaveModel.fromJson(response.data);
+        }
       }
     }
 
@@ -40,9 +51,17 @@ class AuthState extends ChangeNotifier {
       user = result.user;
       status = AuthStatus.authenticated;
 
-      Response response = await ProfileService().getProfile();
-      if (response.statusCode == 200) {
-        profile = ProfileModel.fromJson(response.data);
+      {
+        Response response = await ProfileService().getProfile();
+        if (response.statusCode == 200) {
+          profile = ProfileModel.fromJson(response.data);
+        }
+      }
+      {
+        Response response = await ConfigLeaveService().getData();
+        if (response.statusCode == 200) {
+          leaveConfig = ConfigLeaveModel.fromJson(response.data);
+        }
       }
     } catch (e) {
       status = AuthStatus.unauthenticated;
