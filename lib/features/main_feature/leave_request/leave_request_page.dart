@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -17,6 +18,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -34,15 +36,14 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
 
   String? leaveType;
   LeaveSetting? setting;
+  LeaveDate? leaveDate;
+
+  LeaveDate? _selectedDate;
 
   List<PlatformFile> allFiles = [];
 
   final MenuController _menuController = MenuController();
   final TextEditingController _textEditingController = TextEditingController();
-
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _rangeStart;
-  DateTime? _rangeEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -179,60 +180,28 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                                       PushPopup(
                                         title: 'เลือกวันที่',
                                         fit: FlexFit.tight,
-                                        maxHeight: 700,
+                                        maxHeight: 800,
+                                        buttonLabel: 'บันทึก',
                                         builder: (context) {
-                                          return TableCalendar(
-                                            locale: 'th_TH',
-                                            firstDay: DateTime.now().subtract(Duration(days: 10)),
-                                            lastDay: DateTime.now().add(Duration(days: 10)),
-                                            focusedDay: _focusedDay,
-                                            rangeStartDay: _rangeStart,
-                                            rangeEndDay: _rangeEnd,
-                                            rangeSelectionMode: RangeSelectionMode.enforced,
-                                            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-                                            onRangeSelected: (start, end, focusedDay) {
-                                              setState(() {
-                                                _rangeStart = start;
-                                                _rangeEnd = end;
-                                                _focusedDay = focusedDay;
-                                              });
-                                            },
-                                            calendarStyle: CalendarStyle(
-                                              // 1. สีไฮไลต์ช่วงวันที่ (จะขึ้นก็ต่อเมื่อเราเริ่มเลือกแล้ว)
-                                              rangeHighlightColor: const Color(0xFFE3F2FD),
 
-                                              rangeStartDecoration: const BoxDecoration(
-                                                color: Color(0xFF4A80F0),
-                                                shape: BoxShape.circle,
-                                              ),
+                                          _selectedDate = leaveDate;
 
-                                              rangeEndDecoration: const BoxDecoration(
-                                                color: Color(0xFF4A80F0),
-                                                shape: BoxShape.circle,
-                                              ),
-
-                                              // --- แก้ไขจุดนี้: ปิดสีฟ้าของวันที่ปัจจุบันออก ---
-
-                                              // 2. ปรับ Today ให้ไม่มีพื้นหลังสีฟ้า (ทำให้ดูเหมือนยังไม่ได้เลือก)
-                                              todayDecoration: BoxDecoration(
-                                                color: Colors.transparent, // ทำให้โปร่งใส
-                                                shape: BoxShape.circle,
-                                              ),
-
-                                              // 3. ปรับสีตัวเลขของวันนี้ให้เป็นสีดำปกติ (ไม่ใช่สีขาว) เพื่อให้มองเห็นบนพื้นขาว
-                                              todayTextStyle: const TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-
-                                              // 4. ส่วนวันที่ถูกเลือก (เมื่อจิ้มแล้วถึงจะขึ้นสีฟ้า)
-                                              selectedDecoration: const BoxDecoration(
-                                                color: Color(0xFF4A80F0),
-                                                shape: BoxShape.circle,
-                                              ),
-                                            ),
+                                          return DateSelect(
+                                            dateData: leaveDate,
+                                            allowRetroactive: setting!.allowRetroactive,
+                                            onChanged: (LeaveDate date) {
+                                              _selectedDate = date;
+                                            }
                                           );
                                         },
+                                        buttonAction: (context) {
+
+                                          Navigator.of(context).pop();
+
+                                          setState(() {
+                                            leaveDate = _selectedDate;
+                                          });
+                                        }
                                       ).showPopup(context);
                                     },
                                     style: ElevatedButton.styleFrom(
@@ -259,8 +228,18 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                                                 Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    Text('จากวันที่'),
-                                                    Text('---'),
+                                                    Text(
+                                                      'จากวันที่',
+                                                      style: TextStyle(
+                                                        color: Color(0xFF626262)
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      (leaveDate?.fromDate != null) ? '${DateFormat.MMMd('th_TH').format(leaveDate!.fromDate!)} ${num.parse(DateFormat.y('th_TH').format(leaveDate!.fromDate!)) + 543} ${leaveDate!.fromDateMorning ? 'เช้า' : 'เย็น'}' : '---',
+                                                      style: TextStyle(
+                                                        fontSize: 14
+                                                      ),
+                                                    ),
                                                   ],
                                                 )
                                               ],
@@ -275,8 +254,18 @@ class _LeaveRequestPage extends State<LeaveRequestPage> {
                                                 Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    Text('ถึงวันที่'),
-                                                    Text('---'),
+                                                    Text(
+                                                      'ถึงวันที่',
+                                                      style: TextStyle(
+                                                          color: Color(0xFF626262)
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      (leaveDate?.toDate != null) ? '${DateFormat.MMMd('th_TH').format(leaveDate!.toDate!)} ${num.parse(DateFormat.y('th_TH').format(leaveDate!.toDate!)) + 543} ${leaveDate!.toDateMorning ? 'เช้า' : 'เย็น'}' : '---',
+                                                      style: TextStyle(
+                                                          fontSize: 14
+                                                      ),
+                                                    ),
                                                   ],
                                                 )
                                               ],
