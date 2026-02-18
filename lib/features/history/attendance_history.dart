@@ -164,40 +164,77 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
   Widget _buildVerticalLine() => Container(width: 2, height: 40, color: AppColors.lightTextColor);
 
+  //Month in thai
+  String _thaiMonth(int m){
+    const months = [
+      '', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+    if (m < 1 || m > 12) return '';
+    return months[m];
+  }
+
+  //year + 543 = thai year
+  String _monthYearLabel(DateTime d) => "${_thaiMonth(d.month)} ${d.year + 543}";
+
+  //ไว้กันเผื่อ DataBase ส่ง dow = null มา
+  String _thaiDowFromDate(DateTime d) {
+    switch (d.weekday) { // 1=Mon ... 7=Sun
+      case 1:
+        return 'จันทร์';
+      case 2:
+        return 'อังคาร';
+      case 3:
+        return 'พุธ';
+      case 4:
+        return 'พฤหัสบดี';
+      case 5:
+        return 'ศุกร์';
+      case 6:
+        return 'เสาร์';
+      case 7:
+        return 'อาทิตย์';
+      default:
+        return '';
+    }
+  }
+
   //ตัวอย่าง (ข้อมูลปลอม) เอาไว้โชว์ UI ก่อน
   //from database
-  final List<Map<String,dynamic>> _mock = [
-    {
-      "day": "24",
-      "dow": "ศุกร์",
-      "in": "09.30",
-      "out": "18.30"
-    },
-    {
-      "day": "23",
-      "dow": "พฤหัสบดี",
-      "in": "07.30",
-      "out": "22.30"
-    },
-    {
-      "day": "22",//from database
-      "dow": "พุธ",// dow = day of week //from database
-      "in": "08.30", //from database
-      "out": "--:--", //from database
-    },
-    {
-      "day": "21",
-      "dow": "อังคาร",
-      "in": "08:42",
-      "out": "16:30",
-    },
-    {
-      "day": "20",
-      "dow": "จันทร์",
-      "in": "08:30",
-      "out": "21:30",
-    },
+  final List<Map<String, dynamic>> _mock = [
+    // ===== กุมภาพันธ์ 2027 =====
+    {"date": "2027-02-28", "dow": "อาทิตย์", "checkIn": "16:30", "checkOut": "16:30"},
+    {"date": "2027-02-27", "dow": "เสาร์",   "checkIn": "09:10", "checkOut": "18:00"},
+    {"date": "2027-02-26", "dow": "ศุกร์",    "checkIn": "08:45", "checkOut": "17:40"},
+    {"date": "2027-02-25", "dow": "พฤหัสบดี","checkIn": "08:30", "checkOut": "18:20"},
+    {"date": "2027-02-24", "dow": "พุธ",      "checkIn": "08:55", "checkOut": "17:30"},
+    {"date": "2027-02-23", "dow": "อังคาร",   "checkIn": "08:30", "checkOut": null}, // ไม่สมบูรณ์
+    {"date": "2027-02-22", "dow": "จันทร์",   "checkIn": "08:25", "checkOut": "17:30"},
+
+    // ===== มกราคม 2027 =====
+    {"date": "2027-01-31", "dow": "อาทิตย์", "checkIn": "08:30", "checkOut": "17:30"},
+    {"date": "2027-01-30", "dow": "เสาร์",   "checkIn": "09:20", "checkOut": "18:10"},
+    {"date": "2027-01-29", "dow": "ศุกร์",    "checkIn": "08:40", "checkOut": "17:35"},
+    {"date": "2027-01-28", "dow": "พฤหัสบดี","checkIn": "08:30", "checkOut": "17:50"},
+    {"date": "2027-01-27", "dow": "พุธ",      "checkIn": "08:30", "checkOut": "18:30"},
+    {"date": "2027-01-26", "dow": "อังคาร",   "checkIn": "09:05", "checkOut": "17:30"}, // สาย
+    {"date": "2027-01-25", "dow": "จันทร์",   "checkIn": "08:30", "checkOut": "17:30"},
+    {"date": "2027-01-24", "dow": "อาทิตย์", "checkIn": "09:30", "checkOut": "18:30"},
+
+    // ===== ธันวาคม 2026 (ข้ามปีจาก 2026 -> 2027) =====
+    {"date": "2026-12-31", "dow": "พฤหัสบดี","checkIn": "08:50", "checkOut": "17:30"}, // สาย
+    {"date": "2026-12-30", "dow": "พุธ",      "checkIn": "08:30", "checkOut": "17:40"},
+    {"date": "2026-12-29", "dow": "อังคาร",   "checkIn": "08:35", "checkOut": "18:00"}, // สาย
+    {"date": "2026-12-28", "dow": "จันทร์",   "checkIn": "08:30", "checkOut": "17:30"},
+    {"date": "2026-12-27", "dow": "อาทิตย์", "checkIn": "09:00", "checkOut": null}, // ไม่สมบูรณ์
+    {"date": "2026-12-26", "dow": "เสาร์",   "checkIn": "08:30", "checkOut": "12:30"},
+    {"date": "2026-12-25", "dow": "ศุกร์",    "checkIn": "08:30", "checkOut": "17:30"},
+    {"date": "2026-12-24", "dow": "พฤหัสบดี","checkIn": "09:30", "checkOut": "18:30"}, // สาย
+    {"date": "2026-12-23", "dow": "พุธ",      "checkIn": "07:30", "checkOut": "22:30"},
+    {"date": "2026-12-22", "dow": "อังคาร",   "checkIn": "08:30", "checkOut": null}, // ไม่สมบูรณ์
   ];
+
+
 
   static const int _stdInHour = 8;
   static const int _stdInMinute = 30;
@@ -317,23 +354,68 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
         itemBuilder: (context,index){
           final item = _mock[index];
 
+          //แปลง String วันที่ให้กลายเป็น DateTime
+          final date = DateTime.parse(item["date"]); // 2026-12-24
+          //ถ้าตอนนี้เป็นแถวแรก (index = 0) ให้ prevDate เป็น null
+          // แต่ถ้าไม่ใช่แถวแรก ให้เอาวันที่ของแถวก่อนหน้า (index-1) มาแปลงเป็น DateTime แล้วเก็บไว้ใน prevDate
+          final prevDate = index == 0 ? null : DateTime.parse(_mock[index - 1]["date"]);
+
+          // เช็คว่า "รายการปัจจุบัน" เป็นเดือน/ปีใหม่เมื่อเทียบกับ "รายการก่อนหน้า" หรือไม่
+          // - ถ้า prevDate เป็น null (แถวแรก) -> ถือว่าเป็นเดือนใหม่
+          // - หรือถ้าเดือนต่างกัน -> เดือนใหม่
+          // - หรือถ้าปีต่างกัน -> ปีใหม่ (นับเป็นเดือนใหม่ด้วย)
+          // ใช้เพื่อแสดงหัวข้อเดือน/ปี (เช่น "ม.ค. 2027") ตอนเปลี่ยนเดือน
+          final isNewMonth = prevDate == null ||
+              prevDate.month != date.month ||
+              prevDate.year != date.year;
+
+          final day = date.day.toString();
+          // ใช้ dow จาก API ถ้ามี ไม่มีก็คำนวณจาก date เป็น fallback
+          final dow = (item["dow"] as String?) ?? _thaiDowFromDate(date);
+
+          final timeIn = (item["checkIn"] ?? "--:--").toString();
+          final timeOut = item["checkOut"] == null ? "--:--" : item["checkOut"].toString();
+
           final ui = _computeUi(
-            dow: item["dow"],
-            timeIn: item["in"],
-            timeOut: item["out"],
+            dow: dow,
+            timeIn: timeIn,
+            timeOut: timeOut,
           );
 
-          return _historyRow(
-            day: item["day"],
-            dow: item["dow"],
+          final row = _historyRow(
+            day: day,
+            dow: dow,
             badgeColor: ui["bgColor"],
-            timeIn: item["in"],
-            timeOut: item["out"],
+            timeIn: timeIn,
+            timeOut: timeOut,
             statusText: ui["statusText"],
             statusBg: ui["statusBg"],
             statusFg: ui["statusFg"],
             duration: ui["duration"],
             statusIconAsset: ui["statusIconAsset"],
+          );
+
+          /*
+          2026-12-24 (แถวแรก) → isNewMonth = true → แสดงหัวข้อ “ธันวาคม 2569” + row
+          2026-12-23 → เดือน/ปีเหมือนแถวก่อน → isNewMonth = false → เข้า if แล้ว return row ทันที (ไม่โชว์หัวข้อซ้ำ)
+          2027-01-24 (เดือน/ปีเปลี่ยน) → isNewMonth = true → แสดงหัวข้อ “มกราคม 2570” + row
+           */
+          if (!isNewMonth) return row;
+
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  _monthYearLabel(date),//"ธันวาคม 2569"
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+              ),
+              row,//history
+            ],
+
           );
         },
       ),
@@ -460,7 +542,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                 // ถ้ามีการเลือกวันเริ่มต้น (ไม่เป็น null) ให้แปลงเป็นข้อความ
                 if (start != null){
                   // แปลง DateTime -> "วัน/เดือน/ปี" และ +543 เพื่อเป็นปี พ.ศ.
-                  startDate = "${start.day}/${start.month}/${start.year}";
+                  startDate = "${start.day}/${start.month}/${start.year + 543}";
                 }
 
                 // ถ้ามีการเลือกวันสิ้นสุด (ไม่เป็น null) ให้แปลงเป็นข้อความ
