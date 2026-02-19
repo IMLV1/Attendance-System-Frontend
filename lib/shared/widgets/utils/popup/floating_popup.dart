@@ -2,7 +2,6 @@ import 'package:attendance_system/shared/widgets/utils/services/service_updater.
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class FloatingPopup {
 

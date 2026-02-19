@@ -1,6 +1,8 @@
 import 'package:attendance_system/core/auth/user_model.dart';
 import 'package:attendance_system/services/profile_page/profile_model.dart';
 import 'package:attendance_system/services/profile_page/profile_service.dart';
+import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_model.dart';
+import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_service.dart';
 import 'package:dio/dio.dart';
@@ -18,6 +20,7 @@ class AuthState extends ChangeNotifier {
   UserModel? user;
   ProfileModel? profile;
   ConfigLeaveModel? leaveConfig;
+  ConfigAttendanceRequestModel? attendanceConfig;
 
   AuthState(this.repo);
 
@@ -38,6 +41,12 @@ class AuthState extends ChangeNotifier {
         Response response = await ConfigLeaveService().getData();
         if (response.statusCode == 200) {
           leaveConfig = ConfigLeaveModel.fromJson(response.data);
+        }
+      }
+      {
+        Response response = await ConfigAttendanceRequestService().getData();
+        if (response.statusCode == 200) {
+          attendanceConfig = ConfigAttendanceRequestModel.fromJson(response.data);
         }
       }
     }
@@ -61,6 +70,12 @@ class AuthState extends ChangeNotifier {
         Response response = await ConfigLeaveService().getData();
         if (response.statusCode == 200) {
           leaveConfig = ConfigLeaveModel.fromJson(response.data);
+        }
+      }
+      {
+        Response response = await ConfigAttendanceRequestService().getData();
+        if (response.statusCode == 200) {
+          attendanceConfig = ConfigAttendanceRequestModel.fromJson(response.data);
         }
       }
     } catch (e) {

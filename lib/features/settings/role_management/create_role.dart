@@ -11,7 +11,6 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/helper/color_picker_popup/color_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
-import '../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../shared/widgets/utils/popup/option_popup.dart';
 import '../../../shared/widgets/utils/popup/push_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
@@ -28,8 +27,8 @@ class CreateRole extends StatefulWidget {
 
 class _CreateRoleState extends State<CreateRole> {
 
-  late RoleSystem newRole = RoleSystem(id: '', roleName: '', members: [], type: RoleType.specialRole, roleColor: '7E7E7E');
-
+  late RoleSystem newRole = RoleSystem(roleName: '', members: [], type: RoleType.specialRole, roleColor: '7E7E7E');
+  
   Timer? _debounce;
   Timer? _popupDebounce;
 
@@ -91,7 +90,13 @@ class _CreateRoleState extends State<CreateRole> {
       final key = value.trim().toLowerCase();
 
       setState(() {
-        _filteredMembers = key.isEmpty ? newRole.members : newRole.members.where((m) => m.thName.toLowerCase().contains(key) || m.enName.toLowerCase().contains(key)).toList();
+        _filteredMembers = key.isEmpty ? newRole.members : newRole.members
+            .where((m) => m.thName
+            .toLowerCase()
+            .contains(key) || m.enName
+            .toLowerCase()
+            .contains(key))
+            .toList();
       });
     });
   }
@@ -243,15 +248,10 @@ class _CreateRoleState extends State<CreateRole> {
                                               ),
                                             ),
                                           ),
+                                          onChanged: (val) {
+                                            newRole = newRole.copyWith(roleName: val.trim());
+                                          },
                                           onSubmitted: (val) {
-                                            final newName = val.trim();
-
-                                            if (newName.isEmpty) return;
-
-                                            setState(() {
-                                              newRole = newRole.copyWith(roleName: newName);
-                                            });
-
                                             FocusScope.of(context).unfocus();
                                           },
                                         ),
@@ -290,6 +290,41 @@ class _CreateRoleState extends State<CreateRole> {
                                 ],
                               ),
                             ),
+                            /// ===== Delete role =====
+                            // SeparatorCard(
+                            //     separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                            //     children: [
+                            //       IconTextButton(onPressed: () {
+                            //         FloatingPopup(
+                            //             title: 'ลบตำแหน่ง',
+                            //             description: 'คุณยืนยันที่จะลบตำแหน่ง ${_role.roleName} หรือไม่ การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                            //             buttons: (parent, context1) => [
+                            //               FloatingPopupButton(
+                            //                 text: 'ยกเลิก',
+                            //                 foregroundColor: Colors.white,
+                            //                 backgroundColor: AppColors.primaryColor,
+                            //                 onPressed: () {
+                            //                   Navigator.of(context1).pop();
+                            //                 },
+                            //               ),
+                            //               FloatingServicePopupButton(
+                            //                 text: 'ยันยัน',
+                            //                 foregroundColor: Colors.red,
+                            //                 request: () => RoleManagementService().deleteRole(_role),
+                            //                 setError: parent,
+                            //                 onSuccess: () {
+                            //                   Navigator.of(context1).pop();
+                            //
+                            //                   Navigator.pop(context, {
+                            //                     'status': 1,
+                            //                   });
+                            //                 },
+                            //               )
+                            //             ]
+                            //         ).showPopup(context);
+                            //       }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบตำแหน่ง')
+                            //     ]
+                            // ),
                             /// กำหนดสิทธิ์การเข้าถึง
                             SeparatorCard(
                               separatorPadding:

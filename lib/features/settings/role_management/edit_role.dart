@@ -16,7 +16,6 @@ import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/helper/color_picker_popup/color_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/floating_popup.dart';
-import '../../../shared/widgets/utils/popup/option_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 import '../../../shared/widgets/utils/services/service_updater.dart';
 
@@ -126,7 +125,6 @@ class _EditRoleState extends State<EditRole> {
   List<Member> allMembers = [];
   List<Member> addMembers = [];
   List<Member> popupFilteredMembers = [];
-  bool _popupLoaded = false;
 
   // ---------- lifecycle ----------
   @override
@@ -380,38 +378,38 @@ class _EditRoleState extends State<EditRole> {
 
                             /// ===== Delete role =====
                             SeparatorCard(
-                                separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                                children: [
-                                  IconTextButton(onPressed: () {
-                                    FloatingPopup(
-                                        title: 'ลบตำแหน่ง',
-                                        description: 'คุณยืนยันที่จะลบตำแหน่ง ${_role.roleName} หรือไม่ การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
-                                        buttons: (parent, context1) => [
-                                          FloatingPopupButton(
-                                            text: 'ยกเลิก',
-                                            foregroundColor: Colors.white,
-                                            backgroundColor: AppColors.primaryColor,
-                                            onPressed: () {
-                                              Navigator.of(context1).pop();
-                                            },
-                                          ),
-                                          FloatingServicePopupButton(
-                                            text: 'ยันยัน',
-                                            foregroundColor: Colors.red,
-                                            request: () => RoleManagementService().deleteRole(_role),
-                                            setError: parent,
-                                            onSuccess: () {
-                                              Navigator.of(context1).pop();
+                              separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                              children: [
+                                IconTextButton(onPressed: () {
+                                  FloatingPopup(
+                                      title: 'ลบตำแหน่ง',
+                                      description: 'คุณยืนยันที่จะลบตำแหน่ง ${_role.roleName} หรือไม่ การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                                      buttons: (parent, context1) => [
+                                        FloatingPopupButton(
+                                          text: 'ยกเลิก',
+                                          foregroundColor: Colors.white,
+                                          backgroundColor: AppColors.primaryColor,
+                                          onPressed: () {
+                                            Navigator.of(context1).pop();
+                                          },
+                                        ),
+                                        FloatingServicePopupButton(
+                                          text: 'ยันยัน',
+                                          foregroundColor: Colors.red,
+                                          request: () => RoleManagementService().deleteRole(_role),
+                                          setError: parent,
+                                          onSuccess: () {
+                                            Navigator.of(context1).pop();
 
-                                              Navigator.pop(context, {
-                                                'status': 1,
-                                              });
-                                            },
-                                          )
-                                        ]
-                                    ).showPopup(context);
-                                  }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบตำแหน่ง')
-                                ]
+                                            Navigator.pop(context, {
+                                              'status': 1,
+                                            });
+                                          },
+                                        )
+                                      ]
+                                  ).showPopup(context);
+                                }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบตำแหน่ง')
+                              ]
                             ),
                             /// กำหนดสิทธิ์การเข้าถึง
                             // SeparatorCard(
@@ -534,7 +532,6 @@ class _EditRoleState extends State<EditRole> {
 
                                             addMembers = [];
                                             popupFilteredMembers = [];
-                                            _popupLoaded = false;
 
                                             PushPopup(
                                               title: 'เพิ่มสมาชิก',

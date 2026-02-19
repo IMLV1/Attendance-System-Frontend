@@ -1,12 +1,9 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
-import 'package:attendance_system/services/profile_page/profile_service.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
-import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/text_role_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
-// import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
