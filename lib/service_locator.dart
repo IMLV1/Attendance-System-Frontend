@@ -1,4 +1,7 @@
+import 'package:attendance_system/services/check-in/check-in_service.dart';
+import 'package:attendance_system/services/check-in/holiday_service.dart';
 import 'package:attendance_system/services/profile_page/profile_service.dart';
+import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -45,6 +48,15 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<ProfileService>(
         () => ProfileService(),
   );
+
+  getIt.registerLazySingleton<AttendanceService>(
+        () => AttendanceService(),
+  );
+
+  getIt.registerLazySingleton<HolidayService>(() => HolidayService(getIt<Dio>()));
+
+  // ในไฟล์ setup ของคุณ
+  getIt.registerLazySingleton<ConfigAttendanceTimeService>(() => ConfigAttendanceTimeService());
 
   getIt.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(
