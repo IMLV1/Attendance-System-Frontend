@@ -112,7 +112,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                               color: leaveType == null ? Color(0xFF7D7D7D) : Colors.black,
                                                               onPressed: () async {
                                                                 /// TODO: Select Leave Request
-                                                                final (leaveType, setting) = await Navigator.of(context).push(
+                                                                final (String? leaveType, LeaveSetting? setting) = await Navigator.of(context).push(
                                                                   MaterialPageRoute(
                                                                     builder: (_) => const LeaveType(),
                                                                   ),
