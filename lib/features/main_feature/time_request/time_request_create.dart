@@ -93,13 +93,10 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      header: Header.mainHeader(
-        context,
-        title: 'ส่งคำขอลางาน',
-        subTitle: 'Leave Request',
-        iconPath: 'icon_leave.svg',
-        iconColor: Colors.white
-      ),
+        header: Header.subHeader(
+            context,
+            title: 'สร้างคำขอ',
+        ),
       content: ServiceLoader(
         request: () => ConfigAttendanceRequestService().getData(),
         onSuccess: (val) async {
