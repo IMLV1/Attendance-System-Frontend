@@ -20,8 +20,8 @@ class TimeRequestModel {
   final DateTime? toDate;
   final TimeOfDay? startTime;
   final TimeOfDay? endTime;
-  final String remark;
-  final List<PlatformFile> files;
+  final String? remark;
+  final List<PlatformFile>? files;
 
   const TimeRequestModel({
     this.fromDate,

@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/network/api_client.dart';
 
@@ -17,9 +16,10 @@ class TimeRequestService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
   Future<Response<dynamic>> timeRequestCreate(TimeRequestModel element) async {
+
     List<MultipartFile> multipartFiles = [];
 
-    for (var file in element.files) {
+    for (var file in element.files ?? []) {
       if (kIsWeb) {
         multipartFiles.add(
           MultipartFile.fromBytes(
@@ -27,27 +27,30 @@ class TimeRequestService {
             filename: file.name,
           ),
         );
-      } else {
-        if (file.path != null) {
-          multipartFiles.add(
-            await MultipartFile.fromFile(
-              file.path!,
-              filename: file.name,
-            ),
-          );
-        }
+      } else if (file.path != null) {
+        multipartFiles.add(
+          await MultipartFile.fromFile(
+            file.path!,
+            filename: file.name,
+          ),
+        );
       }
     }
 
+    Map<String, dynamic> data = {
+      'date-from': element.fromDate!.toIso8601String(),
+      'date-to': element.toDate!.toIso8601String(),
+      'start-time': formatTimeOfDay(element.startTime!),
+      'end-time': formatTimeOfDay(element.endTime!),
+      'remark': element.remark ?? '',
+    };
+
+    if (multipartFiles.isNotEmpty) {
+      data['files'] = multipartFiles;
+    }
+
     return dio.post('api/attendance_request/create',
-        data: {
-          'date-from': element.fromDate!.toIso8601String(),
-          'date-to': element.toDate!.toIso8601String(),
-          'start-time': formatTimeOfDay(element.startTime!),
-          'end-time': formatTimeOfDay(element.endTime!),
-          'files' : multipartFiles,
-          'remark': element.remark,
-        }
+      data: FormData.fromMap(data),
     );
   }
 }
