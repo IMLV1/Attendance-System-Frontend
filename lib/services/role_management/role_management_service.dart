@@ -17,7 +17,7 @@ class RoleManagementService {
   }
 
   Future<Response<dynamic>> getAllUser() async {
-    return dio.get('/system/role/create/all-user');
+    return dio.get('/system/user_management/members');
   }
 
   Future<Response<dynamic>> updateRole(RoleSystem element) async {
@@ -35,15 +35,11 @@ class RoleManagementService {
     );
   }
 
-  Future<Response<dynamic>> createRole(RoleSystem element) async {
-    final uuid = Uuid();
-    final newId = uuid.v4();
 
-    print(newId);
-    return dio.post(
-      '/system/role/create',
+  Future<Response<dynamic>> createRole(RoleSystem element) async {
+    Future<Response<dynamic>> res = dio.post('/system/role_management/create',
       data: {
-        'id': newId,
+        'id': element.id,
         'type': roleTypeToApi(element.type),
         'color': element.roleColor,
         'name': element.roleName,
@@ -52,15 +48,17 @@ class RoleManagementService {
         }).toList(),
       },
     );
+
+    return res;
   }
 
   Future<Response<dynamic>> deleteRole(RoleSystem element) {
 
     Future<Response<dynamic>> response = dio.delete(
-        '/system/role_management/delete',
-        data: {
-          'id': element.id
-        }
+      '/system/role_management/delete',
+      data: {
+        'id': element.id
+      }
     );
 
     return response;
