@@ -348,6 +348,7 @@ class _CheckinPageState extends State<CheckinPage>{
 
     Color buttonColor;
     String buttonText;
+    String showtext;
     String iconPath;
     double fontSize ;
     bool isDisabled = false;
@@ -355,6 +356,7 @@ class _CheckinPageState extends State<CheckinPage>{
     if (isOnLeave) {
       buttonColor = AppColors.buttonDisable;
       buttonText = "ลางาน";
+      showtext = 'ลางาน';
       iconPath = 'assets/images/leave.svg'; // เตรียมไอคอนลา
       isDisabled = true;
       fontSize = 27;
@@ -362,12 +364,14 @@ class _CheckinPageState extends State<CheckinPage>{
     else if (isPublicHoliday) {
       buttonColor = AppColors.buttonDisable;
       buttonText = "วันหยุดราชการ";
+      showtext ='วันหยุดราชการ';
       iconPath = 'assets/images/publicholiday.svg';
       isDisabled = true;
       fontSize = 24;
     }else if(isWeekend) {
       buttonColor = AppColors.buttonDisable;
       buttonText = "วันหยุด";
+      showtext = 'วันหยุดสุดสัปดาห์';
       iconPath = 'assets/images/weekend.svg'; // เตรียมไอคอนวันหยุดสุดสัปดาห์
       isDisabled = true;
       fontSize = 32;
@@ -378,6 +382,7 @@ class _CheckinPageState extends State<CheckinPage>{
         // case "ABSENT":
         //   buttonColor = AppColors.buttonDisable;
         //   buttonText = "ขาดงาน";
+        //    showtext = 'ขาดงาน';
         //   iconPath = 'assets/images/absent.svg';
         //   isDisabled = true;
         //   fontSize = 27;
@@ -386,6 +391,7 @@ class _CheckinPageState extends State<CheckinPage>{
         case "FINISHED":
           buttonColor = AppColors.buttonDisable;
           buttonText = "จบเวลางาน";
+          showtext = 'ยินดีด้วย! คุณทำงานเสร็จแล้ว';
           iconPath = 'assets/images/endwork.svg';
           isDisabled = true;
           fontSize = 27;
@@ -394,6 +400,7 @@ class _CheckinPageState extends State<CheckinPage>{
         case "CHECK_OUT_READY":
           buttonColor = AppColors.buttonCheckOut;
           buttonText = "เช็คเอาต์";
+          showtext = 'กรุณากดปุ่ม “เช็คเอ้าท์” เพื่อลงชื่อออกจากงาน';
           iconPath = 'assets/images/click_checkin.svg';
           isDisabled = false;
           fontSize = 32;
@@ -402,12 +409,14 @@ class _CheckinPageState extends State<CheckinPage>{
           buttonColor = AppColors.buttonDisable;
           buttonText = "อยู่ในเวลางาน";
           iconPath = 'assets/images/intimejob.svg';
+          showtext = 'กรุณากลับมาเช็คเอาค์ด้วยตอนเวลาเลิกงาน';
           isDisabled = true;
           fontSize = 26;
           break;
         default: // CHECK_IN_READY
           buttonColor = AppColors.buttonCheckIn;
           buttonText = "เช็คอิน";
+          showtext = 'กรุณากดปุ่ม “เช็คอิน” เพื่อลงชื่อเข้างาน';
           iconPath = 'assets/images/click_checkin.svg';
           isDisabled = false;
           fontSize = 32;
@@ -522,7 +531,7 @@ class _CheckinPageState extends State<CheckinPage>{
         ),
         const SizedBox(height: 15),
         Text(
-          'กรุณากดปุ่มเพื่อ "เช็คอิน" เพื่อลงชื่อเข้างาน',
+            showtext,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w200,
