@@ -1,5 +1,5 @@
 import 'package:attendance_system/features/main_feature/checkin_page.dart';
-import 'package:attendance_system/features/main_feature/leave_request/leave_request_page.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_request_status.dart';
 import 'package:attendance_system/features/main_feature/profile_page.dart';
 import 'package:attendance_system/features/main_feature/statistic_page.dart';
 import 'package:attendance_system/features/main_feature/time_request_page.dart';
@@ -78,7 +78,7 @@ final appRouter = GoRouter(
         ),
         GoRoute(
           path: '/leave',
-          pageBuilder: (_, _) => const NoTransitionPage(child: LeaveRequestPage()),
+          pageBuilder: (_, _) => const NoTransitionPage(child: LeaveRequestStatus()),
         ),
         GoRoute(
           path: '/settings/budget-year',

@@ -12,13 +12,17 @@ class ServiceUpdater extends StatefulWidget {
     ServiceUpdatorState state,
     String errorMessage,
   ) builder;
-  final void Function() onSuccess;
+  final void Function()? onSuccess;
+  final void Function(dynamic error)? onError;
+  final void Function(dynamic data)? onSuccessResponse;
 
   const ServiceUpdater({
     super.key,
     required this.request,
-    required this.onSuccess,
     required this.builder,
+    this.onSuccess,
+    this.onError,
+    this.onSuccessResponse,
   });
 
   @override
@@ -46,12 +50,14 @@ class _ServiceUpdaterState extends State<ServiceUpdater> {
         setState(() {
           _state = ServiceUpdatorState.success;
         });
-        widget.onSuccess();
+        widget.onSuccess?.call();
+        widget.onSuccessResponse?.call(res.data);
       } else {
         setState(() {
           _state = ServiceUpdatorState.error;
           _errorMessage = res.statusMessage;
         });
+        widget.onError?.call(res.data);
       }
     } catch (e) {
       if (!mounted) return;
