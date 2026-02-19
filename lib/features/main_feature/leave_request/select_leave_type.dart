@@ -32,6 +32,7 @@ class LeaveType extends StatelessWidget {
                       AppButton(
                         icon: 'icon_sick.svg',
                         title: 'ลาป่วย',
+                        weightTitle: FontWeight.w500,
                         onPressed: () {
                           Navigator.pop(context, ('ลาป่วย', config!.sick));
                         },
@@ -39,6 +40,7 @@ class LeaveType extends StatelessWidget {
                       AppButton(
                         icon: 'icon_leave_personal.svg',
                         title: 'ลากิจส่วนตัว',
+                        weightTitle: FontWeight.w500,
                         onPressed: () {
                           Navigator.pop(context, ('ลากิจส่วนตัว', config!.personal));
                         },
@@ -46,6 +48,7 @@ class LeaveType extends StatelessWidget {
                       AppButton(
                         icon: 'icon_vacation.svg',
                         title: 'ลาพักผ่อน',
+                        weightTitle: FontWeight.w500,
                         onPressed: () {
                           Navigator.pop(context, ('ลาพักผ่อน', config!.vacation));
                         },
@@ -53,6 +56,7 @@ class LeaveType extends StatelessWidget {
                       AppButton(
                         icon: 'icon_maternity_leave.svg',
                         title: 'ลาคลอดบุตร',
+                        weightTitle: FontWeight.w500,
                         onPressed: () {
                           Navigator.pop(context, ('ลาคลอดบุตร', config!.maternity));
                         },
@@ -60,6 +64,7 @@ class LeaveType extends StatelessWidget {
                       AppButton(
                         icon: 'icon_leave_assist_childbirth.svg',
                         title: 'ลาช่วยเหลือภริยาคลอดบุตร',
+                        weightTitle: FontWeight.w500,
                         onPressed: () {
                           Navigator.pop(context, ('ลาช่วยเหลือภริยาคลอดบุตร', config!.paternity));
                         },
@@ -67,6 +72,7 @@ class LeaveType extends StatelessWidget {
                       AppButton(
                         icon: 'icon_taking_care_child.svg',
                         title: 'ลากิจเพื่อเลี้ยงดูบุตร',
+                        weightTitle: FontWeight.w500,
                         onPressed: () {
                           Navigator.pop(context, ('ลากิจเพื่อเลี้ยงดูบุตร', config!.parental));
                         },

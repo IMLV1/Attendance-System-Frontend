@@ -42,9 +42,7 @@ class SettingPage extends StatelessWidget {
                       //                         }
                       IconTextButton(onPressed: () {
                         context.push('/history/attendance');
-                      },icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
-                      IconTextButton(icon: 'icon_leave_history.svg', label: 'บันทึกการลางาน'),
-                      IconTextButton(icon: 'icon_attendance_request_history.svg', label: 'บันทึกคำขออนุมัติเวลางาน')
+                      }, icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
                     ]
                   ),
                   SeparatorCard(

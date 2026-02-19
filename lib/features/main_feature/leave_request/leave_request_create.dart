@@ -361,7 +361,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                           final bytes = await image.readAsBytes();
 
                                                                           final file = PlatformFile(
-                                                                            name: 'IMG_${_generateRandomNumber(5)}.$extension',
+                                                                            name: 'IMG_${_generateRandomNumber(5)}$extension',
                                                                             size: bytes.length,
                                                                             path: image.path,
                                                                             bytes: bytes,
@@ -388,7 +388,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                           final bytes = await image.readAsBytes();
 
                                                                           final file = PlatformFile(
-                                                                            name: 'IMG_${_generateRandomNumber(5)}.$extension',
+                                                                            name: 'IMG_${_generateRandomNumber(5)}$extension',
                                                                             size: bytes.length,
                                                                             path: image.path,
                                                                             bytes: bytes,
@@ -524,8 +524,9 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                           children: [
                             ServiceUpdater(
                                 request: () => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles),
-                                onSuccess: () {
-
+                                onSuccessResponse: (jsonData) {
+                                  final String? requestID = jsonData['request-id'] ?? '';
+                                  Navigator.pop(context, requestID);
                                 },
                                 builder: (trigger, state, errorMessage) {
                                   return Column(
