@@ -16,32 +16,33 @@ import 'package:go_router/go_router.dart';
 
 import '../core/auth/auth_state.dart';
 import '../features/auth/login_page.dart';
+import '../features/history/attendance_history.dart';
 import '../features/settings/role_management/role_management.dart';
 import '../service_locator.dart';
 
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
   initialLocation: '/login',
-  redirect: (_, state) {
-    final auth = getIt<AuthState>();
-    final location = state.matchedLocation;
-
-    if (auth.status == AuthStatus.unknown) {
-      return location == '/splash' ? null : '/splash';
-    }
-
-    final isLogin = location == '/login';
-
-    if (auth.status == AuthStatus.unauthenticated) {
-      return isLogin ? null : '/login';
-    }
-
-    if (auth.status == AuthStatus.authenticated && isLogin) {
-      return '/check-in';
-    }
-
-    return null;
-  },
+  // redirect: (_, state) {
+  //   final auth = getIt<AuthState>();
+  //   final location = state.matchedLocation;
+  //
+  //   if (auth.status == AuthStatus.unknown) {
+  //     return location == '/splash' ? null : '/splash';
+  //   }
+  //
+  //   final isLogin = location == '/login';
+  //
+  //   if (auth.status == AuthStatus.unauthenticated) {
+  //     return isLogin ? null : '/login';
+  //   }
+  //
+  //   if (auth.status == AuthStatus.authenticated && isLogin) {
+  //     return '/check-in';
+  //   }
+  //
+  //   return null;
+  // },
 
   routes: [
     GoRoute(
@@ -105,6 +106,10 @@ final appRouter = GoRouter(
           path: '/settings/role-management',
           builder: (_, _) => const RoleManagement(),
         ),
+        GoRoute(
+            path: '/history/attendance',
+            builder: (_, _) => const AttendanceHistory(),
+        )
       ],
     ),
   ],

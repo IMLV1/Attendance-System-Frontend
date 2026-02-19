@@ -56,6 +56,7 @@ class AuthState extends ChangeNotifier {
         Response response = await ConfigAttendanceTimeService().getData();
         if (response.statusCode == 200) {
           timeConfig = ConfigAttendanceTimeModel.fromJson(response.data);
+        }
       }
     }
 
@@ -84,6 +85,7 @@ class AuthState extends ChangeNotifier {
         Response response = await ConfigAttendanceTimeService().getData();
         if (response.statusCode == 200) {
           timeConfig = ConfigAttendanceTimeModel.fromJson(response.data);
+        }
       }
       {
         Response response = await ConfigAttendanceRequestService().getData();
