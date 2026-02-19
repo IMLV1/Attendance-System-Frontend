@@ -3,6 +3,8 @@ import 'package:attendance_system/services/profile_page/profile_model.dart';
 import 'package:attendance_system/services/profile_page/profile_service.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
+import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_model.dart';
+import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_service.dart';
 import 'package:dio/dio.dart';
@@ -21,6 +23,7 @@ class AuthState extends ChangeNotifier {
   ProfileModel? profile;
   ConfigLeaveModel? leaveConfig;
   ConfigAttendanceTimeModel? timeConfig;
+  ConfigAttendanceRequestModel? attendanceConfig;
 
   AuthState(this.repo);
 
@@ -44,10 +47,15 @@ class AuthState extends ChangeNotifier {
         }
       }
       {
+        Response response = await ConfigAttendanceRequestService().getData();
+        if (response.statusCode == 200) {
+          attendanceConfig = ConfigAttendanceRequestModel.fromJson(response.data);
+        }
+      }
+      {
         Response response = await ConfigAttendanceTimeService().getData();
         if (response.statusCode == 200) {
           timeConfig = ConfigAttendanceTimeModel.fromJson(response.data);
-        }
       }
     }
 
@@ -76,6 +84,11 @@ class AuthState extends ChangeNotifier {
         Response response = await ConfigAttendanceTimeService().getData();
         if (response.statusCode == 200) {
           timeConfig = ConfigAttendanceTimeModel.fromJson(response.data);
+      }
+      {
+        Response response = await ConfigAttendanceRequestService().getData();
+        if (response.statusCode == 200) {
+          attendanceConfig = ConfigAttendanceRequestModel.fromJson(response.data);
         }
       }
     } catch (e) {

@@ -4,7 +4,6 @@ import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/number_input_popup.dart';
-import 'package:attendance_system/shared/widgets/utils/popup/text_input_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +24,7 @@ class _SetMaxLeaveState extends State<SetMaxLeave> {
 
   @override
   void initState() {
-    // TODO: implement initState
+    super.initState();
     maxLeave = widget.maxLeave;
   }
 

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:dio/dio.dart';

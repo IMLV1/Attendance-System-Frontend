@@ -27,7 +27,6 @@ String roleTypeToApi(RoleType type) {
     case RoleType.specialRole:
       return 'special';
     case RoleType.mainRole:
-    default:
       return 'main';
   }
 }

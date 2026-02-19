@@ -36,7 +36,7 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
 
   @override
   void initState() {
-    // TODO: implement initState
+    super.initState();
     _value = widget.value;
     _subValue = widget.subValue;
   }
