@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:sealed_countries/sealed_countries.dart';
@@ -29,6 +30,11 @@ void main() async {
   await setupServiceLocator();
   await getIt<AuthState>().init();
   prepareNationalities();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   runApp(
     ChangeNotifierProvider<AuthState>.value(
       value: getIt<AuthState>(),

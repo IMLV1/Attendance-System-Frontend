@@ -60,6 +60,18 @@
         <string>224641754766-8td61iugq14jpcpge92aq86tgco5s9cm.apps.googleusercontent.com</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+    <key>NSCameraUsageDescription</key>
+    <string>This app requires camera access to take photos.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app requires photo library access to select images.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>This app requires permission to save photos.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app requires location access while using the app.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app requires access to photo library to select files.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>This app requires permission to save files.</string>
 
 </dict>
 </plist>
