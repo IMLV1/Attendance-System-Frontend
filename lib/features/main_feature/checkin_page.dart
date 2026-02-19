@@ -5,6 +5,7 @@ import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -44,11 +45,11 @@ class _CheckinPageState extends State<CheckinPage>{
   bool hasCheckedOut = false;
 
   bool isOnLeave = false;          // ลางาน
-  bool isPublicHoliday = false ;    // วันหยุดราชการ/นักขัตฤกษ์
+  bool isPublicHoliday = false;    // วันหยุดราชการ/นักขัตฤกษ์
 
   ConfigAttendanceTimeModel? configSetting;
 
-  late Timer _timer;
+  Timer? _timer;
   DateTime _lastResetDate = DateTime.now();
 
   @override
@@ -80,7 +81,7 @@ class _CheckinPageState extends State<CheckinPage>{
     }
   }
 
-Future<void> _loadInitialState(DateTime networkTime) async {
+  Future<void> _loadInitialState(DateTime networkTime) async {
     final attendanceService = GetIt.I<AttendanceService>();
 
     // แก้ตรงนี้: ส่ง networkTime เข้าไปให้ Service เช็ควันที่ให้เบ็ดเสร็จ
@@ -137,7 +138,7 @@ Future<void> _loadInitialState(DateTime networkTime) async {
 
   @override
   void dispose() {
-    _timer.cancel(); // ล้าง Timer เพื่อประหยัด Memory
+    _timer?.cancel(); // ล้าง Timer เพื่อประหยัด Memory
     super.dispose();
   }
 
@@ -210,7 +211,9 @@ Future<void> _loadInitialState(DateTime networkTime) async {
           subTitle: 'Time Attendance',
           iconPath: 'checkin_title_logo.svg'
       ),
-      content: ServiceLoader(
+      content: (configSetting == null)
+      ? Center(child: CupertinoActivityIndicator(color: Colors.black))
+      : ServiceLoader(
         request: () async {
           try {
             final time = await NTP.now(lookUpAddress: 'time.google.com');
@@ -227,26 +230,33 @@ Future<void> _loadInitialState(DateTime networkTime) async {
             );
           }
         },
-          onSuccess: (data) async {
-            if (_currentNetworkTime == null) {
-              DateTime ntpNow = data as DateTime;
-              _currentNetworkTime = ntpNow;
+        onSuccess: (data) async {
+          if (_currentNetworkTime == null) {
 
-              // 1. เพิ่มการ Fetch วันหยุดที่นี่
-              final holidayService = GetIt.I<HolidayService>();
-              bool holidayStatus = await holidayService.checkTodayIsHoliday(ntpNow);
-
-              if (mounted) {
-                setState(() {
-                  isPublicHoliday = holidayStatus; // อัปเดตสถานะวันหยุด
-                });
-
-                // 2. โหลดสถานะ Local และเริ่ม Timer ตามเดิม
-                await _loadInitialState(_currentNetworkTime!);
-                _startTimerLogic();
-              }
+            // 🔐 กัน null ก่อน
+            if (data == null || data is! DateTime) {
+              return; // ยังไม่มีเวลา ไม่ต้องทำอะไร
             }
-          },
+
+            final DateTime ntpNow = data;   // ตอนนี้ non-null แน่นอน
+            _currentNetworkTime = ntpNow;
+
+            final holidayService = GetIt.I<HolidayService>();
+            final bool holidayStatus =
+            await holidayService.checkTodayIsHoliday(ntpNow);
+
+            if (!mounted) return;
+
+            setState(() {
+              isPublicHoliday = holidayStatus;
+            });
+
+            // ไม่ต้องใช้ !
+            await _loadInitialState(ntpNow);
+            _startTimerLogic();
+          }
+
+        },
         builder: () => SafeArea(
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -536,7 +546,7 @@ Future<void> _loadInitialState(DateTime networkTime) async {
               child: Text(
                 softWrap: true,
                 textAlign: TextAlign.start,
-                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime.hour.toString().padLeft(2, '0')}:${configSetting?.checkInTime.minute.toString().padLeft(2, '0')} หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime.hour.toString().padLeft(2, '0')}:${configSetting?.cutoffTime.minute.toString().padLeft(2, '0')} ของทุกวัน',
+                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'} หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.normal,
