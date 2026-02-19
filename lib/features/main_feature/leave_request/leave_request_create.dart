@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'dart:math';
 
-import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
@@ -9,7 +7,6 @@ import 'package:attendance_system/services/system_config/leave/config_leave_mode
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
@@ -20,8 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../shared/widgets/utils/separator_card.dart';
