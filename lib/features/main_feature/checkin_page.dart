@@ -50,13 +50,11 @@ class _CheckinPageState extends State<CheckinPage>{
   ConfigAttendanceTimeModel? configSetting;
 
   Timer? _timer;
-  DateTime _lastResetDate = DateTime.now();
+  DateTime? _lastResetDate;
 
   @override
   void initState() {
     super.initState();
-    _syncInitialTime(); // ซิงค์เวลาโลกครั้งแรก
-      _loadInitialState(DateTime.now());
     // WidgetsBinding.instance.addPostFrameCallback((_) async {
     //   final attendanceService = GetIt.I<AttendanceService>();
     //   await attendanceService.clearLocalState(); // สมมติว่ามีฟังก์ชันล้างข้อมูลใน Service
@@ -81,30 +79,57 @@ class _CheckinPageState extends State<CheckinPage>{
     }
   }
 
+  // Future<void> _loadInitialState(DateTime networkTime) async {
+  //   final attendanceService = GetIt.I<AttendanceService>();
+  //
+  //   // แก้ตรงนี้: ส่ง networkTime เข้าไปให้ Service เช็ควันที่ให้เบ็ดเสร็จ
+  //   final savedState = await attendanceService.getLocalState(networkTime);
+  //
+  //   if (savedState != null) {
+  //     // ถ้า Service คืนค่ามา แสดงว่าเป็นของวันนี้แน่นอน
+  //     setState(() {
+  //       checkInTimeRecorded = savedState.checkInTime ?? "---";
+  //       checkOutTimeRecorded = savedState.checkOutTime ?? "---";
+  //       _hasCheckedIn = savedState.hasCheckedIn;
+  //       hasCheckedOut = savedState.hasCheckedOut;
+  //     });
+  //   } else {
+  //     // ถ้าคืน null แสดงว่าเป็นวันใหม่ หรือไม่มีข้อมูล
+  //     setState(() {
+  //       checkInTimeRecorded = "---";
+  //       checkOutTimeRecorded = "---";
+  //       _hasCheckedIn = false;
+  //       hasCheckedOut = false;
+  //     });
+  //   }
+  // }
   Future<void> _loadInitialState(DateTime networkTime) async {
     final attendanceService = GetIt.I<AttendanceService>();
-
-    // แก้ตรงนี้: ส่ง networkTime เข้าไปให้ Service เช็ควันที่ให้เบ็ดเสร็จ
     final savedState = await attendanceService.getLocalState(networkTime);
 
     if (savedState != null) {
-      // ถ้า Service คืนค่ามา แสดงว่าเป็นของวันนี้แน่นอน
       setState(() {
         checkInTimeRecorded = savedState.checkInTime ?? "---";
         checkOutTimeRecorded = savedState.checkOutTime ?? "---";
         _hasCheckedIn = savedState.hasCheckedIn;
         hasCheckedOut = savedState.hasCheckedOut;
+
+        // ✅ FIX สำคัญที่สุด
+        _lastResetDate = DateTime.parse(savedState.lastUpdateDate);
       });
     } else {
-      // ถ้าคืน null แสดงว่าเป็นวันใหม่ หรือไม่มีข้อมูล
       setState(() {
         checkInTimeRecorded = "---";
         checkOutTimeRecorded = "---";
         _hasCheckedIn = false;
         hasCheckedOut = false;
+
+        // วันใหม่ → ยังไม่ reset
+        _lastResetDate = null;
       });
     }
   }
+
 
   Future<void> _saveCurrentState() async {
     if (_currentNetworkTime == null) return;
@@ -127,14 +152,22 @@ class _CheckinPageState extends State<CheckinPage>{
     await attendanceService.saveLocalState(attendanceData);
   }
 
+  // Future<void> _syncInitialTime() async {
+  //   try {
+  //     _currentNetworkTime = await NTP.now(lookUpAddress: 'time.google.com');
+  //   } catch (e) {
+  //     _currentNetworkTime = DateTime.now(); // ถ้าเน็ตล่ม ให้ถอยไปใช้เวลาเครื่อง
+  //   }
+  //
+  // }
   Future<void> _syncInitialTime() async {
     try {
       _currentNetworkTime = await NTP.now(lookUpAddress: 'time.google.com');
     } catch (e) {
-      _currentNetworkTime = DateTime.now(); // ถ้าเน็ตล่ม ให้ถอยไปใช้เวลาเครื่อง
+      _currentNetworkTime = DateTime.now();
     }
-
   }
+
 
   @override
   void dispose() {
@@ -142,33 +175,85 @@ class _CheckinPageState extends State<CheckinPage>{
     super.dispose();
   }
 
+  // void _checkAndResetLogic(ConfigAttendanceTimeModel? configSetting) {
+  //   final now = _currentNetworkTime ;
+  //
+  //   //&& _lastResetDate.day != now.day
+  //   if (configSetting?.cutoffTime.hour == now?.hour && configSetting?.cutoffTime.minute == now?.minute) {
+  //     _resetDailyData(now!);
+  //     debugPrint("--- TEST RESET WORKING ---");
+  //   }
+  //   // 2. หรือ Reset เมื่อผ่านเที่ยงคืน (กรณีแอปเปิดทิ้งไว้ข้ามคืน)
+  //   else if (now?.day != _lastResetDate.day && now!.hour >= 0) {
+  //     _resetDailyData(now!);
+  //   }
+  //   // สั่ง Rebuild เพื่อให้ _getButtonState() ตรวจสอบเวลา 16:30 เพื่อเปลี่ยนปุ่ม
+  //   if (mounted) setState(() {});
+  // }
   void _checkAndResetLogic(ConfigAttendanceTimeModel? configSetting) {
-    final now = DateTime.now();
-    // 1. Reset ทุกอย่างเมื่อถึงเวลา 08:30 ของวันใหม่
-    // เช็คว่าชั่วโมงคือ 8, นาทีคือ 30 และยังไม่ได้ Reset ในวันนี้
-    //&& _lastResetDate.day != now.day
-    if (configSetting?.cutoffTime.hour == now.hour && configSetting?.cutoffTime.minute == now.minute && _lastResetDate.day != now.day) {
+    if (_currentNetworkTime == null || configSetting == null) return;
+
+    final now = _currentNetworkTime!;
+    final cutoff = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      configSetting.cutoffTime.hour,
+      configSetting.cutoffTime.minute,
+    );
+
+    final alreadyResetToday =
+        _lastResetDate != null &&
+            _lastResetDate!.year == now.year &&
+            _lastResetDate!.month == now.month &&
+            _lastResetDate!.day == now.day;
+
+    if (now.isAfter(cutoff) && !alreadyResetToday) {
+      debugPrint("🔥 ผ่าน cutoffTime → RESET");
       _resetDailyData(now);
-      debugPrint("--- TEST RESET WORKING ---");
     }
-    // 2. หรือ Reset เมื่อผ่านเที่ยงคืน (กรณีแอปเปิดทิ้งไว้ข้ามคืน)
-    else if (now.day != _lastResetDate.day && now.hour >= 0) {
-      _resetDailyData(now);
-    }
-    // สั่ง Rebuild เพื่อให้ _getButtonState() ตรวจสอบเวลา 16:30 เพื่อเปลี่ยนปุ่ม
-    if (mounted) setState(() {});
   }
 
-  void _resetDailyData(DateTime now) {
+  // Future<void> _resetDailyData(DateTime now) async {
+  //   setState(() {
+  //     checkInTimeRecorded = "---";
+  //     checkOutTimeRecorded = "---";
+  //     _hasCheckedIn = false;
+  //     hasCheckedOut = false;
+  //     _lastResetDate = now;
+  //
+  //     _lastResetDate = DateTime(
+  //       now.year,
+  //       now.month,
+  //       now.day,
+  //     );
+  //
+  //   });
+  //   await _saveCurrentState();
+  //   debugPrint("ระบบทำการ Reset ข้อมูลประจำวันเรียบร้อยแล้ว");
+  // }
+
+  Future<void> _resetDailyData(DateTime now) async {
+    final today = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    );
+
     setState(() {
       checkInTimeRecorded = "---";
       checkOutTimeRecorded = "---";
       _hasCheckedIn = false;
       hasCheckedOut = false;
-      _lastResetDate = now;
+
+      _lastResetDate = today;
     });
-    debugPrint("ระบบทำการ Reset ข้อมูลประจำวันเรียบร้อยแล้ว");
+
+    await _saveCurrentState();
+
+    debugPrint("Reset สำเร็จ: $today");
   }
+
 
   String _getButtonState() {
     if (_currentNetworkTime == null) return "CHECK_IN_READY";
@@ -201,8 +286,6 @@ class _CheckinPageState extends State<CheckinPage>{
 
   @override
   Widget build(BuildContext context) {
-    // ConfigAttendanceTimeModel? configSetting = context.watch<AuthState>().timeConfig;
-
     return AppScaffold(
       hideNavigation: false,
       header: Header.mainHeader(
