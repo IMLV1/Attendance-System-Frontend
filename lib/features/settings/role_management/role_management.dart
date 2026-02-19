@@ -14,7 +14,6 @@ import '../../../../shared/theme/app_colors.dart';
 import '../../../../shared/widgets/utils/app_button.dart';
 import '../../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
-import '../../../services/profile_page/profile_service.dart';
 import '../../../shared/widgets/utils/services/service_loader.dart';
 
 Future<Response> mockGetRole() async {

@@ -16,7 +16,6 @@ import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/helper/color_picker_popup/color_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/floating_popup.dart';
-import '../../../shared/widgets/utils/popup/option_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 import '../../../shared/widgets/utils/services/service_updater.dart';
 
@@ -126,7 +125,6 @@ class _EditRoleState extends State<EditRole> {
   List<Member> allMembers = [];
   List<Member> addMembers = [];
   List<Member> popupFilteredMembers = [];
-  bool _popupLoaded = false;
 
   // ---------- lifecycle ----------
   @override
@@ -534,7 +532,6 @@ class _EditRoleState extends State<EditRole> {
 
                                             addMembers = [];
                                             popupFilteredMembers = [];
-                                            _popupLoaded = false;
 
                                             PushPopup(
                                               title: 'เพิ่มสมาชิก',

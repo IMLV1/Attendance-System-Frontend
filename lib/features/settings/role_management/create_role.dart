@@ -11,7 +11,6 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/helper/color_picker_popup/color_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
-import '../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../shared/widgets/utils/popup/option_popup.dart';
 import '../../../shared/widgets/utils/popup/push_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
