@@ -1,3 +1,6 @@
+import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
+import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -7,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_it/get_it.dart';
 import 'package:ntp/ntp.dart';
+import 'package:provider/provider.dart';
 
 import '../../services/check-in/check-in_model.dart';
 import '../../services/check-in/check-in_service.dart';
@@ -42,6 +46,8 @@ class _CheckinPageState extends State<CheckinPage>{
   bool isOnLeave = false;          // ลางาน
   bool isPublicHoliday = false ;    // วันหยุดราชการ/นักขัตฤกษ์
 
+  ConfigAttendanceTimeModel? configSetting;
+
   late Timer _timer;
   DateTime _lastResetDate = DateTime.now();
 
@@ -50,13 +56,29 @@ class _CheckinPageState extends State<CheckinPage>{
     super.initState();
     _syncInitialTime(); // ซิงค์เวลาโลกครั้งแรก
       _loadInitialState(DateTime.now());
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final attendanceService = GetIt.I<AttendanceService>();
-      await attendanceService.clearLocalState(); // สมมติว่ามีฟังก์ชันล้างข้อมูลใน Service
-      debugPrint("🧹 ข้อมูลถูก Reset ใหม่ทั้งหมด (Build ใหม่)");
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) async {
+    //   final attendanceService = GetIt.I<AttendanceService>();
+    //   await attendanceService.clearLocalState(); // สมมติว่ามีฟังก์ชันล้างข้อมูลใน Service
+    //   debugPrint("🧹 ข้อมูลถูก Reset ใหม่ทั้งหมด (Build ใหม่)");
+    // });
+
+    initConfig();
   }
   // เพิ่มฟังก์ชันเหล่านี้ภายในคลาส _CheckinPageState
+
+  Future<void> initConfig() async {
+    try {
+      final config = await ConfigAttendanceTimeService().getData();
+
+      if (!mounted) return;
+
+      setState(() {
+        configSetting = ConfigAttendanceTimeModel.fromJson(config.data);
+      });
+    } catch (e) {
+      debugPrint("ไม่สามารถโหลดการตั้งค่าเวลาได้: $e");
+    }
+  }
 
 Future<void> _loadInitialState(DateTime networkTime) async {
     final attendanceService = GetIt.I<AttendanceService>();
@@ -119,12 +141,12 @@ Future<void> _loadInitialState(DateTime networkTime) async {
     super.dispose();
   }
 
-  void _checkAndResetLogic() {
+  void _checkAndResetLogic(ConfigAttendanceTimeModel? configSetting) {
     final now = DateTime.now();
     // 1. Reset ทุกอย่างเมื่อถึงเวลา 08:30 ของวันใหม่
     // เช็คว่าชั่วโมงคือ 8, นาทีคือ 30 และยังไม่ได้ Reset ในวันนี้
     //&& _lastResetDate.day != now.day
-    if (now.hour == 8 && now.minute == 30 ) {
+    if (configSetting?.cutoffTime.hour == now.hour && configSetting?.cutoffTime.minute == now.minute && _lastResetDate.day != now.day) {
       _resetDailyData(now);
       debugPrint("--- TEST RESET WORKING ---");
     }
@@ -154,7 +176,7 @@ Future<void> _loadInitialState(DateTime networkTime) async {
     final hour = now.hour;
     final minute = now.minute;
 
-    bool isAfterWork = hour > 16 || (hour == 16 && minute >= 30);
+    bool isAfterWork = hour > configSetting!.checkOutTime.hour || (hour == configSetting!.checkOutTime.hour && minute >= configSetting!.checkOutTime.minute);
 
     if (hasCheckedOut) return "FINISHED";
 
@@ -178,6 +200,8 @@ Future<void> _loadInitialState(DateTime networkTime) async {
 
   @override
   Widget build(BuildContext context) {
+    // ConfigAttendanceTimeModel? configSetting = context.watch<AuthState>().timeConfig;
+
     return AppScaffold(
       hideNavigation: false,
       header: Header.mainHeader(
@@ -258,7 +282,7 @@ Future<void> _loadInitialState(DateTime networkTime) async {
       if (mounted && _currentNetworkTime != null) {
         setState(() {
           _currentNetworkTime = _currentNetworkTime!.add(const Duration(seconds: 1));
-          _checkAndResetLogic();
+          _checkAndResetLogic(configSetting);
         });
       }
     });
@@ -512,7 +536,7 @@ Future<void> _loadInitialState(DateTime networkTime) async {
               child: Text(
                 softWrap: true,
                 textAlign: TextAlign.start,
-                'กรุณาเช็คอินเข้างานภายในเวลา 08:30 หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา 00:00 ของทุกวัน ',
+                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime.hour.toString().padLeft(2, '0')}:${configSetting?.checkInTime.minute.toString().padLeft(2, '0')} หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime.hour.toString().padLeft(2, '0')}:${configSetting?.cutoffTime.minute.toString().padLeft(2, '0')} ของทุกวัน',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.normal,
