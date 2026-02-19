@@ -49,16 +49,16 @@ String _formatBytes(int bytes, {int decimals = 2}) {
   return '${size.toStringAsFixed(decimals).replaceAll(RegExp(r'\.?0+$'), '')} ${suffixes[i]}';
 }
 
-class TimeRequestPage extends StatefulWidget {
-  const TimeRequestPage({super.key});
+class TimeRequestCreate extends StatefulWidget {
+  const TimeRequestCreate({super.key});
 
   @override
-  State<TimeRequestPage> createState() {
-    return _TimeRequestPage();
+  State<TimeRequestCreate> createState() {
+    return _TimeRequestCreateState();
   }
 }
 
-class _TimeRequestPage extends State<TimeRequestPage> {
+class _TimeRequestCreateState extends State<TimeRequestCreate> {
   List<PlatformFile> allFiles = [];
   TimeDate? _selectDate;
   bool _submitted = false;
