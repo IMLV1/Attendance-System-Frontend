@@ -1,8 +1,7 @@
+import 'package:attendance_system/core/data/entities/role_management_model.dart';
+import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-
-import '../../core/network/api_client.dart';
-import 'role_management_model.dart';
 
 class RoleManagementService {
   final Dio dio = GetIt.I<ApiClient>().dio;

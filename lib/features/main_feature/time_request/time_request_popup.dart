@@ -1,4 +1,4 @@
-import 'package:attendance_system/services/time_request/time_request_model.dart';
+import 'package:attendance_system/core/data/entities/time_request_model.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

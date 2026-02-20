@@ -1,5 +1,5 @@
+import 'package:attendance_system/core/data/entities/config_attendance_request_model.dart';
 import 'package:attendance_system/core/network/api_client.dart';
-import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_model.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 

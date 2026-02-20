@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:attendance_system/services/role_management/role_management_model.dart';
-import 'package:attendance_system/services/role_management/role_management_service.dart';
+import 'package:attendance_system/core/data/api/role_management_api.dart';
+import 'package:attendance_system/core/data/entities/role_management_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';

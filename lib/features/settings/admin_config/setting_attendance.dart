@@ -1,5 +1,5 @@
-import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
-import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
+import 'package:attendance_system/core/data/api/config_attendance_time_api.dart';
+import 'package:attendance_system/core/data/entities/config_attendance_time_model.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/animation/animated_widget.dart';

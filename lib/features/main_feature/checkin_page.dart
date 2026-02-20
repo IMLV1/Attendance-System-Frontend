@@ -1,6 +1,8 @@
-import 'package:attendance_system/core/auth/auth_state.dart';
-import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
-import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
+import 'package:attendance_system/core/data/api/check_in_api.dart';
+import 'package:attendance_system/core/data/api/config_attendance_time_api.dart';
+import 'package:attendance_system/core/data/api/holiday_api.dart';
+import 'package:attendance_system/core/data/entities/check-in_model.dart';
+import 'package:attendance_system/core/data/entities/config_attendance_time_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -11,11 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_it/get_it.dart';
 import 'package:ntp/ntp.dart';
-import 'package:provider/provider.dart';
 
-import '../../services/check-in/check-in_model.dart';
-import '../../services/check-in/check-in_service.dart';
-import '../../services/check-in/holiday_service.dart';
 import '../../shared/widgets/utils/clock_realtime.dart';
 import '../../shared/widgets/utils/radar_animation.dart';
 
@@ -555,7 +553,7 @@ class _CheckinPageState extends State<CheckinPage>{
               child: Text(
                 softWrap: true,
                 textAlign: TextAlign.start,
-                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'} หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
+                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime.minute.toString().padLeft(2, '0') ?? '--'} หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.normal,

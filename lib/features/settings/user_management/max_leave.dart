@@ -1,5 +1,5 @@
-import 'package:attendance_system/services/max_leave/max_leave_model.dart';
-import 'package:attendance_system/services/max_leave/max_leave_service.dart';
+import 'package:attendance_system/core/data/api/max_leave_api.dart';
+import 'package:attendance_system/core/data/entities/max_leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';

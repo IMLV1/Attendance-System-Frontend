@@ -1,7 +1,7 @@
-import 'package:attendance_system/services/check-in/check-in_service.dart';
-import 'package:attendance_system/services/check-in/holiday_service.dart';
-import 'package:attendance_system/services/profile_page/profile_service.dart';
-import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
+import 'package:attendance_system/core/data/api/check_in_api.dart';
+import 'package:attendance_system/core/data/api/config_attendance_time_api.dart';
+import 'package:attendance_system/core/data/api/holiday_api.dart';
+import 'package:attendance_system/core/data/api/profile_api.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 

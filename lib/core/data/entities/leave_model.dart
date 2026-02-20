@@ -1,22 +1,3 @@
-import '../user_management/user_management_model.dart';
-
-// class LeaveModel {
-//   final List<PendingLeaveRequestModel> pending;
-//   final List<LeaveRequestModel> recent;
-//
-//   LeaveModel({
-//     required this.pending,
-//     required this.recent,
-//   });
-//
-//   factory LeaveModel.fromJson(Map<String, dynamic> json) {
-//     return LeaveModel(
-//       pending: PendingLeaveRequestModel.getList(json['pending'] ?? []),
-//       recent: LeaveRequestModel.getList(json['recent'] ?? []),
-//     );
-//   }
-// }
-
 class LeaveRequestModel {
   final String id;
   final String leaveType;

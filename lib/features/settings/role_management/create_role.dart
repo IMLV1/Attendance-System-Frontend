@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:attendance_system/services/role_management/role_management_service.dart';
+import 'package:attendance_system/core/data/api/role_management_api.dart';
+import 'package:attendance_system/core/data/entities/role_management_model.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../services/role_management/role_management_model.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/widgets/head_bar/header.dart';
 import '../../../shared/widgets/helper/color_picker_popup/color_picker.dart';

@@ -1,5 +1,5 @@
-import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_model.dart';
-import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_service.dart';
+import 'package:attendance_system/core/data/api/config_attendance_request_api.dart';
+import 'package:attendance_system/core/data/entities/config_attendance_request_model.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';

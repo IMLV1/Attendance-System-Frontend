@@ -9,7 +9,7 @@ import 'package:attendance_system/features/settings/admin_config/setting_attenda
 import 'package:attendance_system/features/settings/admin_config/setting_budget_year.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_leave_type.dart';
 import 'package:attendance_system/features/settings/setting_page.dart';
-import 'package:attendance_system/features/settings/user_management/user/user_management.dart';
+import 'package:attendance_system/features/settings/user_management/user_management.dart';
 import 'package:attendance_system/shared/widgets/base_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

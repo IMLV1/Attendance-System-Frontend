@@ -1,5 +1,5 @@
-import 'package:attendance_system/services/system_config/budget_year/config_budget_year_model.dart';
-import 'package:attendance_system/services/system_config/budget_year/config_budget_year_service.dart';
+import 'package:attendance_system/core/data/api/config_budget_year_api.dart';
+import 'package:attendance_system/core/data/entities/config_budget_year_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';

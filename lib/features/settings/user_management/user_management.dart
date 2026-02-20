@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:attendance_system/core/data/api/user_management_api.dart';
+import 'package:attendance_system/core/data/entities/user_management_model.dart';
 import 'package:attendance_system/features/settings/role_management/role_management.dart';
-import 'package:attendance_system/features/settings/user_management/user/create_user.dart';
-import 'package:attendance_system/features/settings/user_management/user/user_info.dart';
-import 'package:attendance_system/services/user_management/user_management_model.dart';
-import 'package:attendance_system/services/user_management/user_management_service.dart';
+import 'package:attendance_system/features/settings/user_management/create_user.dart';
+import 'package:attendance_system/features/settings/user_management/user_info.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
