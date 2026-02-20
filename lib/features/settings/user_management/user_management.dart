@@ -8,8 +8,8 @@ import 'package:attendance_system/features/settings/user_management/user_info.da
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';

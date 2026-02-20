@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:attendance_system/core/data/api/check_in_api.dart';
 import 'package:attendance_system/core/data/api/config_attendance_time_api.dart';
 import 'package:attendance_system/core/data/api/holiday_api.dart';
@@ -12,17 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:ntp/ntp.dart';
 
 import '../../shared/widgets/utils/clock_realtime.dart';
-import '../../shared/widgets/utils/radar_animation.dart';
-
 import '../../shared/widgets/utils/icon_text_button.dart';
+import '../../shared/widgets/utils/radar_animation.dart';
 import '../../shared/widgets/utils/separator_card.dart';
-
-import 'dart:async';
-import 'package:intl/intl.dart';
-
 import '../../shared/widgets/utils/services/service_loader.dart';
 
 class CheckinPage extends StatefulWidget {

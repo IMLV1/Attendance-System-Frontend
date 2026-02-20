@@ -1,4 +1,3 @@
-import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/core/data/provider/profile_provider.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';

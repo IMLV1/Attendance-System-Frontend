@@ -1,4 +1,3 @@
-import 'package:attendance_system/core/data/provider/profile_provider.dart';
 import 'package:attendance_system/core/utils/dimensions_ext.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';

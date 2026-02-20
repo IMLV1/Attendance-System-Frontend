@@ -2,14 +2,12 @@
 
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../shared/theme/app_colors.dart';
-import '../../shared/widgets/utils/popup/push_popup.dart';
 import '../../shared/widgets/utils/calendar.dart';
+import '../../shared/widgets/utils/popup/push_popup.dart';
 
 
 class AttendanceHistory extends StatefulWidget {

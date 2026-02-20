@@ -1,6 +1,5 @@
 import 'package:attendance_system/core/data/entities/profile_model.dart';
 import 'package:attendance_system/core/data/provider/profile_provider.dart';
-import 'package:attendance_system/core/data/repositories/profile_repository.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
@@ -8,7 +7,6 @@ import 'package:attendance_system/shared/widgets/utils/text_role_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 
 import '../../shared/theme/app_colors.dart';

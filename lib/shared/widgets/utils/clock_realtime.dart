@@ -1,8 +1,9 @@
 import 'dart:async';
+
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:ntp/ntp.dart';
 import 'package:intl/intl.dart';
+import 'package:ntp/ntp.dart';
 
 class ClockWidget extends StatefulWidget {
   const ClockWidget({super.key});
