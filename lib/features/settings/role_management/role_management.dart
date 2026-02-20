@@ -446,7 +446,7 @@ class _RoleManagementState extends State<RoleManagement> {
                   )
                 ),
                 ServiceLoader(
-                  request: () => RoleManagementService().getRoleManagementModel(),
+                  request: () => RoleManagementApi().getRoleManagementModel(),
                   // request: () => mockGetRole(),
                   onSuccess: (jsonData) {
                     final data = RoleManagementModel.fromJson(jsonData);

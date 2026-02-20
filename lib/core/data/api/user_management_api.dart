@@ -1,11 +1,9 @@
+import 'package:attendance_system/core/data/api/api.dart';
 import 'package:attendance_system/core/data/entities/max_leave_model.dart';
 import 'package:attendance_system/core/data/entities/user_management_model.dart';
-import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
 
-class UserManagementService {
-  final Dio dio = GetIt.I<ApiClient>().dio;
+class UserManagementApi extends Api {
 
   Future<Response<dynamic>> getData() {
     return dio.get('/system/user_management/users');

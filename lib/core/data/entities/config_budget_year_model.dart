@@ -1,4 +1,6 @@
-class ConfigBudgetYearModel {
+
+
+class ConfigBudgetYearModel  {
   final int day;
   final int month;
 

@@ -524,7 +524,7 @@ class _CreateRoleState extends State<CreateRole> {
                                                         ),
                                                       ),
                                                       ServiceLoader(
-                                                        request: () => RoleManagementService().getAllUser(),
+                                                        request: () => RoleManagementApi().getAllUser(),
                                                         onSuccess: (res) {
                                                           final map = res as Map<String, dynamic>;
                                                           final list = map['members'] as List;
@@ -621,7 +621,7 @@ class _CreateRoleState extends State<CreateRole> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ServiceUpdater(
-                      request: () => RoleManagementService().createRole(newRole),
+                      request: () => RoleManagementApi().createRole(newRole),
                       onSuccess: () {
                         Navigator.pop(context, newRole);
                       },

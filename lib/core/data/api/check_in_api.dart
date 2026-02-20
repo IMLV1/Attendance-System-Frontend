@@ -1,14 +1,15 @@
-import 'package:attendance_system/core/network/api_client.dart';
+import 'dart:convert';
+
+import 'package:attendance_system/core/data/api/api.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import '../entities/check-in_model.dart';
 
-class AttendanceService {
-  final Dio dio = GetIt.I<ApiClient>().dio;
+import '../entities/attendance_model.dart';
+
+class AttendanceApi extends Api {
+
   static const String _storageKey = 'daily_attendance_state';
 
   Future<Response<dynamic>> postAttendance(DateTime ntpTime, String type) async {

@@ -1,10 +1,13 @@
+
+
+
 class LeaveRequestModel {
   final String id;
   final String leaveType;
   final DateTime dateStart;
   final bool approve;
 
-  const LeaveRequestModel({
+  LeaveRequestModel({
     required this.id,
     required this.leaveType,
     required this.dateStart,

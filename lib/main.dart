@@ -1,14 +1,15 @@
+import 'package:attendance_system/core/data/provider/profile_provider.dart';
+import 'package:attendance_system/core/data/repositories/profile_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:sealed_countries/sealed_countries.dart';
 
 import 'app/app.dart';
 import 'core/auth/auth_state.dart';
 import 'service_locator.dart';
-
-import 'package:intl/date_symbol_data_local.dart';
 
 List<String> cachedThaiNationalities = [];
 
@@ -36,12 +37,29 @@ void main() async {
   ]);
 
   runApp(
-    ChangeNotifierProvider<AuthState>.value(
-      value: getIt<AuthState>(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: App(),
-      )
+
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+            create: (_) => getIt<AuthState>(),
+        ),
+
+        ChangeNotifierProxyProvider<AuthState, ProfileProvider>(
+          create: (_) => ProfileProvider(ProfileRepository()),
+          update: (_, auth, profile) {
+            profile ??= ProfileProvider(ProfileRepository());
+
+            if (auth.status == AuthStatus.authenticated) {
+              profile.load(forceRefresh: true);
+            } else {
+              profile.clear();
+            }
+
+            return profile;
+          },
+        ),
+      ],
+      child: App()
     ),
   );
 }

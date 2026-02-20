@@ -93,7 +93,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                             Navigator.pop(context);
                           },
                           text: 'บันทึก',
-                          request: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
+                          request: () => ConfigBudgetYearApi().update(selectedDayIndex + 1, selectedMonthIndex + 1),
                           setError: setError
                       )
                     ];
@@ -113,7 +113,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                         children: [
                           Expanded(
                             child: ServiceLoader(
-                              request: () => ConfigBudgetYearService().getData(),
+                              request: () => ConfigBudgetYearApi().getData(),
                               onSuccess: (jsonData) {
                                 setState(() {
                                   final data = ConfigBudgetYearModel.fromJson(jsonData);

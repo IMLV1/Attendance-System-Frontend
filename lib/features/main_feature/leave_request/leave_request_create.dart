@@ -518,7 +518,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             ServiceUpdater(
-                                request: () => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles),
+                                request: () => LeaveRequestApi().create(leaveType!, leaveDate!, _textEditingController.text, allFiles),
                                 onSuccessResponse: (jsonData) {
                                   final String? requestID = jsonData['request-id'] ?? '';
                                   Navigator.pop(context, requestID);

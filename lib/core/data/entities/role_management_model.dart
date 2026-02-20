@@ -1,4 +1,5 @@
 // ================= ENUM =================
+
 import 'package:uuid/uuid.dart';
 
 enum RoleType { mainRole, specialRole, hr, admin, }

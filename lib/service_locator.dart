@@ -45,18 +45,18 @@ Future<void> setupServiceLocator() async {
         () => AuthApiService(dio),
   );
 
-  getIt.registerLazySingleton<ProfileService>(
-        () => ProfileService(),
+  getIt.registerLazySingleton<ProfileApi>(
+        () => ProfileApi(),
   );
 
-  getIt.registerLazySingleton<AttendanceService>(
-        () => AttendanceService(),
+  getIt.registerLazySingleton<AttendanceApi>(
+        () => AttendanceApi(),
   );
 
-  getIt.registerLazySingleton<HolidayService>(() => HolidayService(getIt<Dio>()));
+  getIt.registerLazySingleton<HolidayApi>(() => HolidayApi());
 
   // ในไฟล์ setup ของคุณ
-  getIt.registerLazySingleton<ConfigAttendanceTimeService>(() => ConfigAttendanceTimeService());
+  getIt.registerLazySingleton<ConfigAttendanceTimeApi>(() => ConfigAttendanceTimeApi());
 
   getIt.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(

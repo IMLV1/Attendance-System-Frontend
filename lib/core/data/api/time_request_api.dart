@@ -1,9 +1,8 @@
+import 'package:attendance_system/core/data/api/api.dart';
 import 'package:attendance_system/core/data/entities/time_request_model.dart';
-import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 
 String formatTimeOfDay(TimeOfDay time) {
   return '${time.hour.toString().padLeft(2, '0')}:'
@@ -11,8 +10,7 @@ String formatTimeOfDay(TimeOfDay time) {
 }
 
 
-class TimeRequestService {
-  final Dio dio = GetIt.I<ApiClient>().dio;
+class TimeRequestApi extends Api {
 
   Future<Response<dynamic>> timeRequestCreate(TimeRequestModel element) async {
 

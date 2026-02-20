@@ -106,7 +106,7 @@ class _AssignRoleState extends State<AssignRole> {
                     Expanded(
 
                         child: ServiceLoader(
-                            request: () => RoleService().getData(),
+                            request: () => RoleApi().getData(),
                             onSuccess: (jsonData) {
 
                               final data = RoleModel.getList(jsonData);
@@ -237,7 +237,7 @@ class _AssignRoleState extends State<AssignRole> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ServiceUpdater(
-                        request: () => UserManagementService().updateRole(widget.id, roles),
+                        request: () => UserManagementApi().updateRole(widget.id, roles),
                         onSuccess: () {
                           setState(() {
                             oldRoles = [...roles];

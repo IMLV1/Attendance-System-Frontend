@@ -1,3 +1,5 @@
+
+
 class AttendanceModel {
   final String? checkInTime;
   final String? checkOutTime;
@@ -14,6 +16,7 @@ class AttendanceModel {
   });
 
   // แปลงเป็น JSON สำหรับส่งไป API หรือเก็บลง SharedPreferences
+  @override
   Map<String, dynamic> toJson() => {
     'check_in_time': checkInTime,
     'check_out_time': checkOutTime,

@@ -285,7 +285,7 @@ class _CreateUserState extends State<CreateUser> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       ServiceUpdater(
-                        request: () => UserManagementService().createUser(userInfo, maxLeave),
+                        request: () => UserManagementApi().createUser(userInfo, maxLeave),
                         onSuccess: () {
                           Navigator.of(context).pop(userInfo);
                         },

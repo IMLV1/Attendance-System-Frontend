@@ -1,11 +1,10 @@
-import 'package:attendance_system/core/network/api_client.dart';
+import 'package:attendance_system/core/data/api/api.dart';
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
 
-class ProfileService {
-  final Dio dio = GetIt.I<ApiClient>().dio;
+class ProfileApi extends Api {
 
-  Future<Response<dynamic>> getProfile() async {
+  @override
+  Future<Response<dynamic>> call() {
     return dio.get('/profile/me');
   }
 }

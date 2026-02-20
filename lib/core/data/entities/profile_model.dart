@@ -1,3 +1,4 @@
+
 import 'package:attendance_system/core/data/entities/user_management_model.dart';
 
 class ProfileModel {
