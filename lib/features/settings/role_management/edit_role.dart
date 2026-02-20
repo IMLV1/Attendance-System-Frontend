@@ -396,7 +396,7 @@ class _EditRoleState extends State<EditRole> {
                                         FloatingServicePopupButton(
                                           text: 'ยันยัน',
                                           foregroundColor: Colors.red,
-                                          request: () => RoleManagementService().deleteRole(_role),
+                                          request: () => RoleManagementApi().deleteRole(_role),
                                           setError: parent,
                                           onSuccess: () {
                                             Navigator.of(context1).pop();
@@ -615,7 +615,7 @@ class _EditRoleState extends State<EditRole> {
                                                         ),
                                                       ),
                                                       ServiceLoader(
-                                                        request: () => RoleManagementService().getUser(_role),
+                                                        request: () => RoleManagementApi().getUser(_role),
                                                         // request: () => getMemberAll(),
                                                         onSuccess: (res) {
 
@@ -714,7 +714,7 @@ class _EditRoleState extends State<EditRole> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ServiceUpdater(
-                      request: () => RoleManagementService().updateRole(
+                      request: () => RoleManagementApi().updateRole(
                         _role.copyWith(
                           roleName: _nameController.text.trim(),
                           roleColor:

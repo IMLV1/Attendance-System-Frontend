@@ -1,7 +1,7 @@
 import 'package:attendance_system/core/data/api/check_in_api.dart';
 import 'package:attendance_system/core/data/api/config_attendance_time_api.dart';
 import 'package:attendance_system/core/data/api/holiday_api.dart';
-import 'package:attendance_system/core/data/entities/check-in_model.dart';
+import 'package:attendance_system/core/data/entities/attendance_model.dart';
 import 'package:attendance_system/core/data/entities/config_attendance_time_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
@@ -67,7 +67,7 @@ class _CheckinPageState extends State<CheckinPage>{
 
   Future<void> initConfig() async {
     try {
-      final config = await ConfigAttendanceTimeService().getData();
+      final config = await ConfigAttendanceTimeApi().getData();
 
       if (!mounted) return;
 
@@ -80,7 +80,7 @@ class _CheckinPageState extends State<CheckinPage>{
   }
 
   Future<void> _loadInitialState(DateTime networkTime) async {
-    final attendanceService = GetIt.I<AttendanceService>();
+    final attendanceService = GetIt.I<AttendanceApi>();
 
     // แก้ตรงนี้: ส่ง networkTime เข้าไปให้ Service เช็ควันที่ให้เบ็ดเสร็จ
     final savedState = await attendanceService.getLocalState(networkTime);
@@ -107,7 +107,7 @@ class _CheckinPageState extends State<CheckinPage>{
   Future<void> _saveCurrentState() async {
     if (_currentNetworkTime == null) return;
 
-    final attendanceService = GetIt.I<AttendanceService>();
+    final attendanceService = GetIt.I<AttendanceApi>();
     final today = DateFormat('yyyy-MM-dd').format(_currentNetworkTime!);
 
     final attendanceData = AttendanceModel(
@@ -239,7 +239,7 @@ class _CheckinPageState extends State<CheckinPage>{
             final DateTime ntpNow = data;   // ตอนนี้ non-null แน่นอน
             _currentNetworkTime = ntpNow;
 
-            final holidayService = GetIt.I<HolidayService>();
+            final holidayService = GetIt.I<HolidayApi>();
             final bool holidayStatus =
             await holidayService.checkTodayIsHoliday(ntpNow);
 
@@ -474,7 +474,7 @@ class _CheckinPageState extends State<CheckinPage>{
 
                       // 4. ส่งข้อมูลไปที่ Server (แยกวันที่และเวลาใน Service เรียบร้อยแล้ว)
                       // สมมติใช้ userId จากระบบของคุณ (ตัวอย่าง: 'U001')
-                      final attendanceService = GetIt.I<AttendanceService>();
+                      final attendanceService = GetIt.I<AttendanceApi>();
                       await attendanceService.postAttendance(ntpTime, requestType );
 
                       debugPrint("บันทึกสำเร็จลงทั้ง Local และ Server: $nowTime");

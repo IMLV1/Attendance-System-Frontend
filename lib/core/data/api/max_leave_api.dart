@@ -1,10 +1,8 @@
+import 'package:attendance_system/core/data/api/api.dart';
 import 'package:attendance_system/core/data/entities/max_leave_model.dart';
-import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
 
-class MaxLeaveService {
-  final Dio dio = GetIt.I<ApiClient>().dio;
+class MaxLeaveApi extends Api {
 
   Future<Response<dynamic>> getData(String userId) async {
     return dio.get('/system/user_management/leave/quotas/$userId');

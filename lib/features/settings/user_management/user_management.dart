@@ -309,7 +309,7 @@ class _UserManagementState extends State<UserManagement> {
                         ),
                         Expanded(
                           child: ServiceLoader(
-                            request: () => UserManagementService().getData(),
+                            request: () => UserManagementApi().getData(),
                             onSuccess: (jsonData) {
                               final List<UserManagementModel> data = UserManagementModel.getList(jsonData);
 

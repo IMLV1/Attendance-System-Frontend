@@ -61,7 +61,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                 children: [
                   Expanded(
                     child: ServiceLoader(
-                        request: () => MaxLeaveService().getData(widget.id),
+                        request: () => MaxLeaveApi().getData(widget.id),
                         onSuccess: (jsonData) {
                           final data = MaxLeaveModel.fromJson(jsonData);
                           setState(() {
@@ -85,7 +85,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.sick,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(sick: value)),
+                                      request: (value) => MaxLeaveApi().updateMaxLeave(widget.id, maxLeave!.copyWith(sick: value)),
                                       onSuccess: (number) {
                                         setState(() {
                                           maxLeave = maxLeave?.copyWith(sick: number);
@@ -104,7 +104,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.personal,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(personal: value)),
+                                      request: (value) => MaxLeaveApi().updateMaxLeave(widget.id, maxLeave!.copyWith(personal: value)),
                                       onSuccess: (number) {
                                         setState(() {
                                           maxLeave = maxLeave?.copyWith(personal: number);
@@ -123,7 +123,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.vacation,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(vacation: value)),
+                                      request: (value) => MaxLeaveApi().updateMaxLeave(widget.id, maxLeave!.copyWith(vacation: value)),
                                       onSuccess: (number) {
                                         setState(() {
                                           maxLeave = maxLeave?.copyWith(vacation: number);
@@ -142,7 +142,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.maternity,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(maternity: value)),
+                                      request: (value) => MaxLeaveApi().updateMaxLeave(widget.id, maxLeave!.copyWith(maternity: value)),
                                       onSuccess: (number) {
                                         setState(() {
                                           maxLeave = maxLeave?.copyWith(maternity: number);
@@ -161,7 +161,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.paternity,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(paternity: value)),
+                                      request: (value) => MaxLeaveApi().updateMaxLeave(widget.id, maxLeave!.copyWith(paternity: value)),
                                       onSuccess: (number) {
                                         setState(() {
                                           maxLeave = maxLeave?.copyWith(paternity: number);
@@ -180,7 +180,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.parental,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(parental: value)),
+                                      request: (value) => MaxLeaveApi().updateMaxLeave(widget.id, maxLeave!.copyWith(parental: value)),
                                       onSuccess: (number) {
                                         setState(() {
                                           maxLeave = maxLeave?.copyWith(parental: number);

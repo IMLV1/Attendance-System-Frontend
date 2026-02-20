@@ -1,12 +1,10 @@
-import 'package:attendance_system/core/network/api_client.dart';
+import 'package:attendance_system/core/data/api/api.dart';
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:get_it/get_it.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-class LeaveRequestService {
-  final Dio dio = GetIt.I<ApiClient>().dio;
+class LeaveRequestApi extends Api {
 
   Future<Response<dynamic>> create(String leaveType, LeaveDate leaveDate, String remark, List<PlatformFile> files) async {
 

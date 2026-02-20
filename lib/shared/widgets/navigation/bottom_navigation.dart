@@ -1,4 +1,5 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/core/data/provider/profile_provider.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -151,7 +152,7 @@ class BottomNavigation extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(50),
                 child: Image.network(
-                  context.watch<AuthState>().profile?.avatarUrl ?? '',
+                  context.watch<ProfileProvider>().profile?.avatarUrl ?? '',
                   width: 35,
                   height: 35,
                   fit: BoxFit.cover,

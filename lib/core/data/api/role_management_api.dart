@@ -1,10 +1,8 @@
+import 'package:attendance_system/core/data/api/api.dart';
 import 'package:attendance_system/core/data/entities/role_management_model.dart';
-import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
 
-class RoleManagementService {
-  final Dio dio = GetIt.I<ApiClient>().dio;
+class RoleManagementApi extends Api {
 
   Future<Response<dynamic>> getRoleManagementModel() async {
     return dio.get('/system/role_management/role');

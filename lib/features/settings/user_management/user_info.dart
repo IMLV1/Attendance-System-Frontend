@@ -100,7 +100,7 @@ class _UserInfoState extends State<UserInfo> {
                                         check: (value) {
                                           return (value?.isEmpty ?? true) ? 'รหัสบุคลากรไม่ถูกต้อง' : null;
                                         },
-                                        request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(employeeId: value)),
+                                        request: (value) => UserManagementApi().updateUserInfo(userInfo.copyWith(employeeId: value)),
                                         onSuccess: (value) {
                                           setState(() {
                                             userInfo = userInfo.copyWith(employeeId: value);
@@ -119,7 +119,7 @@ class _UserInfoState extends State<UserInfo> {
                                         check: (value) {
                                           return (value?.isEmpty ?? true) ? 'ชื่อไม่ถูกต้อง' : null;
                                         },
-                                        request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nameTH: value)),
+                                        request: (value) => UserManagementApi().updateUserInfo(userInfo.copyWith(nameTH: value)),
                                         onSuccess: (value) {
                                           setState(() {
                                             userInfo = userInfo.copyWith(nameTH: value);
@@ -138,7 +138,7 @@ class _UserInfoState extends State<UserInfo> {
                                         check: (value) {
                                           return (value?.isEmpty ?? true) ? 'ชื่อไม่ถูกต้อง' : null;
                                         },
-                                        request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nameEN: value)),
+                                        request: (value) => UserManagementApi().updateUserInfo(userInfo.copyWith(nameEN: value)),
                                         onSuccess: (value) {
                                           setState(() {
                                             userInfo = userInfo.copyWith(nameEN: value);
@@ -157,7 +157,7 @@ class _UserInfoState extends State<UserInfo> {
                                           check: (value) {
                                             return (value?.isEmpty ?? true) ? 'กรุณาระบุเพศ' : null;
                                           },
-                                          request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(gender: value)),
+                                          request: (value) => UserManagementApi().updateUserInfo(userInfo.copyWith(gender: value)),
                                           onSuccess: (value) {
                                             setState(() {
                                               userInfo = userInfo.copyWith(gender: value);
@@ -176,7 +176,7 @@ class _UserInfoState extends State<UserInfo> {
                                           check: (value) {
                                             return (value?.isEmpty ?? true) ? 'กรุณาระบุสัญชาติ' : null;
                                           },
-                                          request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nationality: value)),
+                                          request: (value) => UserManagementApi().updateUserInfo(userInfo.copyWith(nationality: value)),
                                           onSuccess: (value) {
                                             setState(() {
                                               userInfo = userInfo.copyWith(nationality: value);
@@ -207,7 +207,7 @@ class _UserInfoState extends State<UserInfo> {
 
                                           return (value.isEmpty || !regex.hasMatch(value)) ? 'เบอร์โทรไม่ถูกต้อง' : null;
                                         },
-                                        request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(phone: value)),
+                                        request: (value) => UserManagementApi().updateUserInfo(userInfo.copyWith(phone: value)),
                                         onSuccess: (value) {
                                           setState(() {
                                             userInfo = userInfo.copyWith(phone: value);
@@ -226,7 +226,7 @@ class _UserInfoState extends State<UserInfo> {
                                           check: (value) {
                                             return (value?.isEmpty ?? true) ? 'กรุณาระบุสังกัด' : null;
                                           },
-                                          request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(initRole: value)),
+                                          request: (value) => UserManagementApi().updateUserInfo(userInfo.copyWith(initRole: value)),
                                           onSuccess: (value) {
                                             setState(() {
                                               userInfo = userInfo.copyWith(initRole: value);
@@ -279,7 +279,7 @@ class _UserInfoState extends State<UserInfo> {
                                           FloatingServicePopupButton(onSuccess: () {
                                             Navigator.of(context1).pop();
                                             Navigator.pop(context, (status: 1, updatedUser: null));
-                                          }, text: 'ลบ', foregroundColor: Colors.red, request: () => UserManagementService().deleteUser(userInfo.id), setError: parent)
+                                          }, text: 'ลบ', foregroundColor: Colors.red, request: () => UserManagementApi().deleteUser(userInfo.id), setError: parent)
                                         ]
                                       ).showPopup(context);
                                     }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบผู้ใช้งาน')

@@ -1,3 +1,6 @@
+import 'package:attendance_system/core/data/api/profile_api.dart';
+import 'package:attendance_system/core/data/provider/profile_provider.dart';
+import 'package:attendance_system/core/data/repositories/profile_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -36,12 +39,29 @@ void main() async {
   ]);
 
   runApp(
-    ChangeNotifierProvider<AuthState>.value(
-      value: getIt<AuthState>(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: App(),
-      )
+
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+            create: (_) => getIt<AuthState>(),
+        ),
+
+        ChangeNotifierProxyProvider<AuthState, ProfileProvider>(
+          create: (_) => ProfileProvider(ProfileRepository()),
+          update: (_, auth, profile) {
+            profile ??= ProfileProvider(ProfileRepository());
+
+            if (auth.status == AuthStatus.authenticated) {
+              profile.load(forceRefresh: true);
+            } else {
+              profile.clear();
+            }
+
+            return profile;
+          },
+        ),
+      ],
+      child: App()
     ),
   );
 }

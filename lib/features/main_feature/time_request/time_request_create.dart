@@ -98,7 +98,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
             title: 'สร้างคำขอ',
         ),
       content: ServiceLoader(
-        request: () => ConfigAttendanceRequestService().getData(),
+        request: () => ConfigAttendanceRequestApi().getData(),
         onSuccess: (val) async {
           setState(() {
             setting = ConfigAttendanceRequestModel.fromJson(val);
@@ -787,7 +787,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       ServiceUpdater(
-                        request: () => TimeRequestService().timeRequestCreate(
+                        request: () => TimeRequestApi().timeRequestCreate(
                           TimeRequestModel(
                             fromDate: _selectDate!.fromDate,
                             toDate: _selectDate!.toDate,

@@ -123,7 +123,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                               Navigator.pop(context);
                             },
                             text: 'บันทึก',
-                            request: () => ConfigLeaveService().update(data!),
+                            request: () => ConfigLeaveApi().update(data!),
                             setError: setError
                         )
                       ];
@@ -143,7 +143,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                         children: [
                           Expanded(
                               child: ServiceLoader(
-                                  request: () => ConfigLeaveService().getData(),
+                                  request: () => ConfigLeaveApi().getData(),
                                   onSuccess: (jsonData) {
                                     setState(() {
                                       final data = ConfigLeaveModel.fromJson(jsonData);

@@ -99,7 +99,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                             Navigator.pop(context);
                           },
                           text: 'บันทึก',
-                          request: () => ConfigAttendanceTimeService().update(data!),
+                          request: () => ConfigAttendanceTimeApi().update(data!),
                           setError: setError
                       )
                     ];
@@ -119,7 +119,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
               children: [
                 Expanded(
                   child: ServiceLoader(
-                    request: () => ConfigAttendanceTimeService().getData(),
+                    request: () => ConfigAttendanceTimeApi().getData(),
                     onSuccess: (jsonData) {
                       setState(() {
                         final data = ConfigAttendanceTimeModel.fromJson(jsonData);

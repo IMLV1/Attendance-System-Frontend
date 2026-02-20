@@ -1,10 +1,8 @@
+import 'package:attendance_system/core/data/api/api.dart';
 import 'package:attendance_system/core/data/entities/config_attendance_time_model.dart';
-import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
 
-class ConfigAttendanceTimeService {
-  final Dio dio = GetIt.I<ApiClient>().dio;
+class ConfigAttendanceTimeApi extends Api {
 
   Future<Response<dynamic>> getData() async {
     return dio.get('/system/config/attendance_time/get');

@@ -20,7 +20,6 @@ class AuthState extends ChangeNotifier {
   AuthStatus status = AuthStatus.unknown;
 
   UserModel? user;
-  ProfileModel? profile;
   ConfigLeaveModel? leaveConfig;
   ConfigAttendanceTimeModel? timeConfig;
   ConfigAttendanceRequestModel? attendanceConfig;
@@ -35,25 +34,19 @@ class AuthState extends ChangeNotifier {
 
     if (status == AuthStatus.authenticated) {
       {
-        Response response = await ProfileService().getProfile();
-        if (response.statusCode == 200) {
-          profile = ProfileModel.fromJson(response.data);
-        }
-      }
-      {
-        Response response = await ConfigLeaveService().getData();
+        Response response = await ConfigLeaveApi().getData();
         if (response.statusCode == 200) {
           leaveConfig = ConfigLeaveModel.fromJson(response.data);
         }
       }
       {
-        Response response = await ConfigAttendanceRequestService().getData();
+        Response response = await ConfigAttendanceRequestApi().getData();
         if (response.statusCode == 200) {
           attendanceConfig = ConfigAttendanceRequestModel.fromJson(response.data);
         }
       }
       {
-        Response response = await ConfigAttendanceTimeService().getData();
+        Response response = await ConfigAttendanceTimeApi().getData();
         if (response.statusCode == 200) {
           timeConfig = ConfigAttendanceTimeModel.fromJson(response.data);
         }
@@ -70,25 +63,19 @@ class AuthState extends ChangeNotifier {
       status = AuthStatus.authenticated;
 
       {
-        Response response = await ProfileService().getProfile();
-        if (response.statusCode == 200) {
-          profile = ProfileModel.fromJson(response.data);
-        }
-      }
-      {
-        Response response = await ConfigLeaveService().getData();
+        Response response = await ConfigLeaveApi().getData();
         if (response.statusCode == 200) {
           leaveConfig = ConfigLeaveModel.fromJson(response.data);
         }
       }
       {
-        Response response = await ConfigAttendanceTimeService().getData();
+        Response response = await ConfigAttendanceTimeApi().getData();
         if (response.statusCode == 200) {
           timeConfig = ConfigAttendanceTimeModel.fromJson(response.data);
         }
       }
       {
-        Response response = await ConfigAttendanceRequestService().getData();
+        Response response = await ConfigAttendanceRequestApi().getData();
         if (response.statusCode == 200) {
           attendanceConfig = ConfigAttendanceRequestModel.fromJson(response.data);
         }

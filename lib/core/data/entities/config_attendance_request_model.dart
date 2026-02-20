@@ -1,3 +1,5 @@
+
+
 class ConfigAttendanceRequestModel {
   final bool requestNeedSignature;
   final bool approveNeedSignature;
