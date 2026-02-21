@@ -85,10 +85,11 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.sick,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(sick: value)),
+
+                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(sick: value % 1 == 0.5 ? value : value.round().toDouble())),
                                       onSuccess: (number) {
                                         setState(() {
-                                          maxLeave = maxLeave?.copyWith(sick: number);
+                                          maxLeave = maxLeave?.copyWith(sick: number % 1 == 0.5 ? number : number.round().toDouble());
                                         });
                                       }
                                   ).showPopup(context);
@@ -104,10 +105,10 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.personal,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(personal: value)),
+                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(personal: value % 1 == 0.5 ? value : value.round().toDouble())),
                                       onSuccess: (number) {
                                         setState(() {
-                                          maxLeave = maxLeave?.copyWith(personal: number);
+                                          maxLeave = maxLeave?.copyWith(personal: number % 1 == 0.5 ? number : number.round().toDouble());
                                         });
                                       }
                                   ).showPopup(context);
@@ -123,10 +124,10 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.vacation,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(vacation: value)),
+                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(vacation: value % 1 == 0.5 ? value : value.round().toDouble())),
                                       onSuccess: (number) {
                                         setState(() {
-                                          maxLeave = maxLeave?.copyWith(vacation: number);
+                                          maxLeave = maxLeave?.copyWith(vacation: number % 1 == 0.5 ? number : number.round().toDouble());
                                         });
                                       }
                                   ).showPopup(context);
@@ -142,10 +143,10 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.maternity,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(maternity: value)),
+                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(maternity: value % 1 == 0.5 ? value : value.round().toDouble())),
                                       onSuccess: (number) {
                                         setState(() {
-                                          maxLeave = maxLeave?.copyWith(maternity: number);
+                                          maxLeave = maxLeave?.copyWith(maternity: number % 1 == 0.5 ? number : number.round().toDouble());
                                         });
                                       }
                                   ).showPopup(context);
@@ -161,10 +162,10 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.paternity,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(paternity: value)),
+                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(paternity: value % 1 == 0.5 ? value : value.round().toDouble())),
                                       onSuccess: (number) {
                                         setState(() {
-                                          maxLeave = maxLeave?.copyWith(paternity: number);
+                                          maxLeave = maxLeave?.copyWith(paternity: number % 1 == 0.5 ? number : number.round().toDouble());
                                         });
                                       }
                                   ).showPopup(context);
@@ -180,10 +181,10 @@ class _MaxLeaveState extends State<MaxLeave> {
                                       decimalRange: 1,
                                       step: 0.5,
                                       currentValue: maxLeave!.parental,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(parental: value)),
+                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(parental: value % 1 == 0.5 ? value : value.round().toDouble())),
                                       onSuccess: (number) {
                                         setState(() {
-                                          maxLeave = maxLeave?.copyWith(parental: number);
+                                          maxLeave = maxLeave?.copyWith(parental: number % 1 == 0.5 ? number : number.round().toDouble());
                                         });
                                       }
                                   ).showPopup(context);

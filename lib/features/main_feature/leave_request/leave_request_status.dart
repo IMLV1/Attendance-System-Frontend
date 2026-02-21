@@ -135,10 +135,12 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                               color: Color(0xFF4986FF),
                               arrow: false,
                               onPressed: () {
-                                Navigator.of(context).push(
+
+                                Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => LeaveRequestCreate()
-                                  )
+                                  ),
+                                  (_) => false
                                 );
                               },
                             )

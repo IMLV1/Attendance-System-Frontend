@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:sealed_countries/sealed_countries.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'app/app.dart';
 import 'core/auth/auth_state.dart';
@@ -30,6 +32,9 @@ void main() async {
   await setupServiceLocator();
   await getIt<AuthState>().init();
   prepareNationalities();
+
+  usePathUrlStrategy(); // see https://pub.dev/packages/url_strategy
+  GoRouter.optionURLReflectsImperativeAPIs = true;
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
