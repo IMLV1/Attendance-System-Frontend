@@ -29,7 +29,7 @@ void main() async {
   await initializeDateFormatting('th_TH', null);
   await dotenv.load(fileName: '.env');
   await setupServiceLocator();
-  await getIt<AuthState>().init();
+  await sl<AuthState>().init();
   prepareNationalities();
 
   await SystemChrome.setPreferredOrientations([
@@ -40,24 +40,8 @@ void main() async {
 
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (_) => getIt<AuthState>(),
-        ),
-
-        ChangeNotifierProxyProvider<AuthState, ProfileProvider>(
-          create: (_) => ProfileProvider(ProfileRepository()),
-          update: (_, auth, profile) {
-            profile ??= ProfileProvider(ProfileRepository());
-
-            if (auth.status == AuthStatus.authenticated) {
-              profile.load(forceRefresh: true);
-            } else {
-              profile.clear();
-            }
-
-            return profile;
-          },
-        ),
+        ChangeNotifierProvider(create: (_) => sl<AuthState>()),
+        ChangeNotifierProvider(create: (_) => sl<ProfileProvider>()),
       ],
       child: App()
     ),

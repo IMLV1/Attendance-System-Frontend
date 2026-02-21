@@ -20,10 +20,10 @@ import '../features/settings/role_management/role_management.dart';
 import '../service_locator.dart';
 
 final appRouter = GoRouter(
-  refreshListenable: getIt<AuthState>(),
+  refreshListenable: sl<AuthState>(),
   initialLocation: '/login',
   redirect: (_, state) {
-    final auth = getIt<AuthState>();
+    final auth = sl<AuthState>();
     final location = state.matchedLocation;
 
     if (auth.status == AuthStatus.unknown) {
