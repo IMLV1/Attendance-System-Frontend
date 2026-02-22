@@ -34,7 +34,6 @@ int _generateRandomNumber(int digits) {
 
   return min + random.nextInt(max - min + 1);
 }
-
 String _formatBytes(int bytes, {int decimals = 2}) {
   if (bytes <= 0) return '0 B';
 
@@ -434,7 +433,6 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                   _selectDate?.startTime == null ||
                                   _selectDate?.endTime == null))
                                   ? Padding(
-                                  key: ValueKey('file_error'),
                                   padding: EdgeInsets.only(left: 13, top: 8),
                                   child: Text(
                                     'กรุณาระบุวันที่และเวลา',
@@ -443,10 +441,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                       fontSize: 14,
                                     ),
                                   ),
-                                ) : SizedBox(
-                                  key: ValueKey('empty'),
-                                  height: 0,
-                                ),
+                                ) : SizedBox(),
                               )
                             ],
                           )

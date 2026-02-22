@@ -18,7 +18,7 @@ class AppTheme {
       ).copyWith(
         //overlayColor: MaterialStateProperty.all(Colors.transparent),
         splashFactory: NoSplash.splashFactory,
-        animationDuration: Duration(seconds: 0),
+        animationDuration: Duration.zero,
       ),
     ),
   );

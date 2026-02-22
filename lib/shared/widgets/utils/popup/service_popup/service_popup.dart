@@ -9,7 +9,8 @@ class ServicePopup {
 
   final String title;
   final String buttonLabel;
-  final void Function(BuildContext context) onSuccess;
+  final void Function(BuildContext context)? onSuccess;
+  final void Function(BuildContext context, dynamic data)? onSuccessResponse;
   final bool backButton;
   final bool actionButton;
   final Widget Function(
@@ -29,7 +30,8 @@ class ServicePopup {
     this.backButton = true,
     this.actionButton = true,
     required this.request,
-    required this.onSuccess,
+    this.onSuccess,
+    this.onSuccessResponse,
     required this.builder,
     this.maxHeight = double.infinity,
     this.minHeight = 0,
@@ -83,7 +85,8 @@ class ServicePopup {
                           ),
                           child: ServiceUpdater(
                               request: request,
-                              onSuccess: () => onSuccess(context),
+                              onSuccess: () => onSuccess?.call(context),
+                              onSuccessResponse: (jsonData) => onSuccessResponse?.call(context, jsonData),
                               builder: (trigger, state, errorMessage) {
                                 return SafeArea(
                                     top: false,
