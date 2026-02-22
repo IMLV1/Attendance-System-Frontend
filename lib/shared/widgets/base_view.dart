@@ -25,6 +25,7 @@ class BaseView extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Scaffold(
+              resizeToAvoidBottomInset: false,
               body: child,
               bottomNavigationBar: (Responsive.isMobile(context)) ? BottomNavigation(currentPath: location ?? '') : null,
             )

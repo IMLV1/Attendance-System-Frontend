@@ -131,6 +131,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                     },
                     builder: () {
                       return SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                         physics: AlwaysScrollableScrollPhysics(),
                         child: Column(
                           spacing: 13,

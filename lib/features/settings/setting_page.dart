@@ -24,6 +24,7 @@ class SettingPage extends StatelessWidget {
       ),
       content: SafeArea(
         child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const AlwaysScrollableScrollPhysics(),
 
           child: Container(

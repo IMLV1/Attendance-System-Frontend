@@ -130,6 +130,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                               },
                               builder: () {
                                 return SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                     physics: AlwaysScrollableScrollPhysics(),
                                     child: SeparatorCard(
                                       separatorPadding: EdgeInsetsGeometry.symmetric(

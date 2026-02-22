@@ -62,6 +62,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                             children: [
                               Expanded(
                                   child: SingleChildScrollView(
+                                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                       physics: AlwaysScrollableScrollPhysics(),
                                       child: Column(
                                         spacing: 13,

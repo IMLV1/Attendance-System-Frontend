@@ -41,8 +41,21 @@ class ServicePopup {
 
     final theme = Theme.of(context);
 
-    showCupertinoModalPopup(
+    final controller = AnimationController(
+      vsync: Navigator.of(context),
+      duration: const Duration(milliseconds: 400), // 👈 ปรับความช้าตรงนี้
+      reverseDuration: const Duration(milliseconds: 200),
+    );
+
+    showModalBottomSheet(
       context: context,
+      useRootNavigator: true, // 👈 เพิ่มบรรทัดนี้
+      isScrollControlled: true,
+      enableDrag: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.15),
+      transitionAnimationController: controller,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
@@ -54,11 +67,19 @@ class ServicePopup {
                       child: Material(borderRadius: BorderRadius.circular(40), child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: AppColors.backgroundColor,
-                            borderRadius: BorderRadius.vertical(
+                            borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(40),
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.10),
+                                blurRadius: 30,
+                                spreadRadius: 10,
+                                offset: const Offset(0, 0), // 👈 360° shadow
+                              ),
+                            ],
                           ),
                           child: ServiceUpdater(
                               request: request,
@@ -156,6 +177,7 @@ class ServicePopup {
                                           Flexible(
                                               fit: fit,
                                               child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                                 physics: const AlwaysScrollableScrollPhysics(),
                                                 child: builder(trigger, state, errorMessage),
                                               )

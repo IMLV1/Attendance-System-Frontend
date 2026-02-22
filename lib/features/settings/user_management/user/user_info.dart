@@ -62,6 +62,7 @@ class _UserInfoState extends State<UserInfo> {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                         physics: AlwaysScrollableScrollPhysics(),
 
                         child: Column(

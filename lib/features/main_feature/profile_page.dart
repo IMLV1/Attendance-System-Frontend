@@ -71,6 +71,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Expanded(
                           child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                             physics: AlwaysScrollableScrollPhysics(),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,

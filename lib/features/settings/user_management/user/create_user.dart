@@ -62,6 +62,7 @@ class _CreateUserState extends State<CreateUser> {
                   children: [
                     Expanded(
                         child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                             physics: AlwaysScrollableScrollPhysics(),
                             child: Column(
                               spacing: 13,

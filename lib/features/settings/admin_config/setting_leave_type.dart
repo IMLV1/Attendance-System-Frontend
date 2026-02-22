@@ -155,6 +155,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                   },
                                   builder: () {
                                     return SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                       physics: AlwaysScrollableScrollPhysics(),
                                       child: Column(
                                         spacing: 13,
@@ -319,6 +320,7 @@ class _ConfigLeaveState extends State<ConfigLeave> {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                       physics: AlwaysScrollableScrollPhysics(),
                       child: Column(
                         spacing: 13,

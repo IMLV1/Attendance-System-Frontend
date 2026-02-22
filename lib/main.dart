@@ -45,6 +45,15 @@ void main() async {
       value: getIt<AuthState>(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        builder: (context, child) {
+          return GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            child: child!,
+          );
+        },
         home: App(),
       )
     ),

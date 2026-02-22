@@ -38,6 +38,7 @@ class AppScaffold extends StatelessWidget {
               textScaler: TextScaler.linear(scaleFactor),
             ),
             child: Scaffold(
+                resizeToAvoidBottomInset: false,
                 appBar: header,
                 body: Align(
                   alignment: Alignment.topCenter,

@@ -134,6 +134,7 @@ class _DateSelectState extends State<DateSelect> {
                                 child: SizedBox(
                                   width: 200,
                                   child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                     primary: false,
                                     child: SeparatorCard(
                                       borderRadius: BorderRadius.circular(0),
@@ -219,6 +220,7 @@ class _DateSelectState extends State<DateSelect> {
                                     child: SizedBox(
                                         width: 200,
                                         child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                           primary: false,
                                           child: SeparatorCard(
                                             borderRadius: BorderRadius.circular(0),

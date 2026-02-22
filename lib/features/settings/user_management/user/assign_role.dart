@@ -117,6 +117,7 @@ class _AssignRoleState extends State<AssignRole> {
                               });
                             },
                             builder: () => SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                               physics: AlwaysScrollableScrollPhysics(),
                               child: Column(
                                 spacing: 13,

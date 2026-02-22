@@ -295,6 +295,7 @@ class _CheckinPageState extends State<CheckinPage> {
               },
               builder: () => SafeArea(
                 child: SingleChildScrollView(
+  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
