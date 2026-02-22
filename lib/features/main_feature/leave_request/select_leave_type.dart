@@ -35,7 +35,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลาป่วย',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('ลาป่วย', config!.sick));
+                          Navigator.pop(context, ('sick', config!.sick));
                         },
                       ),
                       AppButton(
@@ -43,7 +43,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลากิจส่วนตัว',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('ลากิจส่วนตัว', config!.personal));
+                          Navigator.pop(context, ('personal', config!.personal));
                         },
                       ),
                       AppButton(
@@ -51,7 +51,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลาพักผ่อน',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('ลาพักผ่อน', config!.vacation));
+                          Navigator.pop(context, ('vacation', config!.vacation));
                         },
                       ),
                       AppButton(
@@ -59,7 +59,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลาคลอดบุตร',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('ลาคลอดบุตร', config!.maternity));
+                          Navigator.pop(context, ('maternity', config!.maternity));
                         },
                       ),
                       AppButton(
@@ -67,7 +67,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลาช่วยเหลือภริยาคลอดบุตร',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('ลาช่วยเหลือภริยาคลอดบุตร', config!.paternity));
+                          Navigator.pop(context, ('paternity', config!.paternity));
                         },
                       ),
                       AppButton(
@@ -75,7 +75,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลากิจเพื่อเลี้ยงดูบุตร',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('ลากิจเพื่อเลี้ยงดูบุตร', config!.parental));
+                          Navigator.pop(context, ('parental', config!.parental));
                         },
                       ),
                     ],

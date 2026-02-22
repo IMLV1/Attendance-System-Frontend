@@ -1,6 +1,4 @@
 import 'package:attendance_system/app/route_names.dart';
-import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
-import 'package:attendance_system/features/main_feature/leave_request/leave_request_create.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
@@ -137,8 +135,15 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                               label: 'สร้างคำขอใหม่',
                               color: Color(0xFF4986FF),
                               arrow: false,
-                              onPressed: () {
-                                context.pushNamed(RouteNames.attendanceRequestCreate);
+                              onPressed: () async {
+                                final result = await context.pushNamed<(String?, String?, DateTime?)>(RouteNames.attendanceRequestCreate);
+                                if (result != null) {
+                                  final (id, leaveType, dateStart) = result;
+
+                                  print('$id, $leaveType, ${dateStart?.toIso8601String()}');
+
+                                  pendingLeaves.add(PendingLeaveRequestModel(id: id ?? '', leaveType: leaveType!, dateStart: dateStart!));
+                                }
                               },
                             )
                           ],
@@ -181,8 +186,8 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                         return AppButton(
                                           icon: 'icon_pending.svg',
                                           iconColor: Color(0xFFE79E00),
-                                          title: '${leaveNames[m.leaveType]!} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
-                                          subTitle: 'หมายเลขคำขอ ${m.id}',
+                                          title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
+                                          subTitle: 'หมายเลขคำขอ: ${m.id}',
                                           weightTitle: FontWeight.w500,
                                         );
                                       })
@@ -241,8 +246,8 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                       return AppButton(
                                         icon: m.approve ? 'icon_success.svg' : 'icon_cancel.svg',
                                         iconColor: m.approve ? Color(0xFF30D143) : Color(0xFFE7000B),
-                                        title: '${leaveNames[m.leaveType]!} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
-                                        subTitle: 'หมายเลขคำขอ ${m.id}',
+                                        title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
+                                        subTitle: 'หมายเลขคำขอ: ${m.id}',
                                         weightTitle: FontWeight.w500,
                                       );
                                     })

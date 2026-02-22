@@ -1,10 +1,17 @@
+import 'dart:typed_data';
+
 import 'package:attendance_system/app/route_names.dart';
+import 'package:attendance_system/services/signature/signature_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -17,6 +24,8 @@ class SettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
+
+    Uint8List? signature;
 
     return AppScaffold(
       header: Header.subHeader(context,
@@ -108,12 +117,52 @@ class SettingPage extends StatelessWidget {
                         }, icon: 'icon_setting.svg', label: 'ประเภทการลางาน'),
                       ]
                   ),
-                  SeparatorCard(
-                      separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                      children: [
-                        IconTextButton(icon: 'icon_signature.svg', label: 'แก้ไขลายเซ็น', color: Colors.black),
-                        // TODO: change Color red in label text and change Icon
-                      ]
+
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return SeparatorCard(
+                        separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                        children: [
+                          ServiceUpdater(
+                            request: () => SignatureService().get(),
+                            onSuccessResponse: (pngBytes) {
+                              setState(() {
+                                signature = pngBytes;
+                              });
+                            },
+                            builder: (trigger, state, errorMessage) {
+                              return IconTextButton(icon: 'icon_signature.svg', onPressed: () async {
+                                ServiceSignaturePopup(
+                                  request: (Uint8List? pngByte) async => Response(requestOptions: RequestOptions(), statusCode: 200), // (pngByte != null) ? SignatureService().update(pngByte!) : SignatureService().clear(),
+                                  title: 'ลายเซ็น',
+                                  buttonLabel: 'บันทึก',
+                                  importSignature: false,
+                                  onSuccess: (Uint8List? pngBytes) {
+                                    setState(() {
+                                      signature = pngBytes;
+                                    });
+                                  },
+                                  current: signature,
+                                  infoWidget: Row(
+                                    spacing: 5,
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/iicon.svg',
+                                        width: 15,
+                                        height: 15,
+                                      ),
+                                      Expanded(
+                                        child: Text('โปรดทราบว่า ลายเซ็นดิจิทัลนี้จะถูกจัดเก็บไว้ในระบบ เพื่อให้ผู้ใช้สามารถเรียกใช้งานได้อย่างสะดวกในภายหลัง')
+                                      )
+                                    ],
+                                  ),
+                                ).showPopup(context);
+                              }, label: signature == null ? 'เพิ่มลายเซ็น' : 'แก้ไขลายเซ็น', color: signature == null ? AppColors.primaryColor : Colors.black);
+                            },
+                          )
+                        ]
+                      );
+                    }
                   ),
                   SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
