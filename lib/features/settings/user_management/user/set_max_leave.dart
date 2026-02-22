@@ -50,7 +50,7 @@ class _SetMaxLeaveState extends State<SetMaxLeave> {
                               Expanded(
                                 child: maxLeave == null ? const Center(child: CupertinoActivityIndicator())
                                     : SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                     physics: AlwaysScrollableScrollPhysics(),
                                     child: SeparatorCard(
                                       separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),

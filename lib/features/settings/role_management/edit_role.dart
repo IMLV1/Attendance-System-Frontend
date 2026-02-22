@@ -266,7 +266,7 @@ class _EditRoleState extends State<EditRole> {
                   children: [
                     Expanded(
                       child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                         physics: AlwaysScrollableScrollPhysics(),
                         child: Column(
                           spacing: 17,
@@ -637,7 +637,7 @@ class _EditRoleState extends State<EditRole> {
                                                           child: ClipRRect(
                                                             borderRadius: BorderRadius.circular(20),
                                                             child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                                              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                                               child: SeparatorCard(
                                                                 separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
                                                                 children: [

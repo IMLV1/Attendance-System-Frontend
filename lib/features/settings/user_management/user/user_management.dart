@@ -319,7 +319,7 @@ class _UserManagementState extends State<UserManagement> {
                               });
                             },
                             builder: () => SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                               physics: const AlwaysScrollableScrollPhysics(),
                               child: SeparatorCard(
                                 separatorPadding: const EdgeInsets.only(left: 70, right: 15),

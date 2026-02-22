@@ -70,7 +70,7 @@ class _MaxLeaveState extends State<MaxLeave> {
                         },
                       //child: Column(),
                         builder: () => SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                             physics: AlwaysScrollableScrollPhysics(),
                             child: SeparatorCard(
                               separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),

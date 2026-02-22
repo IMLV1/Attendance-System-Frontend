@@ -153,7 +153,7 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                                     child: SizedBox(
                                         width: 200,
                                         child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                           primary: false,
                                           child: SeparatorCard(
                                             borderRadius: BorderRadius.circular(0),
@@ -239,7 +239,7 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                                     child: SizedBox(
                                         width: 200,
                                         child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                           primary: false,
                                           child: SeparatorCard(
                                             borderRadius: BorderRadius.circular(0),
@@ -388,7 +388,14 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                       : '${selectedHour1!.toString().padLeft(2, '0')}:${selectedMinute1!.toString().padLeft(2, '0')}',
                   onPressed: () {
                     setState(() {
-                      onSelect1 = (!onSelect1) ? true : false;
+                      // onSelect1 = (!onSelect1) ? true : false;
+
+                      if (!onSelect1) {
+                        onSelect1 = true;
+                        onSelect2 = false;
+                      } else {
+                        onSelect1 = false;
+                      }
                     });
                   },
                 ),
@@ -456,7 +463,14 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                       : '${selectedHour2!.toString().padLeft(2, '0')}:${selectedMinute2!.toString().padLeft(2, '0')}',
                   onPressed: () {
                     setState(() {
-                      onSelect2 = (!onSelect2) ? true : false;
+                      // onSelect2 = (!onSelect2) ? true : false;
+
+                      if (!onSelect2) {
+                        onSelect2 = true;
+                        onSelect1 = false;
+                      } else {
+                        onSelect2 = false;
+                      }
                     });
                   },
                 ),

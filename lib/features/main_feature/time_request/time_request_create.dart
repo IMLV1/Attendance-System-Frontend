@@ -834,6 +834,10 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                       return;
                                     }
 
+                                    if (setting!.requiredEvidenceFile == true && allFiles.isEmpty) {
+                                      return;
+                                    }
+
                                     trigger();
                                   } : null,
                                   icon: SvgPicture.asset(
