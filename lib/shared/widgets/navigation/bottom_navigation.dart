@@ -1,3 +1,4 @@
+import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -31,18 +32,18 @@ class BottomNavigation extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _navigationItem(context, '/time-request', 'icon_time_request.svg', 'ขออนุมัติเวลา'),
-            _navigationItem(context, '/leave', 'icon_leave.svg', 'ลางาน'),
-            _centerItem(context, '/check-in', 'icon_checkin.svg', 'เข้า-ออกงาน'),
-            _navigationItem(context, '/statistic', 'icon_statistic.svg', 'สถิติ'),
-            _profileItem(context, '/profile', '', 'โปรไฟล์'),
+            _navigationItem(context, '/attendance-request', RouteNames.attendanceRequest, 'icon_time_request.svg', 'ขออนุมัติเวลา'),
+            _navigationItem(context, '/leave-request', RouteNames.leaveRequest, 'icon_leave.svg', 'ลางาน'),
+            _centerItem(context, '/check-in', RouteNames.checkin, 'icon_checkin.svg', 'เข้า-ออกงาน'),
+            _navigationItem(context, '/statistic', RouteNames.statistic, 'icon_statistic.svg', 'สถิติ'),
+            _profileItem(context, '/profile', RouteNames.profile, '', 'โปรไฟล์'),
           ],
         ),
       ),
     );
   }
 
-  Widget _navigationItem(BuildContext context, String path, String iconPath, String label) {
+  Widget _navigationItem(BuildContext context, String path, String routeName, String iconPath, String label) {
 
     return Expanded(
       child: InkWell(
@@ -51,7 +52,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          context.go(path);
+          context.goNamed(routeName);
         },
 
         child: Column(
@@ -62,7 +63,7 @@ class BottomNavigation extends StatelessWidget {
               width: 30,
               child: SvgPicture.asset(
                 'assets/images/$iconPath',
-                colorFilter: ColorFilter.mode(currentPath == path ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, BlendMode.srcIn),
+                colorFilter: ColorFilter.mode(currentPath.startsWith(path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor, BlendMode.srcIn),
               ),
             ),
             const SizedBox(height: 4),
@@ -70,7 +71,7 @@ class BottomNavigation extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
+                color: (currentPath.startsWith(path)) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
               ),
               maxLines: 1,
             ),
@@ -80,7 +81,7 @@ class BottomNavigation extends StatelessWidget {
       ),
     );
   }
-  Widget _centerItem(BuildContext context, String path, String iconPath, String label) {
+  Widget _centerItem(BuildContext context, String path, String routeName, String iconPath, String label) {
 
     return Expanded(
       child: InkWell(
@@ -89,7 +90,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          context.go(path);
+          context.goNamed(routeName);
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -100,7 +101,7 @@ class BottomNavigation extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuIconColor,
+                  color: (currentPath.startsWith(path)) ? AppColors.selectedMenuColor : AppColors.unSelectMenuIconColor,
                   shape: BoxShape.circle,
                   boxShadow: const [
                     BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))
@@ -122,7 +123,7 @@ class BottomNavigation extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.blackTextColor,
+                  color: (currentPath.startsWith(path)) ? AppColors.selectedMenuColor : AppColors.blackTextColor,
                   fontWeight: FontWeight.normal,
                 ),
               ),
@@ -132,7 +133,7 @@ class BottomNavigation extends StatelessWidget {
       ),
     );
   }
-  Widget _profileItem(BuildContext context, String path ,String iconPath, String label) {
+  Widget _profileItem(BuildContext context, String path, String routeName, String iconPath, String label) {
 
     return Expanded(
       child: InkWell(
@@ -141,7 +142,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          context.go(path);
+          context.goNamed(routeName);
         },
         child: Transform.translate(
             offset: Offset(-2, 0),
@@ -170,7 +171,7 @@ class BottomNavigation extends StatelessWidget {
                 label,
                 style: TextStyle(
                     fontSize: 12,
-                    color: (currentPath == path) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
+                    color: (currentPath.startsWith(path)) ? AppColors.selectedMenuColor : AppColors.unSelectMenuColor
                 ),
                 maxLines: 1,
                 textAlign: TextAlign.center,

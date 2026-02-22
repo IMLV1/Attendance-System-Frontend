@@ -13,20 +13,20 @@ class BaseView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final location = GoRouterState.of(context).uri.path;
+    final location = GoRouterState.of(context).fullPath;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Row(
         children: [
 
-          if (Responsive.isDesktop(context)) SideBarNavigation(currentPath: location),
+          if (Responsive.isDesktop(context)) SideBarNavigation(currentPath: location ?? ''),
 
           Expanded(
             flex: 3,
             child: Scaffold(
               body: child,
-              bottomNavigationBar: (Responsive.isMobile(context)) ? BottomNavigation(currentPath: location) : null,
+              bottomNavigationBar: (Responsive.isMobile(context)) ? BottomNavigation(currentPath: location ?? '') : null,
             )
           ),
         ],

@@ -1,3 +1,4 @@
+import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/features/main_feature/time_request/time_request_create.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
@@ -5,6 +6,7 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class TimeRequestPage extends StatefulWidget{
   const TimeRequestPage({super.key});
@@ -49,11 +51,7 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                               color: Color(0xFF4986FF),
                               arrow: false,
                               onPressed: () {
-                                Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                        builder: (context) => TimeRequestCreate()
-                                    )
-                                );
+                               context.pushNamed(RouteNames.timeRequestCreate);
                               },
                             )
                           ],

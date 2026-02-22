@@ -1,3 +1,4 @@
+import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -160,7 +161,7 @@ class Header {
               ),
               if (Responsive.isMobile(context)) IconButton(
                 onPressed: () {
-                  context.push('/settings');
+                  context.pushNamed(RouteNames.setting);
                 },
                 icon: SvgPicture.asset(
                   'assets/images/hamburger_menu.svg',

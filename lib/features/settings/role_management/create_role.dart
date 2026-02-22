@@ -593,7 +593,7 @@ class _CreateRoleState extends State<CreateRole> {
                                 children: [
                                   ..._filteredMembers.map((m) {
                                     return UserCancelCheckbox(
-                                      icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
+                                      icon: Image.network(m.avatarUrl, fit: BoxFit.cover),
                                       title: m.thName,
                                       subTitle: m.enName,
                                       checkBox: false,

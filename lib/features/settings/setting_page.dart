@@ -1,3 +1,4 @@
+import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -41,7 +42,7 @@ class SettingPage extends StatelessWidget {
                       //                           context.push('/settings/user-management');
                       //                         }
                       IconTextButton(onPressed: () {
-                        context.push('/history/attendance');
+                        context.pushNamed(RouteNames.attendanceHistory);
                       }, icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
                     ]
                   ),
@@ -82,10 +83,10 @@ class SettingPage extends StatelessWidget {
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
                         IconTextButton(onPressed: () {
-                          context.push('/settings/user-management');
+                          context.pushNamed(RouteNames.userManagement);
                         }, icon: 'icon_user_management.svg', label: 'จัดการผู้ใช้งานระบบ'),
                         IconTextButton(onPressed: () {
-                          context.push('/settings/role-management');
+                          context.pushNamed(RouteNames.roleManagement);
                         },icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
                       ]
                   ),
@@ -93,16 +94,16 @@ class SettingPage extends StatelessWidget {
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
                         IconTextButton(onPressed: () {
-                          context.push('/settings/budget-year');
+                          context.pushNamed(RouteNames.settingBudgetYear);
                         }, icon: 'icon_setting.svg', label: 'ตั้งค่าปีงบประมาณ'),
                         IconTextButton(onPressed: () {
-                          context.push('/settings/config-attendance');
+                          context.pushNamed(RouteNames.settingAttendanceTime);
                         }, icon: 'icon_setting.svg', label: 'การลงชื่อเข้า-ออกงาน'),
                         IconTextButton(onPressed: () {
-                          context.push('/settings/config-attendance-request');
+                          context.pushNamed(RouteNames.settingAttendanceRequest);
                         }, icon: 'icon_setting.svg', label: 'คำขออนุมัติเวลางาน'),
                         IconTextButton(onPressed: () {
-                          context.push('/settings/config-leave-type');
+                          context.pushNamed(RouteNames.settingLeaveType);
                         }, icon: 'icon_setting.svg', label: 'ประเภทการลางาน'),
                       ]
                   ),

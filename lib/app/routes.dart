@@ -1,4 +1,6 @@
+import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/features/main_feature/checkin_page.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_request_create.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_request_status.dart';
 import 'package:attendance_system/features/main_feature/profile_page.dart';
 import 'package:attendance_system/features/main_feature/statistic_page.dart';
@@ -46,10 +48,12 @@ final appRouter = GoRouter(
 
   routes: [
     GoRoute(
+      name: '1',
       path: '/splash',
       builder: (_, _) => const Center(child: CircularProgressIndicator()),
     ),
     GoRoute(
+      name: RouteNames.login,
       path: '/login',
       builder: (_, _) => const LoginPage(),
     ),
@@ -59,57 +63,86 @@ final appRouter = GoRouter(
       },
       routes: [
         GoRoute(
+          name: RouteNames.checkin,
           path: '/check-in',
           pageBuilder: (_, _) => const NoTransitionPage(child: CheckinPage()),
         ),
         GoRoute(
+          name: RouteNames.setting,
           path: '/settings',
           builder: (_, _) => const SettingPage(),
+          routes: [
+            GoRoute(
+              name: RouteNames.settingBudgetYear,
+              path: 'budget-year',
+              builder: (_, _) => const SettingBudgetYear(),
+            ),
+            GoRoute(
+              name: RouteNames.settingAttendanceTime,
+              path: 'config-attendance',
+              builder: (_, _) => const SettingAttendance(),
+            ),
+            GoRoute(
+              name: RouteNames.settingAttendanceRequest,
+              path: 'config-attendance-request',
+              builder: (_, _) => const SettingAttendanceRequest(),
+            ),
+            GoRoute(
+              name: RouteNames.settingLeaveType,
+              path: 'config-leave-type',
+              builder: (_, _) => const SettingLeaveType(),
+            ),
+            GoRoute(
+              name: RouteNames.userManagement,
+              path: 'user-management',
+              builder: (_, _) => const UserManagement(),
+            ),
+            GoRoute(
+              name: RouteNames.roleManagement,
+              path: 'role-management',
+              builder: (_, _) => const RoleManagement(),
+            ),
+            GoRoute(
+              name: RouteNames.attendanceHistory,
+              path: 'attendance-history',
+              builder: (_, _) => const AttendanceHistory(),
+            )
+          ]
         ),
         GoRoute(
+          name: RouteNames.profile,
           path: '/profile',
           pageBuilder: (_, _) => const NoTransitionPage(child: ProfilePage()),
         ),
         GoRoute(
+          name: RouteNames.statistic,
           path: '/statistic',
           pageBuilder: (_, _) => const NoTransitionPage(child: StatisticPage()),
         ),
         GoRoute(
-          path: '/time-request',
+          name: RouteNames.attendanceRequest,
+          path: '/attendance-request',
           pageBuilder: (_, _) => const NoTransitionPage(child: TimeRequestPage()),
+          routes: [
+            GoRoute(
+              name: RouteNames.timeRequestCreate,
+              path: 'create',
+              builder: (_, _) => const TimeRequestCreate(),
+            ),
+          ]
         ),
         GoRoute(
-          path: '/leave',
+          name: RouteNames.leaveRequest,
+          path: '/leave-request',
           pageBuilder: (_, _) => const NoTransitionPage(child: LeaveRequestStatus()),
+          routes: [
+            GoRoute(
+              name: RouteNames.attendanceRequestCreate,
+              path: 'create',
+              builder: (_, _) => const LeaveRequestCreate(),
+            ),
+          ]
         ),
-        GoRoute(
-          path: '/settings/budget-year',
-          builder: (_, _) => const SettingBudgetYear(),
-        ),
-        GoRoute(
-          path: '/settings/config-attendance',
-          builder: (_, _) => const SettingAttendance(),
-        ),
-        GoRoute(
-          path: '/settings/config-attendance-request',
-          builder: (_, _) => const SettingAttendanceRequest(),
-        ),
-        GoRoute(
-          path: '/settings/config-leave-type',
-          builder: (_, _) => const SettingLeaveType(),
-        ),
-        GoRoute(
-          path: '/settings/user-management',
-          builder: (_, _) => const UserManagement(),
-        ),
-        GoRoute(
-          path: '/settings/role-management',
-          builder: (_, _) => const RoleManagement(),
-        ),
-        GoRoute(
-            path: '/history/attendance',
-            builder: (_, _) => const AttendanceHistory(),
-        )
       ],
     ),
   ],

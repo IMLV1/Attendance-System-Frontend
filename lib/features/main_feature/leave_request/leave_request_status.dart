@@ -1,3 +1,4 @@
+import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_request_create.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
@@ -12,6 +13,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 Future<Response> mockData() async {
@@ -135,13 +137,7 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                               color: Color(0xFF4986FF),
                               arrow: false,
                               onPressed: () {
-
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(
-                                    builder: (context) => LeaveRequestCreate()
-                                  ),
-                                  (_) => false
-                                );
+                                context.pushNamed(RouteNames.attendanceRequestCreate);
                               },
                             )
                           ],
