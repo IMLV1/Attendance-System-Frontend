@@ -13,6 +13,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -811,6 +812,9 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                           // );
                         },
 
+                        onSuccessResponse: (val) {
+                          context.pop(AttendanceRequestModel.fromJson(val));
+                        },
                         builder: (trigger, state, errorMessage) {
                           return Column(
                             children: [

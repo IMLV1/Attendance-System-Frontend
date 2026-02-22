@@ -49,8 +49,12 @@ class TimeRequestService {
       data['files'] = multipartFiles;
     }
 
-    return dio.post('api/attendance_request/create',
+    return dio.post('/api/attendance_request/create',
       data: FormData.fromMap(data),
     );
+  }
+
+  Future<Response<dynamic>> getAttendanceRequest() async {
+    return dio.get('/api/attendance_request/get');
   }
 }

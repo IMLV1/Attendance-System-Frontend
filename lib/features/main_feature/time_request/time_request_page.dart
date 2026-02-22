@@ -1,12 +1,19 @@
 import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/features/main_feature/time_request/time_request_create.dart';
+import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../services/time_request/time_request_model.dart';
 
 class TimeRequestPage extends StatefulWidget{
   const TimeRequestPage({super.key});
@@ -18,6 +25,10 @@ class TimeRequestPage extends StatefulWidget{
 }
 
 class _TimeRequestPageState extends State<TimeRequestPage> {
+  List<AttendanceRequestModel> pendingList = [];
+  List<AttendanceRequestModel> completedList = [];
+
+
   @override
   Widget build(BuildContext context) {
 
@@ -34,7 +45,11 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
           child: Padding(
-            padding: EdgeInsets.only(left: 10, right: 10, top: 20),
+            padding: EdgeInsets.only(
+              left: 10,
+              right: 10,
+              top: 20
+            ),
             child: Column(
               children: [
                 Expanded(
@@ -51,12 +66,145 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                               label: 'สร้างคำขอใหม่',
                               color: Color(0xFF4986FF),
                               arrow: false,
-                              onPressed: () {
-                               context.pushNamed(RouteNames.timeRequestCreate);
+                              onPressed: () async {
+                                final res = await context.pushNamed(RouteNames.timeRequestCreate);
+                                if (res != null && res is AttendanceRequestModel) {
+                                  setState(() {
+                                    pendingList.insert(0, res);
+                                  });
+                                }
                               },
                             )
                           ],
                         ),
+                        ServiceLoader(
+                          request: () {
+                            // return TimeRequestService().getAttendanceRequest();
+                            return mockAttendanceRequest();
+                          },
+                          onSuccess: (val) {
+                            final all = (val["requests"] as List).map((e) => AttendanceRequestModel.fromJson(e)).toList();
+                            setState(() {
+                              completedList = all.where((e) => e.status.isCompleted).toList()..sort((a, b) => b.fromDate.compareTo(a.fromDate)); // ใหม่ก่อน
+                              pendingList = all.where((e) => e.status.isPending).toList()..sort((a, b) => a.fromDate.compareTo(b.fromDate)); // เก่าก่อน
+                            });
+                          },
+                          builder: () {
+                            return Column(
+                              spacing: 13,
+                              children: [
+                                if (pendingList.isNotEmpty) ...[
+                                  Column(
+                                    spacing: 6,
+                                    children: [
+                                      Container(
+                                          padding: EdgeInsetsGeometry.only(
+                                              left: 10,
+                                              right: 10,
+                                              top: 10,
+                                              bottom: 10
+                                          ),
+                                          decoration: BoxDecoration(
+                                              color: Color(0xFFEAEAEA),
+                                              borderRadius: BorderRadius.circular(22)
+                                          ),
+                                          child: Column(
+                                            spacing: 6,
+                                            children: [
+                                              Row(
+                                                spacing: 6,
+                                                children: [
+                                                  SizedBox(
+                                                    width: 15,
+                                                    height: 15,
+                                                    child: SvgPicture.asset(
+                                                      'assets/images/icon_pending.svg',
+                                                      colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                                                      width: 10,
+                                                    ),
+                                                  ),
+                                                  Text('รอการอนุมัติ')
+                                                ],
+                                              ),
+                                              SeparatorCard(
+                                                borderRadius: BorderRadius.circular(22),
+                                                separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                                                children: [
+                                                  ...pendingList.map((e) {
+                                                    return AppButton(
+                                                      icon: e.status.icon,
+                                                      title: formatRange(e.fromDate.toLocal(), e.toDate.toLocal()),
+                                                      weightTitle: FontWeight.w500,
+                                                      iconColor: e.status.color,
+                                                      subTitle: 'หมายเลขคำขอ: ${e.id}',
+                                                    );
+                                                  })
+                                                ],
+                                              )
+                                            ],
+                                          )
+                                      ),
+                                    ],
+                                  ),
+                                ],
+
+                                if (completedList.isNotEmpty) ...[
+                                  Column(
+                                    spacing: 6,
+                                    children: [
+                                      Row(
+                                        spacing: 6,
+                                        children: [
+                                          SizedBox(
+                                            width: 15,
+                                            height: 15,
+                                            child: SvgPicture.asset(
+                                                'assets/images/icon_recent.svg'
+                                            ),
+                                          ),
+                                          Text('รายการล่าสุด'),
+                                          Spacer(),
+                                          InkWell(
+                                            child: Row(
+                                              spacing: 6,
+                                              children: [
+                                                Text(
+                                                    'ตัวกรอง',
+                                                    style: TextStyle(
+                                                        color: Color(0xFF2C2C2C)
+                                                    )
+                                                ),
+                                                SvgPicture.asset(
+                                                  'assets/images/filter.svg',
+                                                  colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
+                                                )
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      SeparatorCard(
+                                        borderRadius: BorderRadius.circular(22),
+                                        separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                                        children: [
+                                          ...completedList.map((e) {
+                                            return AppButton(
+                                              icon: e.status.icon,
+                                              title: formatRange(e.fromDate.toLocal(), e.toDate.toLocal()),
+                                              weightTitle: FontWeight.w500,
+                                              iconColor: e.status.color,
+                                              subTitle: 'หมายเลขคำขอ: ${e.id}',
+                                            );
+                                          })
+                                        ],
+                                      )
+                                    ],
+                                  )
+                                ]
+                              ],
+                            );
+                          }
+                        )
                       ],
                     )
                   )
@@ -68,5 +216,87 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
       )
     );
   }
-  
+}
+
+String formatRange(DateTime from, DateTime to) {
+  final fromDay = from.day.toString().padLeft(2, '0');
+  final fromMonth = from.month.toString().padLeft(2, '0');
+  final fromYear = from.year;
+
+  final toDay = to.day.toString().padLeft(2, '0');
+  final toMonth = to.month.toString().padLeft(2, '0');
+  final toYear = to.year;
+
+  return "$fromDay/$fromMonth/$fromYear - ""$toDay/$toMonth/$toYear";
+}
+
+Future<Response> mockAttendanceRequest() async {
+
+  await Future.delayed(
+    const Duration(milliseconds: 200),
+  );
+
+  return Response(
+
+    requestOptions: RequestOptions(
+      path: '/api/attendance_request/get',
+    ),
+
+    statusCode: 200,
+
+    data: {
+
+      "requests": [
+
+        {
+          "id": "ATT0001",
+
+          "status": "pending",
+
+          "fromDate": "2026-02-20T08:00:00.000Z",
+          "toDate": "2026-02-20T17:00:00.000Z",
+
+          "startTime": "08:00",
+          "endTime": "17:00"
+        },
+
+        {
+          "id": "ATT0002",
+
+          "status": "approved",
+
+          "fromDate": "2026-02-18T09:00:00.000Z",
+          "toDate": "2026-02-18T18:00:00.000Z",
+
+          "startTime": "09:00",
+          "endTime": "18:00"
+        },
+
+        {
+          "id": "ATT0003",
+
+          "status": "rejected",
+
+          "fromDate": "2026-02-15T08:30:00.000Z",
+          "toDate": "2026-02-15T17:30:00.000Z",
+
+          "startTime": "08:30",
+          "endTime": "17:30"
+        },
+
+        {
+          "id": "ATT0004",
+
+          "status": "pending",
+
+          "fromDate": "2026-02-10T08:00:00.000Z",
+          "toDate": "2026-02-10T17:00:00.000Z",
+
+          "startTime": "08:00",
+          "endTime": "17:00"
+        }
+
+      ]
+    },
+  );
 }

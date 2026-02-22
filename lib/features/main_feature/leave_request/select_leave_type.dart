@@ -22,7 +22,7 @@ class LeaveType extends StatelessWidget {
         ),
         content: SafeArea(
             child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: EdgeInsets.all(15),
               physics: AlwaysScrollableScrollPhysics(),
               child: Column(
