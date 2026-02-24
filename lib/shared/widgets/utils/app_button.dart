@@ -12,6 +12,7 @@ class AppButton extends StatelessWidget {
   final String? timeStamp;
   final VoidCallback? onPressed;
   final Widget? arrowWidget;
+  final Color? bg;
 
   const AppButton({
     super.key,
@@ -25,6 +26,7 @@ class AppButton extends StatelessWidget {
     this.onPressed,
     this.weightTitle = FontWeight.w700,
     this.arrowWidget,
+    this.bg,
   });
 
   @override
@@ -69,8 +71,7 @@ class AppButton extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: (iconColor ?? const Color(0xFFC7C7C7))
-                        .withValues(alpha: 0.2),
+                    color: bg ?? (iconColor ?? const Color(0xFFC7C7C7)).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,

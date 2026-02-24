@@ -57,4 +57,8 @@ class TimeRequestService {
   Future<Response<dynamic>> getAttendanceRequest() async {
     return dio.get('/api/attendance_request/get');
   }
+
+  Future<Response<dynamic>> getAttendanceDetail(String id) async {
+    return dio.get('/api/attendance_request/detail/$id');
+  }
 }
