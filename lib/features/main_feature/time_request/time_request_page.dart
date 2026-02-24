@@ -1,11 +1,13 @@
 import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/features/main_feature/time_request/time_request_create.dart';
+import 'package:attendance_system/features/main_feature/time_request/time_request_popup_detail.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:dio/dio.dart';
@@ -194,6 +196,16 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                               weightTitle: FontWeight.w500,
                                               iconColor: e.status.color,
                                               subTitle: 'หมายเลขคำขอ: ${e.id}',
+                                              onPressed: () async {
+                                                PushPopup(
+                                                  title: 'เลือกวันที่',
+                                                  fit: FlexFit.tight,
+                                                  scroll: true,
+                                                  builder: (context) {
+                                                    return TimeRequestPopupDetail(model: e);
+                                                  }
+                                                ).showPopup(context);
+                                              },
                                             );
                                           })
                                         ],
@@ -246,57 +258,252 @@ Future<Response> mockAttendanceRequest() async {
 
     data: {
 
-      "requests": [
+        "requests": [
 
-        {
-          "id": "ATT0001",
+          {
+            "id": "PEN0001",
+            "status": "pending",
+            "fromDate": "2026-02-01T08:00:00.000Z",
+            "toDate": "2026-02-01T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0002",
+            "status": "pending",
+            "fromDate": "2026-02-02T08:00:00.000Z",
+            "toDate": "2026-02-02T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0003",
+            "status": "pending",
+            "fromDate": "2026-02-03T08:00:00.000Z",
+            "toDate": "2026-02-03T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0004",
+            "status": "pending",
+            "fromDate": "2026-02-04T08:00:00.000Z",
+            "toDate": "2026-02-04T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0005",
+            "status": "pending",
+            "fromDate": "2026-02-05T08:00:00.000Z",
+            "toDate": "2026-02-05T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0006",
+            "status": "pending",
+            "fromDate": "2026-02-06T08:00:00.000Z",
+            "toDate": "2026-02-06T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0007",
+            "status": "pending",
+            "fromDate": "2026-02-07T08:00:00.000Z",
+            "toDate": "2026-02-07T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0008",
+            "status": "pending",
+            "fromDate": "2026-02-08T08:00:00.000Z",
+            "toDate": "2026-02-08T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0009",
+            "status": "pending",
+            "fromDate": "2026-02-09T08:00:00.000Z",
+            "toDate": "2026-02-09T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
+          {
+            "id": "PEN0010",
+            "status": "pending",
+            "fromDate": "2026-02-10T08:00:00.000Z",
+            "toDate": "2026-02-10T17:00:00.000Z",
+            "startTime": "08:00",
+            "endTime": "17:00"
+          },
 
-          "status": "pending",
+          {
+            "id": "APP0001",
+            "status": "approved",
+            "fromDate": "2026-01-01T09:00:00.000Z",
+            "toDate": "2026-01-01T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0002",
+            "status": "approved",
+            "fromDate": "2026-01-02T09:00:00.000Z",
+            "toDate": "2026-01-02T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0003",
+            "status": "approved",
+            "fromDate": "2026-01-03T09:00:00.000Z",
+            "toDate": "2026-01-03T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0004",
+            "status": "approved",
+            "fromDate": "2026-01-04T09:00:00.000Z",
+            "toDate": "2026-01-04T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0005",
+            "status": "approved",
+            "fromDate": "2026-01-05T09:00:00.000Z",
+            "toDate": "2026-01-05T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0006",
+            "status": "approved",
+            "fromDate": "2026-01-06T09:00:00.000Z",
+            "toDate": "2026-01-06T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0007",
+            "status": "approved",
+            "fromDate": "2026-01-07T09:00:00.000Z",
+            "toDate": "2026-01-07T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0008",
+            "status": "approved",
+            "fromDate": "2026-01-08T09:00:00.000Z",
+            "toDate": "2026-01-08T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0009",
+            "status": "approved",
+            "fromDate": "2026-01-09T09:00:00.000Z",
+            "toDate": "2026-01-09T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
+          {
+            "id": "APP0010",
+            "status": "approved",
+            "fromDate": "2026-01-10T09:00:00.000Z",
+            "toDate": "2026-01-10T18:00:00.000Z",
+            "startTime": "09:00",
+            "endTime": "18:00"
+          },
 
-          "fromDate": "2026-02-20T08:00:00.000Z",
-          "toDate": "2026-02-20T17:00:00.000Z",
+          {
+            "id": "REJ0001",
+            "status": "rejected",
+            "fromDate": "2025-12-01T08:30:00.000Z",
+            "toDate": "2025-12-01T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0002",
+            "status": "rejected",
+            "fromDate": "2025-12-02T08:30:00.000Z",
+            "toDate": "2025-12-02T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0003",
+            "status": "rejected",
+            "fromDate": "2025-12-03T08:30:00.000Z",
+            "toDate": "2025-12-03T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0004",
+            "status": "rejected",
+            "fromDate": "2025-12-04T08:30:00.000Z",
+            "toDate": "2025-12-04T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0005",
+            "status": "rejected",
+            "fromDate": "2025-12-05T08:30:00.000Z",
+            "toDate": "2025-12-05T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0006",
+            "status": "rejected",
+            "fromDate": "2025-12-06T08:30:00.000Z",
+            "toDate": "2025-12-06T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0007",
+            "status": "rejected",
+            "fromDate": "2025-12-07T08:30:00.000Z",
+            "toDate": "2025-12-07T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0008",
+            "status": "rejected",
+            "fromDate": "2025-12-08T08:30:00.000Z",
+            "toDate": "2025-12-08T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0009",
+            "status": "rejected",
+            "fromDate": "2025-12-09T08:30:00.000Z",
+            "toDate": "2025-12-09T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          },
+          {
+            "id": "REJ0010",
+            "status": "rejected",
+            "fromDate": "2025-12-10T08:30:00.000Z",
+            "toDate": "2025-12-10T17:30:00.000Z",
+            "startTime": "08:30",
+            "endTime": "17:30"
+          }
 
-          "startTime": "08:00",
-          "endTime": "17:00"
-        },
-
-        {
-          "id": "ATT0002",
-
-          "status": "approved",
-
-          "fromDate": "2026-02-18T09:00:00.000Z",
-          "toDate": "2026-02-18T18:00:00.000Z",
-
-          "startTime": "09:00",
-          "endTime": "18:00"
-        },
-
-        {
-          "id": "ATT0003",
-
-          "status": "rejected",
-
-          "fromDate": "2026-02-15T08:30:00.000Z",
-          "toDate": "2026-02-15T17:30:00.000Z",
-
-          "startTime": "08:30",
-          "endTime": "17:30"
-        },
-
-        {
-          "id": "ATT0004",
-
-          "status": "pending",
-
-          "fromDate": "2026-02-10T08:00:00.000Z",
-          "toDate": "2026-02-10T17:00:00.000Z",
-
-          "startTime": "08:00",
-          "endTime": "17:00"
-        }
-
-      ]
+        ]
     },
   );
 }

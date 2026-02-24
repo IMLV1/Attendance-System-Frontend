@@ -178,3 +178,44 @@ class AttendanceRequestGrouper {
     return list.where((e) => e.status.isCompleted).toList();
   }
 }
+
+class ApproverDetailModel {
+
+  final String? approver;
+  final AttendanceRequestStatus status;
+  final String? remarkApprover;
+  final DateTime? timeApprover;
+  final String? roleApproverName;
+  final String? remarkRequester;
+
+  ApproverDetailModel({
+    this.approver,
+    required this.status,
+    this.remarkApprover,
+    this.timeApprover,
+    this.roleApproverName,
+    this.remarkRequester,
+  });
+
+  factory ApproverDetailModel.fromJson(Map<String, dynamic> json) {
+    return ApproverDetailModel(
+      approver: json['approver'],
+      status: AttendanceRequestStatusX.fromState(
+        json['status'],
+      ),
+      remarkApprover: json['remark-approver'],
+      timeApprover: json['time-approver'] != null
+          ? DateTime.tryParse(json['time-approver'])
+          : null,
+      roleApproverName: json['role-approver-name'],
+      remarkRequester: json['remark-requester'],
+    );
+  }
+
+  bool get isApproved => status == AttendanceRequestStatus.approved;
+
+  bool get isRejected => status == AttendanceRequestStatus.rejected;
+
+  bool get isPending => status == AttendanceRequestStatus.pending;
+
+}
