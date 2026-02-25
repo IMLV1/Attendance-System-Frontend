@@ -1,5 +1,7 @@
+import 'package:attendance_system/services/signature/signature_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
+import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
@@ -20,7 +22,7 @@ class ServiceSignaturePopup {
   final double maxHeight;
   final double minHeight;
   final FlexFit fit;
-  final String? Function()? check;
+  final bool required;
   final Widget? infoWidget;
   final bool importSignature;
   final Uint8List? current;
@@ -31,7 +33,6 @@ class ServiceSignaturePopup {
     this.onSuccess,
     this.onSuccessResponse,
     required this.request,
-    this.check,
     this.backButton = true,
     this.maxHeight = 700,
     this.minHeight = 0,
@@ -39,11 +40,16 @@ class ServiceSignaturePopup {
     this.infoWidget,
     this.importSignature = true,
     this.current,
+    this.required = false,
   });
+
 
   void showPopup(BuildContext context) {
 
     Uint8List? current = this.current;
+    Uint8List? imported;
+
+    String? error;
 
     final SignatureController controller = SignatureController(
       penStrokeWidth: 3,
@@ -57,9 +63,16 @@ class ServiceSignaturePopup {
       minHeight: minHeight,
       maxHeight: maxHeight,
       fit: fit,
+      check: () {
+        if (required) {
+          if (current == null && controller.isEmpty) {
+            error = 'กรุณาเซ็นลายเซ็น';
+            return error;
+          }
+        }
+      },
       request: () async {
-        final signatureBytes = await controller.toPngBytes();
-        return request(signatureBytes);
+        return request(await controller.toPngBytes() ?? current);
       },
       onSuccess: (context) async {
         if (onSuccess != null) {
@@ -73,7 +86,6 @@ class ServiceSignaturePopup {
           onSuccessResponse?.call(await controller.toPngBytes() ?? current, data);
         }
       },
-      check: check,
       builder: (trigger, state, errorMessage) {
 
         return StatefulBuilder(
@@ -121,7 +133,7 @@ class ServiceSignaturePopup {
                         color: Colors.white,
                         border: Border.all(
                             strokeAlign: BorderSide.strokeAlignOutside,
-                            color: Colors.grey
+                            color: error == null ? Colors.grey : Colors.red
                         ),
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -141,19 +153,80 @@ class ServiceSignaturePopup {
                         ],
                       ),
                     ),
+                    if (error != null)Text(
+                      error!,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                          color: Colors.red
+                      ),
+                    ),
                     ?infoWidget
                   ],
                 ),
-                if (importSignature) SeparatorCard(
-                  children: [
-                    IconTextButton(
-                      icon: 'icon_signature.svg',
-                      label: 'นำเข้าลายเซ็น',
-                      color: AppColors.primaryColor,
-                      arrow: false,
-                    )
-                  ],
-                ),
+                if (importSignature)
+                  ServiceUpdater(
+                    request: () => SignatureService().get(),
+                    onSuccessResponse: (pngBytes) {
+                      setState(() {
+                        imported = pngBytes;
+                      });
+                    },
+                    fetchOnInit: true,
+                    builder: (trigger2, state2, errorMessage2) {
+
+                      return Column(
+                        children: [
+                          SeparatorCard(
+                            children: [
+                              IconTextButton(
+                                icon: 'icon_signature.svg',
+                                label: 'นำเข้าลายเซ็น',
+                                color: imported == null ? AppColors.buttonDisable : AppColors.primaryColor,
+                                arrow: state == ServiceUpdatorState.loading,
+                                arrowIcon: CupertinoActivityIndicator(),
+                                onPressed: imported == null ? null : () {
+                                  setState(() {
+                                    current = imported;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+
+                          if (imported == null)
+                            Padding(
+                                padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
+                                child: Row(
+                                  spacing: 6,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                        child: Text.rich(
+                                            TextSpan(
+                                              text: 'เพิ่มลายเซ็นเพื่อใช้ฟีเจอร์ \'นำเข้าลายเซ็น\' ในหน้า ',
+                                              style: TextStyle(
+                                                color: Color(0xFF7D7D7D),
+                                              ),
+                                              children: [
+                                                TextSpan(
+                                                  text: 'การตั้งค่า > เพิ่มลายเซ็น',
+                                                  style: TextStyle(
+                                                    color: Color(0xFF7D7D7D),
+                                                    decorationColor: Color(0xFF7D7D7D),
+                                                    decoration: TextDecoration.underline,
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                        )
+                                    )
+                                  ],
+                                )
+                            )
+                        ],
+                      );
+                    },
+                  ),
                 if (state == ServiceUpdatorState.error)
                   const Text(
                     'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',

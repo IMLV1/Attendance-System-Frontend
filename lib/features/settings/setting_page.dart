@@ -130,10 +130,12 @@ class SettingPage extends StatelessWidget {
                                 signature = pngBytes;
                               });
                             },
+                            fetchOnInit: true,
                             builder: (trigger, state, errorMessage) {
+
                               return IconTextButton(icon: 'icon_signature.svg', onPressed: () async {
                                 ServiceSignaturePopup(
-                                  request: (Uint8List? pngByte) async => Response(requestOptions: RequestOptions(), statusCode: 200), // (pngByte != null) ? SignatureService().update(pngByte!) : SignatureService().clear(),
+                                  request: (Uint8List? pngByte) async => (pngByte != null) ? SignatureService().update(pngByte!) : SignatureService().clear(),
                                   title: 'ลายเซ็น',
                                   buttonLabel: 'บันทึก',
                                   importSignature: false,

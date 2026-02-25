@@ -45,13 +45,13 @@ class ServicePopup {
 
     final controller = AnimationController(
       vsync: Navigator.of(context),
-      duration: const Duration(milliseconds: 400), // 👈 ปรับความช้าตรงนี้
+      duration: const Duration(milliseconds: 400),
       reverseDuration: const Duration(milliseconds: 200),
     );
 
     showModalBottomSheet(
       context: context,
-      useRootNavigator: true, // 👈 เพิ่มบรรทัดนี้
+      useRootNavigator: true,
       isScrollControlled: true,
       enableDrag: true,
       backgroundColor: Colors.transparent,

@@ -9,6 +9,7 @@ class IconTextButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Color color;
   final Widget? arrowIcon;
+  final Color backgroundColor;
 
   const IconTextButton({
     super.key,
@@ -17,6 +18,7 @@ class IconTextButton extends StatelessWidget {
     this.arrow = true,
     this.onPressed,
     this.color = Colors.black,
+    this.backgroundColor = Colors.white,
     this.arrowIcon,
   });
 
@@ -24,13 +26,14 @@ class IconTextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
 
-        onPressed: onPressed ?? () {},
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-            elevation: 0,
-            padding: EdgeInsets.all(0),
-            shadowColor: Colors.transparent,
-            backgroundColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero)
+          elevation: 0,
+          padding: EdgeInsets.all(0),
+          shadowColor: Colors.transparent,
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          disabledBackgroundColor: backgroundColor,
         ),
 
         child: Padding(

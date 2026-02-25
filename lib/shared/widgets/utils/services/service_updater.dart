@@ -15,6 +15,7 @@ class ServiceUpdater extends StatefulWidget {
   final void Function()? onSuccess;
   final void Function(dynamic error)? onError;
   final void Function(dynamic data)? onSuccessResponse;
+  final bool fetchOnInit;
 
   const ServiceUpdater({
     super.key,
@@ -23,6 +24,7 @@ class ServiceUpdater extends StatefulWidget {
     this.onSuccess,
     this.onError,
     this.onSuccessResponse,
+    this.fetchOnInit = false,
   });
 
   @override
@@ -57,22 +59,32 @@ class _ServiceUpdaterState extends State<ServiceUpdater> {
           _state = ServiceUpdatorState.error;
           _errorMessage = res.statusMessage;
         });
-        widget.onError?.call(res.data);
+        widget.onError?.call({'error': {'type': 1, 'status': res.statusCode, 'info': res.data}});
       }
     } catch (e) {
       if (!mounted) return;
-
       if (e is DioException && e.response != null) {
         setState(() {
           _state = ServiceUpdatorState.error;
           _errorMessage = e.response?.statusMessage ?? 'Unknown error';
         });
+        widget.onError?.call({'error': {'type': 2, 'status': e.response?.statusCode ?? 0, 'info': _errorMessage}});
       } else {
         setState(() {
           _state = ServiceUpdatorState.error;
           _errorMessage = e.toString();
         });
+        widget.onError?.call({'error': {'type': 3, 'info': _errorMessage}});
       }
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (widget.fetchOnInit) {
+      _load();
     }
   }
 
