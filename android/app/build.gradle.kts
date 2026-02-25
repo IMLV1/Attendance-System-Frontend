@@ -52,7 +52,6 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
         }
-        // debug ใช้ debug keystore อัตโนมัติ
     }
 }
 
