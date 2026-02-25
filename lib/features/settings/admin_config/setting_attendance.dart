@@ -175,7 +175,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                               onChanged: (leftIndex, rightIndex) {
                                                 setState(() {
                                                   data = data!.copyWith(cutoffTime: TimeOfDay(
-                                                      hour: leftIndex,
+                                                      hour: leftIndex ?? 0,
                                                       minute: rightIndex ?? 0
                                                   ));
                                                 });
@@ -227,7 +227,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                               onChanged: (leftIndex, rightIndex) {
                                                 setState(() {
                                                   data = data!.copyWith(checkInTime: TimeOfDay(
-                                                      hour: leftIndex,
+                                                      hour: leftIndex ?? 0,
                                                       minute: rightIndex ?? 0
                                                   ));
                                                 });
@@ -274,7 +274,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                               onChanged: (leftIndex, rightIndex) {
                                                 setState(() {
                                                   data = data!.copyWith(checkOutTime: TimeOfDay(
-                                                      hour: leftIndex,
+                                                      hour: leftIndex ?? 0,
                                                       minute: rightIndex ?? 0
                                                   ));
                                                 });
@@ -336,7 +336,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                               onChanged: (leftIndex, rightIndex) {
                                                 setState(() {
                                                   data = data!.copyWith(checkInLeaveTime: TimeOfDay(
-                                                      hour: leftIndex,
+                                                      hour: leftIndex ?? 0,
                                                       minute: rightIndex ?? 0
                                                   ));
                                                 });
@@ -383,8 +383,8 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                               onChanged: (leftIndex, rightIndex) {
                                                 setState(() {
                                                   data = data!.copyWith(checkOutLeaveTime: TimeOfDay(
-                                                      hour: leftIndex,
-                                                      minute: rightIndex ?? 0
+                                                    hour: leftIndex ?? 0,
+                                                    minute: rightIndex ?? 0
                                                   ));
                                                 });
                                               },
