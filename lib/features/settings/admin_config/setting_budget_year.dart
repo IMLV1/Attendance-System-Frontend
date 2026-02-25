@@ -147,10 +147,12 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                                           child: WheelSelector(
                                             leftItems: months,
                                             rightItems: dayItems,
+                                            refreshRight: true,
                                             // ✅ ส่งตัวแปรเดิมเข้าไป
                                             initialLeftIndex: selectedMonthIndex,
                                             initialRightIndex: selectedDayIndex,
                                             onChanged: (leftIndex, rightIndex) {
+
                                               setState(() {
                                                 // 4. เช็คว่าเดือนเปลี่ยนหรือไม่?
                                                 if (selectedMonthIndex != leftIndex) {

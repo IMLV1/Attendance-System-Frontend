@@ -14,6 +14,8 @@ class WheelSelector extends StatefulWidget {
   final double spacing;
   final bool looping;
 
+  final bool refreshRight;
+
   final void Function(int leftIndex, int? rightIndex) onChanged;
 
   const WheelSelector({
@@ -27,7 +29,8 @@ class WheelSelector extends StatefulWidget {
     this.leftWidth = 110,
     this.rightWidth = 110,
     this.spacing = 6,
-    this.looping = true
+    this.looping = true,
+    this.refreshRight = false,
   });
 
   @override
@@ -42,6 +45,35 @@ class _WheelSelectorState extends State<WheelSelector> {
   FixedExtentScrollController? _rightController;
 
   static const double _itemExtent = 40;
+
+  @override
+  void didUpdateWidget(covariant WheelSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.refreshRight) {
+      if (widget.initialLeftIndex != _leftIndex) {
+        _leftIndex = widget.initialLeftIndex;
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _leftController.jumpToItem(_leftIndex);
+          }
+        });
+      }
+
+      if (widget.rightItems != null &&
+          widget.initialRightIndex != _rightIndex) {
+        _rightIndex = widget.initialRightIndex;
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _rightController?.jumpToItem(_rightIndex ?? 0);
+          }
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();

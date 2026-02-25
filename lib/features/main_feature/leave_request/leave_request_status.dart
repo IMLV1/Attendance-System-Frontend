@@ -5,8 +5,9 @@ import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/date_filter_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
-import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,74 +16,85 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 Future<Response> mockData() async {
-  await Future.delayed(const Duration(milliseconds: 200));
+  await Future.delayed(const Duration(milliseconds: 1000));
 
   return Response(
-      requestOptions: RequestOptions(path: '/mock/data'),
-      statusCode: 200,
-      data: {
-        'pending': [
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z'
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z'
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z'
-          },
-        ]
-      }
+    requestOptions: RequestOptions(path: '/mock/data'),
+    statusCode: 200,
+    data: {
+      'pending': [
+        {
+          'id': 'LEV000000065013',
+          'leave-type': 'sick',
+          'date-start': '2026-02-18T18:00:45.621Z'
+        },
+        {
+          'id': 'LEV000000065013',
+          'leave-type': 'sick',
+          'date-start': '2026-02-18T18:00:45.621Z'
+        },
+        {
+          'id': 'LEV000000065013',
+          'leave-type': 'sick',
+          'date-start': '2026-02-18T18:00:45.621Z'
+        },
+      ]
+    }
   );
 }
 
 Future<Response> mockData2() async {
+  await Future.delayed(const Duration(milliseconds: 10000));
+
+  return Response(
+    requestOptions: RequestOptions(path: '/mock/data'),
+    statusCode: 200,
+    data: {
+      'recent': [
+        {
+          'id': 'LEV000000065013',
+          'leave-type': 'sick',
+          'date-start': '2026-02-18T18:00:45.621Z',
+          'approved': true
+        },
+        {
+          'id': 'LEV000000065013',
+          'leave-type': 'sick',
+          'date-start': '2026-02-18T18:00:45.621Z',
+          'approved': false
+        },
+        {
+          'id': 'LEV000000065013',
+          'leave-type': 'sick',
+          'date-start': '2026-02-18T18:00:45.621Z',
+          'approved': true
+        },
+        {
+          'id': 'LEV000000065013',
+          'leave-type': 'sick',
+          'date-start': '2026-02-18T18:00:45.621Z',
+          'approved': true
+        },
+      ]
+    }
+  );
+}
+
+Future<Response> mockData3() async {
   await Future.delayed(const Duration(milliseconds: 200));
 
   return Response(
       requestOptions: RequestOptions(path: '/mock/data'),
       statusCode: 200,
       data: {
-        'recent': [
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z',
-            'approved': true
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z',
-            'approved': false
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z',
-            'approved': true
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z',
-            'approved': true
-          },
-        ]
+        'start': '2025-04-01T00:00:00.000Z',
+        'end': '2027-06-30T00:00:00.000Z'
       }
   );
 }
 
 class LeaveRequestStatus extends StatefulWidget {
-
   const LeaveRequestStatus({super.key});
-
   @override
   State<LeaveRequestStatus> createState() => _LeaveRequestPage();
 }
@@ -100,6 +112,9 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
 
   List<PendingLeaveRequestModel> pendingLeaves = [];
   List<LeaveRequestModel> recentLeaves = [];
+
+  DateTime? filterStart;
+  DateTime? filterEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -148,113 +163,150 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                             )
                           ],
                         ),
-                        ServiceLoader(
-                          request: () => mockData(),
-                          onSuccess: (jsonData) {
-                            setState(() {
-                              pendingLeaves = PendingLeaveRequestModel.getList(jsonData['pending']);
-                            });
-                          },
-                          builder: () => Container(
-                              padding: EdgeInsetsGeometry.all(10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(22),
-                                color: Color(0xFFE9E9E9),
-                              ),
-                              child: Column(
-                                spacing: 6,
+
+                        ServiceUpdaterProMax(
+                            requests: () => [
+                              mockData(),
+                              mockData2(),
+                              mockData3(),
+                            ],
+                            onSuccess: (index, data) => {
+                              setState(() {
+                                switch (index) {
+                                  case 0: pendingLeaves = PendingLeaveRequestModel.getList(data['pending']);
+                                  case 1: recentLeaves = LeaveRequestModel.getList(data['recent']);
+                                  case 2: {
+                                    filterStart = DateTime.tryParse(data['start']);
+                                    filterEnd = DateTime.tryParse(data['end']);
+
+                                    print('${data['start']}, ${data['end']}');
+                                  }
+                                }
+                              })
+                            },
+                            fetchOnInit: true,
+                            builder: (trigger, getState) {
+                              return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ? Center(child: CupertinoActivityIndicator()) :
+                              Column(
+                                spacing: 13,
                                 children: [
-                                  Row(
+                                  Container(
+                                      padding: EdgeInsetsGeometry.all(10),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(22),
+                                        color: Color(0xFFE9E9E9),
+                                      ),
+                                      child: Column(
+                                        spacing: 6,
+                                        children: [
+                                          Row(
+                                            spacing: 6,
+                                            children: [
+                                              SizedBox(
+                                                width: 15,
+                                                height: 15,
+                                                child: SvgPicture.asset(
+                                                  'assets/images/icon_pending.svg',
+                                                  colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                                                  width: 10,
+                                                ),
+                                              ),
+                                              Text('รอดำเนินการ'),
+                                              if (getState(0) == ServiceUpdaterProMaxState.loading)
+                                                CupertinoActivityIndicator(radius: 7)
+                                            ],
+                                          ),
+                                          (pendingLeaves.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading) ? Padding(
+                                            padding: EdgeInsetsGeometry.all(20),
+                                            child: Text(
+                                              'ไม่มีคำขอที่รอดำเนินการ',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Color(0xFF7D7D7D), // สีจาง
+                                              ),
+                                            ),
+                                          ) :
+                                          SeparatorCard(
+                                            separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                                            children: [
+                                              ...pendingLeaves!.map((m) {
+                                                return AppButton(
+                                                  icon: 'icon_pending.svg',
+                                                  iconColor: Color(0xFFE79E00),
+                                                  title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
+                                                  subTitle: 'หมายเลขคำขอ: ${m.id}',
+                                                  weightTitle: FontWeight.w500,
+                                                );
+                                              })
+                                            ],
+                                          )
+                                        ],
+                                      )
+                                  ),
+                                  Column(
                                     spacing: 6,
                                     children: [
-                                      SizedBox(
-                                        width: 15,
-                                        height: 15,
-                                        child: SvgPicture.asset(
-                                          'assets/images/icon_pending.svg',
-                                          colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
-                                          width: 10,
-                                        ),
+                                      Row(
+                                        spacing: 6,
+                                        children: [
+                                          SizedBox(
+                                            width: 15,
+                                            height: 15,
+                                            child: SvgPicture.asset(
+                                                'assets/images/icon_recent.svg'
+                                            ),
+                                          ),
+                                          Text('รายการล่าสุด'),
+                                          if (getState(1) == ServiceUpdaterProMaxState.loading)
+                                            CupertinoActivityIndicator(radius: 7),
+                                          Spacer(),
+                                          InkWell(
+                                            onTap: () {
+                                              DateFilterPopup(
+                                                maxHeight: 750,
+                                                allowDateFrom: filterStart,
+                                                allowDateTo: filterEnd,
+                                              ).showPopup(context);
+                                            },
+                                            child: Row(
+                                              spacing: 6,
+                                              children: [
+                                                Text(
+                                                    'ตัวกรอง',
+                                                    style: TextStyle(
+                                                        color: Color(0xFF2C2C2C)
+                                                    )
+                                                ),
+                                                SvgPicture.asset(
+                                                  'assets/images/filter.svg',
+                                                  colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
+                                                )
+                                              ],
+                                            ),
+                                          )
+
+                                        ],
                                       ),
-                                      Text('รอดำเนินการ')
-                                    ],
-                                  ),
-                                  SeparatorCard(
-                                    separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                                    children: [
-                                      ...pendingLeaves!.map((m) {
-                                        return AppButton(
-                                          icon: 'icon_pending.svg',
-                                          iconColor: Color(0xFFE79E00),
-                                          title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
-                                          subTitle: 'หมายเลขคำขอ: ${m.id}',
-                                          weightTitle: FontWeight.w500,
-                                        );
-                                      })
+                                      SeparatorCard(
+                                        separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                                        children: [
+                                          ...recentLeaves!.map((m) {
+                                            return AppButton(
+                                              icon: m.approve ? 'icon_success.svg' : 'icon_cancel.svg',
+                                              iconColor: m.approve ? Color(0xFF30D143) : Color(0xFFE7000B),
+                                              title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
+                                              subTitle: 'หมายเลขคำขอ: ${m.id}',
+                                              weightTitle: FontWeight.w500,
+                                            );
+                                          })
+                                        ],
+                                      )
                                     ],
                                   )
                                 ],
-                              )
-                          ),
-                        ),
-                        Column(
-                          spacing: 6,
-                          children: [
-                            Row(
-                              spacing: 6,
-                              children: [
-                                SizedBox(
-                                  width: 15,
-                                  height: 15,
-                                  child: SvgPicture.asset(
-                                      'assets/images/icon_recent.svg'
-                                  ),
-                                ),
-                                Text('รายการล่าสุด'),
-                                Spacer(),
-                                InkWell(
-                                  child: Row(
-                                    spacing: 6,
-                                    children: [
-                                      Text(
-                                        'ตัวกรอง',
-                                        style: TextStyle(
-                                          color: Color(0xFF2C2C2C)
-                                        )
-                                      ),
-                                      SvgPicture.asset(
-                                        'assets/images/filter.svg',
-                                        colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
-                                      )
-                                    ],
-                                  ),
-                                )
-
-                              ],
-                            ),
-                            ServiceLoader(
-                                request: () => mockData2(),
-                                onSuccess: (jsonData) {
-                                  setState(() {
-                                    recentLeaves = LeaveRequestModel.getList(jsonData['recent']);
-                                  });
-                                },
-                                builder: () => SeparatorCard(
-                                  separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                                  children: [
-                                    ...recentLeaves!.map((m) {
-                                      return AppButton(
-                                        icon: m.approve ? 'icon_success.svg' : 'icon_cancel.svg',
-                                        iconColor: m.approve ? Color(0xFF30D143) : Color(0xFFE7000B),
-                                        title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
-                                        subTitle: 'หมายเลขคำขอ: ${m.id}',
-                                        weightTitle: FontWeight.w500,
-                                      );
-                                    })
-                                  ],
-                                )
-                            )
-                          ],
+                              );
+                            }
                         )
                       ],
                     )

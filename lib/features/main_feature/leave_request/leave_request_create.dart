@@ -131,6 +131,10 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                   setState(() {
                                                                     this.leaveType = leaveType;
                                                                     this.setting = setting;
+
+                                                                    leaveDate = null;
+                                                                    _textEditingController.text = '';
+                                                                    allFiles.clear();
                                                                   });
                                                                 }
                                                               },
@@ -680,7 +684,8 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                 )
                                               ],
                                             ),
-                                            request: (pngByte) => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles),
+                                            required: true,
+                                            request: (pngByte) => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles, pngByte!),
                                           ).showPopup(context);
 
                                           // trigger();

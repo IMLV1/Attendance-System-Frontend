@@ -10,7 +10,7 @@ class SignatureService {
 
   Future<Response<dynamic>> get() async {
     return dio.get(
-      '/user/signature',
+      '/api/signature/get',
       options: Options(responseType: ResponseType.bytes),
     );
   }
@@ -27,13 +27,13 @@ class SignatureService {
       ),
     });
 
-    return dio.post(
-      '/user/signature/update',
+    return dio.put(
+      '/api/signature/update',
       data: formData
     );
   }
 
   Future<Response<dynamic>> clear() async {
-    return dio.delete('/user/signature/clear');
+    return dio.delete('/api/signature/clear');
   }
 }

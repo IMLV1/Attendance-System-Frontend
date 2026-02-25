@@ -260,7 +260,7 @@ class _DateSelectState extends State<DateSelect> {
             },
             locale: 'th_TH',
             firstDay: DateTime(DateTime.now().year - 100 ,1 ,1),
-            lastDay: DateTime(DateTime.now().year + 100 ,31 ,12),
+            lastDay: DateTime(DateTime.now().year + 100 ,12 ,31),
             focusedDay: _focusedDay,
             rangeStartDay: _rangeStart,
             rangeEndDay: _rangeEnd,
