@@ -86,9 +86,12 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                         ),
                         ServiceUpdaterProMax(
                           requests: () => [
-                            TimeRequestService().getTimeRequestPending(),
-                            TimeRequestService().getTimeRequestRecent(filterStart, filterEnd),
-                            TimeRequestService().getTimeRequestFilterRange(),
+                            // TimeRequestService().getTimeRequestPending(),
+                            // TimeRequestService().getTimeRequestRecent(filterStart, filterEnd),
+                            // TimeRequestService().getTimeRequestFilterRange(),
+                            mockData1(),
+                            mockData2(),
+                            mockData3(),
                           ],
                           onSuccess: (idx, val) {
                             setState(() {
@@ -296,6 +299,126 @@ Future<Response> mockData2() async {
             'date-end': '2026-02-18T18:00:45.621Z',
             'approved': true
           },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': false
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': false
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': false
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': false
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': false
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
+          },
         ]
       }
   );
@@ -309,6 +432,71 @@ Future<Response> mockData1() async {
       statusCode: 200,
       data: {
         'pending': [
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
           {
             'id': 'REQ000000065013',
             'date-start': '2026-02-18T18:00:45.621Z',
