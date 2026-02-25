@@ -23,7 +23,7 @@ Future<Response> mockAttendance() async {
     statusCode: 200,
     data: {
       'approver': 'ด้วยดี ตามไท',
-      'status': 'approved', // rejected, pending
+      'status': 'pending', // rejected, pending
       'remark-approver': 'ดีมาก',
       'time-approver': '2026-02-01T08:00:00.000Z',
       'role-approver-name': 'คณบดี',
@@ -62,7 +62,7 @@ class TimeRequestPopupDetail extends StatefulWidget {
 
 class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
 
-  ApproverDetailModel? data;
+  // ApproverDetailModel? data;
   bool onSelect = false;
   
   @override
@@ -70,15 +70,16 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
     return ServiceLoader(
         request: () {
           return mockAttendance();
+          // return TimeRequestService().getAttendanceDetail(widget.model.id);
         },
         onSuccess: (val) {
           setState(() {
-            data = ApproverDetailModel.fromJson(val);
+            // data = ApproverDetailModel.fromJson(val);
           });
         },
         builder: () {
 
-          final status = data?.status ?? AttendanceRequestStatus.pending;
+          // final status = data?.status ?? AttendanceRequestStatus.pending;
 
           return Column(
             spacing: 13,
@@ -102,31 +103,18 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                 children: [
                   Column(
                     children: [
-                      AppButton(
-                        icon: status.icon,
-
-                        title: switch (status) {
-                          AttendanceRequestStatus.approved => 'อนุมัติแล้ว',
-                          AttendanceRequestStatus.rejected => 'ไม่อนุมัติ',
-                          AttendanceRequestStatus.pending => 'รออนุมัติ',
-                        },
-                        iconColor: status.color,
-                        weightTitle: FontWeight.w500,
-                        subTitle: status == AttendanceRequestStatus.pending
-                            ? 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.roleApproverName ?? '-'}'
-                            : 'ผู้อนุมัติ: ${data?.approver ?? '-'}',
-                        arrow: !(status == AttendanceRequestStatus.pending),
-                        timeStamp: data?.timeApprover != null
-                            ? formatDateTime(data!.timeApprover!)
-                            : null,
-                        onPressed: () {
-                          setState(() {
-                            onSelect = (!onSelect) ? true : false;
-                          });
-                        },
-                      ),
+                      // AppButton(
+                      //   icon: 'asd',
+                      //
+                      //
+                      //   onPressed: () {
+                      //     setState(() {
+                      //       onSelect = (!onSelect) ? true : false;
+                      //     });
+                      //   }, title: 'sad',
+                      // ),
                       AnimatedSizeWidget(
-                        enable: onSelect && !(status == AttendanceRequestStatus.pending),
+                        enable: onSelect,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 6,
@@ -147,13 +135,13 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                       color: AppColors.lightTextColor,
                                     ),
                                   ),
-                                  Text(
-                                    data?.remarkApprover ?? '-',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                    ),
-                                    softWrap: true,
-                                  ),
+                                  // Text(
+                                  //   data?.remarkApprover ?? '-',
+                                  //   style: TextStyle(
+                                  //     fontSize: 12,
+                                  //   ),
+                                  //   softWrap: true,
+                                  // ),
                                   SizedBox(height: 10)
                                 ],
                               )
@@ -228,13 +216,13 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                                             color: Color(0xFF626262)
                                                         )
                                                     ),
-                                                    Text(
-                                                        _formatDate(widget.model.fromDate),
-                                                        style: TextStyle(
-                                                          fontSize: 13,
-                                                          color: Colors.black
-                                                        )
-                                                    ),
+                                                    // Text(
+                                                    //     _formatDate(widget.model.fromDate),
+                                                    //     style: TextStyle(
+                                                    //       fontSize: 13,
+                                                    //       color: Colors.black
+                                                    //     )
+                                                    // ),
                                                   ],
                                                 ),
                                               ],
@@ -279,13 +267,13 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                                             color: Color(0xFF626262)
                                                         )
                                                     ),
-                                                    Text(
-                                                        _formatDate(widget.model.toDate),
-                                                        style: TextStyle(
-                                                            fontSize: 13,
-                                                            color: Colors.black
-                                                        )
-                                                    ),
+                                                    // Text(
+                                                    //     _formatDate(widget.model.toDate),
+                                                    //     style: TextStyle(
+                                                    //         fontSize: 13,
+                                                    //         color: Colors.black
+                                                    //     )
+                                                    // ),
                                                   ],
                                                 ),
                                               ],
@@ -333,13 +321,13 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                                               color: Color(0xFF626262)
                                                           )
                                                       ),
-                                                      Text(
-                                                          _formatTime(widget.model.startTime),
-                                                          style: TextStyle(
-                                                            fontSize: 13,
-                                                            color: Colors.black
-                                                          )
-                                                      ),
+                                                      // Text(
+                                                      //     _formatTime(widget.model.startTime),
+                                                      //     style: TextStyle(
+                                                      //       fontSize: 13,
+                                                      //       color: Colors.black
+                                                      //     )
+                                                      // ),
                                                     ],
                                                   ),
                                                 ],
@@ -382,13 +370,13 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                                               color: Color(0xFF626262)
                                                           )
                                                       ),
-                                                      Text(
-                                                          _formatTime(widget.model.endTime),
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black
-                                                          )
-                                                      ),
+                                                      // Text(
+                                                      //     _formatTime(widget.model.endTime),
+                                                      //     style: TextStyle(
+                                                      //         fontSize: 13,
+                                                      //         color: Colors.black
+                                                      //     )
+                                                      // ),
                                                     ],
                                                   ),
                                                 ],
@@ -415,14 +403,14 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                               color: AppColors.lightTextColor,
                             ),
                           ),
-                          Text(
-                            data?.remarkRequester ?? '-',
-                            style: TextStyle(
-                              fontSize: 12,
-                            ),
-                            softWrap: true,
-                          ),
-                          SizedBox(height: 10)
+                          // Text(
+                          //   data?.remarkRequester ?? '-',
+                          //   style: TextStyle(
+                          //     fontSize: 12,
+                          //   ),
+                          //   softWrap: true,
+                          // ),
+                          // SizedBox(height: 10)
                         ],
                       ),
                     )

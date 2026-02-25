@@ -11,11 +11,14 @@ import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../services/time_request/time_request_model.dart';
+import '../../../shared/widgets/utils/popup/date_filter_popup.dart';
+import '../../../shared/widgets/utils/services/service_updater_promax.dart';
 
 class TimeRequestPage extends StatefulWidget{
   const TimeRequestPage({super.key});
@@ -27,9 +30,11 @@ class TimeRequestPage extends StatefulWidget{
 }
 
 class _TimeRequestPageState extends State<TimeRequestPage> {
-  List<AttendanceRequestModel> pendingList = [];
-  List<AttendanceRequestModel> completedList = [];
+  List<AttendanceRequestModel> recentList = [];
+  List<PendingAttendanceRequestModel> pendingList = [];
 
+  DateTime? filterStart;
+  DateTime? filterEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +75,7 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                               arrow: false,
                               onPressed: () async {
                                 final res = await context.pushNamed(RouteNames.timeRequestCreate);
-                                if (res != null && res is AttendanceRequestModel) {
+                                if (res != null && res is PendingAttendanceRequestModel) {
                                   setState(() {
                                     pendingList.insert(0, res);
                                   });
@@ -79,78 +84,84 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                             )
                           ],
                         ),
-                        ServiceLoader(
-                          request: () {
-                            // return TimeRequestService().getAttendanceRequest();
-                            return mockAttendanceRequest();
-                          },
-                          onSuccess: (val) {
-                            final all = (val["requests"] as List).map((e) => AttendanceRequestModel.fromJson(e)).toList();
+                        ServiceUpdaterProMax(
+                          requests: () => [
+                            TimeRequestService().getTimeRequestPending(),
+                            TimeRequestService().getTimeRequestRecent(filterStart, filterEnd),
+                            TimeRequestService().getTimeRequestFilterRange(),
+                          ],
+                          onSuccess: (idx, val) {
                             setState(() {
-                              completedList = all.where((e) => e.status.isCompleted).toList()..sort((a, b) => b.fromDate.compareTo(a.fromDate)); // ใหม่ก่อน
-                              pendingList = all.where((e) => e.status.isPending).toList()..sort((a, b) => a.fromDate.compareTo(b.fromDate)); // เก่าก่อน
+                              switch (idx) {
+                                case 0: pendingList = PendingAttendanceRequestModel.getList(val['pending']);
+                                case 1: recentList = AttendanceRequestModel.getList(val['recent']);
+                                case 2: {
+                                  filterStart = DateTime.tryParse(val['start']);
+                                  filterEnd = DateTime.tryParse(val['end']);
+                                }
+                              }
                             });
                           },
-                          builder: () {
-                            return Column(
-                              spacing: 13,
-                              children: [
-                                if (pendingList.isNotEmpty) ...[
-                                  Column(
-                                    spacing: 6,
-                                    children: [
-                                      Container(
-                                          padding: EdgeInsetsGeometry.only(
-                                              left: 10,
-                                              right: 10,
-                                              top: 10,
-                                              bottom: 10
-                                          ),
-                                          decoration: BoxDecoration(
-                                              color: Color(0xFFEAEAEA),
-                                              borderRadius: BorderRadius.circular(22)
-                                          ),
-                                          child: Column(
+                            fetchOnInit: true,
+                            builder: (trigger, getState) {
+                              return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ? Center(child: CupertinoActivityIndicator()) :
+                              Column(
+                                spacing: 13,
+                                children: [
+                                  Container(
+                                      padding: EdgeInsetsGeometry.all(10),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(22),
+                                        color: Color(0xFFE9E9E9),
+                                      ),
+                                      child: Column(
+                                        spacing: 6,
+                                        children: [
+                                          Row(
                                             spacing: 6,
                                             children: [
-                                              Row(
-                                                spacing: 6,
-                                                children: [
-                                                  SizedBox(
-                                                    width: 15,
-                                                    height: 15,
-                                                    child: SvgPicture.asset(
-                                                      'assets/images/icon_pending.svg',
-                                                      colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
-                                                      width: 10,
-                                                    ),
-                                                  ),
-                                                  Text('รอการอนุมัติ')
-                                                ],
+                                              SizedBox(
+                                                width: 15,
+                                                height: 15,
+                                                child: SvgPicture.asset(
+                                                  'assets/images/icon_pending.svg',
+                                                  colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                                                  width: 10,
+                                                ),
                                               ),
-                                              SeparatorCard(
-                                                borderRadius: BorderRadius.circular(22),
-                                                separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                                                children: [
-                                                  ...pendingList.map((e) {
-                                                    return AppButton(
-                                                      icon: e.status.icon,
-                                                      title: formatRange(e.fromDate.toLocal(), e.toDate.toLocal()),
-                                                      weightTitle: FontWeight.w500,
-                                                      iconColor: e.status.color,
-                                                      subTitle: 'หมายเลขคำขอ: ${e.id}',
-                                                    );
-                                                  })
-                                                ],
-                                              )
+                                              Text('รอดำเนินการ'),
+                                              if (getState(0) == ServiceUpdaterProMaxState.loading)
+                                                CupertinoActivityIndicator(radius: 7)
+                                            ],
+                                          ),
+                                          (pendingList.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading) ? Padding(
+                                            padding: EdgeInsetsGeometry.all(20),
+                                            child: Text(
+                                              'ไม่มีคำขอที่รอดำเนินการ',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Color(0xFF7D7D7D), // สีจาง
+                                              ),
+                                            ),
+                                          ) :
+                                          SeparatorCard(
+                                            separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                                            children: [
+                                              ...pendingList!.map((m) {
+                                                return AppButton(
+                                                  icon: 'icon_pending.svg',
+                                                  iconColor: Color(0xFFE79E00),
+                                                  title: formatRange(m.dateStart, m.dateEnd),
+                                                  subTitle: 'หมายเลขคำขอ: ${m.id}',
+                                                  weightTitle: FontWeight.w500,
+                                                );
+                                              })
                                             ],
                                           )
-                                      ),
-                                    ],
+                                        ],
+                                      )
                                   ),
-                                ],
-
-                                if (completedList.isNotEmpty) ...[
                                   Column(
                                     spacing: 6,
                                     children: [
@@ -165,8 +176,17 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                             ),
                                           ),
                                           Text('รายการล่าสุด'),
+                                          if (getState(1) == ServiceUpdaterProMaxState.loading)
+                                            CupertinoActivityIndicator(radius: 7),
                                           Spacer(),
                                           InkWell(
+                                            onTap: () {
+                                              DateFilterPopup(
+                                                maxHeight: 750,
+                                                allowDateFrom: filterStart,
+                                                allowDateTo: filterEnd,
+                                              ).showPopup(context);
+                                            },
                                             child: Row(
                                               spacing: 6,
                                               children: [
@@ -183,39 +203,28 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                               ],
                                             ),
                                           )
+
                                         ],
                                       ),
                                       SeparatorCard(
-                                        borderRadius: BorderRadius.circular(22),
                                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                                         children: [
-                                          ...completedList.map((e) {
+                                          ...recentList!.map((m) {
                                             return AppButton(
-                                              icon: e.status.icon,
-                                              title: formatRange(e.fromDate.toLocal(), e.toDate.toLocal()),
+                                              icon: m.approved ? 'icon_success.svg' : 'icon_cancel.svg',
+                                              iconColor: m.approved ? Color(0xFF30D143) : Color(0xFFE7000B),
+                                              title: formatRange(m.dateStart, m.dateEnd),
+                                              subTitle: 'หมายเลขคำขอ: ${m.id}',
                                               weightTitle: FontWeight.w500,
-                                              iconColor: e.status.color,
-                                              subTitle: 'หมายเลขคำขอ: ${e.id}',
-                                              onPressed: () async {
-                                                PushPopup(
-                                                  title: 'เลือกวันที่',
-                                                  fit: FlexFit.tight,
-                                                  scroll: true,
-                                                  builder: (context) {
-                                                    return TimeRequestPopupDetail(model: e);
-                                                  }
-                                                ).showPopup(context);
-                                              },
                                             );
                                           })
                                         ],
                                       )
                                     ],
                                   )
-                                ]
-                              ],
-                            );
-                          }
+                                ],
+                              );
+                            }
                         )
                       ],
                     )
@@ -242,268 +251,80 @@ String formatRange(DateTime from, DateTime to) {
   return "$fromDay/$fromMonth/$fromYear - ""$toDay/$toMonth/$toYear";
 }
 
-Future<Response> mockAttendanceRequest() async {
-
-  await Future.delayed(
-    const Duration(milliseconds: 200),
-  );
+Future<Response> mockData3() async {
+  await Future.delayed(const Duration(milliseconds: 200));
 
   return Response(
+      requestOptions: RequestOptions(path: '/api/attendance_request/filter_range'),
+      statusCode: 200,
+      data: {
+        'start': '2025-04-01T00:00:00.000Z',
+        'end': '2027-06-30T00:00:00.000Z'
+      }
+  );
+}
 
-    requestOptions: RequestOptions(
-      path: '/api/attendance_request/get',
-    ),
+Future<Response> mockData2() async {
+  await Future.delayed(const Duration(milliseconds: 10000));
 
-    statusCode: 200,
-
-    data: {
-
-        "requests": [
-
+  return Response(
+      requestOptions: RequestOptions(path: '/api/attendance_request/recent'),
+      statusCode: 200,
+      data: {
+        'recent': [
           {
-            "id": "PEN0001",
-            "status": "pending",
-            "fromDate": "2026-02-01T08:00:00.000Z",
-            "toDate": "2026-02-01T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
           },
           {
-            "id": "PEN0002",
-            "status": "pending",
-            "fromDate": "2026-02-02T08:00:00.000Z",
-            "toDate": "2026-02-02T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': false
           },
           {
-            "id": "PEN0003",
-            "status": "pending",
-            "fromDate": "2026-02-03T08:00:00.000Z",
-            "toDate": "2026-02-03T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
           },
           {
-            "id": "PEN0004",
-            "status": "pending",
-            "fromDate": "2026-02-04T08:00:00.000Z",
-            "toDate": "2026-02-04T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+            'approved': true
           },
-          {
-            "id": "PEN0005",
-            "status": "pending",
-            "fromDate": "2026-02-05T08:00:00.000Z",
-            "toDate": "2026-02-05T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
-          },
-          {
-            "id": "PEN0006",
-            "status": "pending",
-            "fromDate": "2026-02-06T08:00:00.000Z",
-            "toDate": "2026-02-06T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
-          },
-          {
-            "id": "PEN0007",
-            "status": "pending",
-            "fromDate": "2026-02-07T08:00:00.000Z",
-            "toDate": "2026-02-07T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
-          },
-          {
-            "id": "PEN0008",
-            "status": "pending",
-            "fromDate": "2026-02-08T08:00:00.000Z",
-            "toDate": "2026-02-08T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
-          },
-          {
-            "id": "PEN0009",
-            "status": "pending",
-            "fromDate": "2026-02-09T08:00:00.000Z",
-            "toDate": "2026-02-09T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
-          },
-          {
-            "id": "PEN0010",
-            "status": "pending",
-            "fromDate": "2026-02-10T08:00:00.000Z",
-            "toDate": "2026-02-10T17:00:00.000Z",
-            "startTime": "08:00",
-            "endTime": "17:00"
-          },
-
-          {
-            "id": "APP0001",
-            "status": "approved",
-            "fromDate": "2026-01-01T09:00:00.000Z",
-            "toDate": "2026-01-01T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0002",
-            "status": "approved",
-            "fromDate": "2026-01-02T09:00:00.000Z",
-            "toDate": "2026-01-02T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0003",
-            "status": "approved",
-            "fromDate": "2026-01-03T09:00:00.000Z",
-            "toDate": "2026-01-03T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0004",
-            "status": "approved",
-            "fromDate": "2026-01-04T09:00:00.000Z",
-            "toDate": "2026-01-04T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0005",
-            "status": "approved",
-            "fromDate": "2026-01-05T09:00:00.000Z",
-            "toDate": "2026-01-05T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0006",
-            "status": "approved",
-            "fromDate": "2026-01-06T09:00:00.000Z",
-            "toDate": "2026-01-06T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0007",
-            "status": "approved",
-            "fromDate": "2026-01-07T09:00:00.000Z",
-            "toDate": "2026-01-07T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0008",
-            "status": "approved",
-            "fromDate": "2026-01-08T09:00:00.000Z",
-            "toDate": "2026-01-08T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0009",
-            "status": "approved",
-            "fromDate": "2026-01-09T09:00:00.000Z",
-            "toDate": "2026-01-09T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-          {
-            "id": "APP0010",
-            "status": "approved",
-            "fromDate": "2026-01-10T09:00:00.000Z",
-            "toDate": "2026-01-10T18:00:00.000Z",
-            "startTime": "09:00",
-            "endTime": "18:00"
-          },
-
-          {
-            "id": "REJ0001",
-            "status": "rejected",
-            "fromDate": "2025-12-01T08:30:00.000Z",
-            "toDate": "2025-12-01T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0002",
-            "status": "rejected",
-            "fromDate": "2025-12-02T08:30:00.000Z",
-            "toDate": "2025-12-02T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0003",
-            "status": "rejected",
-            "fromDate": "2025-12-03T08:30:00.000Z",
-            "toDate": "2025-12-03T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0004",
-            "status": "rejected",
-            "fromDate": "2025-12-04T08:30:00.000Z",
-            "toDate": "2025-12-04T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0005",
-            "status": "rejected",
-            "fromDate": "2025-12-05T08:30:00.000Z",
-            "toDate": "2025-12-05T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0006",
-            "status": "rejected",
-            "fromDate": "2025-12-06T08:30:00.000Z",
-            "toDate": "2025-12-06T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0007",
-            "status": "rejected",
-            "fromDate": "2025-12-07T08:30:00.000Z",
-            "toDate": "2025-12-07T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0008",
-            "status": "rejected",
-            "fromDate": "2025-12-08T08:30:00.000Z",
-            "toDate": "2025-12-08T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0009",
-            "status": "rejected",
-            "fromDate": "2025-12-09T08:30:00.000Z",
-            "toDate": "2025-12-09T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          },
-          {
-            "id": "REJ0010",
-            "status": "rejected",
-            "fromDate": "2025-12-10T08:30:00.000Z",
-            "toDate": "2025-12-10T17:30:00.000Z",
-            "startTime": "08:30",
-            "endTime": "17:30"
-          }
-
         ]
-    },
+      }
+  );
+}
+
+Future<Response> mockData1() async {
+  await Future.delayed(const Duration(milliseconds: 1000));
+
+  return Response(
+      requestOptions: RequestOptions(path: '/api/attendance_request/pending'),
+      statusCode: 200,
+      data: {
+        'pending': [
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+          {
+            'id': 'REQ000000065013',
+            'date-start': '2026-02-18T18:00:45.621Z',
+            'date-end': '2026-02-18T18:00:45.621Z',
+          },
+        ]
+      }
   );
 }

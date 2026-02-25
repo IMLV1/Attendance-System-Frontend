@@ -51,171 +51,57 @@ class TimeRequestModel {
   }
 }
 
-enum AttendanceRequestStatus { pending, approved, rejected }
-
-extension AttendanceRequestStatusX on AttendanceRequestStatus {
-
-  String get state => name;
-
-  static AttendanceRequestStatus fromState(String? value) {
-    if (value == null) {
-      return AttendanceRequestStatus.pending;
-    }
-
-    return AttendanceRequestStatus.values.firstWhere(
-          (e) => e.name == value,
-      orElse: () => AttendanceRequestStatus.pending,
-    );
-  }
-
-  bool get isPending {
-    return this == AttendanceRequestStatus.pending;
-  }
-
-  bool get isCompleted {
-    return this == AttendanceRequestStatus.approved ||
-        this == AttendanceRequestStatus.rejected;
-  }
-
-  String get icon {
-    switch (this) {
-      case AttendanceRequestStatus.approved:
-        return 'icon_success.svg';
-
-      case AttendanceRequestStatus.rejected:
-        return 'icon_cancel.svg';
-
-      case AttendanceRequestStatus.pending:
-        return 'icon_pending.svg';
-    }
-  }
-
-  Color get color {
-    switch (this) {
-      case AttendanceRequestStatus.pending:
-        return const Color(0xFFE79E00);
-
-      case AttendanceRequestStatus.approved:
-        return const Color(0xFF30D143);
-
-      case AttendanceRequestStatus.rejected:
-        return const Color(0xFFE7000B);
-    }
-  }
-}
-
 class AttendanceRequestModel {
-
-  final DateTime fromDate;
-  final DateTime toDate;
-
-  final TimeOfDay startTime;
-  final TimeOfDay endTime;
-
   final String id;
-
-  final AttendanceRequestStatus status;
+  final DateTime dateStart;
+  final DateTime dateEnd;
+  final bool approved;
 
   const AttendanceRequestModel({
-    required this.fromDate,
-    required this.toDate,
-    required this.startTime,
-    required this.endTime,
     required this.id,
-    required this.status,
+    required this.dateStart,
+    required this.dateEnd,
+    required this.approved,
   });
-
 
   factory AttendanceRequestModel.fromJson(Map<String, dynamic> json) {
-    final from = DateTime.parse(json['fromDate']);
-    final to = DateTime.parse(json['toDate']);
 
     return AttendanceRequestModel(
-      id: json['id'],
-      status: AttendanceRequestStatusX.fromState(json['status'],),
-      fromDate: from,
-      toDate: to,
-      startTime: _parseTime(json['startTime'],),
-      endTime: _parseTime(json['endTime'],),
+
+      id: json['id'] ?? '',
+      dateStart: DateTime.tryParse(json['date-start']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      dateEnd: DateTime.tryParse(json['date-end']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      approved: json['approved'] ?? false,
     );
+
   }
 
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'status': status.state,
-      'fromDate': fromDate.toIso8601String(),
-      'toDate': toDate.toIso8601String(),
-      'startTime': _formatTime(startTime),
-      'endTime': _formatTime(endTime),
-    };
-  }
-
-
-  static TimeOfDay _parseTime(String value) {
-    final parts = value.split(':');
-    return TimeOfDay(
-      hour: int.parse(parts[0]),
-      minute: int.parse(parts[1]),
-    );
-  }
-
-  static String _formatTime(TimeOfDay time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+  static List<AttendanceRequestModel> getList(List<dynamic> items) {
+    return items.map((m) => AttendanceRequestModel.fromJson(Map<String, dynamic>.from(m))).toList();
   }
 }
 
-class AttendanceRequestGrouper {
+class PendingAttendanceRequestModel {
 
-  static List<AttendanceRequestModel> pending(List<AttendanceRequestModel> list) {
-    return list.where((e) => e.status.isPending).toList();
-  }
+  final String id;
+  final DateTime dateStart;
+  final DateTime dateEnd;
 
-  static List<AttendanceRequestModel> completed(List<AttendanceRequestModel> list) {
-    return list.where((e) => e.status.isCompleted).toList();
-  }
-}
-
-class ApproverDetailModel {
-
-  final String? approver;
-  final AttendanceRequestStatus status;
-  final String? remarkApprover;
-  final DateTime? timeApprover;
-  final String? roleApproverName;
-  final String? remarkRequester;
-
-  ApproverDetailModel({
-    this.approver,
-    required this.status,
-    this.remarkApprover,
-    this.timeApprover,
-    this.roleApproverName,
-    this.remarkRequester,
+  const PendingAttendanceRequestModel({
+    required this.id,
+    required this.dateStart,
+    required this.dateEnd,
   });
 
-  factory ApproverDetailModel.fromJson(Map<String, dynamic> json) {
-    return ApproverDetailModel(
-      approver: json['approver'],
-      status: AttendanceRequestStatusX.fromState(
-        json['status'],
-      ),
-      remarkApprover: json['remark-approver'],
-      timeApprover: json['time-approver'] != null
-          ? DateTime.tryParse(json['time-approver'])
-          : null,
-      roleApproverName: json['role-approver-name'],
-      remarkRequester: json['remark-requester'],
+  factory PendingAttendanceRequestModel.fromJson(Map<String, dynamic> json) {
+    return PendingAttendanceRequestModel(
+      id: json['id'] ?? '',
+      dateStart: DateTime.tryParse(json['date-start']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      dateEnd: DateTime.tryParse(json['date-end']) ?? DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 
-  bool get isApproved => status == AttendanceRequestStatus.approved;
-
-  bool get isRejected => status == AttendanceRequestStatus.rejected;
-
-  bool get isPending => status == AttendanceRequestStatus.pending;
-
+  static List<PendingAttendanceRequestModel> getList(List<dynamic> items) {
+    return items.map((m) => PendingAttendanceRequestModel.fromJson(Map<String, dynamic>.from(m))).toList();
+  }
 }
