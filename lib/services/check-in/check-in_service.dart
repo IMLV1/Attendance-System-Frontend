@@ -49,6 +49,44 @@ class AttendanceService {
       rethrow; // ส่ง Error ต่อไปให้หน้า UI จัดการโชว์ SnackBar
     }
   }
+  // เพิ่มเข้าไปในคลาส AttendanceService
+  //
+  Future<AttendanceModel?> getTodayAttendance(String date) async {
+    try {
+      // 💡 เปลี่ยน URL เป็นเส้นใหม่ที่เพื่อนเพิ่งทำให้
+      final response = await dio.get('/api/attendance/today');
+
+      if (response.statusCode == 200 && response.data != null) {
+        debugPrint("✅ ข้อมูลจาก Backend (GET): ${response.data}");
+
+        var data = response.data;
+
+        if (data is Map<String, dynamic>) {
+          // 💡 ดึงค่าจาก JSON ที่เพื่อนส่งมา (จะได้ "08:30" หรือ null)
+          String? checkInValue = data['checkIn'];
+          String? checkOutValue = data['checkOut'];
+
+          // 💡 แปลงเป็น true/false ให้หน้าจอเอาไปปรับสถานะปุ่ม
+          // ถ้าไม่เท่ากับ null แปลว่าเช็คอิน/เช็คเอาต์แล้ว -> ได้ค่า true
+          bool isCheckIn = checkInValue != null;
+          bool isCheckOut = checkOutValue != null;
+
+          return AttendanceModel(
+            // ถ้าเป็น null ให้แสดง "---" แทน
+            checkInTime: checkInValue ?? "---",
+            checkOutTime: checkOutValue ?? "---",
+            hasCheckedIn: isCheckIn,
+            hasCheckedOut: isCheckOut,
+            lastUpdateDate: date,
+          );
+        }
+      }
+      return null;
+    } on DioException catch (e) {
+      debugPrint("❌ ดึงข้อมูลเวลาล้มเหลว: ${e.message}");
+      return null;
+    }
+  }
 
   // 2. บันทึกสถานะลงในเครื่อง (Local Storage)
   Future<void> saveLocalState(AttendanceModel model) async {

@@ -1,4 +1,3 @@
-import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -11,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_it/get_it.dart';
 import 'package:ntp/ntp.dart';
-import 'package:provider/provider.dart';
 
 import '../../services/check-in/check-in_model.dart';
 import '../../services/check-in/check-in_service.dart';
@@ -27,14 +25,14 @@ import 'package:intl/intl.dart';
 
 import '../../shared/widgets/utils/services/service_loader.dart';
 
-class CheckinPage extends StatefulWidget {
+class CheckinPage extends StatefulWidget{
   const CheckinPage({super.key});
 
   @override
   State<CheckinPage> createState() => _CheckinPageState();
 }
 
-class _CheckinPageState extends State<CheckinPage> {
+class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   DateTime? _currentNetworkTime;
 
   String checkInTimeRecorded = "---";
@@ -51,23 +49,21 @@ class _CheckinPageState extends State<CheckinPage> {
 
   Timer? _timer;
   DateTime? _lastResetDate;
+  Duration? _timeOffset;
 
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //   final attendanceService = GetIt.I<AttendanceService>();
-    //   await attendanceService.clearLocalState(); // สมมติว่ามีฟังก์ชันล้างข้อมูลใน Service
-    //   debugPrint("🧹 ข้อมูลถูก Reset ใหม่ทั้งหมด (Build ใหม่)");
-    // });
-
+    WidgetsBinding.instance.addObserver(this);
     initConfig();
   }
 
   Future<DateTime> _getSafeNetworkTime() async {
     try {
       final response = await Dio()
-          .get('https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Bangkok')
+          .get(
+            'https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Bangkok',
+          )
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
@@ -98,26 +94,41 @@ class _CheckinPageState extends State<CheckinPage> {
 
   Future<void> _loadInitialState(DateTime networkTime) async {
     final attendanceService = GetIt.I<AttendanceService>();
+    final todayStr = DateFormat('yyyy-MM-dd').format(networkTime);
 
-    // แก้ตรงนี้: ส่ง networkTime เข้าไปให้ Service เช็ควันที่ให้เบ็ดเสร็จ
-    final savedState = await attendanceService.getLocalState(networkTime);
+    // 1. 💡 ดึงข้อมูลจาก Backend ของเพื่อนคุณเป็นอันดับแรกเสมอ!
+    final serverData = await attendanceService.getTodayAttendance(todayStr);
 
-    if (savedState != null) {
-      // ถ้า Service คืนค่ามา แสดงว่าเป็นของวันนี้แน่นอน
+    if (serverData != null) {
+      // ✅ มีข้อมูลจาก Server เอามาโชว์ที่หน้าจอได้เลย
       setState(() {
-        checkInTimeRecorded = savedState.checkInTime ?? "---";
-        checkOutTimeRecorded = savedState.checkOutTime ?? "---";
-        _hasCheckedIn = savedState.hasCheckedIn;
-        hasCheckedOut = savedState.hasCheckedOut;
+        checkInTimeRecorded = serverData.checkInTime ?? "---";
+        checkOutTimeRecorded = serverData.checkOutTime ?? "---";
+        _hasCheckedIn = serverData.hasCheckedIn;
+        hasCheckedOut = serverData.hasCheckedOut;
       });
+
+      // อัปเดต Local Storage ให้ตรงกับ Server เพื่อเป็น Cache สำรองเผื่อเน็ตหลุด
+      await attendanceService.saveLocalState(serverData);
     } else {
-      // ถ้าคืน null แสดงว่าเป็นวันใหม่ หรือไม่มีข้อมูล
-      setState(() {
-        checkInTimeRecorded = "---";
-        checkOutTimeRecorded = "---";
-        _hasCheckedIn = false;
-        hasCheckedOut = false;
-      });
+      // 2. ถ้า Backend ไม่มีข้อมูล (หรือเน็ตล่ม) ค่อยมาดูใน Local Storage เครื่องนี้
+      final localData = await attendanceService.getLocalState(networkTime);
+      if (localData != null) {
+        setState(() {
+          checkInTimeRecorded = localData.checkInTime ?? "---";
+          checkOutTimeRecorded = localData.checkOutTime ?? "---";
+          _hasCheckedIn = localData.hasCheckedIn;
+          hasCheckedOut = localData.hasCheckedOut;
+        });
+      } else {
+        // ถ้าไม่มีข้อมูลที่ไหนเลย ก็เคลียร์เป็นค่าว่าง
+        setState(() {
+          checkInTimeRecorded = "---";
+          checkOutTimeRecorded = "---";
+          _hasCheckedIn = false;
+          hasCheckedOut = false;
+        });
+      }
     }
   }
 
@@ -154,8 +165,22 @@ class _CheckinPageState extends State<CheckinPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel(); // ล้าง Timer เพื่อประหยัด Memory
     super.dispose();
+  }
+
+  // 💡 ฟังก์ชันนี้จะถูกเรียกอัตโนมัติเมื่อผู้ใช้พับแอปแล้วเปิดขึ้นมาใหม่
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint("ผู้ใช้กลับมาหน้าแอป (Resumed) -> โหลดข้อมูลจาก Server ใหม่");
+
+      // ถ้ามีเวลาเครือข่ายอยู่แล้ว ให้สั่งโหลด _loadInitialState ใหม่ทันที
+      if (_currentNetworkTime != null) {
+        _loadInitialState(_currentNetworkTime!);
+      }
+    }
   }
 
   void _checkAndResetLogic(ConfigAttendanceTimeModel? configSetting) {
@@ -242,7 +267,6 @@ class _CheckinPageState extends State<CheckinPage> {
           : ServiceLoader(
               request: () async {
                 try {
-                  // 💡 เปลี่ยนมาใช้ timeapi.io แทน worldtimeapi
                   final response = await Dio()
                       .get(
                         'https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Bangkok',
@@ -275,10 +299,11 @@ class _CheckinPageState extends State<CheckinPage> {
                 }
               },
               onSuccess: (data) async {
-                // ข้อมูลที่ได้จาก API จะถูกส่งมาที่นี่
                 final DateTime ntpNow = (data is Response) ? data.data : data;
 
                 if (_currentNetworkTime == null) {
+                  // 💡 คำนวณความต่างเวลา
+                  _timeOffset = ntpNow.difference(DateTime.now());
                   _currentNetworkTime = ntpNow;
 
                   final holidayService = GetIt.I<HolidayService>();
@@ -289,6 +314,7 @@ class _CheckinPageState extends State<CheckinPage> {
                   setState(() {
                     isPublicHoliday = holidayStatus;
                   });
+
                   await _loadInitialState(ntpNow);
                   _startTimerLogic();
                 }
@@ -326,14 +352,12 @@ class _CheckinPageState extends State<CheckinPage> {
     );
   }
 
-  // แยกฟังก์ชันการเริ่ม Timer
   void _startTimerLogic() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted && _currentNetworkTime != null) {
+      if (mounted && _timeOffset != null) {
         setState(() {
-          _currentNetworkTime = _currentNetworkTime!.add(
-            const Duration(seconds: 1),
-          );
+          // 💡 เวลาแสดงผล = เวลาเครื่องจริง + ส่วนต่าง (ทำให้เน็ตหลุดนาฬิกาก็ยังเดินตรงเป๊ะ)
+          _currentNetworkTime = DateTime.now().add(_timeOffset!);
           _checkAndResetLogic(configSetting);
         });
       }
@@ -411,14 +435,14 @@ class _CheckinPageState extends State<CheckinPage> {
       fontSize = 32;
     } else {
       switch (state) {
-        // case "ABSENT":
-        //   buttonColor = AppColors.buttonDisable;
-        //   buttonText = "ขาดงาน";
-        //    showtext = 'ขาดงาน';
-        //   iconPath = 'assets/images/absent.svg';
-        //   isDisabled = true;
-        //   fontSize = 27;
-        //   break;
+        case "ABSENT":
+          buttonColor = AppColors.buttonDisable;
+          buttonText = "ขาดงาน";
+           showtext = 'ขาดงาน';
+          iconPath = 'assets/images/absent.svg';
+          isDisabled = true;
+          fontSize = 27;
+          break;
 
         case "FINISHED":
           buttonColor = AppColors.buttonDisable;
@@ -427,8 +451,8 @@ class _CheckinPageState extends State<CheckinPage> {
           iconPath = 'assets/images/endwork.svg';
           isDisabled = true;
           fontSize = 27;
-
           break;
+
         case "CHECK_OUT_READY":
           buttonColor = AppColors.buttonCheckOut;
           buttonText = "เช็คเอาต์";
@@ -437,6 +461,7 @@ class _CheckinPageState extends State<CheckinPage> {
           isDisabled = false;
           fontSize = 32;
           break;
+
         case "WORKING":
           buttonColor = AppColors.buttonDisable;
           buttonText = "อยู่ในเวลางาน";
@@ -445,6 +470,7 @@ class _CheckinPageState extends State<CheckinPage> {
           isDisabled = true;
           fontSize = 26;
           break;
+
         default: // CHECK_IN_READY
           buttonColor = AppColors.buttonCheckIn;
           buttonText = "เช็คอิน";
@@ -454,6 +480,7 @@ class _CheckinPageState extends State<CheckinPage> {
           fontSize = 32;
       }
     }
+
     return Column(
       children: [
         Stack(
@@ -484,37 +511,36 @@ class _CheckinPageState extends State<CheckinPage> {
                   try {
                     HapticFeedback.mediumImpact();
 
-                    // 1. ดึงเวลามาตรฐานผ่าน HTTP API (แทน NTP)
-                    final response = await Dio().get('https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Bangkok');
-                    final DateTime ntpTime = DateTime.parse(response.data['dateTime']);
-                    String nowTime = DateFormat('HH:mm').format(ntpTime);
+                    // 💡 ใช้เวลามาตรฐานที่ผ่านการบวก Offset แล้ว
+                    final DateTime exactTime = DateTime.now().add(_timeOffset ?? Duration.zero);
+                    String nowTimeDisplay = DateFormat('HH:mm').format(exactTime);
 
-                    // 2. อัปเดตสถานะในหน้าจอ
                     setState(() {
                       if (state == "CHECK_OUT_READY") {
-                        checkOutTimeRecorded = nowTime;
+                        checkOutTimeRecorded = nowTimeDisplay;
                         hasCheckedOut = true;
                       } else {
-                        checkInTimeRecorded = nowTime;
+                        checkInTimeRecorded = nowTimeDisplay;
                         _hasCheckedIn = true;
                       }
                     });
 
-                    // 3. บันทึกสถานะลงเครื่อง (Local Storage)
+                    // 💡 บันทึกลง Local Storage ของเครื่องนี้
                     await _saveCurrentState();
 
-                    // 4. ส่งข้อมูลไปที่ Server
                     String requestType = (state == "CHECK_OUT_READY") ? "CHECK_OUT" : "CHECK_IN";
                     final attendanceService = GetIt.I<AttendanceService>();
-                    await attendanceService.postAttendance(ntpTime, requestType);
+
+                    // 💡 ส่งเวลาเข้า Backend (ถ้า Backend Error อย่างน้อย Local เราก็จำค่าไว้แล้ว)
+                    await attendanceService.postAttendance(exactTime, requestType);
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('บันทึกเวลา $nowTime น. เรียบร้อยแล้ว')),
+                      SnackBar(content: Text('บันทึกเวลา $nowTimeDisplay น. เรียบร้อยแล้ว')),
                     );
                   } catch (e) {
                     debugPrint("เกิดข้อผิดพลาดในการบันทึก: $e");
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ไม่สามารถบันทึกได้ กรุณาตรวจสอบอินเทอร์เน็ต')),
+                      const SnackBar(content: Text('บันทึกสำเร็จลงเครื่อง แต่ยังส่งไม่ถึง Server')),
                     );
                   }
                 },
@@ -550,6 +576,7 @@ class _CheckinPageState extends State<CheckinPage> {
             ),
           ],
         ),
+
         const SizedBox(height: 15),
         Text(
           showtext,
@@ -559,6 +586,7 @@ class _CheckinPageState extends State<CheckinPage> {
             color: AppColors.greyTextColor,
           ),
         ),
+
         const SizedBox(height: 10),
 
         Row(
@@ -574,7 +602,8 @@ class _CheckinPageState extends State<CheckinPage> {
               child: Text(
                 softWrap: true,
                 textAlign: TextAlign.start,
-                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'} หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
+                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
+                    ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.normal,
@@ -637,9 +666,11 @@ class _CheckinPageState extends State<CheckinPage> {
   }
 
   Widget _buildStatusItem({
+
     required String iconPath,
     required String title,
     required String time,
+
   }) {
     return Column(
       children: [
