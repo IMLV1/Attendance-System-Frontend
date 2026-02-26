@@ -62,16 +62,26 @@ class LeaveRequestService {
   }
 
   Future<Response<dynamic>> getRecent(DateTime? filterStartDate, DateTime? filterEndDate) {
+
     return dio.get('/api/leave_status/recent',
       data: {
-        'startDate': ?filterStartDate,
-        'endDate': ?filterEndDate,
+        'startDate': filterStartDate?.toIso8601String(),
+        'endDate': filterEndDate?.toIso8601String(),
       }
     );
   }
 
   Future<Response<dynamic>> getFilterRange() {
     return dio.get('/api/leave_status/filter_range');
+  }
+
+  Future<Response<dynamic>> getRequestDetail(String requestId) {
+    return dio.get(
+      '/api/leave_status/detail',
+      data: {
+        'request-id': requestId
+      }
+    );
   }
 }
 

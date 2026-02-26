@@ -32,11 +32,12 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onPressed ?? () {},
+      onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         elevation: 0,
         padding: EdgeInsets.zero,
         backgroundColor: Colors.transparent,
+        disabledBackgroundColor: Colors.transparent,
         shadowColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
@@ -44,24 +45,8 @@ class AppButton extends StatelessWidget {
       ),
       child: Padding(
         padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            // เวลา (ถ้ามี)
-            if (timeStamp != null)
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  timeStamp!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF7C7C7C)
-                  ),
-                ),
-              ),
-
-            // const SizedBox(height: 10),
-
             Row(
               spacing: 10,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -131,6 +116,17 @@ class AppButton extends StatelessWidget {
                   )
               ],
             ),
+            if (timeStamp != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  timeStamp!,
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF7C7C7C)
+                  ),
+                ),
+              ),
           ],
         ),
       ),

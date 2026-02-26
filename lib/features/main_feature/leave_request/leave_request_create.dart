@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
@@ -10,7 +8,7 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
-import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
+import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -438,7 +436,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                                 final bytes = await image.readAsBytes();
 
                                                                                 final file = PlatformFile(
-                                                                                  name: 'IMG_${_generateRandomNumber(5)}$extension',
+                                                                                  name: 'IMG_${Utils.generateRandomNumber(5)}$extension',
                                                                                   size: bytes.length,
                                                                                   path: image.path,
                                                                                   bytes: bytes,
@@ -465,7 +463,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                                 final bytes = await image.readAsBytes();
 
                                                                                 final file = PlatformFile(
-                                                                                  name: 'IMG_${_generateRandomNumber(5)}$extension',
+                                                                                  name: 'IMG_${Utils.generateRandomNumber(5)}$extension',
                                                                                   size: bytes.length,
                                                                                   path: image.path,
                                                                                   bytes: bytes,
@@ -550,7 +548,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                                                 fontWeight: FontWeight.w800
                                                                                             )
                                                                                         ),
-                                                                                        Text('ขนาด ${_formatBytes(file.size)}',
+                                                                                        Text('ขนาด ${Utils.formatBytes(file.size)}',
                                                                                             style: TextStyle(
                                                                                                 color: Color(0xFF7D7D7D),
                                                                                                 fontWeight: FontWeight.normal
@@ -728,31 +726,4 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
         )
     );
   }
-}
-
-String _formatBytes(int bytes, {int decimals = 2}) {
-  if (bytes <= 0) return '0 B';
-
-  const suffixes = ['B', 'kB', 'MB', 'GB'];
-  int i = 0;
-  double size = bytes.toDouble();
-
-  while (size >= 1024 && i < suffixes.length - 1) {
-    size /= 1024;
-    i++;
-  }
-
-  return '${size.toStringAsFixed(decimals).replaceAll(RegExp(r'\.?0+$'), '')} ${suffixes[i]}';
-}
-int _generateRandomNumber(int digits) {
-  if (digits <= 0) {
-    throw ArgumentError('Digits must be greater than 0');
-  }
-
-  final random = Random();
-
-  int min = pow(10, digits - 1).toInt();   // smallest number with N digits
-  int max = pow(10, digits).toInt() - 1;   // largest number with N digits
-
-  return min + random.nextInt(max - min + 1);
 }

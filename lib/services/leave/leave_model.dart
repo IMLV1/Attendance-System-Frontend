@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:file_picker/file_picker.dart';
+
 import '../user_management/user_management_model.dart';
 
 // class LeaveModel {
@@ -69,5 +73,159 @@ class PendingLeaveRequestModel {
     return items.map((m) => PendingLeaveRequestModel.fromJson(
       Map<String, dynamic>.from(m),
     )).toList();
+  }
+}
+
+
+class LeaveRequestDetailModel {
+  final RequestDetail requestDetail;
+  final ApproveDetail approveDetail;
+
+  const LeaveRequestDetailModel({
+    required this.requestDetail,
+    required this.approveDetail,
+  });
+
+  factory LeaveRequestDetailModel.fromJson(Map<String, dynamic> json) {
+    return LeaveRequestDetailModel(
+      requestDetail: RequestDetail.fromJson(json['request-detail'] ?? {}),
+      approveDetail: ApproveDetail.fromJson(json['approve-detail'] ?? {}),
+    );
+  }
+}
+
+class RequestDetail {
+  final String leaveType;
+  final DateTime dateFrom;
+  final DateTime dateTo;
+  final bool fromDateMorning;
+  final bool toDateMorning;
+  final String remark;
+  final List<NetworkFile> evidenceFiles;
+  final DateTime requestDate;
+
+  const RequestDetail({
+    required this.leaveType,
+    required this.dateFrom,
+    required this.dateTo,
+    required this.fromDateMorning,
+    required this.toDateMorning,
+    required this.remark,
+    required this.evidenceFiles,
+    required this.requestDate,
+  });
+
+  factory RequestDetail.fromJson(Map<String, dynamic> json) {
+    return RequestDetail(
+      leaveType: json['leave-type'] ?? '',
+      dateFrom: DateTime.tryParse(json['date-from']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      dateTo: DateTime.tryParse(json['date-to']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      fromDateMorning: json['from-date-morning'] ?? true,
+      toDateMorning: json['to-date-morning'] ?? false,
+      remark: json['remark'] ?? '',
+      evidenceFiles: NetworkFile.getList(json['evidence-files'] ?? []),
+      requestDate: DateTime.tryParse(json['request-date']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+}
+
+class ApproveDetail {
+  final ApproveStatus status;
+  final String approver;
+  final DateTime approveDate;
+  final String reason;
+  final String approveRole;
+
+  const ApproveDetail({
+    required this.status,
+    required this.approver,
+    required this.approveDate,
+    required this.reason,
+    required this.approveRole,
+  });
+
+  factory ApproveDetail.fromJson(Map<String, dynamic> json) {
+    return ApproveDetail(
+      status: ApproveStatus.values.byName(json['status'] ?? 'pending'),
+      approveRole: json['approve-role'] ?? '',
+      approver: json['approver'] ?? '',
+      approveDate: DateTime.tryParse(json['approve-date']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      reason: json['reason'] ?? '',
+    );
+  }
+}
+
+class NetworkFile {
+  final String fileName;
+  final String fileUrl;
+  final String fileType;
+  final int fileSize;
+
+  const NetworkFile({required this.fileName, required this.fileUrl, required this.fileType, required this.fileSize});
+
+  factory NetworkFile.fromJson(Map<String, dynamic> json) {
+    return NetworkFile(
+      fileName: json['file-name'],
+      fileUrl: json['file-url'],
+      fileType: json['file-type'],
+      fileSize: json['file-size'] ?? 0,
+    );
+  }
+
+  static List<NetworkFile> getList(List<Map<String, dynamic>> json) {
+    return [...json.map((m) => NetworkFile.fromJson(m))];
+  }
+}
+
+enum ApproveStatus { pending, approved, rejected }
+
+extension ApproveStatusX on ApproveStatus {
+
+  String get state => name;
+
+  static ApproveStatus fromState(String? value) {
+    if (value == null) {
+      return ApproveStatus.pending;
+    }
+
+    return ApproveStatus.values.firstWhere(
+          (e) => e.name == value,
+      orElse: () => ApproveStatus.pending,
+    );
+  }
+
+  bool get isPending {
+    return this == ApproveStatus.pending;
+  }
+
+  bool get isCompleted {
+    return this == ApproveStatus.approved ||
+        this == ApproveStatus.rejected;
+  }
+
+  String get icon {
+    switch (this) {
+      case ApproveStatus.approved:
+        return 'icon_success.svg';
+
+      case ApproveStatus.rejected:
+        return 'icon_cancel.svg';
+
+      case ApproveStatus.pending:
+        return 'icon_pending.svg';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case ApproveStatus.pending:
+        return const Color(0xFFE79E00);
+
+      case ApproveStatus.approved:
+        return const Color(0xFF30D143);
+
+      case ApproveStatus.rejected:
+        return const Color(0xFFE7000B);
+    }
   }
 }

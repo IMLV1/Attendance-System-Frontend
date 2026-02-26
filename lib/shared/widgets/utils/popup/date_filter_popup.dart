@@ -3,7 +3,6 @@ import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.da
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/text_button.dart';
-import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/wheel_selector.dart';
 import 'package:flutter/material.dart' hide TextButton;
 import 'package:flutter_svg/flutter_svg.dart';
@@ -54,8 +53,8 @@ class DateFilterPopup {
 
   void showPopup(BuildContext context) {
 
-    DateTime? _rangeStart;
-    DateTime? _rangeEnd;
+    DateTime? rangeStart = currentDateFrom;
+    DateTime? rangeEnd = currentDateTo;
 
     PushPopup(
       title: title,
@@ -64,13 +63,18 @@ class DateFilterPopup {
       maxHeight: maxHeight,
       fit: fit,
       buttonAction: (context) {
-        onSubmit?.call(_rangeStart, _rangeEnd);
+        Navigator.of(context).pop();
+        onSubmit?.call(rangeStart, rangeEnd);
       },
       builder: (context) => DateSelectorFilter(
         currentDateFrom: currentDateFrom,
         currentDateTo: currentDateTo,
         allowDateFrom: allowDateFrom,
         allowDateTo: allowDateTo,
+        onSelect: (start, end) {
+          rangeStart = start;
+          rangeEnd = end;
+        },
       )
     ).showPopup(context);
   }
@@ -84,13 +88,15 @@ class DateSelectorFilter extends StatefulWidget {
   final DateTime? currentDateTo;
   final DateTime? allowDateFrom;
   final DateTime? allowDateTo;
+  final void Function(DateTime? dateFrom, DateTime? dateTo) onSelect;
 
   const DateSelectorFilter({
     super.key,
     this.currentDateFrom,
     this.currentDateTo,
     this.allowDateFrom,
-    this.allowDateTo
+    this.allowDateTo,
+    required this.onSelect,
   });
 
   @override
@@ -103,8 +109,6 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
-  DateTime? currentDateFrom;
-  DateTime? currentDateTo;
   DateTime? allowDateFrom;
   DateTime? allowDateTo;
 
@@ -149,8 +153,8 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
 
   @override
   void initState() {
-    currentDateFrom = widget.currentDateFrom;
-    currentDateTo = widget.currentDateTo;
+    _rangeStart = widget.currentDateFrom;
+    _rangeEnd = widget.currentDateTo;
     allowDateFrom = widget.allowDateFrom;
     allowDateTo = widget.allowDateTo;
 
@@ -184,6 +188,8 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                         _rangeStart = null;
                         _rangeEnd = null;
                       });
+
+                      widget.onSelect(_rangeStart, _rangeEnd);
                     },
                   )
                 ],
@@ -234,6 +240,8 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                     _rangeEnd = DateTime(int.parse(years[selectedYearIndex]), getMonthOfYear(selectedYearIndex)[selectedMonthIndex] + 2, 0);
 
                                     _focusedDay = _rangeStart!;
+
+                                    widget.onSelect(_rangeStart, _rangeEnd);
                                   });
                                 }
                             ),
@@ -510,6 +518,8 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                       selectedMonthIndex =
                                           monthsOfYear.indexOf(start.month - 1);
                                     });
+
+                                    widget.onSelect(_rangeStart, _rangeEnd);
                                   },
 
                                   calendarStyle: CalendarStyle(
