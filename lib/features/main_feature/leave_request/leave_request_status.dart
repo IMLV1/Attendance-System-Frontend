@@ -172,9 +172,12 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
 
                         ServiceUpdaterProMax(
                             requests: () => [
-                              LeaveRequestService().getPending(),
-                              LeaveRequestService().getRecent(filterStart, filterEnd),
-                              LeaveRequestService().getFilterRange(),
+                              // LeaveRequestService().getPending(),
+                              // LeaveRequestService().getRecent(filterStart, filterEnd),
+                              // LeaveRequestService().getFilterRange(),
+                              mockData(),
+                              mockData2(),
+                              mockData3()
                             ],
                             onSuccess: (index, data) => {
                               setState(() {
