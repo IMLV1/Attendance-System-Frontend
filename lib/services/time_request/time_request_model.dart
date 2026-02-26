@@ -1,6 +1,8 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import '../leave/leave_model.dart';
+
 class TimeDate {
   final DateTime? fromDate;
   final DateTime? toDate;
@@ -103,5 +105,89 @@ class PendingAttendanceRequestModel {
 
   static List<PendingAttendanceRequestModel> getList(List<dynamic> items) {
     return items.map((m) => PendingAttendanceRequestModel.fromJson(Map<String, dynamic>.from(m))).toList();
+  }
+}
+
+
+class AttendanceDetail {
+  final AttendanceRequestDetail requestDetail;
+  final AttendanceApproveDetail approveDetail;
+
+  AttendanceDetail({
+    required this.requestDetail,
+    required this.approveDetail,
+  });
+
+  factory AttendanceDetail.fromJson(Map<String, dynamic> json) {
+    return AttendanceDetail(
+      requestDetail: AttendanceRequestDetail.fromJson(json['request-detail']),
+      approveDetail: AttendanceApproveDetail.fromJson(json['approve-detail']),
+    );
+  }
+}
+
+class AttendanceRequestDetail {
+  final DateTime dateFrom;
+  final DateTime dateTo;
+  final TimeOfDay timeStart;
+  final TimeOfDay timeEnd;
+  final String remark;
+  final List<NetworkFile> evidenceFiles;
+  final DateTime requestDate;
+
+  AttendanceRequestDetail({
+    required this.dateFrom,
+    required this.dateTo,
+    required this.timeStart,
+    required this.timeEnd,
+    required this.remark,
+    required this.evidenceFiles,
+    required this.requestDate,
+  });
+
+  factory AttendanceRequestDetail.fromJson(Map<String, dynamic> json) {
+    return AttendanceRequestDetail(
+      dateFrom: DateTime.parse(json['date-from']),
+      dateTo: DateTime.parse(json['date-to']),
+      timeStart: _parseTime(json['time-start']),
+      timeEnd: _parseTime(json['time-end']),
+      remark: json['remark'] ?? '',
+      evidenceFiles: (json['evidence-files'] as List? ?? []).map((e) => NetworkFile.fromJson(e)).toList(),
+      requestDate: DateTime.parse(json['request-date']),
+    );
+  }
+
+  static TimeOfDay _parseTime(String value) {
+    final parts = value.split(':');
+    return TimeOfDay(
+      hour: int.parse(parts[0]),
+      minute: parts.length > 1 ? int.parse(parts[1]) : 0,
+    );
+  }
+}
+
+class AttendanceApproveDetail {
+  final String status;
+  final String approveRole;
+  final String approver;
+  final String reason;
+  final DateTime approveDate;
+
+  AttendanceApproveDetail({
+    required this.status,
+    required this.approveRole,
+    required this.approver,
+    required this.reason,
+    required this.approveDate,
+  });
+
+  factory AttendanceApproveDetail.fromJson(Map<String, dynamic> json) {
+    return AttendanceApproveDetail(
+      status: json['status'] ?? '',
+      approveRole: json['approve-role'] ?? '',
+      approver: json['approver'] ?? '',
+      reason: json['reason'] ?? '',
+      approveDate: DateTime.parse(json['approve-date']),
+    );
   }
 }

@@ -77,4 +77,12 @@ class TimeRequestService {
   Future<Response<dynamic>> getTimeRequestFilterRange() async {
     return dio.get('/api/attendance_request/filter_range');
   }
+
+  Future<Response<dynamic>> getTimeRequestDelete(String id) async {
+    return dio.get('/api/attendance_request/delete',
+      data: {
+        'id': id,
+      }
+    );
+  }
 }

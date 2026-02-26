@@ -158,6 +158,23 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                                   title: formatRange(m.dateStart, m.dateEnd),
                                                   subTitle: 'หมายเลขคำขอ: ${m.id}',
                                                   weightTitle: FontWeight.w500,
+                                                  onPressed: () async {
+                                                    PushPopup(
+                                                      title: 'รายละเอียดคำขอ',
+                                                      fit: FlexFit.tight,
+                                                      maxHeight: 750,
+                                                      builder: (context) {
+                                                        return TimeRequestPopupDetail(
+                                                          id: m.id,
+                                                          onCancel: () {
+                                                            setState(() {
+                                                              pendingList.removeWhere((item) => item.id == m.id);
+                                                            });
+                                                          }
+                                                        );
+                                                      }
+                                                    ).showPopup(context);
+                                                  },
                                                 );
                                               })
                                             ],
@@ -219,6 +236,21 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                               title: formatRange(m.dateStart, m.dateEnd),
                                               subTitle: 'หมายเลขคำขอ: ${m.id}',
                                               weightTitle: FontWeight.w500,
+                                              onPressed: () async {
+                                                PushPopup(
+                                                    title: 'รายละเอียดคำขอ',
+                                                    fit: FlexFit.tight,
+                                                    maxHeight: 750,
+                                                    builder: (context) {
+                                                      return TimeRequestPopupDetail(
+                                                        id: m.id,
+                                                        onCancel: () {
+
+                                                        }
+                                                      );
+                                                    }
+                                                ).showPopup(context);
+                                              },
                                             );
                                           })
                                         ],
