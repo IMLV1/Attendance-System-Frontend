@@ -321,7 +321,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
               },
               builder: () => SafeArea(
                 child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
