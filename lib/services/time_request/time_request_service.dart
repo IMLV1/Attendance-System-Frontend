@@ -89,4 +89,12 @@ class TimeRequestService {
       }
     );
   }
+
+  Future<Response<dynamic>> getTimeRequestDetail(String id) async {
+    return dio.get('/api/attendance_request/detail',
+      data: {
+        'id': id,
+      }
+    );
+  }
 }

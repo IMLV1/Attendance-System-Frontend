@@ -101,8 +101,8 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
   Widget build(BuildContext context) {
     return ServiceLoader(
         request: () {
-          return mockData();
-          // return TimeRequestService().getAttendanceDetail(widget.model.id);
+          // return mockData();
+          return TimeRequestService().getTimeRequestDetail(widget.id);
         },
         onSuccess: (val) {
           setState(() {
