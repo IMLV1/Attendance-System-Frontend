@@ -544,7 +544,7 @@ class _CreateRoleState extends State<CreateRole> {
                                                           child: ClipRRect(
                                                             borderRadius: BorderRadius.circular(20),
                                                             child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                                              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                                               child: SeparatorCard(
                                                               separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
                                                                 children: [

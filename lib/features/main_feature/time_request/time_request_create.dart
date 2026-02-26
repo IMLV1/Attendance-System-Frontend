@@ -919,8 +919,8 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                       // ),
                     ],
                   ),
-
-                  Padding(
+                  if (setting.requestNeedSignature) ... [
+                    Padding(
                       padding: EdgeInsetsGeometry.symmetric(vertical: 20),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -1046,7 +1046,120 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                           )
                         ],
                       )
-                  ),
+                    ),
+                  ] else ...[
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ServiceUpdater(
+                          request: () => TimeRequestService().timeRequestCreate(
+                            TimeRequestModel(
+                              fromDate: _selectDate!.fromDate,
+                              toDate: _selectDate!.toDate,
+                              startTime: _selectDate!.startTime,
+                              endTime: _selectDate!.endTime,
+                              files: allFiles,
+                              remark: remarkController.text,
+                            ),
+                            null,
+                          ),
+                          onSuccess: () {
+
+                          },
+                          onSuccessResponse: (jsonData) {
+                            if (_selectDate == null ||
+                                _selectDate!.fromDate == null ||
+                                _selectDate!.toDate == null) {
+                              return;
+                            }
+                            final String? requestID = jsonData['request-id'] ?? '';
+                            context.pop(
+                              PendingAttendanceRequestModel(
+                                id: requestID ?? '',
+                                dateStart: _selectDate!.fromDate!,
+                                dateEnd: _selectDate!.toDate!,
+                              ),
+                            );
+                          },
+                          builder: (trigger, state, errorMessage) {
+                            return Column(
+                              children: [
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 42,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        _submitted = true;
+                                      });
+                                      if (_selectDate?.fromDate == null ||
+                                          _selectDate?.toDate == null ||
+                                          _selectDate?.startTime == null ||
+                                          _selectDate?.endTime == null ||
+                                          _isInvalidTimeRange()) {
+                                        return;
+                                      }
+
+                                      if (setting!.requiredRemark && remarkController.text.isEmpty) {
+                                        return;
+                                      }
+
+                                      if (setting!.requiredEvidenceFile && allFiles.isEmpty) {
+                                        return;
+                                      }
+                                       trigger();
+                                    },
+                                    icon: SvgPicture.asset(
+                                      'assets/images/create.svg',
+                                      height: 18,
+                                      width: 18,
+                                      colorFilter: const ColorFilter.mode(
+                                        Colors.white,
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                    label: Row(
+                                      spacing: 10,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          'สร้าง',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        if (state == ServiceUpdatorState.loading)
+                                          CupertinoActivityIndicator(color: Colors.white)
+                                      ],
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      disabledBackgroundColor: Colors.grey,
+                                      backgroundColor: AppColors.primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                    height: 25,
+                                    child: (state == ServiceUpdatorState.error) ?
+                                    Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                                        style: TextStyle(
+                                            color: Colors.red
+                                        )
+                                    ) : SizedBox()
+                                )
+                              ],
+                            );
+                          },
+                        )
+                      ],
+                    ),
+                  ]
                 ],
               )
             ),

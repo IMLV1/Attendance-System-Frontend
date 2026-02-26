@@ -15,7 +15,7 @@ String formatTimeOfDay(TimeOfDay time) {
 class TimeRequestService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
-  Future<Response<dynamic>> timeRequestCreate(TimeRequestModel element, Uint8List signature) async {
+  Future<Response<dynamic>> timeRequestCreate(TimeRequestModel element, Uint8List? signature) async {
 
     List<MultipartFile> multipartFiles = [];
 
@@ -37,26 +37,30 @@ class TimeRequestService {
       }
     }
 
-    MultipartFile signatureFile = MultipartFile.fromBytes(
-      signature,
-      filename: "signature.png",
-      contentType: DioMediaType.parse("image/png"),
-    );
-
     Map<String, dynamic> data = {
       'date-from': element.fromDate!.toIso8601String(),
       'date-to': element.toDate!.toIso8601String(),
       'start-time': formatTimeOfDay(element.startTime!),
       'end-time': formatTimeOfDay(element.endTime!),
       'remark': element.remark ?? '',
-      'signature': signatureFile
     };
+
+    if (signature != null) {
+      MultipartFile signatureFile = MultipartFile.fromBytes(
+        signature,
+        filename: "signature.png",
+        contentType: DioMediaType.parse("image/png"),
+      );
+
+      data['signature'] = signatureFile;
+    }
 
     if (multipartFiles.isNotEmpty) {
       data['files'] = multipartFiles;
     }
 
-    return dio.post('/api/attendance_request/create',
+    return dio.post(
+      '/api/attendance_request/create',
       data: FormData.fromMap(data),
     );
   }
@@ -80,6 +84,14 @@ class TimeRequestService {
 
   Future<Response<dynamic>> getTimeRequestDelete(String id) async {
     return dio.get('/api/attendance_request/delete',
+      data: {
+        'id': id,
+      }
+    );
+  }
+
+  Future<Response<dynamic>> getTimeRequestDetail(String id) async {
+    return dio.get('/api/attendance_request/detail',
       data: {
         'id': id,
       }
