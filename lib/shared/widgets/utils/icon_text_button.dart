@@ -7,9 +7,9 @@ class IconTextButton extends StatelessWidget {
   final String label;
   final bool arrow;
   final VoidCallback? onPressed;
-  final Color color;
+  final Color? color;
   final Widget? arrowIcon;
-  final Color backgroundColor;
+  final Color? backgroundColor;
 
   const IconTextButton({
     super.key,
@@ -45,7 +45,7 @@ class IconTextButton extends StatelessWidget {
                     width: 20,
                     child: SvgPicture.asset(
                       'assets/images/$icon',
-                      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                      colorFilter: ColorFilter.mode(color!, BlendMode.srcIn),
                     )
                 ),
                 SizedBox(width: 10),

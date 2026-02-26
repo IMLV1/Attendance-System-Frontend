@@ -1,11 +1,14 @@
 import 'package:attendance_system/app/route_names.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_request_detail.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
+import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/date_filter_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:dio/dio.dart';
@@ -44,7 +47,7 @@ Future<Response> mockData() async {
 }
 
 Future<Response> mockData2() async {
-  await Future.delayed(const Duration(milliseconds: 10000));
+  await Future.delayed(const Duration(milliseconds: 2000));
 
   return Response(
     requestOptions: RequestOptions(path: '/mock/data'),
@@ -113,6 +116,9 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
   List<PendingLeaveRequestModel> pendingLeaves = [];
   List<LeaveRequestModel> recentLeaves = [];
 
+  DateTime? filterStartAllow;
+  DateTime? filterEndAllow;
+
   DateTime? filterStart;
   DateTime? filterEnd;
 
@@ -166,23 +172,35 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
 
                         ServiceUpdaterProMax(
                             requests: () => [
-                              mockData(),
-                              mockData2(),
-                              mockData3(),
+                              LeaveRequestService().getPending(),
+                              LeaveRequestService().getRecent(filterStart, filterEnd),
+                              LeaveRequestService().getFilterRange(),
                             ],
                             onSuccess: (index, data) => {
                               setState(() {
                                 switch (index) {
                                   case 0: pendingLeaves = PendingLeaveRequestModel.getList(data['pending']);
-                                  case 1: recentLeaves = LeaveRequestModel.getList(data['recent']);
+                                  case 1: {
+                                    print(data);
+                                    recentLeaves = LeaveRequestModel.getList(data['recent']);
+                                  }
                                   case 2: {
-                                    filterStart = DateTime.tryParse(data['start']);
-                                    filterEnd = DateTime.tryParse(data['end']);
 
-                                    print('${data['start']}, ${data['end']}');
+                                    final start =  DateTime.tryParse(data['start']);
+                                    final end =  DateTime.tryParse(data['end']);
+
+                                    if (start != null) {
+                                      filterStartAllow = DateTime(start.year, start.month, 1);
+                                    }
+                                    if (end != null) {
+                                      filterEndAllow = DateTime(end.year, end.month + 1, 0);
+                                    }
                                   }
                                 }
                               })
+                            },
+                            onError: (index, data) {
+                              print(data);
                             },
                             fetchOnInit: true,
                             builder: (trigger, getState) {
@@ -216,7 +234,8 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                                 CupertinoActivityIndicator(radius: 7)
                                             ],
                                           ),
-                                          (pendingLeaves.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading) ? Padding(
+                                          (pendingLeaves.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading) ?
+                                          Padding(
                                             padding: EdgeInsetsGeometry.all(20),
                                             child: Text(
                                               'ไม่มีคำขอที่รอดำเนินการ',
@@ -237,6 +256,16 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                                   title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
                                                   subTitle: 'หมายเลขคำขอ: ${m.id}',
                                                   weightTitle: FontWeight.w500,
+                                                  onPressed: () {
+                                                    PushPopup(
+                                                      title: 'รายละเอียดคำขอ',
+                                                      fit: FlexFit.tight,
+                                                      maxHeight: 750,
+                                                      builder: (BuildContext context) {
+                                                        return LeaveRequestDetail(requestID: m.id);
+                                                      }
+                                                    ).showPopup(context);
+                                                  },
                                                 );
                                               })
                                             ],
@@ -265,8 +294,17 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                             onTap: () {
                                               DateFilterPopup(
                                                 maxHeight: 750,
-                                                allowDateFrom: filterStart,
-                                                allowDateTo: filterEnd,
+                                                allowDateFrom: filterStartAllow,
+                                                allowDateTo: filterEndAllow,
+                                                currentDateFrom: filterStart,
+                                                currentDateTo: filterEnd,
+                                                onSubmit: (start, end) {
+                                                  setState(() {
+                                                    filterStart = start;
+                                                    filterEnd = end;
+                                                    trigger(1);
+                                                  });
+                                                }
                                               ).showPopup(context);
                                             },
                                             child: Row(
@@ -288,6 +326,24 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
 
                                         ],
                                       ),
+                                      (recentLeaves.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading) ?
+                                      SeparatorCard(
+                                        children: [
+                                          Container(
+                                            color: Colors.white,
+                                            width: double.infinity,
+                                            padding: EdgeInsetsGeometry.all(25),
+                                            child: Text(
+                                              'ไม่มีพบคำขอลางาน',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Color(0xFF7D7D7D), // สีจาง
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ) :
                                       SeparatorCard(
                                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                                         children: [
@@ -298,6 +354,16 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                               title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
                                               subTitle: 'หมายเลขคำขอ: ${m.id}',
                                               weightTitle: FontWeight.w500,
+                                              onPressed: () {
+                                                PushPopup(
+                                                    title: 'รายละเอียดคำขอ',
+                                                    fit: FlexFit.tight,
+                                                    maxHeight: 750,
+                                                    builder: (BuildContext context) {
+                                                      return LeaveRequestDetail(requestID: m.id);
+                                                    }
+                                                ).showPopup(context);
+                                              },
                                             );
                                           })
                                         ],

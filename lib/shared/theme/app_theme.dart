@@ -8,6 +8,35 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.backgroundColor,
     brightness: Brightness.light,
     fontFamily: 'Inter',
+    textTheme: TextTheme(
+      bodyMedium: TextStyle(
+        decoration: TextDecoration.none
+      ),
+      bodyLarge: TextStyle(
+          decoration: TextDecoration.none
+      ),
+      bodySmall: TextStyle(
+          decoration: TextDecoration.none
+      ),
+      titleLarge: TextStyle(
+          decoration: TextDecoration.none
+      ),
+      titleMedium: TextStyle(
+          decoration: TextDecoration.none
+      ),
+      titleSmall: TextStyle(
+          decoration: TextDecoration.none
+      ),
+      headlineLarge: TextStyle(
+          decoration: TextDecoration.none
+      ),
+      headlineMedium: TextStyle(
+          decoration: TextDecoration.none
+      ),
+      headlineSmall: TextStyle(
+          decoration: TextDecoration.none
+      ),
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.cardColor,
