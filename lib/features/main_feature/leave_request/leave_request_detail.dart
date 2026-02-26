@@ -632,7 +632,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                             FloatingPopupButton(
                               onPressed: () {
                                 Navigator.of(context).pop();
-                             },
+                              },
                             text: 'ยกเลิก',
                             foregroundColor: Colors.white,
                             backgroundColor: AppColors.primaryColor,
