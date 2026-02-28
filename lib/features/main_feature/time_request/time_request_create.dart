@@ -25,6 +25,7 @@ import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 import '../../../shared/widgets/utils/services/service_updater.dart';
+import '../../../shared/widgets/utils/utils.dart';
 
 String _formatBytes(int bytes, {int decimals = 2}) {
   if (bytes <= 0) return '0 B';
@@ -63,8 +64,11 @@ class TimeRequestCreate extends StatefulWidget {
 }
 
 class _TimeRequestCreateState extends State<TimeRequestCreate> {
+  int limitFileSize = 52428800;
+
   List<PlatformFile> allFiles = [];
   TimeDate? _selectDate;
+
   bool _submitted = false;
 
   final MenuController _menuController = MenuController();
@@ -112,6 +116,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthState>();
     final setting = authState.attendanceConfig;
+
     return AppScaffold(
         header: Header.subHeader(
             context,
@@ -153,7 +158,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                             ),
                           ),
                           Text(
-                            'รายละเอียดการลางาน',
+                            'รายละเอียดการเข้า-ออก',
                             style: TextStyle(
                               fontSize: 15,
                             ),
@@ -788,11 +793,12 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                         ),
                                       );
                                     },
-                                    child: (_submitted && setting!.requiredEvidenceFile && allFiles.isEmpty)
+                                    child: (_submitted && setting!.requiredEvidenceFile &&
+                                        (allFiles.isEmpty || allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize))
                                         ? Padding(
                                       padding: EdgeInsets.only(left: 13, top: 8),
                                       child: Text(
-                                        'กรุณาแนบไฟล์',
+                                        (allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize) ? 'ขนาดไฟล์รวมเกิน ${Utils.formatBytes(limitFileSize)}' : 'กรุณาแนบไฟล์',
                                         style: TextStyle(
                                           color: Colors.red,
                                           fontSize: 14,
@@ -919,247 +925,422 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                       // ),
                     ],
                   ),
-                  if (setting.requestNeedSignature) ... [
-                    Padding(
-                      padding: EdgeInsetsGeometry.symmetric(vertical: 20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Column(
-                            children: [
-                              SizedBox(
-                                width: double.infinity,
-                                height: 42,
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    setState(() {
-                                      _submitted = true;
-                                    });
-                                    if (_selectDate?.fromDate == null ||
-                                        _selectDate?.toDate == null ||
-                                        _selectDate?.startTime == null ||
-                                        _selectDate?.endTime == null ||
-                                        _isInvalidTimeRange()) {
-                                      return;
-                                    }
+                  // if (setting.requestNeedSignature) ... [
+                  //   Padding(
+                  //     padding: EdgeInsetsGeometry.symmetric(vertical: 20),
+                  //     child: Column(
+                  //       mainAxisAlignment: MainAxisAlignment.end,
+                  //       children: [
+                  //         Column(
+                  //           children: [
+                  //             SizedBox(
+                  //               width: double.infinity,
+                  //               height: 42,
+                  //               child: ElevatedButton.icon(
+                  //                 onPressed: () {
+                  //                   setState(() {
+                  //                     _submitted = true;
+                  //                   });
+                  //                   if (_selectDate?.fromDate == null ||
+                  //                       _selectDate?.toDate == null ||
+                  //                       _selectDate?.startTime == null ||
+                  //                       _selectDate?.endTime == null ||
+                  //                       _isInvalidTimeRange()) {
+                  //                     return;
+                  //                   }
+                  //
+                  //                   if (setting!.requiredRemark && remarkController.text.isEmpty) {
+                  //                     return;
+                  //                   }
+                  //
+                  //                   if (setting!.requiredEvidenceFile && allFiles.isEmpty) {
+                  //                     return;
+                  //                   }
+                  //
+                  //                   ServiceSignaturePopup(
+                  //                     title: 'ลายเซ็น',
+                  //                     buttonLabel: 'ส่ง',
+                  //                     fit: FlexFit.tight,
+                  //                     maxHeight: 700,
+                  //                     onSuccessResponse: (pngBytes, jsonData) {
+                  //                       if (_selectDate == null ||
+                  //                           _selectDate!.fromDate == null ||
+                  //                           _selectDate!.toDate == null) {
+                  //                         return;
+                  //                       }
+                  //                       final String? requestID = jsonData['request-id'] ?? '';
+                  //                       context.pop(
+                  //                         PendingAttendanceRequestModel(
+                  //                           id: requestID ?? '',
+                  //                           dateStart: _selectDate!.fromDate!,
+                  //                           dateEnd: _selectDate!.toDate!,
+                  //                         ),
+                  //                       );
+                  //                     },
+                  //                     infoWidget: Row(
+                  //                       spacing: 5,
+                  //                       children: [
+                  //                         SvgPicture.asset(
+                  //                           'assets/images/iicon.svg',
+                  //                           width: 15,
+                  //                           height: 15,
+                  //                         ),
+                  //                         Expanded(
+                  //                             child: Text.rich(
+                  //                                 TextSpan(
+                  //                                   text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                  //                                   children: [
+                  //                                     TextSpan(
+                  //                                       text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
+                  //                                       style: TextStyle(
+                  //                                         fontWeight: FontWeight.bold,
+                  //                                         decoration: TextDecoration.underline,
+                  //                                       ),
+                  //                                     ),
+                  //                                     TextSpan(
+                  //                                       text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                  //                                     ),
+                  //                                   ],
+                  //                                 )
+                  //                             )
+                  //                         )
+                  //                       ],
+                  //                     ),
+                  //                     required: true,
+                  //                     request: (pngByte) => TimeRequestService().timeRequestCreate(
+                  //                       TimeRequestModel(
+                  //                         fromDate: _selectDate!.fromDate,
+                  //                         toDate: _selectDate!.toDate,
+                  //                         startTime: _selectDate!.startTime,
+                  //                         endTime: _selectDate!.endTime,
+                  //                         files: allFiles,
+                  //                         remark: remarkController.text,
+                  //                       ),
+                  //                       pngByte!,
+                  //                     ),
+                  //                   ).showPopup(context);
+                  //
+                  //                   // trigger();
+                  //                 },
+                  //                 icon: SvgPicture.asset(
+                  //                   'assets/images/icon_send.svg',
+                  //                   height: 18,
+                  //                   width: 18,
+                  //                   colorFilter: ColorFilter.mode(
+                  //                     Colors.white,
+                  //                     BlendMode.srcIn,
+                  //                   ),
+                  //                 ),
+                  //                 label: Text(
+                  //                   'ส่ง',
+                  //                   style: TextStyle(
+                  //                     fontSize: 16,
+                  //                     color: Colors.white,
+                  //                   ),
+                  //                 ),
+                  //                 style: ElevatedButton.styleFrom(
+                  //                   disabledBackgroundColor: Colors.grey,
+                  //                   backgroundColor: AppColors.primaryColor,
+                  //                   shape: RoundedRectangleBorder(
+                  //                     borderRadius: BorderRadius.circular(30),
+                  //                   ),
+                  //                   elevation: 0,
+                  //                 ),
+                  //               ),
+                  //             )
+                  //           ],
+                  //         )
+                  //       ],
+                  //     )
+                  //   ),
+                  // ] else ...[
+                  //   Column(
+                  //     mainAxisAlignment: MainAxisAlignment.end,
+                  //     children: [
+                  //       ServiceUpdater(
+                  //         request: () => TimeRequestService().timeRequestCreate(
+                  //           TimeRequestModel(
+                  //             fromDate: _selectDate!.fromDate,
+                  //             toDate: _selectDate!.toDate,
+                  //             startTime: _selectDate!.startTime,
+                  //             endTime: _selectDate!.endTime,
+                  //             files: allFiles,
+                  //             remark: remarkController.text,
+                  //           ),
+                  //           null,
+                  //         ),
+                  //         onSuccess: () {
+                  //
+                  //         },
+                  //         onSuccessResponse: (jsonData) {
+                  //           if (_selectDate == null ||
+                  //               _selectDate!.fromDate == null ||
+                  //               _selectDate!.toDate == null) {
+                  //             return;
+                  //           }
+                  //           final String? requestID = jsonData['request-id'] ?? '';
+                  //           context.pop(
+                  //             PendingAttendanceRequestModel(
+                  //               id: requestID ?? '',
+                  //               dateStart: _selectDate!.fromDate!,
+                  //               dateEnd: _selectDate!.toDate!,
+                  //             ),
+                  //           );
+                  //         },
+                  //         builder: (trigger, state, errorMessage) {
+                  //           return Column(
+                  //             children: [
+                  //               SizedBox(
+                  //                 width: double.infinity,
+                  //                 height: 42,
+                  //                 child: ElevatedButton.icon(
+                  //                   onPressed: () {
+                  //                     setState(() {
+                  //                       _submitted = true;
+                  //                     });
+                  //                     if (_selectDate?.fromDate == null ||
+                  //                         _selectDate?.toDate == null ||
+                  //                         _selectDate?.startTime == null ||
+                  //                         _selectDate?.endTime == null ||
+                  //                         _isInvalidTimeRange()) {
+                  //                       return;
+                  //                     }
+                  //
+                  //                     if (setting!.requiredRemark && remarkController.text.isEmpty) {
+                  //                       return;
+                  //                     }
+                  //
+                  //                     if (setting!.requiredEvidenceFile && allFiles.isEmpty) {
+                  //                       return;
+                  //                     }
+                  //                      trigger();
+                  //                   },
+                  //                   icon: SvgPicture.asset(
+                  //                     'assets/images/create.svg',
+                  //                     height: 18,
+                  //                     width: 18,
+                  //                     colorFilter: const ColorFilter.mode(
+                  //                       Colors.white,
+                  //                       BlendMode.srcIn,
+                  //                     ),
+                  //                   ),
+                  //                   label: Row(
+                  //                     spacing: 10,
+                  //                     mainAxisAlignment: MainAxisAlignment.center,
+                  //                     mainAxisSize: MainAxisSize.min,
+                  //                     children: [
+                  //                       const Text(
+                  //                         'สร้าง',
+                  //                         style: TextStyle(
+                  //                           fontSize: 16,
+                  //                           color: Colors.white,
+                  //                         ),
+                  //                       ),
+                  //                       if (state == ServiceUpdatorState.loading)
+                  //                         CupertinoActivityIndicator(color: Colors.white)
+                  //                     ],
+                  //                   ),
+                  //                   style: ElevatedButton.styleFrom(
+                  //                     disabledBackgroundColor: Colors.grey,
+                  //                     backgroundColor: AppColors.primaryColor,
+                  //                     shape: RoundedRectangleBorder(
+                  //                       borderRadius: BorderRadius.circular(30),
+                  //                     ),
+                  //                     elevation: 0,
+                  //                   ),
+                  //                 ),
+                  //               ),
+                  //               SizedBox(
+                  //                   height: 25,
+                  //                   child: (state == ServiceUpdatorState.error) ?
+                  //                   Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                  //                       style: TextStyle(
+                  //                           color: Colors.red
+                  //                       )
+                  //                   ) : SizedBox()
+                  //               )
+                  //             ],
+                  //           );
+                  //         },
+                  //       )
+                  //     ],
+                  //   ),
+                  // ]
+                  ServiceUpdater(
+                      request: () =>  TimeRequestService().timeRequestCreate(
+                        TimeRequestModel(
+                          fromDate: _selectDate!.fromDate,
+                          toDate: _selectDate!.toDate,
+                          startTime: _selectDate!.startTime,
+                          endTime: _selectDate!.endTime,
+                          files: allFiles,
+                          remark: remarkController.text,
+                        ),
+                        null,
+                      ),
 
-                                    if (setting!.requiredRemark && remarkController.text.isEmpty) {
-                                      return;
-                                    }
-
-                                    if (setting!.requiredEvidenceFile && allFiles.isEmpty) {
-                                      return;
-                                    }
-
-                                    ServiceSignaturePopup(
-                                      title: 'ลายเซ็น',
-                                      buttonLabel: 'ส่ง',
-                                      fit: FlexFit.tight,
-                                      maxHeight: 700,
-                                      onSuccessResponse: (pngBytes, jsonData) {
-                                        if (_selectDate == null ||
-                                            _selectDate!.fromDate == null ||
-                                            _selectDate!.toDate == null) {
-                                          return;
-                                        }
-                                        final String? requestID = jsonData['request-id'] ?? '';
-                                        context.pop(
-                                          PendingAttendanceRequestModel(
-                                            id: requestID ?? '',
-                                            dateStart: _selectDate!.fromDate!,
-                                            dateEnd: _selectDate!.toDate!,
-                                          ),
-                                        );
-                                      },
-                                      infoWidget: Row(
-                                        spacing: 5,
-                                        children: [
-                                          SvgPicture.asset(
-                                            'assets/images/iicon.svg',
-                                            width: 15,
-                                            height: 15,
-                                          ),
-                                          Expanded(
-                                              child: Text.rich(
-                                                  TextSpan(
-                                                    text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
-                                                    children: [
-                                                      TextSpan(
-                                                        text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.bold,
-                                                          decoration: TextDecoration.underline,
-                                                        ),
-                                                      ),
-                                                      TextSpan(
-                                                        text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
-                                                      ),
-                                                    ],
-                                                  )
-                                              )
-                                          )
-                                        ],
-                                      ),
-                                      required: true,
-                                      request: (pngByte) => TimeRequestService().timeRequestCreate(
-                                        TimeRequestModel(
-                                          fromDate: _selectDate!.fromDate,
-                                          toDate: _selectDate!.toDate,
-                                          startTime: _selectDate!.startTime,
-                                          endTime: _selectDate!.endTime,
-                                          files: allFiles,
-                                          remark: remarkController.text,
-                                        ),
-                                        pngByte!,
-                                      ),
-                                    ).showPopup(context);
-
-                                    // trigger();
-                                  },
-                                  icon: SvgPicture.asset(
-                                    'assets/images/icon_send.svg',
-                                    height: 18,
-                                    width: 18,
-                                    colorFilter: ColorFilter.mode(
-                                      Colors.white,
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                  label: Text(
-                                    'ส่ง',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    disabledBackgroundColor: Colors.grey,
-                                    backgroundColor: AppColors.primaryColor,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                ),
-                              )
-                            ],
-                          )
-                        ],
-                      )
-                    ),
-                  ] else ...[
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ServiceUpdater(
-                          request: () => TimeRequestService().timeRequestCreate(
-                            TimeRequestModel(
-                              fromDate: _selectDate!.fromDate,
-                              toDate: _selectDate!.toDate,
-                              startTime: _selectDate!.startTime,
-                              endTime: _selectDate!.endTime,
-                              files: allFiles,
-                              remark: remarkController.text,
-                            ),
-                            null,
+                      onSuccessResponse: (jsonData) {
+                        if (_selectDate == null ||
+                            _selectDate!.fromDate == null ||
+                            _selectDate!.toDate == null) {
+                          return;
+                        }
+                        final String? requestID = jsonData['request-id'] ?? '';
+                        context.pop(
+                          PendingAttendanceRequestModel(
+                            id: requestID ?? '',
+                            dateStart: _selectDate!.fromDate!,
+                            dateEnd: _selectDate!.toDate!,
                           ),
-                          onSuccess: () {
+                        );
+                      },
 
-                          },
-                          onSuccessResponse: (jsonData) {
-                            if (_selectDate == null ||
-                                _selectDate!.fromDate == null ||
-                                _selectDate!.toDate == null) {
-                              return;
-                            }
-                            final String? requestID = jsonData['request-id'] ?? '';
-                            context.pop(
-                              PendingAttendanceRequestModel(
-                                id: requestID ?? '',
-                                dateStart: _selectDate!.fromDate!,
-                                dateEnd: _selectDate!.toDate!,
-                              ),
-                            );
-                          },
-                          builder: (trigger, state, errorMessage) {
-                            return Column(
+                      builder: (trigger, state, errorMessage) {
+                        return Padding(
+                            padding: EdgeInsetsGeometry.symmetric(vertical: 20),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 42,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      setState(() {
-                                        _submitted = true;
-                                      });
-                                      if (_selectDate?.fromDate == null ||
-                                          _selectDate?.toDate == null ||
-                                          _selectDate?.startTime == null ||
-                                          _selectDate?.endTime == null ||
-                                          _isInvalidTimeRange()) {
-                                        return;
-                                      }
+                                Column(
+                                  children: [
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 42,
+                                      child: ElevatedButton.icon(
+                                        onPressed: (state != .loading) ? () {
+                                          setState(() {
+                                            _submitted = true;
+                                          });
+                                          if (_selectDate?.fromDate == null ||
+                                              _selectDate?.toDate == null ||
+                                              _selectDate?.startTime == null ||
+                                              _selectDate?.endTime == null ||
+                                              _isInvalidTimeRange()) {
+                                            return;
+                                          }
 
-                                      if (setting!.requiredRemark && remarkController.text.isEmpty) {
-                                        return;
-                                      }
+                                          if (setting!.requiredRemark && remarkController.text.isEmpty) {
+                                            return;
+                                          }
 
-                                      if (setting!.requiredEvidenceFile && allFiles.isEmpty) {
-                                        return;
-                                      }
-                                       trigger();
-                                    },
-                                    icon: SvgPicture.asset(
-                                      'assets/images/create.svg',
-                                      height: 18,
-                                      width: 18,
-                                      colorFilter: const ColorFilter.mode(
-                                        Colors.white,
-                                        BlendMode.srcIn,
-                                      ),
-                                    ),
-                                    label: Row(
-                                      spacing: 10,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          'สร้าง',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.white,
+                                          if (setting!.requiredEvidenceFile && allFiles.isEmpty) {
+                                            return;
+                                          }
+
+                                          if (allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize) return;
+
+                                          if (setting!.requestNeedSignature) {
+                                            ServiceSignaturePopup(
+                                              title: 'ลายเซ็น',
+                                              buttonLabel: 'ส่ง',
+                                              fit: FlexFit.tight,
+                                              maxHeight: 700,
+                                              onSuccessResponse: (pngBytes, jsonData) {
+                                                if (_selectDate == null ||
+                                                    _selectDate!.fromDate == null ||
+                                                    _selectDate!.toDate == null) {
+                                                  return;
+                                                }
+                                                final String? requestID = jsonData['request-id'] ?? '';
+                                                context.pop(
+                                                  PendingAttendanceRequestModel(
+                                                    id: requestID ?? '',
+                                                    dateStart: _selectDate!.fromDate!,
+                                                    dateEnd: _selectDate!.toDate!,
+                                                  ),
+                                                );
+                                              },
+                                              infoWidget: Row(
+                                                spacing: 5,
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    'assets/images/iicon.svg',
+                                                    width: 15,
+                                                    height: 15,
+                                                  ),
+                                                  Expanded(
+                                                      child: Text.rich(
+                                                          TextSpan(
+                                                            text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                                                            children: [
+                                                              TextSpan(
+                                                                text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
+                                                                style: TextStyle(
+                                                                  fontWeight: FontWeight.bold,
+                                                                  decoration: TextDecoration.underline,
+                                                                ),
+                                                              ),
+                                                              TextSpan(
+                                                                text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                                                              ),
+                                                            ],
+                                                          )
+                                                      )
+                                                  )
+                                                ],
+                                              ),
+                                              required: true,
+                                              request: (pngByte) => TimeRequestService().timeRequestCreate(
+                                                TimeRequestModel(
+                                                  fromDate: _selectDate!.fromDate,
+                                                  toDate: _selectDate!.toDate,
+                                                  startTime: _selectDate!.startTime,
+                                                  endTime: _selectDate!.endTime,
+                                                  files: allFiles,
+                                                  remark: remarkController.text,
+                                                ),
+                                                pngByte!,
+                                              ),
+                                            ).showPopup(context);
+                                          } else {
+                                            trigger();
+                                          }
+                                        } : null,
+                                        icon: SvgPicture.asset(
+                                          'assets/images/icon_send.svg',
+                                          height: 18,
+                                          width: 18,
+                                          colorFilter: ColorFilter.mode(
+                                            Colors.white,
+                                            BlendMode.srcIn,
                                           ),
                                         ),
-                                        if (state == ServiceUpdatorState.loading)
-                                          CupertinoActivityIndicator(color: Colors.white)
-                                      ],
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      disabledBackgroundColor: Colors.grey,
-                                      backgroundColor: AppColors.primaryColor,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
+                                        label: Row(
+                                          spacing: 6,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'ส่ง',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            if (state == .loading) CupertinoActivityIndicator(color: Colors.white),
+                                          ],
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          disabledBackgroundColor: Colors.grey,
+                                          backgroundColor: AppColors.primaryColor,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(30),
+                                          ),
+                                          elevation: 0,
+                                        ),
                                       ),
-                                      elevation: 0,
                                     ),
-                                  ),
-                                ),
-                                SizedBox(
-                                    height: 25,
-                                    child: (state == ServiceUpdatorState.error) ?
-                                    Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
-                                        style: TextStyle(
-                                            color: Colors.red
-                                        )
-                                    ) : SizedBox()
+                                    if (state == ServiceUpdatorState.error)
+                                      const Text(
+                                        'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
+                                        style: TextStyle(color: Colors.red),
+                                      )
+                                  ],
                                 )
                               ],
-                            );
-                          },
-                        )
-                      ],
-                    ),
-                  ]
+                            )
+                        );
+                      }
+                  )
                 ],
               )
             ),

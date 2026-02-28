@@ -18,6 +18,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../services/time_request/time_request_model.dart';
 import '../../../shared/widgets/utils/popup/date_filter_popup.dart';
+import '../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
+import '../../../shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
 import '../../../shared/widgets/utils/services/service_updater_promax.dart';
 
 class TimeRequestPage extends StatefulWidget{
@@ -35,6 +37,10 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
 
   DateTime? filterStart;
   DateTime? filterEnd;
+
+  DateTime? filterStartAllow;
+  DateTime? filterEndAllow;
+
 
   @override
   Widget build(BuildContext context) {
@@ -99,8 +105,15 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                 case 0: pendingList = PendingAttendanceRequestModel.getList(val['pending']);
                                 case 1: recentList = AttendanceRequestModel.getList(val['recent']);
                                 case 2: {
-                                  filterStart = DateTime.tryParse(val['start']);
-                                  filterEnd = DateTime.tryParse(val['end']);
+                                  final start = DateTime.tryParse(val['start']);
+                                  final end = DateTime.tryParse(val['end']);
+
+                                  if (start != null) {
+                                    filterStartAllow = DateTime(start.year, start.month, 1);
+                                  }
+                                  if (end != null) {
+                                    filterEndAllow = DateTime(end.year, end.month + 1, 0);
+                                  }
                                 }
                               }
                             });
@@ -159,20 +172,40 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                                   subTitle: 'หมายเลขคำขอ: ${m.id}',
                                                   weightTitle: FontWeight.w500,
                                                   onPressed: () async {
-                                                    PushPopup(
-                                                      title: 'รายละเอียดคำขอ',
-                                                      fit: FlexFit.tight,
-                                                      maxHeight: 750,
+                                                    // PushPopup(
+                                                    //   title: 'รายละเอียดคำขอ',
+                                                    //   fit: FlexFit.tight,
+                                                    //   maxHeight: 750,
+                                                    //   builder: (context) {
+                                                    //     return TimeRequestPopupDetail(
+                                                    //       id: m.id,
+                                                    //       onCancel: () {
+                                                    //         setState(() {
+                                                    //           pendingList.removeWhere((item) => item.id == m.id);
+                                                    //         });
+                                                    //       },
+                                                    //       onResend: () { },
+                                                    //     );
+                                                    //   }
+                                                    // ).showPopup(context);
+
+                                                    DynamicPushPopup(
+                                                      initialConfig: PopupConfig(
+                                                        title: 'รายละเอียด',
+                                                        fit: FlexFit.tight,
+                                                        maxHeight: 750,
+                                                      ),
                                                       builder: (context) {
                                                         return TimeRequestPopupDetail(
-                                                          id: m.id,
-                                                          onCancel: () {
-                                                            setState(() {
-                                                              pendingList.removeWhere((item) => item.id == m.id);
-                                                            });
-                                                          }
-                                                        );
-                                                      }
+                                                            id: m.id,
+                                                            onCancel: () {
+                                                              setState(() {
+                                                                pendingList.removeWhere((item) => item.id == m.id);
+                                                              });
+                                                            },
+                                                            onResend: () { },
+                                                          );
+                                                      }, // โยนหน้า 1 เข้าไป
                                                     ).showPopup(context);
                                                   },
                                                 );
@@ -202,9 +235,18 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                           InkWell(
                                             onTap: () {
                                               DateFilterPopup(
-                                                maxHeight: 750,
-                                                allowDateFrom: filterStart,
-                                                allowDateTo: filterEnd,
+                                                  maxHeight: 750,
+                                                  allowDateFrom: filterStartAllow,
+                                                  allowDateTo: filterEndAllow,
+                                                  currentDateFrom: filterStart,
+                                                  currentDateTo: filterEnd,
+                                                  onSubmit: (start, end) {
+                                                    setState(() {
+                                                      filterStart = start;
+                                                      filterEnd = end;
+                                                      trigger(1);
+                                                    });
+                                                  }
                                               ).showPopup(context);
                                             },
                                             child: Row(
@@ -245,18 +287,58 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                               subTitle: 'หมายเลขคำขอ: ${m.id}',
                                               weightTitle: FontWeight.w500,
                                               onPressed: () async {
-                                                PushPopup(
-                                                    title: 'รายละเอียดคำขอ',
+                                                // PushPopup(
+                                                //     title: 'รายละเอียดคำขอ',
+                                                //     fit: FlexFit.tight,
+                                                //     maxHeight: 750,
+                                                //     builder: (context) {
+                                                //       return TimeRequestPopupDetail(
+                                                //         id: m.id,
+                                                //         onCancel: () {
+                                                //
+                                                //         },
+                                                //         onResend: () {
+                                                //           setState(() {
+                                                //             recentList.removeWhere((item) => item.id == m.id);
+                                                //             pendingList.insert(0,
+                                                //               PendingAttendanceRequestModel(
+                                                //                 id: m.id,
+                                                //                 dateStart: m.dateStart,
+                                                //                 dateEnd: m.dateEnd,
+                                                //               )
+                                                //             );
+                                                //           });
+                                                //         },
+                                                //       );
+                                                //     }
+                                                // ).showPopup(context);
+
+                                                DynamicPushPopup(
+                                                  initialConfig: PopupConfig(
+                                                    title: 'รายละเอียด',
                                                     fit: FlexFit.tight,
                                                     maxHeight: 750,
-                                                    builder: (context) {
-                                                      return TimeRequestPopupDetail(
-                                                        id: m.id,
-                                                        onCancel: () {
+                                                  ),
+                                                  builder: (context) {
+                                                    return TimeRequestPopupDetail(
+                                                      id: m.id,
+                                                      onCancel: () {
 
-                                                        }
-                                                      );
-                                                    }
+                                                      },
+                                                      onResend: () {
+                                                        setState(() {
+                                                          recentList.removeWhere((item) => item.id == m.id);
+                                                          pendingList.insert(0,
+                                                              PendingAttendanceRequestModel(
+                                                                id: m.id,
+                                                                dateStart: m.dateStart,
+                                                                dateEnd: m.dateEnd,
+                                                              )
+                                                          );
+                                                        });
+                                                      },
+                                                    );
+                                                  }, // โยนหน้า 1 เข้าไป
                                                 ).showPopup(context);
                                               },
                                             );

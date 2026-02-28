@@ -1,10 +1,12 @@
 import 'package:attendance_system/services/time_request/time_request_model.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../core/network/api_client.dart';
+import '../leave/leave_model.dart';
 
 String formatTimeOfDay(TimeOfDay time) {
   return '${time.hour.toString().padLeft(2, '0')}:'
@@ -62,6 +64,46 @@ class TimeRequestService {
     return dio.post(
       '/api/attendance_request/create',
       data: FormData.fromMap(data),
+    );
+  }
+
+  Future<Response<dynamic>> timeRequestResend(String id, String remark, List<NetworkFile> oldFiles, List<PlatformFile> files, Uint8List? signature) async {
+
+    List<MultipartFile> multipartFiles = [];
+
+    for (var file in files) {
+      if (kIsWeb) {
+        multipartFiles.add(
+          MultipartFile.fromBytes(
+            file.bytes!,
+            filename: file.name,
+          ),
+        );
+      } else {
+        if (file.path != null) {
+          multipartFiles.add(
+            await MultipartFile.fromFile(
+              file.path!,
+              filename: file.name,
+            ),
+          );
+        }
+      }
+    }
+
+    return dio.put(
+        'api/attendance_request/resend',
+        data: {
+          'id': id,
+          'remark': remark,
+          'old-files': [...oldFiles.map((f) => f.fileName)],
+          'files': multipartFiles,
+          'signature': (signature != null) ? MultipartFile.fromBytes(
+            signature,
+            filename: "signature.png",
+            contentType: DioMediaType.parse("image/png"),
+          ) : null
+        }
     );
   }
 
