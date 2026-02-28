@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:dio/dio.dart';
+
 class Utils {
   static String formatBytes(int bytes, {int decimals = 2}) {
     if (bytes <= 0) return '0 B';
@@ -27,5 +29,19 @@ class Utils {
     int max = pow(10, digits).toInt() - 1;   // largest number with N digits
 
     return min + random.nextInt(max - min + 1);
+  }
+
+  static Future<Response> mockResponse({int delayed = 200, int statusCode = 200, Map<String, dynamic> data = const {}}) async {
+
+    await Future.delayed(
+      Duration(milliseconds: delayed),
+    );
+
+    return Response(
+
+      requestOptions: RequestOptions(path: '/mock/data'),
+      statusCode: statusCode,
+      data: data,
+    );
   }
 }

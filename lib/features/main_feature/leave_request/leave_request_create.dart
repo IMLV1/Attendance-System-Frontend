@@ -1,4 +1,5 @@
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
@@ -8,6 +9,7 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,16 +33,7 @@ class LeaveRequestCreate extends StatefulWidget {
 
 class _LeaveRequestPage extends State<LeaveRequestCreate> {
 
-  final Map<String, String> leaveNames = {
-    'sick': 'ลาป่วย',
-    'personal': 'ลากิจส่วนตัว',
-    'vacation': 'ลาพักผ่อน',
-    'maternity': 'ลาคลอดบุตร',
-    'paternity': 'ลาช่วยเหลือภริยาคลอดบุตร',
-    'parental': 'ลากิจเพื่อเลี้ยงดูบุตร'
-  };
-
-  String? leaveType;
+  LeaveType? leaveType;
   LeaveSetting? setting;
   LeaveDate? leaveDate;
 
@@ -115,20 +108,19 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                         SeparatorCard(
                                                           children: [
                                                             utils.TextButton(
-                                                              label: leaveType != null ? leaveNames[leaveType] ?? '' : 'เลือกประเภทการลา',
+                                                              label: leaveType?.display ?? 'เลือกประเภทการลา',
                                                               color: leaveType == null ? Color(0xFF7D7D7D) : Colors.black,
                                                               onPressed: () async {
                                                                 /// TODO: Select Leave Request
-                                                                final result = await Navigator.of(context).push<(String? leaveType, LeaveSetting? setting)>(
+                                                                final leaveType = await Navigator.of(context).push<LeaveType?>(
                                                                   MaterialPageRoute(
-                                                                    builder: (_) => const LeaveType(),
+                                                                    builder: (_) => const SelectLeaveType(),
                                                                   ),
                                                                 );
-                                                                if (result != null) {
-                                                                  final (leaveType, setting) = result;
+                                                                if (leaveType != null) {
                                                                   setState(() {
                                                                     this.leaveType = leaveType;
-                                                                    this.setting = setting;
+                                                                    setting = leaveType.getSetting(context);
 
                                                                     leaveDate = null;
                                                                     _textEditingController.text = '';
@@ -164,7 +156,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                         children: [
                                                                           TextSpan(
                                                                             text:
-                                                                            'คุณใช้สิทธิ์$leaveTypeไปแล้ว 2 วัน และยังเหลือสิทธิ์ลา$leaveTypeอีก 58 วัน ',
+                                                                            'คุณใช้สิทธิ์${leaveType!.display}ไปแล้ว 2 วัน และยังเหลือสิทธิ์ลา${leaveType!.display}อีก 58 วัน ',
                                                                           ),
                                                                           TextSpan(
                                                                             text: 'ดูข้อมูลเพิ่มเติม',
@@ -324,7 +316,8 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                         )
                                                       ],
                                                     ),
-                                                    if (leaveType != null && setting!.specifyRemark) TextField(
+                                                    if (leaveType != null && setting!.specifyRemark)
+                                                      TextField(
                                                           controller: _textEditingController,
                                                           maxLines: 1,
                                                           decoration: InputDecoration(
@@ -350,6 +343,13 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                               borderSide: BorderSide.none,
                                                             ),
                                                             errorBorder: OutlineInputBorder(
+                                                              borderRadius: BorderRadius.circular(22),
+                                                              borderSide: BorderSide(
+                                                                color: Colors.red,
+                                                                width: 1.5,
+                                                              ),
+                                                            ),
+                                                            focusedErrorBorder: OutlineInputBorder(
                                                               borderRadius: BorderRadius.circular(22),
                                                               borderSide: BorderSide(
                                                                 color: Colors.red,
@@ -624,100 +624,119 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                               )
                             ]
                         ),
-                        Padding(
-                          padding: EdgeInsetsGeometry.symmetric(vertical: 20),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Column(
+
+                        ServiceUpdater(
+                          request: () => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles, null),
+                          onSuccessResponse: (jsonData) {
+                            final String? requestID = jsonData['request-id'] ?? '';
+                            context.pop((requestID, leaveType, leaveDate!.fromDate));
+                          },
+                          builder: (trigger, state, errorMessage) {
+                            return Padding(
+                                padding: EdgeInsetsGeometry.symmetric(vertical: 20),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 42,
-                                      child: ElevatedButton.icon(
-                                        onPressed: (leaveType != null) ? () {
-                                          setState(() {
-                                            submitted = true;
-                                          });
-                                          if (leaveDate == null) return;
+                                    Column(
+                                      children: [
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 42,
+                                          child: ElevatedButton.icon(
+                                            onPressed: (leaveType != null && state != .loading) ? () {
+                                              setState(() {
+                                                submitted = true;
+                                              });
+                                              if (leaveDate == null) return;
 
-                                          if (setting!.requiredRemark && _textEditingController.text.isEmpty) return;
-                                          if (setting!.requiredEvidenceFile && allFiles.isEmpty) return;
+                                              if (setting!.requiredRemark && _textEditingController.text.isEmpty) return;
+                                              if (setting!.requiredEvidenceFile && allFiles.isEmpty) return;
 
-                                          ServiceSignaturePopup(
-                                            title: 'ลายเซ็น',
-                                            buttonLabel: 'ส่ง',
-                                            fit: FlexFit.tight,
-                                            maxHeight: 700,
-                                            onSuccessResponse: (pngBytes, jsonData) {
-                                              final String? requestID = jsonData['request-id'] ?? '';
-                                              context.pop((requestID, leaveType, leaveDate!.fromDate));
-                                            },
-                                            infoWidget: Row(
-                                              spacing: 5,
+                                              if (setting!.requestNeedSignature) {
+                                                ServiceSignaturePopup(
+                                                  title: 'ลายเซ็น',
+                                                  buttonLabel: 'ส่ง',
+                                                  fit: FlexFit.tight,
+                                                  maxHeight: 700,
+                                                  onSuccessResponse: (pngBytes, jsonData) {
+                                                    final String? requestID = jsonData['request-id'] ?? '';
+                                                    context.pop((requestID, leaveType, leaveDate!.fromDate));
+                                                  },
+                                                  infoWidget: Row(
+                                                    spacing: 5,
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        'assets/images/iicon.svg',
+                                                        width: 15,
+                                                        height: 15,
+                                                      ),
+                                                      Expanded(
+                                                          child: Text.rich(
+                                                              TextSpan(
+                                                                text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
+                                                                    style: TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      decoration: TextDecoration.underline,
+                                                                    ),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                                                                  ),
+                                                                ],
+                                                              )
+                                                          )
+                                                      )
+                                                    ],
+                                                  ),
+                                                  required: true,
+                                                  request: (pngByte) => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles, pngByte!),
+                                                ).showPopup(context);
+                                              } else {
+                                                trigger();
+                                              }
+                                            } : null,
+                                            icon: SvgPicture.asset(
+                                              'assets/images/icon_send.svg',
+                                              height: 18,
+                                              width: 18,
+                                              colorFilter: ColorFilter.mode(
+                                                Colors.white,
+                                                BlendMode.srcIn,
+                                              ),
+                                            ),
+                                            label: Row(
+                                              spacing: 6,
+                                              mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                SvgPicture.asset(
-                                                  'assets/images/iicon.svg',
-                                                  width: 15,
-                                                  height: 15,
+                                                Text(
+                                                  'ส่ง',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.white,
+                                                  ),
                                                 ),
-                                                Expanded(
-                                                    child: Text.rich(
-                                                        TextSpan(
-                                                          text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
-                                                          children: [
-                                                            TextSpan(
-                                                              text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
-                                                              style: TextStyle(
-                                                                fontWeight: FontWeight.bold,
-                                                                decoration: TextDecoration.underline,
-                                                              ),
-                                                            ),
-                                                            TextSpan(
-                                                              text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
-                                                            ),
-                                                          ],
-                                                        )
-                                                    )
-                                                )
+                                                if (state == .loading) CupertinoActivityIndicator(color: Colors.white),
                                               ],
                                             ),
-                                            required: true,
-                                            request: (pngByte) => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles, pngByte!),
-                                          ).showPopup(context);
-
-                                          // trigger();
-                                        } : null,
-                                        icon: SvgPicture.asset(
-                                          'assets/images/icon_send.svg',
-                                          height: 18,
-                                          width: 18,
-                                          colorFilter: ColorFilter.mode(
-                                            Colors.white,
-                                            BlendMode.srcIn,
+                                            style: ElevatedButton.styleFrom(
+                                              disabledBackgroundColor: Colors.grey,
+                                              backgroundColor: AppColors.primaryColor,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(30),
+                                              ),
+                                              elevation: 0,
+                                            ),
                                           ),
-                                        ),
-                                        label: Text(
-                                          'ส่ง',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          disabledBackgroundColor: Colors.grey,
-                                          backgroundColor: AppColors.primaryColor,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(30),
-                                          ),
-                                          elevation: 0,
-                                        ),
-                                      ),
+                                        )
+                                      ],
                                     )
                                   ],
                                 )
-                              ],
-                            )
+                            );
+                          }
                         )
                       ],
                     )

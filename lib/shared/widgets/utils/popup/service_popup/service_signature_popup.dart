@@ -87,7 +87,6 @@ class ServiceSignaturePopup {
         }
       },
       builder: (trigger, state, errorMessage) {
-
         return StatefulBuilder(
 
           builder: (context, setState) {
@@ -185,6 +184,7 @@ class ServiceSignaturePopup {
                                 arrow: state == ServiceUpdatorState.loading,
                                 arrowIcon: CupertinoActivityIndicator(),
                                 onPressed: imported == null ? null : () {
+                                  controller.clear();
                                   setState(() {
                                     current = imported;
                                   });
@@ -238,6 +238,189 @@ class ServiceSignaturePopup {
         );
       }
     ).showPopup(context);
+  }
+}
+
+
+class SignaturePage extends StatefulWidget {
+
+  final ServiceUpdatorState state;
+  final Widget? infoWidget;
+  final bool importSignature;
+  final Uint8List? current;
+
+  const SignaturePage({super.key, this.infoWidget, required this.importSignature, this.current, required this.state});
+
+  @override
+  State<StatefulWidget> createState() => _SignaturePageState();
+}
+
+class _SignaturePageState extends State<SignaturePage> {
+
+  Uint8List? current;
+  Uint8List? imported;
+
+  String? error;
+
+  final SignatureController controller = SignatureController(
+    penStrokeWidth: 3,
+    penColor: Colors.black,
+    exportBackgroundColor: Colors.white,
+  );
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    current = widget.current;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    controller.onDrawStart = () {
+      setState(() {
+        current = null;
+      });
+    };
+
+    return Column(
+      spacing: 15,
+      children: [
+        Column(
+          spacing: 5,
+          children: [
+            Padding(
+              padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  InkWell(
+                    child: Text(
+                      'แก้ไข',
+                      style: TextStyle(
+                          color: Color(0xFF626262),
+                          fontSize: 17
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        current = null;
+                        controller.clear();
+                      });
+                    },
+                  )
+                ],
+              ),
+            ),
+            Container(
+              height: 250,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(
+                    strokeAlign: BorderSide.strokeAlignOutside,
+                    color: error == null ? Colors.grey : Colors.red
+                ),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Stack(
+                children: [
+                  if (current != null)
+                    Center(
+                      child: Image.memory(
+                        current!,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  Signature(
+                    controller: controller,
+                    backgroundColor: Colors.transparent,
+                  ),
+                ],
+              ),
+            ),
+            if (error != null)Text(
+              error!,
+              textAlign: TextAlign.start,
+              style: TextStyle(
+                  color: Colors.red
+              ),
+            ),
+            ?widget.infoWidget
+          ],
+        ),
+        if (widget.importSignature)
+          ServiceUpdater(
+            request: () => SignatureService().get(),
+            onSuccessResponse: (pngBytes) {
+              setState(() {
+                imported = pngBytes;
+              });
+            },
+            fetchOnInit: true,
+            builder: (trigger2, state2, errorMessage2) {
+
+              return Column(
+                children: [
+                  SeparatorCard(
+                    children: [
+                      IconTextButton(
+                        icon: 'icon_signature.svg',
+                        label: 'นำเข้าลายเซ็น',
+                        color: imported == null ? AppColors.buttonDisable : AppColors.primaryColor,
+                        arrow: widget.state == ServiceUpdatorState.loading,
+                        arrowIcon: CupertinoActivityIndicator(),
+                        onPressed: imported == null ? null : () {
+                          controller.clear();
+                          setState(() {
+                            current = imported;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+
+                  if (imported == null)
+                    Padding(
+                        padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
+                        child: Row(
+                          spacing: 6,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                                child: Text.rich(
+                                    TextSpan(
+                                      text: 'เพิ่มลายเซ็นเพื่อใช้ฟีเจอร์ \'นำเข้าลายเซ็น\' ในหน้า ',
+                                      style: TextStyle(
+                                        color: Color(0xFF7D7D7D),
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: 'การตั้งค่า > เพิ่มลายเซ็น',
+                                          style: TextStyle(
+                                            color: Color(0xFF7D7D7D),
+                                            decorationColor: Color(0xFF7D7D7D),
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                )
+                            )
+                          ],
+                        )
+                    )
+                ],
+              );
+            },
+          ),
+        if (widget.state == ServiceUpdatorState.error)
+          const Text(
+            'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
+            style: TextStyle(color: Colors.red),
+          ),
+      ],
+    );
   }
 
 }

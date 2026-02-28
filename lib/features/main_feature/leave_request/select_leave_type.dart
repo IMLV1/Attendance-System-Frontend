@@ -1,4 +1,5 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -7,8 +8,8 @@ import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
-class LeaveType extends StatelessWidget {
-  const LeaveType({super.key});
+class SelectLeaveType extends StatelessWidget {
+  const SelectLeaveType({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +36,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลาป่วย',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('sick', config!.sick));
+                          Navigator.pop(context, LeaveType.sick);
                         },
                       ),
                       AppButton(
@@ -43,7 +44,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลากิจส่วนตัว',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('personal', config!.personal));
+                          Navigator.pop(context, LeaveType.personal);
                         },
                       ),
                       AppButton(
@@ -51,7 +52,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลาพักผ่อน',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('vacation', config!.vacation));
+                          Navigator.pop(context, LeaveType.vacation);
                         },
                       ),
                       AppButton(
@@ -59,7 +60,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลาคลอดบุตร',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('maternity', config!.maternity));
+                          Navigator.pop(context, LeaveType.maternity);
                         },
                       ),
                       AppButton(
@@ -67,7 +68,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลาช่วยเหลือภริยาคลอดบุตร',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('paternity', config!.paternity));
+                          Navigator.pop(context, LeaveType.paternity);
                         },
                       ),
                       AppButton(
@@ -75,7 +76,7 @@ class LeaveType extends StatelessWidget {
                         title: 'ลากิจเพื่อเลี้ยงดูบุตร',
                         weightTitle: FontWeight.w500,
                         onPressed: () {
-                          Navigator.pop(context, ('parental', config!.parental));
+                          Navigator.pop(context, LeaveType.parental);
                         },
                       ),
                     ],

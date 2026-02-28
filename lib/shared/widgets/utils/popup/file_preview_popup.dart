@@ -17,7 +17,7 @@ class FilePreviewPopup {
 
   void showPopup(BuildContext context) {
     _controller = AnimationController(
-      vsync: Navigator.of(context),
+      vsync: Navigator.of(context, rootNavigator: true),
       duration: const Duration(milliseconds: 250),
     );
 
@@ -25,8 +25,6 @@ class FilePreviewPopup {
       parent: _controller,
       curve: Curves.easeInOut,
     );
-
-    print(Theme.of(context).textTheme?.bodyMedium?.decoration ?? '');
 
     final double topGap = MediaQuery.of(context).padding.top + 3 * kToolbarHeight;
 
@@ -232,7 +230,7 @@ class FilePreviewPopup {
       ),
     );
 
-    Overlay.of(context).insert(_overlayEntry!);
+    Overlay.of(context, rootOverlay: true).insert(_overlayEntry!);
     _controller.forward(); // 🔥 Fade in
   }
 

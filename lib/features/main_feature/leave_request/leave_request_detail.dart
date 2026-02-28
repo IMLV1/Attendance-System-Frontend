@@ -1,4 +1,8 @@
+import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_request_resend.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
+import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
@@ -6,6 +10,7 @@ import 'package:attendance_system/shared/widgets/utils/downloader.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/file_preview_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
@@ -30,7 +35,7 @@ Future<Response> mockData() async {
     data: {
 
       'request-detail': {
-        'leave-type': 'ลาป่วย',
+        'leave-type': 'sick',
         'date-from': '2026-02-18T18:00:45.621Z',
         'date-to': '2026-02-18T18:00:45.621Z',
         'from-date-morning': true,
@@ -53,7 +58,7 @@ Future<Response> mockData() async {
         'request-date': '2026-02-18T18:00:45.621Z',
       },
       'approve-detail': {
-        'status': 'approved',
+        'status': 'rejected',
         'approve-role': 'คณบดี',
         'approver': 'ด้วยดี ตามไท',
         'reason': 'ดีมาก',
@@ -79,10 +84,14 @@ String _formatTime(TimeOfDay? time) {
 
 class LeaveRequestDetail extends StatefulWidget {
   final String requestID;
+  final void Function() onCancel;
+  final void Function() onResend;
 
   const LeaveRequestDetail({
     super.key,
     required this.requestID,
+    required this.onCancel,
+    required this.onResend,
   });
 
   @override
@@ -191,8 +200,8 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppButton(
-                      icon: 'icon_time_request.svg',
-                      title: requestDetail?.requestDetail.leaveType ?? '---',
+                      icon: requestDetail?.requestDetail.leaveType.icon ?? 'leave.svg',
+                      title: requestDetail?.requestDetail.leaveType.display ?? '---',
                       bg: Colors.white,
                       weightTitle: FontWeight.w500,
                       subTitle: 'หมายเลขตำขอ ${widget.requestID}',
@@ -475,6 +484,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                         borderRadius: BorderRadius.circular(8),
                         onTap: () {
                           FilePreviewPopup(
+
                             file: file
                           ).showPopup(context);
                         },
@@ -510,6 +520,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                                 ) :
                                 MenuAnchor(
                                   controller: menuController,
+                                  useRootOverlay: true,
                                   builder: (context, controller, child) {
                                     return InkWell(
                                       overlayColor: WidgetStatePropertyAll(Colors.transparent),
@@ -616,7 +627,9 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                   }),
                 ],
               ),
-              SeparatorCard(
+
+              if (requestDetail!.approveDetail.status == .pending)
+                SeparatorCard(
                 children: [
                   IconTextButton(
                     icon: 'cancel.svg',
@@ -626,25 +639,75 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                     onPressed: () async {
                       FloatingPopup(
                         title: 'ยกเลิกคำขอ',
-                        description: 'คุณยืนยันที่จะลบคำขอ${requestDetail!.requestDetail.leaveType} หมายเลข: ${widget.requestID} หรือไม่? \n\nการดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
-                        buttons: (setError, context) {
+                        description: 'คุณยืนยันที่จะลบคำขอ${requestDetail!.requestDetail.leaveType} หมายเลข: ${widget.requestID} หรือไม่? การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                        buttons: (setError, context2) {
                           return [
                             FloatingPopupButton(
                               onPressed: () {
-                                Navigator.of(context).pop();
+                                Navigator.of(context2).pop();
                               },
                             text: 'ยกเลิก',
                             foregroundColor: Colors.white,
                             backgroundColor: AppColors.primaryColor,
                             ),
-                            FloatingPopupButton(
-                              onPressed: () {},
+                            FloatingServicePopupButton(
+                              setError: setError,
                               foregroundColor: Colors.red,
-                              text: 'ยืนยัน'
+                              text: 'ยืนยัน',
+                              onSuccess: () async {
+                                Navigator.of(context2).pop();
+                                await Future.delayed(const Duration(milliseconds: 200));
+                                if (!context.mounted) return;
+                                Navigator.pop(context);
+                                widget.onCancel();
+                              },
+                              request: () => Utils.mockResponse() // LeaveRequestService().cancelRequest(widget.requestID),
                             ),
                           ];
                         }
                       ).showPopup(context);
+                    },
+                  )
+                ],
+              )
+              else if (requestDetail!.approveDetail.status == .rejected)
+                SeparatorCard(
+                children: [
+                  IconTextButton(
+                    icon: 'redo.svg',
+                    label: 'แก้ไขรายละเอียด และส่งคำขอใหม่',
+                    color: AppColors.primaryColor, // ลบ const ข้างหน้าออก
+                    arrow: false,
+                    onPressed: () async {
+
+                      final provider = PopupProvider.of(context);
+                      final oldConfig = provider.config;
+
+                      provider.setConfig(PopupConfig(
+                        title: 'แก้ไขรายละเอียด',
+                        buttonLabel: 'ส่งอีกครั้ง',
+                        maxHeight: 700
+                        // buttonAction: (ctx) {...} ยังไม่ต้องใส่ เพราะเดี๋ยวหน้า 2 จะมาทับให้
+                      ));
+
+                      await provider.push(
+                        context,
+                        LeaveRequestResend(
+                          requestId: widget.requestID,
+                          leaveType: requestDetail!.requestDetail.leaveType,
+                          leaveDate: LeaveDate(
+                            fromDate: requestDetail!.requestDetail.dateFrom,
+                            toDate: requestDetail!.requestDetail.dateTo,
+                            fromDateMorning: requestDetail!.requestDetail.fromDateMorning,
+                            toDateMorning: requestDetail!.requestDetail.toDateMorning,
+                          ),
+                          remark: requestDetail!.requestDetail.remark,
+                          allFiles: requestDetail!.requestDetail.evidenceFiles,
+                          onResend: widget.onResend,
+                        )
+                      );
+
+                      provider.setConfig(oldConfig);
                     },
                   )
                 ],

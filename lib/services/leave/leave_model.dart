@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../user_management/user_management_model.dart';
@@ -95,7 +96,7 @@ class LeaveRequestDetailModel {
 }
 
 class RequestDetail {
-  final String leaveType;
+  final LeaveType leaveType;
   final DateTime dateFrom;
   final DateTime dateTo;
   final bool fromDateMorning;
@@ -117,7 +118,7 @@ class RequestDetail {
 
   factory RequestDetail.fromJson(Map<String, dynamic> json) {
     return RequestDetail(
-      leaveType: json['leave-type'] ?? '',
+      leaveType: LeaveTypeX.fromString(json['leave-type'] ?? ''),
       dateFrom: DateTime.tryParse(json['date-from']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       dateTo: DateTime.tryParse(json['date-to']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       fromDateMorning: json['from-date-morning'] ?? true,
