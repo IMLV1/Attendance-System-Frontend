@@ -58,7 +58,7 @@ Future<Response> mockData() async {
         'request-date': '2026-02-18T18:00:45.621Z',
       },
       'approve-detail': {
-        'status': 'overdue',
+        'status': 'rejected',
         'approve-role': 'คณบดี',
         'approver': 'ด้วยดี ตามไท',
         'reason': 'ดีมาก',

@@ -737,7 +737,12 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                               elevation: 0,
                                             ),
                                           ),
-                                        )
+                                        ),
+                                        if (state == ServiceUpdatorState.error)
+                                          const Text(
+                                            'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
                                       ],
                                     )
                                   ],
