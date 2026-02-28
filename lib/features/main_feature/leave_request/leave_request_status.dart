@@ -8,6 +8,9 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/date_filter_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/multi_page/example_usage.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
@@ -58,7 +61,7 @@ Future<Response> mockData2() async {
           'id': 'LEV000000065013',
           'leave-type': 'sick',
           'date-start': '2026-02-18T18:00:45.621Z',
-          'approved': true
+          'status': 'approved'
         },
         {
           'id': 'LEV000000065013',
@@ -181,7 +184,6 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                 switch (index) {
                                   case 0: pendingLeaves = PendingLeaveRequestModel.getList(data['pending']);
                                   case 1: {
-                                    print(data);
                                     recentLeaves = LeaveRequestModel.getList(data['recent']);
                                   }
                                   case 2: {
@@ -198,9 +200,6 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                   }
                                 }
                               })
-                            },
-                            onError: (index, data) {
-                              print(data);
                             },
                             fetchOnInit: true,
                             builder: (trigger, getState) {
@@ -257,14 +256,41 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                                   subTitle: 'หมายเลขคำขอ: ${m.id}',
                                                   weightTitle: FontWeight.w500,
                                                   onPressed: () {
-                                                    PushPopup(
-                                                      title: 'รายละเอียดคำขอ',
-                                                      fit: FlexFit.tight,
-                                                      maxHeight: 750,
-                                                      builder: (BuildContext context) {
-                                                        return LeaveRequestDetail(requestID: m.id);
-                                                      }
+
+                                                    DynamicPushPopup(
+                                                      initialConfig: PopupConfig(
+                                                        title: 'รายละเอียด',
+                                                        fit: FlexFit.tight,
+                                                        maxHeight: 750,
+                                                      ),
+                                                      builder: (context) {
+                                                        return LeaveRequestDetail(
+                                                          requestID: m.id,
+                                                          onCancel: () {
+                                                            setState(() {
+                                                              pendingLeaves.remove(m);
+                                                            });
+                                                          },
+                                                          onResend: () {},
+                                                        );
+                                                      }, // โยนหน้า 1 เข้าไป
                                                     ).showPopup(context);
+
+                                                    // MultiPagePopup(
+                                                    //   title: 'รายละเอียดคำขอ',
+                                                    //   fit: FlexFit.tight,
+                                                    //   maxHeight: 750,
+                                                    //   builder: (BuildContext context) {
+                                                    //     return LeaveRequestDetail(
+                                                    //       requestID: m.id,
+                                                    //       onCancel: () {
+                                                    //         setState(() {
+                                                    //           pendingLeaves.remove(m);
+                                                    //         });
+                                                    //       },
+                                                    //     );
+                                                    //   }
+                                                    // ).showPopup(context);
                                                   },
                                                 );
                                               })
@@ -349,19 +375,30 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                         children: [
                                           ...recentLeaves!.map((m) {
                                             return AppButton(
-                                              icon: m.approve ? 'icon_success.svg' : 'icon_cancel.svg',
-                                              iconColor: m.approve ? Color(0xFF30D143) : Color(0xFFE7000B),
+                                              icon: m.status.icon,
+                                              iconColor: m.status.color,
                                               title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
                                               subTitle: 'หมายเลขคำขอ: ${m.id}',
                                               weightTitle: FontWeight.w500,
                                               onPressed: () {
-                                                PushPopup(
-                                                    title: 'รายละเอียดคำขอ',
+                                                DynamicPushPopup(
+                                                  initialConfig: PopupConfig(
+                                                    title: 'รายละเอียด',
                                                     fit: FlexFit.tight,
                                                     maxHeight: 750,
-                                                    builder: (BuildContext context) {
-                                                      return LeaveRequestDetail(requestID: m.id);
-                                                    }
+                                                  ),
+                                                  builder: (context) {
+                                                    return LeaveRequestDetail(
+                                                      requestID: m.id,
+                                                      onCancel: () {},
+                                                      onResend: () {
+                                                        setState(() {
+                                                          recentLeaves.remove(m);
+                                                          pendingLeaves.add(PendingLeaveRequestModel(id: m.id, leaveType: m.leaveType, dateStart: m.dateStart));
+                                                        });
+                                                      },
+                                                    );
+                                                  }, // โยนหน้า 1 เข้าไป
                                                 ).showPopup(context);
                                               },
                                             );
@@ -386,3 +423,4 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
     );
   }
 }
+

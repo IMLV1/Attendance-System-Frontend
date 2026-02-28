@@ -1,5 +1,7 @@
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
+import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -8,6 +10,7 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,20 +34,15 @@ class LeaveRequestCreate extends StatefulWidget {
 
 class _LeaveRequestPage extends State<LeaveRequestCreate> {
 
-  final Map<String, String> leaveNames = {
-    'sick': 'ลาป่วย',
-    'personal': 'ลากิจส่วนตัว',
-    'vacation': 'ลาพักผ่อน',
-    'maternity': 'ลาคลอดบุตร',
-    'paternity': 'ลาช่วยเหลือภริยาคลอดบุตร',
-    'parental': 'ลากิจเพื่อเลี้ยงดูบุตร'
-  };
+  int limitFileSize = 52428800;
 
-  String? leaveType;
+  LeaveType? leaveType;
   LeaveSetting? setting;
   LeaveDate? leaveDate;
 
   LeaveDate? _selectedDate;
+
+  LeaveInfoModel? leaveStatsInfo;
 
   List<PlatformFile> allFiles = [];
 
@@ -52,6 +50,19 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
   final TextEditingController _textEditingController = TextEditingController();
 
   bool submitted = false;
+  bool confirmed = false;
+
+  double getLeaveDays() {
+    double leaveDays = leaveDate!.toDate!.difference(leaveDate!.fromDate!).inDays + 1;
+    double period = (leaveDate!.fromDateMorning ? 0 : -0.5) + (leaveDate!.toDateMorning ? -0.5 : 0);
+    double finalLeaves = leaveDays + period;
+
+    return finalLeaves;
+  }
+
+  double getRemainLeaveDays() {
+    return (leaveStatsInfo?.max ?? 0) - (leaveStatsInfo?.used ?? 0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,521 +110,545 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                   )
                                                 ],
                                               ),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10) ,
-                                                decoration: BoxDecoration(
-                                                  color: Color(0xFFEAEAEA),
-                                                  borderRadius: BorderRadius.circular(22),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  spacing: 13,
-                                                  children: [
-                                                    Column(
-                                                      spacing: 6,
+                                              ServiceUpdater(
+                                                request: () => LeaveRequestService().getLeaveInfo(leaveType!),
+                                                onSuccessResponse: (jsonData) {
+                                                  setState(() {
+                                                    leaveStatsInfo = LeaveInfoModel.fromJson(jsonData);
+                                                  });
+                                                },
+                                                builder: (trigger, state, errorMessage) {
+                                                  return Container(
+                                                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10) ,
+                                                    decoration: BoxDecoration(
+                                                      color: Color(0xFFEAEAEA),
+                                                      borderRadius: BorderRadius.circular(22),
+                                                    ),
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      spacing: 13,
                                                       children: [
-                                                        SeparatorCard(
-                                                          children: [
-                                                            utils.TextButton(
-                                                              label: leaveType != null ? leaveNames[leaveType] ?? '' : 'เลือกประเภทการลา',
-                                                              color: leaveType == null ? Color(0xFF7D7D7D) : Colors.black,
-                                                              onPressed: () async {
-                                                                /// TODO: Select Leave Request
-                                                                final result = await Navigator.of(context).push<(String? leaveType, LeaveSetting? setting)>(
-                                                                  MaterialPageRoute(
-                                                                    builder: (_) => const LeaveType(),
-                                                                  ),
-                                                                );
-                                                                if (result != null) {
-                                                                  final (leaveType, setting) = result;
-                                                                  setState(() {
-                                                                    this.leaveType = leaveType;
-                                                                    this.setting = setting;
-
-                                                                    leaveDate = null;
-                                                                    _textEditingController.text = '';
-                                                                    allFiles.clear();
-                                                                  });
-                                                                }
-                                                              },
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        if (leaveType != null) Row(
+                                                        Column(
                                                           spacing: 6,
-                                                          crossAxisAlignment: CrossAxisAlignment.center,
                                                           children: [
-                                                            SizedBox(
-                                                              height: 15,
-                                                              width: 15,
-                                                              child: SvgPicture.asset(
-                                                                  'assets/images/iicon.svg'
-                                                              ),
-                                                            ),
-                                                            Expanded(
-                                                              child: Wrap(
-                                                                spacing: 5,
-                                                                children: [
-                                                                  if (leaveType != null)
-                                                                    RichText(
-                                                                      text: TextSpan(
-                                                                        style: const TextStyle(
-                                                                          fontSize: 12,
-                                                                          color: Colors.black,
-                                                                        ),
-                                                                        children: [
-                                                                          TextSpan(
-                                                                            text:
-                                                                            'คุณใช้สิทธิ์$leaveTypeไปแล้ว 2 วัน และยังเหลือสิทธิ์ลา$leaveTypeอีก 58 วัน ',
-                                                                          ),
-                                                                          TextSpan(
-                                                                            text: 'ดูข้อมูลเพิ่มเติม',
-                                                                            style: const TextStyle(
-                                                                              color: Colors.blue,
-                                                                              decoration: TextDecoration.underline,
-                                                                            ),
-                                                                            recognizer: TapGestureRecognizer()
-                                                                              ..onTap = () {
-                                                                                // TODO: Navigate somewhere
-                                                                              },
-                                                                          ),
-                                                                        ],
+                                                            SeparatorCard(
+                                                              children: [
+                                                                utils.TextButton(
+                                                                  label: leaveType?.display ?? 'เลือกประเภทการลา',
+                                                                  color: leaveType == null ? Color(0xFF7D7D7D) : Colors.black,
+                                                                  onPressed: () async {
+                                                                    /// TODO: Select Leave Request
+                                                                    final leaveType = await Navigator.of(context).push<LeaveType?>(
+                                                                      MaterialPageRoute(
+                                                                        builder: (_) => const SelectLeaveType(),
                                                                       ),
-                                                                    ),
-                                                                ],
-                                                              ),
+                                                                    );
+                                                                    if (leaveType != null) {
+                                                                      setState(() {
+                                                                        this.leaveType = leaveType;
+                                                                        setting = leaveType.getSetting(context);
+
+                                                                        leaveDate = null;
+                                                                        _textEditingController.text = '';
+                                                                        allFiles.clear();
+
+                                                                        trigger();
+                                                                      });
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            if (leaveStatsInfo != null) Row(
+                                                              spacing: 6,
+                                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                                              children: [
+                                                                SizedBox(
+                                                                  height: 15,
+                                                                  width: 15,
+                                                                  child: SvgPicture.asset(
+                                                                      'assets/images/iicon.svg'
+                                                                  ),
+                                                                ),
+                                                                Expanded(
+                                                                  child: Wrap(
+                                                                    spacing: 5,
+                                                                    children: [
+
+                                                                      RichText(
+                                                                        text: TextSpan(
+                                                                          style: const TextStyle(
+                                                                            fontSize: 12,
+                                                                            color: Colors.black,
+                                                                          ),
+                                                                          children: [
+                                                                            TextSpan(
+                                                                              text: (leaveStatsInfo!.max - leaveStatsInfo!.used <= 0) ? 'คุณได้ใช้สิทธิ์การ${leaveType!.display}ครบตามจำนวนที่กำหนดแล้ว' : 'คุณใช้สิทธิ์${leaveType!.display}ไปแล้ว ${leaveStatsInfo!.used} วัน และยังเหลือสิทธิ์ลา${leaveType!.display}อีก ${leaveStatsInfo!.max - leaveStatsInfo!.used} วัน ',
+                                                                              style: TextStyle(
+                                                                                color: (leaveStatsInfo!.max - leaveStatsInfo!.used <= 0) ? Colors.red : Colors.black
+                                                                              )
+                                                                            ),
+                                                                            TextSpan(
+                                                                              text: 'ดูข้อมูลเพิ่มเติม',
+                                                                              style: const TextStyle(
+                                                                                color: Colors.blue,
+                                                                                decoration: TextDecoration.underline,
+                                                                              ),
+                                                                              recognizer: TapGestureRecognizer()
+                                                                                ..onTap = () {
+                                                                                  // TODO: Navigate to statistic page
+                                                                                },
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ],
                                                         ),
-                                                      ],
-                                                    ),
-                                                    if (leaveType != null) Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        ElevatedButton(
+                                                        if (leaveType != null) Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            ElevatedButton(
 
-                                                            onPressed: () {
-                                                              PushPopup(
-                                                                  title: 'เลือกวันที่',
-                                                                  fit: FlexFit.tight,
-                                                                  maxHeight: 700,
-                                                                  buttonLabel: 'บันทึก',
-                                                                  builder: (context) {
+                                                                onPressed: () {
+                                                                  PushPopup(
+                                                                      title: 'เลือกวันที่',
+                                                                      fit: FlexFit.tight,
+                                                                      maxHeight: 700,
+                                                                      buttonLabel: 'บันทึก',
+                                                                      builder: (context) {
 
-                                                                    _selectedDate = leaveDate;
+                                                                        _selectedDate = leaveDate;
 
-                                                                    return DateSelect(
-                                                                        dateData: leaveDate,
-                                                                        allowRetroactive: setting!.allowRetroactive,
-                                                                        onChanged: (LeaveDate date) {
-                                                                          _selectedDate = date;
-                                                                        }
-                                                                    );
-                                                                  },
-                                                                  buttonAction: (context) {
+                                                                        return DateSelect(
+                                                                            dateData: leaveDate,
+                                                                            allowRetroactive: setting!.allowRetroactive,
+                                                                            onChanged: (LeaveDate date) {
+                                                                              _selectedDate = date;
+                                                                            }
+                                                                        );
+                                                                      },
+                                                                      buttonAction: (context) {
 
-                                                                    Navigator.of(context).pop();
+                                                                        Navigator.of(context).pop();
 
-                                                                    setState(() {
-                                                                      leaveDate = _selectedDate;
-                                                                    });
-                                                                  }
-                                                              ).showPopup(context);
-                                                            },
-                                                            style: ElevatedButton.styleFrom(
-                                                              shadowColor: Colors.transparent,
-                                                              overlayColor: Colors.transparent,
-                                                              elevation: 0,
-                                                              minimumSize: Size(0, 0),
-                                                              padding: EdgeInsets.zero,
-                                                            ),
-                                                            child: Container(
-                                                                padding: EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 15),
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors.white,
-                                                                  borderRadius: BorderRadius.circular(15),
-                                                                  border: (submitted && leaveDate == null)
-                                                                      ? Border.all(
-                                                                    color: Colors.red,
-                                                                    width: 1.5,
-                                                                  ) : null,
-                                                                ),
-                                                                child: Row(
-                                                                  spacing: 10,
-                                                                  children: [
-                                                                    Expanded(
-                                                                        child: Row(
-                                                                          spacing: 10,
-                                                                          children: [
-                                                                            SvgPicture.asset('assets/images/calendar_in.svg'),
-                                                                            Column(
-                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                              children: [
-                                                                                Text(
-                                                                                  'จากวันที่',
-                                                                                  style: TextStyle(
-                                                                                      color: Color(0xFF626262)
-                                                                                  ),
-                                                                                ),
-                                                                                Text(
-                                                                                  (leaveDate?.fromDate != null) ? '${DateFormat.MMMd('th_TH').format(leaveDate!.fromDate!)} ${num.parse(DateFormat.y('th_TH').format(leaveDate!.fromDate!)) + 543} ${leaveDate!.fromDateMorning ? 'เช้า' : 'เย็น'}' : '---',
-                                                                                  style: TextStyle(
-                                                                                      fontSize: 14
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            )
-                                                                          ],
-                                                                        )
-                                                                    ),
-                                                                    Container(width: 1.5, height: 40, color: Color(0xFFB1B1B1)),
-                                                                    Expanded(
-                                                                        child: Row(
-                                                                          spacing: 10,
-                                                                          children: [
-                                                                            SvgPicture.asset('assets/images/calendar_out.svg'),
-                                                                            Column(
-                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                              children: [
-                                                                                Text(
-                                                                                  'ถึงวันที่',
-                                                                                  style: TextStyle(
-                                                                                      color: Color(0xFF626262)
-                                                                                  ),
-                                                                                ),
-                                                                                Text(
-                                                                                  (leaveDate?.toDate != null) ? '${DateFormat.MMMd('th_TH').format(leaveDate!.toDate!)} ${num.parse(DateFormat.y('th_TH').format(leaveDate!.toDate!)) + 543} ${leaveDate!.toDateMorning ? 'เช้า' : 'เย็น'}' : '---',
-                                                                                  style: TextStyle(
-                                                                                      fontSize: 14
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            )
-                                                                          ],
-                                                                        )
-                                                                    )
-                                                                  ],
-                                                                )
-                                                            )
-                                                        ),
-                                                        AnimatedSwitcher(
-                                                          duration: Duration(milliseconds: 200),
-                                                          transitionBuilder: (child, animation) {
-                                                            return SlideTransition(
-                                                              position: Tween<Offset>(
-                                                                begin: Offset(0, -0.2),
-                                                                end: Offset.zero,
-                                                              ).animate(animation),
-                                                              child: FadeTransition(
-                                                                opacity: animation,
-                                                                child: child,
-                                                              ),
-                                                            );
-                                                          },
-                                                          child: (submitted && leaveDate == null)
-                                                              ? Padding(
-                                                            padding: EdgeInsets.only(left: 13, top: 8),
-                                                            child: Text(
-                                                              'กรุณาระบุวันที่และเวลา',
-                                                              style: TextStyle(
-                                                                color: Colors.red,
-                                                                fontSize: 14,
-                                                              ),
-                                                            ),
-                                                          ) : SizedBox(),
-                                                        )
-                                                      ],
-                                                    ),
-                                                    if (leaveType != null && setting!.specifyRemark) TextField(
-                                                          controller: _textEditingController,
-                                                          maxLines: 1,
-                                                          decoration: InputDecoration(
-                                                            errorText: (submitted && setting!.requiredRemark == true && _textEditingController.text.isEmpty) ? 'กรุณาระบุหมายเหตุ' : null,
-                                                            errorStyle: TextStyle(
-                                                                color: Colors.red,
-                                                                fontSize: 14
-                                                            ),
-                                                            isDense: true,
-                                                            hintText: 'ระบุหมายเหตุ...',
-                                                            hintStyle: TextStyle(
-                                                                color: Color(0xFF7D7D7D),
-                                                                fontSize: 15
-                                                            ),
-                                                            filled: true,
-                                                            fillColor: Colors.white,
-                                                            contentPadding: EdgeInsets.symmetric(
-                                                              vertical: 11,
-                                                              horizontal: 15,
-                                                            ),
-                                                            border: OutlineInputBorder(
-                                                              borderRadius: BorderRadius.circular(22),
-                                                              borderSide: BorderSide.none,
-                                                            ),
-                                                            errorBorder: OutlineInputBorder(
-                                                              borderRadius: BorderRadius.circular(22),
-                                                              borderSide: BorderSide(
-                                                                color: Colors.red,
-                                                                width: 1.5,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                    if (leaveType != null && setting!.evidenceFile) Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Container(
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(25),
-                                                            border: (submitted &&
-                                                                setting?.requiredEvidenceFile == true &&
-                                                                allFiles.isEmpty)
-                                                                ? Border.all(
-                                                              color: Colors.red,
-                                                              width: 1.5,
-                                                            ) : null,
-                                                          ),
-                                                          child: SeparatorCard(
-                                                            separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                                                            children: [
-                                                              MenuAnchor(
-                                                                controller: _menuController,
-                                                                builder: (context, controller, child) {
-                                                                  return IconTextButton(
-                                                                    icon: 'icon_upload_file.svg',
-                                                                    label: 'อัพโหลดไฟล์',
-                                                                    color: AppColors.primaryColor,
-                                                                    onPressed: () {
-                                                                      controller.open();
-                                                                    },
-                                                                  );
+                                                                        setState(() {
+                                                                          leaveDate = _selectedDate;
+                                                                        });
+                                                                      }
+                                                                  ).showPopup(context);
                                                                 },
-                                                                clipBehavior: Clip.none,
-                                                                consumeOutsideTap: true,
-                                                                style: const MenuStyle(
-                                                                  backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                                                                  elevation: WidgetStatePropertyAll(0),
+                                                                style: ElevatedButton.styleFrom(
+                                                                  shadowColor: Colors.transparent,
+                                                                  overlayColor: Colors.transparent,
+                                                                  elevation: 0,
+                                                                  minimumSize: Size(0, 0),
+                                                                  padding: EdgeInsets.zero,
                                                                 ),
-                                                                menuChildren: [
-                                                                  TweenAnimationBuilder<double>(
-                                                                    tween: Tween(begin: 0, end: 1),
-                                                                    duration: const Duration(milliseconds: 250),
-                                                                    curve: Curves.easeOut,
-                                                                    builder: (context, value, child) {
-                                                                      return Opacity(
-                                                                        opacity: value,
-                                                                        child: child,
-                                                                      );
-                                                                    },
-                                                                    child: Container(
-                                                                      decoration: BoxDecoration(
-                                                                        color: Colors.white,
-                                                                        borderRadius: BorderRadius.circular(20),
-                                                                        boxShadow: [
-                                                                          BoxShadow(
-                                                                            color: Colors.black.withValues(alpha: 0.18),
-                                                                            blurRadius: 100,
-                                                                            spreadRadius: 6,
-                                                                            offset: Offset.zero,
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      child: SeparatorCard(
-                                                                        borderRadius: BorderRadius.circular(20),
-                                                                        children: [
-                                                                          IconTextButton(
-                                                                            icon: 'photos_upload.svg',
-                                                                            arrow: false,
-                                                                            label: 'คลังรูปภาพ',
-                                                                            onPressed: () async {
-                                                                              _menuController.close();
-
-                                                                              final picker = ImagePicker();
-                                                                              final image = await picker.pickImage(source: ImageSource.gallery);
-
-                                                                              if (image != null) {
-
-                                                                                final extension = p.extension(image.name);
-                                                                                final bytes = await image.readAsBytes();
-
-                                                                                final file = PlatformFile(
-                                                                                  name: 'IMG_${Utils.generateRandomNumber(5)}$extension',
-                                                                                  size: bytes.length,
-                                                                                  path: image.path,
-                                                                                  bytes: bytes,
-                                                                                );
-
-                                                                                setState(() {
-                                                                                  allFiles.add(file);
-                                                                                });
-                                                                              }
-                                                                            },
-                                                                          ),
-                                                                          IconTextButton(
-                                                                            icon: 'camera_upload.svg',
-                                                                            arrow: false,
-                                                                            label: 'ถ่ายรูป',
-                                                                            onPressed: () async {
-                                                                              _menuController.close();
-                                                                              final picker = ImagePicker();
-                                                                              final image = await picker.pickImage(source: ImageSource.camera);
-
-                                                                              if (image != null) {
-
-                                                                                final extension = p.extension(image.name);
-                                                                                final bytes = await image.readAsBytes();
-
-                                                                                final file = PlatformFile(
-                                                                                  name: 'IMG_${Utils.generateRandomNumber(5)}$extension',
-                                                                                  size: bytes.length,
-                                                                                  path: image.path,
-                                                                                  bytes: bytes,
-                                                                                );
-
-                                                                                setState(() {
-                                                                                  allFiles.add(file);
-                                                                                });
-                                                                              }
-                                                                            },
-                                                                          ),
-                                                                          IconTextButton(
-                                                                            icon: 'file_upload.svg',
-                                                                            arrow: false,
-                                                                            label: 'เลือกไฟล์',
-                                                                            onPressed: () async {
-                                                                              _menuController.close();
-                                                                              final result = await FilePicker.platform.pickFiles(
-                                                                                type: FileType.custom,
-                                                                                allowedExtensions: ['pdf'],
-                                                                              );
-
-                                                                              if (result != null) {
-                                                                                setState(() {
-                                                                                  allFiles.add(result.files.first);
-                                                                                });
-                                                                              }
-                                                                            },
-                                                                          ),
-                                                                        ],
-                                                                      ),
+                                                                child: Container(
+                                                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 15),
+                                                                    decoration: BoxDecoration(
+                                                                      color: Colors.white,
+                                                                      borderRadius: BorderRadius.circular(15),
+                                                                      border: (submitted && leaveDate == null)
+                                                                          ? Border.all(
+                                                                        color: Colors.red,
+                                                                        width: 1.5,
+                                                                      ) : null,
                                                                     ),
-                                                                  ),
-                                                                ],
-                                                              ),
-
-                                                              Padding(
-                                                                  padding: EdgeInsetsGeometry.all(10),
-                                                                  child: (allFiles.isEmpty) ? Padding(
-                                                                    padding: EdgeInsetsGeometry.all(5),
-                                                                    child: Text(
-                                                                      'ยังไม่ได้อัพโหลดไฟล์',
-                                                                      textAlign: TextAlign.center,
-                                                                      style: TextStyle(
-                                                                        fontSize: 15,
-                                                                        color: Color(0xFF7D7D7D), // สีจาง
-                                                                      ),
-                                                                    ),
-                                                                  ) : SizedBox(
-                                                                      width: double.infinity,
-                                                                      child: Wrap(
-
-                                                                        spacing: 5,
-                                                                        runSpacing: 7,
-                                                                        children: [
-                                                                          ...allFiles.map((file) {
-                                                                            return Container(
-
-                                                                                constraints: BoxConstraints(
-                                                                                    maxWidth: 230
-                                                                                ),
-
-                                                                                decoration: BoxDecoration(
-                                                                                  border: Border.all(
-                                                                                    color: Color(0xFFBDBDBD), // stroke color
-                                                                                    width: 2, // stroke width
-                                                                                  ),
-                                                                                  borderRadius: BorderRadius.circular(10),
-                                                                                ),
-                                                                                padding: EdgeInsetsGeometry.all(5),
-                                                                                child: Row(
-                                                                                  mainAxisSize: MainAxisSize.min,
+                                                                    child: Row(
+                                                                      spacing: 10,
+                                                                      children: [
+                                                                        Expanded(
+                                                                            child: Row(
+                                                                              spacing: 10,
+                                                                              children: [
+                                                                                SvgPicture.asset('assets/images/calendar_in.svg'),
+                                                                                Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
-                                                                                    Flexible(child: Column(
-                                                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                      mainAxisSize: MainAxisSize.min,
-                                                                                      children: [
-                                                                                        Text(file.name,
-                                                                                            overflow: TextOverflow.ellipsis,
-                                                                                            style: TextStyle(
-                                                                                                color: Colors.black,
-                                                                                                fontWeight: FontWeight.w800
-                                                                                            )
-                                                                                        ),
-                                                                                        Text('ขนาด ${Utils.formatBytes(file.size)}',
-                                                                                            style: TextStyle(
-                                                                                                color: Color(0xFF7D7D7D),
-                                                                                                fontWeight: FontWeight.normal
-                                                                                            )
-                                                                                        ),
-                                                                                      ],
-                                                                                    )),
-                                                                                    InkWell(
-                                                                                      customBorder: CircleBorder(),
-                                                                                      onTap: () {
-                                                                                        setState(() {
-                                                                                          allFiles.remove(file);
-                                                                                        });
-                                                                                      },
-                                                                                      child: Padding(
-                                                                                        padding: EdgeInsets.all(6),
-                                                                                        child: Icon(
-                                                                                          CupertinoIcons.xmark_circle_fill,
-                                                                                          size: 17,
-                                                                                          color: Colors.black,
-                                                                                        ),
+                                                                                    Text(
+                                                                                      'จากวันที่',
+                                                                                      style: TextStyle(
+                                                                                          color: Color(0xFF626262)
+                                                                                      ),
+                                                                                    ),
+                                                                                    Text(
+                                                                                      (leaveDate?.fromDate != null) ? '${DateFormat.MMMd('th_TH').format(leaveDate!.fromDate!)} ${num.parse(DateFormat.y('th_TH').format(leaveDate!.fromDate!)) + 543} ${leaveDate!.fromDateMorning ? 'เช้า' : 'เย็น'}' : '---',
+                                                                                      style: TextStyle(
+                                                                                          fontSize: 14
                                                                                       ),
                                                                                     ),
                                                                                   ],
                                                                                 )
-                                                                            );
-                                                                          })
-                                                                        ],
-                                                                      )
-                                                                  )
-                                                              )
-                                                            ],
-                                                          ),
+                                                                              ],
+                                                                            )
+                                                                        ),
+                                                                        Container(width: 1.5, height: 40, color: Color(0xFFB1B1B1)),
+                                                                        Expanded(
+                                                                            child: Row(
+                                                                              spacing: 10,
+                                                                              children: [
+                                                                                SvgPicture.asset('assets/images/calendar_out.svg'),
+                                                                                Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  children: [
+                                                                                    Text(
+                                                                                      'ถึงวันที่',
+                                                                                      style: TextStyle(
+                                                                                          color: Color(0xFF626262)
+                                                                                      ),
+                                                                                    ),
+                                                                                    Text(
+                                                                                      (leaveDate?.toDate != null) ? '${DateFormat.MMMd('th_TH').format(leaveDate!.toDate!)} ${num.parse(DateFormat.y('th_TH').format(leaveDate!.toDate!)) + 543} ${leaveDate!.toDateMorning ? 'เช้า' : 'เย็น'}' : '---',
+                                                                                      style: TextStyle(
+                                                                                          fontSize: 14
+                                                                                      ),
+                                                                                    ),
+                                                                                  ],
+                                                                                )
+                                                                              ],
+                                                                            )
+                                                                        )
+                                                                      ],
+                                                                    )
+                                                                )
+                                                            ),
+                                                            AnimatedSwitcher(
+                                                              duration: Duration(milliseconds: 200),
+                                                              transitionBuilder: (child, animation) {
+                                                                return SlideTransition(
+                                                                  position: Tween<Offset>(
+                                                                    begin: Offset(0, -0.2),
+                                                                    end: Offset.zero,
+                                                                  ).animate(animation),
+                                                                  child: FadeTransition(
+                                                                    opacity: animation,
+                                                                    child: child,
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: (submitted && leaveDate == null)
+                                                                  ? Padding(
+                                                                padding: EdgeInsets.only(left: 13, top: 8),
+                                                                child: Text(
+                                                                  'กรุณาระบุวันที่และเวลา',
+                                                                  style: TextStyle(
+                                                                    color: Colors.red,
+                                                                    fontSize: 14,
+                                                                  ),
+                                                                ),
+                                                              ) : SizedBox(),
+                                                            )
+                                                          ],
                                                         ),
-
-                                                        AnimatedSwitcher(
-                                                          duration: Duration(milliseconds: 200),
-                                                          transitionBuilder: (child, animation) {
-                                                            return SlideTransition(
-                                                              position: Tween<Offset>(
-                                                                begin: Offset(0, -0.2),
-                                                                end: Offset.zero,
-                                                              ).animate(animation),
-                                                              child: FadeTransition(
-                                                                opacity: animation,
-                                                                child: child,
+                                                        if (leaveType != null && setting!.specifyRemark)
+                                                          TextField(
+                                                            controller: _textEditingController,
+                                                            maxLines: 1,
+                                                            decoration: InputDecoration(
+                                                              errorText: (submitted && setting!.requiredRemark == true && _textEditingController.text.isEmpty) ? 'กรุณาระบุหมายเหตุ' : null,
+                                                              errorStyle: TextStyle(
+                                                                  color: Colors.red,
+                                                                  fontSize: 14
                                                               ),
-                                                            );
-                                                          },
-                                                          child: (submitted && setting!.requiredEvidenceFile && allFiles.isEmpty)
-                                                              ? Padding(
-                                                            padding: EdgeInsets.only(left: 13, top: 8),
-                                                            child: Text(
-                                                              'กรุณาแนบไฟล์',
-                                                              style: TextStyle(
-                                                                color: Colors.red,
-                                                                fontSize: 14,
+                                                              isDense: true,
+                                                              hintText: 'ระบุหมายเหตุ...',
+                                                              hintStyle: TextStyle(
+                                                                  color: Color(0xFF7D7D7D),
+                                                                  fontSize: 15
+                                                              ),
+                                                              filled: true,
+                                                              fillColor: Colors.white,
+                                                              contentPadding: EdgeInsets.symmetric(
+                                                                vertical: 11,
+                                                                horizontal: 15,
+                                                              ),
+                                                              border: OutlineInputBorder(
+                                                                borderRadius: BorderRadius.circular(22),
+                                                                borderSide: BorderSide.none,
+                                                              ),
+                                                              errorBorder: OutlineInputBorder(
+                                                                borderRadius: BorderRadius.circular(22),
+                                                                borderSide: BorderSide(
+                                                                  color: Colors.red,
+                                                                  width: 1.5,
+                                                                ),
+                                                              ),
+                                                              focusedErrorBorder: OutlineInputBorder(
+                                                                borderRadius: BorderRadius.circular(22),
+                                                                borderSide: BorderSide(
+                                                                  color: Colors.red,
+                                                                  width: 1.5,
+                                                                ),
                                                               ),
                                                             ),
-                                                          ) : SizedBox(),
+                                                          ),
+                                                        if (leaveType != null && setting!.evidenceFile) Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Container(
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius.circular(25),
+                                                                border: (submitted &&
+                                                                    setting?.requiredEvidenceFile == true &&
+                                                                    (allFiles.isEmpty ||
+                                                                      allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize)
+                                                                  )
+                                                                    ? Border.all(
+                                                                  color: Colors.red,
+                                                                  width: 1.5,
+                                                                ) : null,
+                                                              ),
+                                                              child: SeparatorCard(
+                                                                separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                                                                children: [
+                                                                  MenuAnchor(
+                                                                    controller: _menuController,
+                                                                    builder: (context, controller, child) {
+                                                                      return IconTextButton(
+                                                                        icon: 'icon_upload_file.svg',
+                                                                        label: 'อัพโหลดไฟล์',
+                                                                        color: AppColors.primaryColor,
+                                                                        onPressed: () {
+                                                                          controller.open();
+                                                                        },
+                                                                      );
+                                                                    },
+                                                                    clipBehavior: Clip.none,
+                                                                    consumeOutsideTap: true,
+                                                                    style: const MenuStyle(
+                                                                      backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+                                                                      elevation: WidgetStatePropertyAll(0),
+                                                                    ),
+                                                                    menuChildren: [
+                                                                      TweenAnimationBuilder<double>(
+                                                                        tween: Tween(begin: 0, end: 1),
+                                                                        duration: const Duration(milliseconds: 250),
+                                                                        curve: Curves.easeOut,
+                                                                        builder: (context, value, child) {
+                                                                          return Opacity(
+                                                                            opacity: value,
+                                                                            child: child,
+                                                                          );
+                                                                        },
+                                                                        child: Container(
+                                                                          decoration: BoxDecoration(
+                                                                            color: Colors.white,
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                            boxShadow: [
+                                                                              BoxShadow(
+                                                                                color: Colors.black.withValues(alpha: 0.18),
+                                                                                blurRadius: 100,
+                                                                                spreadRadius: 6,
+                                                                                offset: Offset.zero,
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                          child: SeparatorCard(
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                            children: [
+                                                                              IconTextButton(
+                                                                                icon: 'photos_upload.svg',
+                                                                                arrow: false,
+                                                                                label: 'คลังรูปภาพ',
+                                                                                onPressed: () async {
+                                                                                  _menuController.close();
+
+                                                                                  final picker = ImagePicker();
+                                                                                  final image = await picker.pickImage(source: ImageSource.gallery);
+
+                                                                                  if (image != null) {
+
+                                                                                    final extension = p.extension(image.name);
+                                                                                    final bytes = await image.readAsBytes();
+
+                                                                                    final file = PlatformFile(
+                                                                                      name: 'IMG_${Utils.generateRandomNumber(5)}$extension',
+                                                                                      size: bytes.length,
+                                                                                      path: image.path,
+                                                                                      bytes: bytes,
+                                                                                    );
+
+                                                                                    setState(() {
+                                                                                      allFiles.add(file);
+                                                                                    });
+                                                                                  }
+                                                                                },
+                                                                              ),
+                                                                              IconTextButton(
+                                                                                icon: 'camera_upload.svg',
+                                                                                arrow: false,
+                                                                                label: 'ถ่ายรูป',
+                                                                                onPressed: () async {
+                                                                                  _menuController.close();
+                                                                                  final picker = ImagePicker();
+                                                                                  final image = await picker.pickImage(source: ImageSource.camera);
+
+                                                                                  if (image != null) {
+
+                                                                                    final extension = p.extension(image.name);
+                                                                                    final bytes = await image.readAsBytes();
+
+                                                                                    final file = PlatformFile(
+                                                                                      name: 'IMG_${Utils.generateRandomNumber(5)}$extension',
+                                                                                      size: bytes.length,
+                                                                                      path: image.path,
+                                                                                      bytes: bytes,
+                                                                                    );
+
+                                                                                    setState(() {
+                                                                                      allFiles.add(file);
+                                                                                    });
+                                                                                  }
+                                                                                },
+                                                                              ),
+                                                                              IconTextButton(
+                                                                                icon: 'file_upload.svg',
+                                                                                arrow: false,
+                                                                                label: 'เลือกไฟล์',
+                                                                                onPressed: () async {
+                                                                                  _menuController.close();
+                                                                                  final result = await FilePicker.platform.pickFiles(
+                                                                                    type: FileType.custom,
+                                                                                    allowedExtensions: ['pdf'],
+                                                                                  );
+
+                                                                                  if (result != null) {
+                                                                                    setState(() {
+                                                                                      allFiles.add(result.files.first);
+                                                                                    });
+                                                                                  }
+                                                                                },
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+
+                                                                  Padding(
+                                                                      padding: EdgeInsetsGeometry.all(10),
+                                                                      child: (allFiles.isEmpty) ? Padding(
+                                                                        padding: EdgeInsetsGeometry.all(5),
+                                                                        child: Text(
+                                                                          'ยังไม่ได้อัพโหลดไฟล์',
+                                                                          textAlign: TextAlign.center,
+                                                                          style: TextStyle(
+                                                                            fontSize: 15,
+                                                                            color: Color(0xFF7D7D7D), // สีจาง
+                                                                          ),
+                                                                        ),
+                                                                      ) : SizedBox(
+                                                                          width: double.infinity,
+                                                                          child: Wrap(
+
+                                                                            spacing: 5,
+                                                                            runSpacing: 7,
+                                                                            children: [
+                                                                              ...allFiles.map((file) {
+                                                                                return Container(
+
+                                                                                    constraints: BoxConstraints(
+                                                                                        maxWidth: 230
+                                                                                    ),
+
+                                                                                    decoration: BoxDecoration(
+                                                                                      border: Border.all(
+                                                                                        color: Color(0xFFBDBDBD), // stroke color
+                                                                                        width: 2, // stroke width
+                                                                                      ),
+                                                                                      borderRadius: BorderRadius.circular(10),
+                                                                                    ),
+                                                                                    padding: EdgeInsetsGeometry.all(5),
+                                                                                    child: Row(
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      children: [
+                                                                                        Flexible(child: Column(
+                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                          mainAxisSize: MainAxisSize.min,
+                                                                                          children: [
+                                                                                            Text(file.name,
+                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                style: TextStyle(
+                                                                                                    color: Colors.black,
+                                                                                                    fontWeight: FontWeight.w800
+                                                                                                )
+                                                                                            ),
+                                                                                            Text('ขนาด ${Utils.formatBytes(file.size)}',
+                                                                                                style: TextStyle(
+                                                                                                    color: Color(0xFF7D7D7D),
+                                                                                                    fontWeight: FontWeight.normal
+                                                                                                )
+                                                                                            ),
+                                                                                          ],
+                                                                                        )),
+                                                                                        InkWell(
+                                                                                          customBorder: CircleBorder(),
+                                                                                          onTap: () {
+                                                                                            setState(() {
+                                                                                              allFiles.remove(file);
+                                                                                            });
+                                                                                          },
+                                                                                          child: Padding(
+                                                                                            padding: EdgeInsets.all(6),
+                                                                                            child: Icon(
+                                                                                              CupertinoIcons.xmark_circle_fill,
+                                                                                              size: 17,
+                                                                                              color: Colors.black,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    )
+                                                                                );
+                                                                              })
+                                                                            ],
+                                                                          )
+                                                                      )
+                                                                  )
+                                                                ],
+                                                              ),
+                                                            ),
+
+                                                            AnimatedSwitcher(
+                                                              duration: Duration(milliseconds: 200),
+                                                              transitionBuilder: (child, animation) {
+                                                                return SlideTransition(
+                                                                  position: Tween<Offset>(
+                                                                    begin: Offset(0, -0.2),
+                                                                    end: Offset.zero,
+                                                                  ).animate(animation),
+                                                                  child: FadeTransition(
+                                                                    opacity: animation,
+                                                                    child: child,
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: (submitted && setting!.requiredEvidenceFile &&
+                                                                  (allFiles.isEmpty || allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize))
+                                                                  ? Padding(
+                                                                padding: EdgeInsets.only(left: 13, top: 8),
+                                                                child: Text(
+                                                                  (allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize) ? 'ขนาดไฟล์รวมเกิน ${Utils.formatBytes(limitFileSize)}' : 'กรุณาแนบไฟล์',
+                                                                  style: TextStyle(
+                                                                    color: Colors.red,
+                                                                    fontSize: 14,
+                                                                  ),
+                                                                ),
+                                                              ) : SizedBox(),
+                                                            )
+                                                          ],
                                                         )
                                                       ],
-                                                    )
-                                                  ],
-                                                ),
+                                                    ),
+                                                  );
+                                                }
                                               ),
                                               SizedBox(height: 20)
                                             ],
@@ -624,100 +659,172 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                               )
                             ]
                         ),
-                        Padding(
-                          padding: EdgeInsetsGeometry.symmetric(vertical: 20),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Column(
+
+                        ServiceUpdater(
+                          request: () => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles, null),
+                          onSuccessResponse: (jsonData) {
+                            final String? requestID = jsonData['request-id'] ?? '';
+                            context.pop((requestID, leaveType, leaveDate!.fromDate));
+                          },
+                          builder: (trigger, state, errorMessage) {
+                            return Padding(
+                                padding: EdgeInsetsGeometry.symmetric(vertical: 20),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 42,
-                                      child: ElevatedButton.icon(
-                                        onPressed: (leaveType != null) ? () {
-                                          setState(() {
-                                            submitted = true;
-                                          });
-                                          if (leaveDate == null) return;
+                                    Column(
+                                      children: [
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 42,
+                                          child: ElevatedButton.icon(
+                                            onPressed: (leaveType != null && state != .loading) ? () {
 
-                                          if (setting!.requiredRemark && _textEditingController.text.isEmpty) return;
-                                          if (setting!.requiredEvidenceFile && allFiles.isEmpty) return;
+                                              setState(() {
+                                                submitted = true;
+                                              });
 
-                                          ServiceSignaturePopup(
-                                            title: 'ลายเซ็น',
-                                            buttonLabel: 'ส่ง',
-                                            fit: FlexFit.tight,
-                                            maxHeight: 700,
-                                            onSuccessResponse: (pngBytes, jsonData) {
-                                              final String? requestID = jsonData['request-id'] ?? '';
-                                              context.pop((requestID, leaveType, leaveDate!.fromDate));
-                                            },
-                                            infoWidget: Row(
-                                              spacing: 5,
+                                              if (leaveDate == null) return;
+
+                                              if (setting!.requiredRemark && _textEditingController.text.isEmpty) return;
+                                              if (setting!.requiredEvidenceFile && allFiles.isEmpty) return;
+
+                                              if (allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize) return;
+
+                                              if (getLeaveDays() > getRemainLeaveDays() && !confirmed) {
+                                                confirmed = true;
+                                                return;
+                                              }
+
+                                              if (setting!.requestNeedSignature) {
+                                                ServiceSignaturePopup(
+                                                  title: 'ลายเซ็น',
+                                                  buttonLabel: 'ส่ง',
+                                                  fit: FlexFit.tight,
+                                                  maxHeight: 700,
+                                                  onSuccessResponse: (pngBytes, jsonData) {
+                                                    final String? requestID = jsonData['request-id'] ?? '';
+                                                    context.pop((requestID, leaveType, leaveDate!.fromDate));
+                                                  },
+                                                  infoWidget: Row(
+                                                    spacing: 5,
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        'assets/images/iicon.svg',
+                                                        width: 15,
+                                                        height: 15,
+                                                      ),
+                                                      Expanded(
+                                                          child: Text.rich(
+                                                              TextSpan(
+                                                                text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
+                                                                    style: TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      decoration: TextDecoration.underline,
+                                                                    ),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                                                                  ),
+                                                                ],
+                                                              )
+                                                          )
+                                                      )
+                                                    ],
+                                                  ),
+                                                  required: true,
+                                                  request: (pngByte) => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles, pngByte!),
+                                                ).showPopup(context);
+                                              } else {
+                                                trigger();
+                                              }
+                                            } : null,
+                                            icon: SvgPicture.asset(
+                                              'assets/images/icon_send.svg',
+                                              height: 18,
+                                              width: 18,
+                                              colorFilter: ColorFilter.mode(
+                                                Colors.white,
+                                                BlendMode.srcIn,
+                                              ),
+                                            ),
+                                            label: Row(
+                                              spacing: 6,
+                                              mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                SvgPicture.asset(
-                                                  'assets/images/iicon.svg',
-                                                  width: 15,
-                                                  height: 15,
+                                                Text(
+                                                  'ส่ง',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.white,
+                                                  ),
                                                 ),
-                                                Expanded(
-                                                    child: Text.rich(
-                                                        TextSpan(
-                                                          text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
-                                                          children: [
-                                                            TextSpan(
-                                                              text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
-                                                              style: TextStyle(
-                                                                fontWeight: FontWeight.bold,
-                                                                decoration: TextDecoration.underline,
-                                                              ),
-                                                            ),
-                                                            TextSpan(
-                                                              text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
-                                                            ),
-                                                          ],
-                                                        )
-                                                    )
-                                                )
+                                                if (state == .loading) CupertinoActivityIndicator(color: Colors.white),
                                               ],
                                             ),
-                                            required: true,
-                                            request: (pngByte) => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles, pngByte!),
-                                          ).showPopup(context);
-
-                                          // trigger();
-                                        } : null,
-                                        icon: SvgPicture.asset(
-                                          'assets/images/icon_send.svg',
-                                          height: 18,
-                                          width: 18,
-                                          colorFilter: ColorFilter.mode(
-                                            Colors.white,
-                                            BlendMode.srcIn,
+                                            style: ElevatedButton.styleFrom(
+                                              disabledBackgroundColor: Colors.grey,
+                                              backgroundColor: AppColors.primaryColor,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(30),
+                                              ),
+                                              elevation: 0,
+                                            ),
                                           ),
                                         ),
-                                        label: Text(
-                                          'ส่ง',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          disabledBackgroundColor: Colors.grey,
-                                          backgroundColor: AppColors.primaryColor,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(30),
-                                          ),
-                                          elevation: 0,
-                                        ),
-                                      ),
+                                        if (state == ServiceUpdatorState.error)
+                                          const Text(
+                                            'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
+                                            style: TextStyle(color: Colors.red),
+                                          )
+                                        else if (confirmed && getLeaveDays() > getRemainLeaveDays())
+                                          Row(
+                                            spacing: 6,
+                                            children: [
+                                              SvgPicture.asset(
+                                                'assets/images/icon_warning.svg',
+                                                colorFilter: ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                                              ),
+                                              Expanded(
+                                                child: Wrap(
+                                                  children: [
+                                                    RichText(
+                                                        text: TextSpan(
+                                                            text: 'คุณได้ใช้สิทธิ์การลาป่วยครบตามจำนวนที่กำหนดแล้ว หากคำขอนี้ได้รับการอนุมัติจำนวนวันลาของคุณจะเกินสิทธิ์ทั้งหมด ${getLeaveDays() - getRemainLeaveDays()} วัน ซึ่งอาจส่งผลต่อการคำนวณตัวชี้วัดผลการปฏิบัติงาน ',
+                                                            style: TextStyle(
+                                                                color: Colors.red
+                                                            ),
+                                                            children: [
+                                                              TextSpan(
+                                                                  text: 'กรุณากดปุ่มอีกครั้ง',
+                                                                  style: TextStyle(
+                                                                    color: Colors.red,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  )
+                                                              ),
+                                                              TextSpan(
+                                                                  text: ' เพื่อดำเนินการต่อ',
+                                                                  style: TextStyle(
+                                                                    color: Colors.red,
+                                                                  )
+                                                              )
+                                                            ]
+                                                        )
+                                                    )
+                                                  ],
+                                                )
+                                              )
+                                            ],
+                                          )
+                                      ],
                                     )
                                   ],
                                 )
-                              ],
-                            )
+                            );
+                          }
                         )
                       ],
                     )

@@ -15,12 +15,13 @@ class TextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
 
-        onPressed: onPressed ?? () {},
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
             elevation: 0,
             padding: EdgeInsets.all(0),
             shadowColor: Colors.transparent,
             backgroundColor: Colors.transparent,
+            disabledBackgroundColor: Colors.transparent,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero)
         ),
 
