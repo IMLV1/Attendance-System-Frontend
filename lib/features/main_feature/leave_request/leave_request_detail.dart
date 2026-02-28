@@ -110,9 +110,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
     return Padding(
       padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
       child: ServiceLoader(
-          request: () {
-            return mockData();
-          },
+          request: () => LeaveRequestService().getRequestDetail(widget.requestID),
           onSuccess: (val) {
             setState(() {
               requestDetail = LeaveRequestDetailModel.fromJson(val);
