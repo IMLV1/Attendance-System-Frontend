@@ -57,13 +57,13 @@ class AttendanceRequestModel {
   final String id;
   final DateTime dateStart;
   final DateTime dateEnd;
-  final bool approved;
+  final String status;
 
   const AttendanceRequestModel({
     required this.id,
     required this.dateStart,
     required this.dateEnd,
-    required this.approved,
+    required this.status,
   });
 
   factory AttendanceRequestModel.fromJson(Map<String, dynamic> json) {
@@ -73,7 +73,7 @@ class AttendanceRequestModel {
       id: json['id'] ?? '',
       dateStart: DateTime.tryParse(json['date-start']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       dateEnd: DateTime.tryParse(json['date-end']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      approved: json['approved'] ?? false,
+      status: json['status'] ?? '',
     );
 
   }
