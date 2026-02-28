@@ -61,7 +61,7 @@ Future<Response> mockData2() async {
           'id': 'LEV000000065013',
           'leave-type': 'sick',
           'date-start': '2026-02-18T18:00:45.621Z',
-          'approved': true
+          'status': 'approved'
         },
         {
           'id': 'LEV000000065013',
@@ -375,8 +375,8 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                         children: [
                                           ...recentLeaves!.map((m) {
                                             return AppButton(
-                                              icon: m.approve ? 'icon_success.svg' : 'icon_cancel.svg',
-                                              iconColor: m.approve ? Color(0xFF30D143) : Color(0xFFE7000B),
+                                              icon: m.status.icon,
+                                              iconColor: m.status.color,
                                               title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
                                               subTitle: 'หมายเลขคำขอ: ${m.id}',
                                               weightTitle: FontWeight.w500,

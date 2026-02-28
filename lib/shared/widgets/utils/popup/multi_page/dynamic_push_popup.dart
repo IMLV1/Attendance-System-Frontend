@@ -64,7 +64,6 @@ class DynamicPushPopup {
                       borderRadius: BorderRadius.circular(40),
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
                         decoration: BoxDecoration(
                           color: AppColors.backgroundColor,
                           borderRadius: const BorderRadius.vertical(
@@ -89,97 +88,105 @@ class DynamicPushPopup {
                               mainAxisSize: MainAxisSize.min,
                               spacing: 15,
                               children: [
-                                Container(
-                                  color: const Color(0xFFA6A6A6),
-                                  width: 70,
-                                  height: 3,
-                                ),
-                                Column(
-                                  spacing: 1,
-                                  children: [
-                                    Stack(
-                                      children: [
-                                        // 1. ปุ่ม Back
-                                        if (currentConfig.backButton)
-                                          Align(
-                                            alignment: Alignment.bottomLeft,
-                                            child: Transform.translate(
-                                              offset: const Offset(-5, 0),
-                                              child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                                                  minimumSize: Size.zero,
-                                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                  backgroundColor: Colors.transparent,
-                                                  shadowColor: Colors.transparent,
-                                                  overlayColor: Colors.transparent,
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+                                  child: Column(
+                                    spacing: 15,
+                                    children: [
+                                      Container(
+                                        color: const Color(0xFFA6A6A6),
+                                        width: 70,
+                                        height: 3,
+                                      ),
+                                      Column(
+                                        spacing: 1,
+                                        children: [
+                                          Stack(
+                                            children: [
+                                              // 1. ปุ่ม Back
+                                              if (currentConfig.backButton)
+                                                Align(
+                                                  alignment: Alignment.bottomLeft,
+                                                  child: Transform.translate(
+                                                    offset: const Offset(-5, 0),
+                                                    child: ElevatedButton(
+                                                      style: ElevatedButton.styleFrom(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                                                        minimumSize: Size.zero,
+                                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                        backgroundColor: Colors.transparent,
+                                                        shadowColor: Colors.transparent,
+                                                        overlayColor: Colors.transparent,
+                                                      ),
+                                                      onPressed: () {
+                                                        // ถอยหน้าย่อยก่อน ถ้าหมดแล้วค่อยปิด Popup
+                                                        if (nestedNavKey.currentState?.canPop() ?? false) {
+                                                          nestedNavKey.currentState?.pop();
+                                                        } else {
+                                                          Navigator.of(bottomSheetContext).pop();
+                                                        }
+                                                      },
+                                                      child: SvgPicture.asset(
+                                                        'assets/images/back_button.svg',
+                                                        colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                                                      ),
+                                                    ),
+                                                  ),
                                                 ),
-                                                onPressed: () {
-                                                  // ถอยหน้าย่อยก่อน ถ้าหมดแล้วค่อยปิด Popup
-                                                  if (nestedNavKey.currentState?.canPop() ?? false) {
-                                                    nestedNavKey.currentState?.pop();
-                                                  } else {
-                                                    Navigator.of(bottomSheetContext).pop();
-                                                  }
-                                                },
-                                                child: SvgPicture.asset(
-                                                  'assets/images/back_button.svg',
-                                                  colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
 
-                                        // 2. Title
-                                        Align(
-                                          alignment: Alignment.bottomCenter,
-                                          child: Text(
-                                            currentConfig.title,
-                                            style: const TextStyle(
-                                              decoration: TextDecoration.none,
-                                              fontSize: 20,
-                                              color: Colors.black,
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.normal,
-                                            ),
-                                          ),
-                                        ),
-
-                                        // 3. ปุ่ม Action (ขวาบน) + สถานะ Loading
-                                        if (currentConfig.buttonLabel.isNotEmpty)
-                                          Align(
-                                            alignment: Alignment.bottomRight,
-                                            child: currentConfig.isLoading
-                                                ? const Padding(
-                                              padding: EdgeInsets.only(right: 10),
-                                              child: CupertinoActivityIndicator(color: AppColors.primaryColor),
-                                            )
-                                                : TextButton(
-                                              style: TextButton.styleFrom(
-                                                padding: const EdgeInsets.symmetric(horizontal: 5),
-                                                minimumSize: Size.zero,
-                                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                              ),
-                                              onPressed: () {
-                                                if (currentConfig.buttonAction != null) {
-                                                  currentConfig.buttonAction!(context);
-                                                }
-                                              },
-                                              child: Text(
-                                                currentConfig.buttonLabel,
-                                                style: TextStyle(
-                                                  fontSize: 17,
-                                                  color: AppColors.primaryColor,
-                                                  fontFamily: 'Inter',
-                                                  fontWeight: FontWeight.normal,
+                                              // 2. Title
+                                              Align(
+                                                alignment: Alignment.bottomCenter,
+                                                child: Text(
+                                                  currentConfig.title,
+                                                  style: const TextStyle(
+                                                    decoration: TextDecoration.none,
+                                                    fontSize: 20,
+                                                    color: Colors.black,
+                                                    fontFamily: 'Inter',
+                                                    fontWeight: FontWeight.normal,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
+
+                                              // 3. ปุ่ม Action (ขวาบน) + สถานะ Loading
+                                              if (currentConfig.buttonLabel.isNotEmpty)
+                                                Align(
+                                                  alignment: Alignment.bottomRight,
+                                                  child: currentConfig.isLoading
+                                                      ? const Padding(
+                                                    padding: EdgeInsets.only(right: 10),
+                                                    child: CupertinoActivityIndicator(color: AppColors.primaryColor),
+                                                  )
+                                                      : TextButton(
+                                                    style: TextButton.styleFrom(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                                                      minimumSize: Size.zero,
+                                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                    ),
+                                                    onPressed: () {
+                                                      if (currentConfig.buttonAction != null) {
+                                                        currentConfig.buttonAction!(context);
+                                                      }
+                                                    },
+                                                    child: Text(
+                                                      currentConfig.buttonLabel,
+                                                      style: TextStyle(
+                                                        fontSize: 17,
+                                                        color: AppColors.primaryColor,
+                                                        fontFamily: 'Inter',
+                                                        fontWeight: FontWeight.normal,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
                                           ),
-                                      ],
-                                    ),
-                                    const Divider(height: 0)
-                                  ],
+                                          const Divider(height: 0)
+                                        ],
+                                      ),
+                                    ],
+                                  )
                                 ),
 
                                 // 4. พื้นที่เนื้อหาที่มี Navigator ฝังอยู่

@@ -26,21 +26,21 @@ class LeaveRequestModel {
   final String id;
   final String leaveType;
   final DateTime dateStart;
-  final bool approve;
+  final ApproveStatus status;
 
   const LeaveRequestModel({
     required this.id,
     required this.leaveType,
     required this.dateStart,
-    required this.approve
+    required this.status
   });
 
   factory LeaveRequestModel.fromJson(Map<String, dynamic> json) {
     return LeaveRequestModel(
-        id: json['id'] ?? '',
-        leaveType: json['leave-type'] ?? '',
-        dateStart: DateTime.tryParse(json['date-start']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-        approve: json['approved'] ?? false
+      id: json['id'] ?? '',
+      leaveType: json['leave-type'] ?? '',
+      dateStart: DateTime.tryParse(json['date-start']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      status: ApproveStatusX.fromState(json['status'] ?? 'pending')
     );
   }
 
@@ -178,7 +178,7 @@ class NetworkFile {
   }
 }
 
-enum ApproveStatus { pending, approved, rejected }
+enum ApproveStatus { pending, approved, rejected, overdue }
 
 extension ApproveStatusX on ApproveStatus {
 
@@ -200,8 +200,7 @@ extension ApproveStatusX on ApproveStatus {
   }
 
   bool get isCompleted {
-    return this == ApproveStatus.approved ||
-        this == ApproveStatus.rejected;
+    return this != .pending;
   }
 
   String get icon {
@@ -214,6 +213,9 @@ extension ApproveStatusX on ApproveStatus {
 
       case ApproveStatus.pending:
         return 'icon_pending.svg';
+
+      case ApproveStatus.overdue:
+        return 'icon_overdue.svg';
     }
   }
 
@@ -227,6 +229,9 @@ extension ApproveStatusX on ApproveStatus {
 
       case ApproveStatus.rejected:
         return const Color(0xFFE7000B);
+
+      case ApproveStatus.overdue:
+        return const Color(0xFF000000);
     }
   }
 }

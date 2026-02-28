@@ -33,6 +33,8 @@ class LeaveRequestCreate extends StatefulWidget {
 
 class _LeaveRequestPage extends State<LeaveRequestCreate> {
 
+  int limitFileSize = 52428800;
+
   LeaveType? leaveType;
   LeaveSetting? setting;
   LeaveDate? leaveDate;
@@ -366,7 +368,9 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                             borderRadius: BorderRadius.circular(25),
                                                             border: (submitted &&
                                                                 setting?.requiredEvidenceFile == true &&
-                                                                allFiles.isEmpty)
+                                                                (allFiles.isEmpty ||
+                                                                allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize)
+                                                                )
                                                                 ? Border.all(
                                                               color: Colors.red,
                                                               width: 1.5,
@@ -598,11 +602,12 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                               ),
                                                             );
                                                           },
-                                                          child: (submitted && setting!.requiredEvidenceFile && allFiles.isEmpty)
+                                                          child: (submitted && setting!.requiredEvidenceFile &&
+                                                              (allFiles.isEmpty || allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize))
                                                               ? Padding(
                                                             padding: EdgeInsets.only(left: 13, top: 8),
                                                             child: Text(
-                                                              'กรุณาแนบไฟล์',
+                                                              (allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize) ? 'ขนาดไฟล์รวมเกิน ${Utils.formatBytes(limitFileSize)}' : 'กรุณาแนบไฟล์',
                                                               style: TextStyle(
                                                                 color: Colors.red,
                                                                 fontSize: 14,
@@ -651,6 +656,8 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
 
                                               if (setting!.requiredRemark && _textEditingController.text.isEmpty) return;
                                               if (setting!.requiredEvidenceFile && allFiles.isEmpty) return;
+
+                                              if (allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize) return;
 
                                               if (setting!.requestNeedSignature) {
                                                 ServiceSignaturePopup(
