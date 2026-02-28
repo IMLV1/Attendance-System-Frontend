@@ -156,7 +156,7 @@ class DynamicPushPopup {
                                                   child: currentConfig.isLoading
                                                       ? const Padding(
                                                     padding: EdgeInsets.only(right: 10),
-                                                    child: CupertinoActivityIndicator(color: AppColors.primaryColor),
+                                                    child: CupertinoActivityIndicator(),
                                                   )
                                                       : TextButton(
                                                     style: TextButton.styleFrom(
@@ -173,7 +173,7 @@ class DynamicPushPopup {
                                                       currentConfig.buttonLabel,
                                                       style: TextStyle(
                                                         fontSize: 17,
-                                                        color: AppColors.primaryColor,
+                                                        color: currentConfig.buttonColor,
                                                         fontFamily: 'Inter',
                                                         fontWeight: FontWeight.normal,
                                                       ),

@@ -235,3 +235,17 @@ extension ApproveStatusX on ApproveStatus {
     }
   }
 }
+
+class LeaveInfoModel {
+  final double used;
+  final double max;
+
+  const LeaveInfoModel({required this.used, required this.max});
+
+  factory LeaveInfoModel.fromJson(Map<String, dynamic> json) {
+    return LeaveInfoModel(
+      used: (json['used'] as num?)?.toDouble() ?? 0.0,
+      max: (json['max'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}

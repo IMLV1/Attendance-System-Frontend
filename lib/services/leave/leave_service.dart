@@ -131,6 +131,15 @@ class LeaveRequestService {
       }
     );
   }
+
+  Future<Response<dynamic>> getLeaveInfo(LeaveType leaveType) {
+    return dio.get(
+      'api/leave_request/leave_info',
+      data: {
+        'leave-type': leaveType.name
+      }
+    );
+  }
 }
 
 

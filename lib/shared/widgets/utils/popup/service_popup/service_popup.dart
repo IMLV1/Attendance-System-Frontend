@@ -146,7 +146,7 @@ class ServicePopup {
 
                                                   if (actionButton) Align(
                                                       alignment: Alignment.bottomRight,
-                                                      child: (state == ServiceUpdatorState.loading) ? CupertinoActivityIndicator(color: AppColors.primaryColor) :
+                                                      child: (state == ServiceUpdatorState.loading) ? CupertinoActivityIndicator() :
                                                       TextButton(
                                                           style: TextButton.styleFrom(
                                                             padding: const EdgeInsets.symmetric(horizontal: 5),

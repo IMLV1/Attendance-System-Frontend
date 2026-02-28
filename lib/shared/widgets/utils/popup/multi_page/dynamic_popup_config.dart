@@ -13,6 +13,7 @@ class PopupConfig {
   final double minHeight;
   final FlexFit fit;
   final bool scroll;
+  final Color buttonColor;
 
   PopupConfig({
     required this.title,
@@ -24,6 +25,7 @@ class PopupConfig {
     this.minHeight = 0,
     this.fit = FlexFit.loose,
     this.scroll = true,
+    this.buttonColor = AppColors.primaryColor,
   });
 
   // ฟังก์ชันช่วยก็อปปี้ค่าเดิม แล้วเปลี่ยนแค่บางค่า (เช่น เปลี่ยนแค่ isLoading)
@@ -37,6 +39,7 @@ class PopupConfig {
     double? minHeight,
     FlexFit? fit,
     bool? scroll,
+    Color? buttonColor,
   }) {
     return PopupConfig(
       title: title ?? this.title,
@@ -48,6 +51,7 @@ class PopupConfig {
       minHeight: minHeight ?? this.minHeight,
       fit: fit ?? this.fit,
       scroll: scroll ?? this.scroll,
+      buttonColor: buttonColor ?? this.buttonColor
     );
   }
 }
