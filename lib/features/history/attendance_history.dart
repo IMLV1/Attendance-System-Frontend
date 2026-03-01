@@ -1,5 +1,7 @@
 
 
+import 'package:attendance_system/services/history/attendance_history_model.dart';
+import 'package:attendance_system/services/history/attendance_history_service.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:dio/dio.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../shared/theme/app_colors.dart';
+import '../../shared/widgets/utils/popup/date_filter_popup.dart';
 import '../../shared/widgets/utils/popup/push_popup.dart';
 import '../../shared/widgets/utils/calendar.dart';
 
@@ -21,6 +24,10 @@ class AttendanceHistory extends StatefulWidget {
 }
 
 class _AttendanceHistoryState extends State<AttendanceHistory> {
+  //เอาไว้จำที่เคยกดเลือกไว้
+  DateTime? _selectedFrom;
+  DateTime? _selectedTo;
+
   String startDate = "---";
   String endDate = "---";
   String startTime = "---";
@@ -44,7 +51,27 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                   children: [
                     //ทำให้ “กล่องตัวกรอง” กดได้ (ห่อ Container เดิมด้วย InkWell)
                     InkWell(
-                      onTap: _openFilterPopup,// Go To
+                      onTap: (){
+                        DateFilterPopup(
+                            currentDateFrom: _selectedFrom,
+                            currentDateTo: _selectedTo,
+                            onSubmit: (DateTime? dateFrom, DateTime? dateTo) async {
+                              //set state ใหม่หลังกดปุ่ม
+                              setState(() {
+                                _selectedFrom = dateFrom;
+                                _selectedTo = dateTo;
+
+                                //UI Display
+                                startDate = (dateFrom == null) ? "---" : "${dateFrom.day}/${dateFrom.month}/${dateFrom.year+543}";
+                                endDate = (dateTo == null) ? "---" : "${dateTo.day}/${dateTo.month}/${dateTo.year+543}";
+
+                                debugPrint("from=$dateFrom to=$dateTo");
+                              });
+                              // โหลดใหม่ตามช่วงวันที่ (ถ้าคุณแก้ service ให้รับพารามิเตอร์แล้ว)
+                              await _loadHistory();
+                            }
+                        ).showPopup(context);
+                      },// Go To
                       borderRadius: BorderRadius.circular(22),
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -199,6 +226,9 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     }
   }
 
+  //
+
+  /*
   //ตัวอย่าง (ข้อมูลปลอม) เอาไว้โชว์ UI ก่อน
   //from database
   final List<Map<String, dynamic>> _mock = [
@@ -233,6 +263,67 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     {"date": "2026-12-23", "dow": "พุธ",      "checkIn": "07:30", "checkOut": "22:30"},
     {"date": "2026-12-22", "dow": "อังคาร",   "checkIn": "08:30", "checkOut": null}, // ไม่สมบูรณ์
   ];
+   */
+
+  //**ดึง API
+  //เพิ่ม state:
+  final _historyService = AttendanceHistoryService();//สร้าง Object ดึง API
+  List<AttendanceHistoryModel> _items = [];//set เป็นว่างไว้ก่อน เตรียมรอใส่
+  bool _loading = true;
+  String? _error;//เก็บข้อความ error ไว้แสดง ถ้า API มีปัญหา
+
+  //เตรียมหน้าจอ
+  @override
+  void initState() {
+    // TODO: implement deactivate
+    super.initState();// ทำของ Flutter ก่อน (เตรียมหน้าจอ)
+    _loadHistory();// แล้วเราเพิ่ม "ดึงข้อมูลจาก API" ต่อเลย
+  }
+
+  String _toYmd(DateTime d){
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return "$y-$m-$day";
+  }
+  //เพิ่ม helper จัดการช่วงวันที่ + format ให้ถูก
+  DateTime _dateTime(DateTime d) => DateTime(d.year,d.month,d.day);
+  DateTime _endTime(DateTime d) => DateTime(d.year,d.month,d.day,23,59,59);
+
+  
+
+  //load
+  Future<void> _loadHistory() async{
+    try {
+      //เริ่ม  → loading = true
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+
+      //ดึง API → ได้ข้อมูล → เรียงวันที่ → แสดงผล
+      final items = await _historyService.fetchHistory(
+        startDate: _selectedFrom == null ? null : _toYmd(_selectedFrom!),
+        endDate: _selectedTo == null ? null : _toYmd(_selectedTo!)
+      );// รอดึงข้อมูลจาก API ก่อน แล้วเก็บไว้ใน items
+      items.sort((a,b) => b.date.compareTo(a.date));
+      // เรียงจากใหม่ไปเก่า
+      // b.date.compareTo(a.date) = เอาวันที่ล่าสุดขึ้นก่อน
+
+      setState(() {
+        _items = items;// เอาข้อมูลที่ได้มาใส่ list แล้วหน้าจอจะอัพเดทอัตโนมัติ
+      });
+    }catch (e){
+      //error  → เก็บข้อความ error
+      setState(() {
+        _error = e.toString();// เก็บข้อความ error ไว้แสดงบนหน้าจอ
+      });
+    }finally {//เมื่อจบ ทำเสมอไม่ว่าจะสำเร็จหรือ error
+      setState(() {
+        _loading = false;// ปิด loading spinner ทุกกรณี
+      });
+    }
+  }
 
   static const int _stdInHour = 8;
   static const int _stdInMinute = 30;
@@ -356,7 +447,18 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     };
   }
 
+  //ใส่ loading/error ก่อนสร้าง ListView
   Widget _buildHistoryList() {
+    if(_loading){
+      return const Center(child:CircularProgressIndicator());
+    }
+    if(_error != null){
+      return Center(child: Text("โหลดข้อมูลไม่สำเร็จ:  $_error"));
+    }
+    if(_items.isEmpty){
+      return const Center(child: Text("ไม่มีข้อมูล"));
+    }
+
     //ก้อนสีขาว ใหญ่
     return Container(
       padding: const EdgeInsets.all(25),
@@ -365,16 +467,21 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
         borderRadius: BorderRadius.circular(18),
       ),
       child: ListView.separated( //ใช้ทำลิสต์ที่มีเส้น/ช่องว่างคั่นระหว่าง item แต่ละอัน
-        itemCount: _mock.length,
+        //itemCount: _mock.length, //fake data
+        itemCount: _items.length,//from api database
         separatorBuilder: (_,__) => const Divider(height: 20),
         itemBuilder: (context,index){
-          final item = _mock[index];
+          //final item = _mock[index];//fake data
+          final item = _items[index];//แบบอ่านจาก model api database เลย
 
           //แปลง String วันที่ให้กลายเป็น DateTime
-          final date = DateTime.parse(item["date"]); // 2026-12-24
+          //final date = DateTime.parse(item["date"]); // 2026-12-24
+          final date = item.date; //parse
+
           //ถ้าตอนนี้เป็นแถวแรก (index = 0) ให้ prevDate เป็น null
           // แต่ถ้าไม่ใช่แถวแรก ให้เอาวันที่ของแถวก่อนหน้า (index-1) มาแปลงเป็น DateTime แล้วเก็บไว้ใน prevDate
-          final prevDate = index == 0 ? null : DateTime.parse(_mock[index - 1]["date"]);
+          //final prevDate = index == 0 ? null : DateTime.parse(_items[index - 1]["date"]);
+          final prevDate = index == 0 ? null : _items[index - 1].date;
 
           // เช็คว่า "รายการปัจจุบัน" เป็นเดือน/ปีใหม่เมื่อเทียบกับ "รายการก่อนหน้า" หรือไม่
           // - ถ้า prevDate เป็น null (แถวแรก) -> ถือว่าเป็นเดือนใหม่
@@ -387,10 +494,13 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
           final day = date.day.toString();
           // ใช้ dow จาก API ถ้ามี ไม่มีก็คำนวณจาก date เป็น fallback
-          final dow = (item["dow"] as String?) ?? _thaiDowFromDate(date);
+          // dow = (item["dow"] as String?) ?? _thaiDowFromDate(date);
+          final dow = item.dow ?? _thaiDowFromDate(date);
 
-          final timeIn = (item["checkIn"] ?? "--:--").toString();
-          final timeOut = item["checkOut"] == null ? "--:--" : item["checkOut"].toString();
+          //final timeIn = (item["checkIn"] ?? "--:--").toString();
+          //final timeOut = item["checkOut"] == null ? "--:--" : item["checkOut"].toString();
+          final timeIn = item.checkIn ?? "--:--";
+          final timeOut = item.checkOut ?? "--:--";
 
           final ui = _computeUi(
             dow: dow,
@@ -418,7 +528,6 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
            */
           if (!isNewMonth) return row;
 
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -431,7 +540,6 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
               ),
               row,//history
             ],
-
           );
         },
       ),
@@ -456,7 +564,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
         Container(
           //ก้อน DOW Ex. 22 วันพุธ
-          width: 64*1.25,
+          width: 64,
           padding: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: badgeColor,
@@ -464,9 +572,9 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
           ),
           child: Column(
             children: [
-              Text(day, style: const TextStyle(fontSize: 30*1.25, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 1),//gap
-              Text(dow, style: const TextStyle(fontSize: 14*1.25, color: Colors.black54)),
+              Text(day, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700)),
+              //const SizedBox(height: 0.005),//gap
+              Text(dow, style: const TextStyle(fontSize: 14, color: Colors.black54)),
             ],
           ),
         ),
@@ -477,13 +585,13 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
               children: [
                 Row(
                   children: [
-                    Text("เข้างาน  ", style: TextStyle(fontSize: 12*1.25, color: Colors.grey.shade600)),
-                    Text(timeIn, style: const TextStyle(fontSize: 15*1.25, fontWeight: FontWeight.w700)),
+                    Text("เข้างาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    Text(timeIn, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                     const SizedBox(width: 11),
                     Text("|", style: TextStyle(color: Colors.grey.shade400)),
                     const SizedBox(width: 11),
-                    Text("ออกงาน  ", style: TextStyle(fontSize: 12*1.25, color: Colors.grey.shade600)),
-                    Text(timeOut, style: const TextStyle(fontSize: 15*1.25, fontWeight: FontWeight.w700)),
+                    Text("ออกงาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    Text(timeOut, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -500,15 +608,15 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                           //icon
                           SvgPicture.asset(
                             statusIconAsset,
-                            width: 16*1.25,
-                            height: 16*1.25,
+                            width: 16,
+                            height: 16,
                             colorFilter: ColorFilter.mode(statusFg, BlendMode.srcIn), // ให้ไอคอนเป็นสีเดียวกับตัวหนังสือ
                           ),
                           const SizedBox(width: 6),
                           Text(
                             statusText,
                             style: TextStyle(
-                              fontSize: 12*1.25,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: statusFg,
                             ),
@@ -521,11 +629,11 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                     //icon
                     SvgPicture.asset(
                       'assets/images/clock_attendance.svg',
-                      width: 16*1.25,
-                      height: 16*1.25,
+                      width: 16,
+                      height: 16,
                     ),
                     const SizedBox(width: 6),
-                    Text(duration, style: TextStyle(fontSize: 12*1.25, color: Colors.grey.shade700)),
+                    Text(duration, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
                   ],
                 ),
               ],
