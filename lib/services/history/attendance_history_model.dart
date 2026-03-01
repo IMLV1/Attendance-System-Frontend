@@ -24,4 +24,8 @@ class AttendanceHistoryModel {
       checkOut: json['checkOut']?.toString(),
     );
   }
+
+  static List<AttendanceHistoryModel> getList(List<dynamic> list) {
+    return list.map((m) => AttendanceHistoryModel.fromJson(m as Map<String, dynamic>)).toList();
+  }
 }
