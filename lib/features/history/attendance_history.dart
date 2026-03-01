@@ -66,7 +66,12 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
                               // Utils.mockResponse(
                               //   data: [
-                              //     {'date': '2026-03-02', 'dow': 'จันทร์', 'checkIn': '01:07', 'checkOut': null}
+                              //     {
+                              //       'date': '2026-03-02',
+                              //       'dow': 'จันทร์',
+                              //       'checkIn': '01:07',
+                              //       'checkOut': null,
+                              //     }
                               //   ]
                               // )
 
