@@ -31,7 +31,7 @@ class Utils {
     return min + random.nextInt(max - min + 1);
   }
 
-  static Future<Response> mockResponse({int delayed = 200, int statusCode = 200, Map<String, dynamic> data = const {}}) async {
+  static Future<Response> mockResponse({int delayed = 200, int statusCode = 200, dynamic data = const {}}) async {
 
     await Future.delayed(
       Duration(milliseconds: delayed),

@@ -6,12 +6,14 @@ class UserInfoButton extends StatelessWidget {
 
   final Widget icon;
   final String title;
-  final String subTitle;
+  final String? subTitle;
   final List<Role> roles;
   final bool arrow;
   final VoidCallback? onPressed;
+  final Color titleColor;
+  final Color subTitleColor;
 
-  const UserInfoButton({super.key, required this.icon, required this.title, required this.subTitle, this.arrow = true, this.onPressed, required this.roles});
+  const UserInfoButton({super.key, required this.icon, required this.title, required this.subTitle, this.arrow = true, this.onPressed, required this.roles, this.titleColor = Colors.black, this.subTitleColor = const Color(0xFF7E7E7E)});
 
   @override
   Widget build(BuildContext context) {
@@ -53,14 +55,16 @@ class UserInfoButton extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(fontSize: 14, color: Colors.black),
+                        style: TextStyle(fontSize: 14, color: titleColor),
                         softWrap: true,
                       ),
-                      Text(
-                        subTitle,
-                        style: TextStyle(fontSize: 10, color: Color(0xFF7E7E7E)),
-                        softWrap: true,
-                      ),
+
+                      if (subTitle != null)
+                        Text(
+                          subTitle!,
+                          style: TextStyle(fontSize: 10, color: subTitleColor),
+                          softWrap: true,
+                        ),
                     ],
                   ),
                 ),

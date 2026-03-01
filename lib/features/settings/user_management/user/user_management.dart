@@ -99,9 +99,12 @@ class _UserManagementState extends State<UserManagement> {
             final roleMatch = user.roles.any((role) =>
                 role.name.toLowerCase().contains(input));
 
+            final initRole = user.initRole.toLowerCase();
+
             return nameTh.contains(input) ||
                 nameEn.contains(input) ||
-                roleMatch;
+                roleMatch ||
+                initRole.contains(input);
           }).toList();
         }
       });
@@ -114,303 +117,303 @@ class _UserManagementState extends State<UserManagement> {
     return AppScaffold(
       header: Header.subHeader(context, title: 'จัดการผู้ใช้งานระบบ'),
       content: SafeArea(
-          child: Container(
-              color: AppColors.backgroundColor,
-              alignment: Alignment.topCenter,
-              child: Padding(
-                  padding: EdgeInsets.only(left: 10, right: 10, top: 20),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      spacing: 13,
-                      children: [
-                        Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(22),
-                              color: AppColors.shadowColor,
-                            ),
-                            padding: EdgeInsets.only(top: 12, left: 10, right: 10, bottom: 8),
+        child: Container(
+          color: AppColors.backgroundColor,
+          alignment: Alignment.topCenter,
+          child: Padding(
+              padding: EdgeInsets.only(left: 10, right: 10, top: 20),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 13,
+                  children: [
+                    Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(22),
+                          color: AppColors.shadowColor,
+                        ),
+                        padding: EdgeInsets.only(top: 12, left: 10, right: 10, bottom: 8),
 
-                            width: double.infinity,
-                            child: Row(
-                              spacing: 10,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                    decoration: BoxDecoration(
-                                        color: AppColors.titleColor,
-                                        borderRadius: BorderRadius.circular(8)
-                                    ),
-                                    height: 35,
-                                    width: 35,
-                                    padding: EdgeInsets.all(4),
-                                    child: SvgPicture.asset(
-                                      'assets/images/role_management.svg',
-                                    )
+                        width: double.infinity,
+                        child: Row(
+                          spacing: 10,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                                decoration: BoxDecoration(
+                                    color: AppColors.titleColor,
+                                    borderRadius: BorderRadius.circular(8)
                                 ),
+                                height: 35,
+                                width: 35,
+                                padding: EdgeInsets.all(4),
+                                child: SvgPicture.asset(
+                                  'assets/images/role_management.svg',
+                                )
+                            ),
 
-                                Expanded(child: Column(
+                            Expanded(child: Column(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  spacing: 5,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      spacing: 5,
-                                      children: [
-                                        Text(
-                                          'จัดการตำแหน่งผู้ใช้งาน',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15
-                                          ),
-                                        ),
-                                        Divider(height: 0),
-                                        Text(
-                                            'กำหนดและจัดการตำแหน่ง เพื่อควบคุมการเข้าถึง และกำหนดขอบเขตความรับผิดชอบของบทบาท',
-                                            style: TextStyle(
-                                                color: AppColors.lightTextColor,
-                                                fontSize: 12,
-                                                height: 1.3
-                                            )
-                                        )
-                                      ],
+                                    Text(
+                                      'จัดการตำแหน่งผู้ใช้งาน',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15
+                                      ),
                                     ),
-                                    Container(
-                                        width: double.infinity,
-                                        alignment: Alignment.centerRight,
-                                        child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              padding: EdgeInsets.symmetric(horizontal: 5),
-                                              minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                              backgroundColor: Colors.transparent,
-                                              shadowColor: Colors.transparent,
-                                              overlayColor: Colors.transparent,
-                                            ),
-                                            onPressed: () {
-                                              Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                  builder: (context) => RoleManagement(),
-                                                ),
-                                              );
-                                            },
-                                            child: Text(
-                                              'ไปจัดการ',
-                                              style: TextStyle(
-                                                  color: AppColors.primaryColor,
-                                                  fontSize: 14
-                                              ),
-                                            )
+                                    Divider(height: 0),
+                                    Text(
+                                        'กำหนดและจัดการตำแหน่ง เพื่อควบคุมการเข้าถึง และกำหนดขอบเขตความรับผิดชอบของบทบาท',
+                                        style: TextStyle(
+                                            color: AppColors.lightTextColor,
+                                            fontSize: 12,
+                                            height: 1.3
                                         )
                                     )
                                   ],
-                                )),
+                                ),
+                                Container(
+                                    width: double.infinity,
+                                    alignment: Alignment.centerRight,
+                                    child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          padding: EdgeInsets.symmetric(horizontal: 5),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          backgroundColor: Colors.transparent,
+                                          shadowColor: Colors.transparent,
+                                          overlayColor: Colors.transparent,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => RoleManagement(),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          'ไปจัดการ',
+                                          style: TextStyle(
+                                              color: AppColors.primaryColor,
+                                              fontSize: 14
+                                          ),
+                                        )
+                                    )
+                                )
+                              ],
+                            )),
+                          ],
+                        )
+                    ),
+                    Column(
+                      spacing: 5,
+                      children: [
+                        Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            child: Row(
+                              spacing: 6,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/users.svg',
+                                ),
+                                Text('ผู้ใช้งาน')
                               ],
                             )
                         ),
-                        Column(
-                          spacing: 5,
-                          children: [
-                            Container(
-                                width: double.infinity,
-                                padding: EdgeInsets.symmetric(horizontal: 5),
-                                child: Row(
-                                  spacing: 6,
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/images/users.svg',
-                                    ),
-                                    Text('ผู้ใช้งาน')
-                                  ],
-                                )
-                            ),
-                            SizedBox(
-                                width: double.infinity,
-                                child: Row(
-                                  spacing: 10,
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller: _controller,
-                                        onChanged: _onSearchChanged,
-                                        textInputAction: TextInputAction.done,
-                                        decoration: InputDecoration(
-                                          isDense: true,
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(50),
-                                            borderSide: const BorderSide(
-                                              color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                              width: 1,
-                                            ),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(50),
-                                            borderSide: const BorderSide(
-                                              color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
-                                              width: 1,
-                                            ),
-                                          ),
-                                          hint: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            spacing: 10,
-                                            children: [
-                                              SvgPicture.asset(
-                                                'assets/images/search.svg',
-                                                width: 15,
-                                                height: 15,
-                                              ),
-                                              Text('ค้นหาผู้ใช้...',
-                                                  style: TextStyle(
-                                                      color: Color(0xFF7D7D7D),
-                                                      fontSize: 15
-                                                  )
-                                              )
-                                            ],
-                                          ),
+                        SizedBox(
+                            width: double.infinity,
+                            child: Row(
+                              spacing: 10,
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _controller,
+                                    onChanged: _onSearchChanged,
+                                    textInputAction: TextInputAction.done,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(50),
+                                        borderSide: const BorderSide(
+                                          color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                          width: 1,
                                         ),
                                       ),
-                                    ),
-                                    SizedBox(
-                                      width: 55,
-                                      child: ElevatedButton(
-                                          onPressed: () async {
-                                            UserManagementModel? updatedUser = await Navigator.of(context).push(
-                                              MaterialPageRoute<UserManagementModel>(
-                                                builder: (context) => CreateUser(),
-                                              ),
-                                            );
-
-                                            if (updatedUser != null) {
-                                              setState(() {
-                                                users.add(updatedUser);
-                                                _onSearchChanged(_controller.text);
-                                              });
-                                            }
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            elevation: 0,
-                                            shadowColor: Colors.transparent,
-                                            padding: EdgeInsets.all(0),
-                                            side: const BorderSide(
-                                              color: Color(0xFF7D7D7D),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: SvgPicture.asset(
-                                            'assets/images/create_user.svg',
-                                            colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
-                                          )
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(50),
+                                        borderSide: const BorderSide(
+                                          color: Color(0xFF7D7D7D), // 👈 สีตอนปกติ
+                                          width: 1,
+                                        ),
                                       ),
-                                    )
-                                  ],
-                                )
-                            )
-                          ],
-                        ),
-                        Expanded(
-                          child: ServiceLoader(
-                            request: () => UserManagementService().getData(),
-                            onSuccess: (jsonData) {
-                              final List<UserManagementModel> data = UserManagementModel.getList(jsonData);
-
-                              setState(() {
-                                users = data;
-                                _onSearchChanged(_controller.text);
-                              });
-                            },
-                            builder: () => SingleChildScrollView(
-                              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              child: SeparatorCard(
-                                separatorPadding: const EdgeInsets.only(left: 70, right: 15),
-                                children: [
-                                  ...filteredUsers.map((m) {
-                                    return UserInfoButton(
+                                      hint: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        spacing: 10,
+                                        children: [
+                                          SvgPicture.asset(
+                                            'assets/images/search.svg',
+                                            width: 15,
+                                            height: 15,
+                                          ),
+                                          Text('ค้นหาผู้ใช้...',
+                                              style: TextStyle(
+                                                  color: Color(0xFF7D7D7D),
+                                                  fontSize: 15
+                                              )
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 55,
+                                  child: ElevatedButton(
                                       onPressed: () async {
-                                        final ({int status, UserManagementModel? updatedUser})? res = await Navigator.of(context).push<({int status, UserManagementModel? updatedUser})>(
-                                          MaterialPageRoute(
-                                            builder: (context) => UserInfo(userInfo: m),
+                                        UserManagementModel? updatedUser = await Navigator.of(context).push(
+                                          MaterialPageRoute<UserManagementModel>(
+                                            builder: (context) => CreateUser(),
                                           ),
                                         );
 
-                                        if (res != null) {
-
-                                          if (res.status == 0) {
-                                            final index = users.indexWhere((
-                                                u) =>
-                                            u.id == res.updatedUser!.id);
-                                            setState(() {
-                                              users[index] = res.updatedUser!;
-                                            });
-                                          } else if (res.status == 1) {
-                                            setState(() {
-                                              users.remove(m);
-                                            });
-                                          }
+                                        if (updatedUser != null) {
+                                          setState(() {
+                                            users.add(updatedUser);
+                                            _onSearchChanged(_controller.text);
+                                          });
                                         }
                                       },
-                                      icon: Image.network(
-                                        m.avatarUrl,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Image.asset(
-                                            'assets/images/profile.png',
-                                            fit: BoxFit.cover,
-                                          );
-                                        },
+                                      style: ElevatedButton.styleFrom(
+                                        elevation: 0,
+                                        shadowColor: Colors.transparent,
+                                        padding: EdgeInsets.all(0),
+                                        side: const BorderSide(
+                                          color: Color(0xFF7D7D7D),
+                                          width: 1,
+                                        ),
                                       ),
-                                      title: m.nameTH,
-                                      subTitle: m.nameEN,
-                                      roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
-                                    );
-                                  }),
-                                ],
-                              ),
-                            ),
-                          )
-
-                          // child: users.isEmpty
-                          //     ? const Center(child: CupertinoActivityIndicator())
-                          //     : SingleChildScrollView(
-                          //   physics: const AlwaysScrollableScrollPhysics(),
-                          //   child: SeparatorCard(
-                          //     separatorPadding: const EdgeInsets.only(left: 70, right: 15),
-                          //     children: [
-                          //       ...filteredUsers.map((m) {
-                          //         return UserInfoButton(
-                          //           onPressed: () async {
-                          //             final updatedUser = await Navigator.of(context).push<UserManagementModel>(
-                          //               MaterialPageRoute(
-                          //                 builder: (context) => UserInfo(userInfo: m),
-                          //               ),
-                          //             );
-                          //
-                          //             if (updatedUser != null) {
-                          //               final index = users.indexWhere((u) => u.id == updatedUser.id);
-                          //
-                          //               setState(() {
-                          //                 users[index] = updatedUser;
-                          //               });
-                          //             }
-                          //
-                          //           },
-                          //           icon: Image.network(
-                          //             m.avatarUrl,
-                          //             fit: BoxFit.cover,
-                          //           ),
-                          //           title: m.nameTH,
-                          //           subTitle: m.nameEN,
-                          //           roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
-                          //         );
-                          //       }),
-                          //     ],
-                          //   ),
-                          // ),
+                                      child: SvgPicture.asset(
+                                        'assets/images/create_user.svg',
+                                        colorFilter: ColorFilter.mode(Color(0xFF7D7D7D), BlendMode.srcIn),
+                                      )
+                                  ),
+                                )
+                              ],
+                            )
                         )
-                      ]
-                  )
+                      ],
+                    ),
+                    Expanded(
+                      child: ServiceLoader(
+                        request: () => UserManagementService().getData(),
+                        onSuccess: (jsonData) {
+                          final List<UserManagementModel> data = UserManagementModel.getList(jsonData);
+
+                          setState(() {
+                            users = data;
+                            _onSearchChanged(_controller.text);
+                          });
+                        },
+                        builder: () => SingleChildScrollView(
+                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: SeparatorCard(
+                            separatorPadding: const EdgeInsets.only(left: 70, right: 15),
+                            children: [
+                              ...filteredUsers.map((m) {
+                                return UserInfoButton(
+                                  onPressed: () async {
+                                    final ({int status, UserManagementModel? updatedUser})? res = await Navigator.of(context).push<({int status, UserManagementModel? updatedUser})>(
+                                      MaterialPageRoute(
+                                        builder: (context) => UserInfo(userInfo: m),
+                                      ),
+                                    );
+
+                                    if (res != null) {
+
+                                      if (res.status == 0) {
+                                        final index = users.indexWhere((
+                                            u) =>
+                                        u.id == res.updatedUser!.id);
+                                        setState(() {
+                                          users[index] = res.updatedUser!;
+                                        });
+                                      } else if (res.status == 1) {
+                                        setState(() {
+                                          users.remove(m);
+                                        });
+                                      }
+                                    }
+                                  },
+                                  icon: Image.network(
+                                    m.avatarUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Image.asset(
+                                        'assets/images/profile.png',
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
+                                  ),
+                                  title: m.nameTH,
+                                  subTitle: m.nameEN,
+                                  roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      )
+
+                      // child: users.isEmpty
+                      //     ? const Center(child: CupertinoActivityIndicator())
+                      //     : SingleChildScrollView(
+                      //   physics: const AlwaysScrollableScrollPhysics(),
+                      //   child: SeparatorCard(
+                      //     separatorPadding: const EdgeInsets.only(left: 70, right: 15),
+                      //     children: [
+                      //       ...filteredUsers.map((m) {
+                      //         return UserInfoButton(
+                      //           onPressed: () async {
+                      //             final updatedUser = await Navigator.of(context).push<UserManagementModel>(
+                      //               MaterialPageRoute(
+                      //                 builder: (context) => UserInfo(userInfo: m),
+                      //               ),
+                      //             );
+                      //
+                      //             if (updatedUser != null) {
+                      //               final index = users.indexWhere((u) => u.id == updatedUser.id);
+                      //
+                      //               setState(() {
+                      //                 users[index] = updatedUser;
+                      //               });
+                      //             }
+                      //
+                      //           },
+                      //           icon: Image.network(
+                      //             m.avatarUrl,
+                      //             fit: BoxFit.cover,
+                      //           ),
+                      //           title: m.nameTH,
+                      //           subTitle: m.nameEN,
+                      //           roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
+                      //         );
+                      //       }),
+                      //     ],
+                      //   ),
+                      // ),
+                    )
+                  ]
               )
           )
+        )
       ),
     );
   }
