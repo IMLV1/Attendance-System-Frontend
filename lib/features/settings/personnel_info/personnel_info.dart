@@ -1,3 +1,4 @@
+import 'package:attendance_system/features/settings/personnel_info/choose_personnel.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_info.dart';
 import 'package:attendance_system/services/personnel_info/personnel_info_model.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
@@ -75,6 +76,23 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
                                       ...userInfo!.roles,
                                       Role(id: '0000000000', name: userInfo!.initRole, color: Color(0xFF535353))
                                     ],
+                                    onPressed: () {
+                                      PushPopup(
+                                          title: 'เลือกบุคลากร',
+                                          fit: FlexFit.tight,
+                                          maxHeight: 700,
+                                          scroll: false,
+                                          builder: (BuildContext context) {
+                                            return ChoosePersonnel(
+                                                onChoose: (personnel) {
+                                                  setState(() {
+                                                    userInfo = personnel;
+                                                  });
+                                                }
+                                            );
+                                          }
+                                      ).showPopup(context);
+                                    },
                                   ) :
                                   TextButton(
                                     label: 'เลือกบุคลากร',
@@ -84,18 +102,39 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
                                         title: 'เลือกบุคลากร',
                                         fit: FlexFit.tight,
                                         maxHeight: 700,
+                                        scroll: false,
                                         builder: (BuildContext context) {
-                                          return Column(
-                                            children: [
-
-                                            ],
+                                          return ChoosePersonnel(
+                                            onChoose: (personnel) {
+                                              setState(() {
+                                                userInfo = personnel;
+                                              });
+                                            }
                                           );
                                         }
                                       ).showPopup(context);
                                     },
-                                  )
+                                  ),
                                 ],
-                              )
+                              ),
+                              if (userInfo != null)
+                                SeparatorCard(
+                                  separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                                  children: [
+                                    IconTextButton(
+                                      icon: 'icon_attendance_history.svg',
+                                      label: 'การเข้างาน'
+                                    ),
+                                    IconTextButton(
+                                        icon: 'icon_leave.svg',
+                                        label: 'การลางาน'
+                                    ),
+                                    IconTextButton(
+                                        icon: 'icon_attendance_request_history.svg',
+                                        label: 'การขออนุมัติเวลางาน'
+                                    ),
+                                  ],
+                                )
                             ],
                           )
                         ),

@@ -99,9 +99,12 @@ class _UserManagementState extends State<UserManagement> {
             final roleMatch = user.roles.any((role) =>
                 role.name.toLowerCase().contains(input));
 
+            final initRole = user.initRole.toLowerCase();
+
             return nameTh.contains(input) ||
                 nameEn.contains(input) ||
-                roleMatch;
+                roleMatch ||
+                initRole.contains(input);
           }).toList();
         }
       });

@@ -29,4 +29,8 @@ class PersonnelInfoModel {
       initRole: json['initial-role'] ?? '',
     );
   }
+
+  static List<PersonnelInfoModel> getList(Map<String, dynamic> json) {
+    return [...json['data'].map((m) => PersonnelInfoModel.fromJson(m))];
+  }
 }
