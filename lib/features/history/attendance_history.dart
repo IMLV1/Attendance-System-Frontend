@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../shared/theme/app_colors.dart';
+import '../../shared/widgets/utils/popup/date_filter_popup.dart';
 import '../../shared/widgets/utils/popup/push_popup.dart';
 import '../../shared/widgets/utils/calendar.dart';
 
@@ -23,6 +24,10 @@ class AttendanceHistory extends StatefulWidget {
 }
 
 class _AttendanceHistoryState extends State<AttendanceHistory> {
+  //เอาไว้จำที่เคยกดเลือกไว้
+  DateTime? _selectedFrom;
+  DateTime? _selectedTo;
+
   String startDate = "---";
   String endDate = "---";
   String startTime = "---";
@@ -46,7 +51,27 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                   children: [
                     //ทำให้ “กล่องตัวกรอง” กดได้ (ห่อ Container เดิมด้วย InkWell)
                     InkWell(
-                      onTap: _openFilterPopup,// Go To
+                      onTap: (){
+                        DateFilterPopup(
+                            currentDateFrom: _selectedFrom,
+                            currentDateTo: _selectedTo,
+                            onSubmit: (DateTime? dateFrom, DateTime? dateTo) async {
+                              //set state ใหม่หลังกดปุ่ม
+                              setState(() {
+                                _selectedFrom = dateFrom;
+                                _selectedTo = dateTo;
+
+                                //UI Display
+                                startDate = (dateFrom == null) ? "---" : "${dateFrom.day}/${dateFrom.month}/${dateFrom.year+543}";
+                                endDate = (dateTo == null) ? "---" : "${dateTo.day}/${dateTo.month}/${dateTo.year+543}";
+
+                                debugPrint("from=$dateFrom to=$dateTo");
+                              });
+                              // โหลดใหม่ตามช่วงวันที่ (ถ้าคุณแก้ service ให้รับพารามิเตอร์แล้ว)
+                              await _loadHistory();
+                            }
+                        ).showPopup(context);
+                      },// Go To
                       borderRadius: BorderRadius.circular(22),
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -254,6 +279,19 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     super.initState();// ทำของ Flutter ก่อน (เตรียมหน้าจอ)
     _loadHistory();// แล้วเราเพิ่ม "ดึงข้อมูลจาก API" ต่อเลย
   }
+
+  String _toYmd(DateTime d){
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return "$y-$m-$day";
+  }
+  //เพิ่ม helper จัดการช่วงวันที่ + format ให้ถูก
+  DateTime _dateTime(DateTime d) => DateTime(d.year,d.month,d.day);
+  DateTime _endTime(DateTime d) => DateTime(d.year,d.month,d.day,23,59,59);
+
+  
+
   //load
   Future<void> _loadHistory() async{
     try {
@@ -264,7 +302,10 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
       });
 
       //ดึง API → ได้ข้อมูล → เรียงวันที่ → แสดงผล
-      final items = await _historyService.fetchHistory();// รอดึงข้อมูลจาก API ก่อน แล้วเก็บไว้ใน items
+      final items = await _historyService.fetchHistory(
+        startDate: _selectedFrom == null ? null : _toYmd(_selectedFrom!),
+        endDate: _selectedTo == null ? null : _toYmd(_selectedTo!)
+      );// รอดึงข้อมูลจาก API ก่อน แล้วเก็บไว้ใน items
       items.sort((a,b) => b.date.compareTo(a.date));
       // เรียงจากใหม่ไปเก่า
       // b.date.compareTo(a.date) = เอาวันที่ล่าสุดขึ้นก่อน
@@ -532,7 +573,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
           child: Column(
             children: [
               Text(day, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 1),//gap
+              //const SizedBox(height: 0.005),//gap
               Text(dow, style: const TextStyle(fontSize: 14, color: Colors.black54)),
             ],
           ),

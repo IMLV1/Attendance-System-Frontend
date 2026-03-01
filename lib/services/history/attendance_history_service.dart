@@ -9,10 +9,6 @@ class AttendanceHistoryService {
   // หยิบโทรศัพท์ (Dio) จากกล่องกลาง (GetIt) มาใช้
   final Dio dio = GetIt.I<ApiClient>().dio;
 
-
-
-
-
   // ฟังก์ชันนี้ชื่อ fetchHistory แปลว่า "ไปดึงประวัติมา"
   // รับวันเริ่ม และวันจบ (จะส่งมาหรือไม่ส่งก็ได้)
   // Future คือบอกว่า "ต้องรอก่อนนะ ยังไม่ได้คำตอบทันที"
