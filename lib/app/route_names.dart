@@ -15,4 +15,5 @@ class RouteNames {
   static const userManagement = 'user-management';
   static const roleManagement = 'role-management';
   static const attendanceHistory = 'attendance-history';
+  static const personnelInfo = 'personnel-info';
 }

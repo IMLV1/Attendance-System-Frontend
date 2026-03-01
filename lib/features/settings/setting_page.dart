@@ -61,7 +61,9 @@ class SettingPage extends StatelessWidget {
                       children: [
                         IconTextButton(icon: 'icon_approval.svg', label: 'อนุมัติคำขอ'),
                         IconTextButton(icon: 'icon_approval_history.svg', label: 'บันทึกการอนุมัติคำขอ'),
-                        IconTextButton(icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
+                        IconTextButton(onPressed: () {
+                          context.pushNamed(RouteNames.personnelInfo);
+                        }, icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
                         // ToggleSwitch(
                         //   icon: 'icon_role.svg',
                         //   label: 'แนบเอกสาร',

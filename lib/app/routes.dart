@@ -10,6 +10,7 @@ import 'package:attendance_system/features/settings/admin_config/setting_attenda
 import 'package:attendance_system/features/settings/admin_config/setting_attendance_request.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_budget_year.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_leave_type.dart';
+import 'package:attendance_system/features/settings/personnel_info/personnel_info.dart';
 import 'package:attendance_system/features/settings/setting_page.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_management.dart';
 import 'package:attendance_system/shared/widgets/base_view.dart';
@@ -106,6 +107,11 @@ final appRouter = GoRouter(
               name: RouteNames.attendanceHistory,
               path: 'attendance-history',
               builder: (_, _) => const AttendanceHistory(),
+            ),
+            GoRoute(
+              name: RouteNames.personnelInfo,
+              path: 'personnel-info',
+              builder: (_, _) => const PersonnelInfo(),
             )
           ]
         ),
