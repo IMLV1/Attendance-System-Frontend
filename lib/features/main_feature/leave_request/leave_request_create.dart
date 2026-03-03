@@ -663,8 +663,11 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                         ServiceUpdater(
                           request: () => LeaveRequestService().create(leaveType!, leaveDate!, _textEditingController.text, allFiles, null),
                           onSuccessResponse: (jsonData) {
-                            final String? requestID = jsonData['request-id'] ?? '';
-                            context.pop((requestID, leaveType, leaveDate!.fromDate));
+                            final String? requestID = jsonData['request-id'];
+                            // Explicitly define the return type in the brackets <>
+                            context.pop<(String?, String?, DateTime?)?>(
+                              (requestID, leaveType?.name, leaveDate?.fromDate),
+                            );
                           },
                           builder: (trigger, state, errorMessage) {
                             return Padding(
@@ -703,8 +706,10 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                   fit: FlexFit.tight,
                                                   maxHeight: 700,
                                                   onSuccessResponse: (pngBytes, jsonData) {
-                                                    final String? requestID = jsonData['request-id'] ?? '';
-                                                    context.pop((requestID, leaveType, leaveDate!.fromDate));
+                                                    final String? requestID = jsonData['request-id'];
+                                                    context.pop<(String?, String?, DateTime?)?>(
+                                                      (requestID, leaveType?.name, leaveDate?.fromDate),
+                                                    ); 
                                                   },
                                                   infoWidget: Row(
                                                     spacing: 5,

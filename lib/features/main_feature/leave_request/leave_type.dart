@@ -9,7 +9,7 @@ extension LeaveTypeX on LeaveType {
 
   static LeaveType fromString(String value) {
     return LeaveType.values.firstWhere(
-        (e) => e.name == value
+      (e) => e.name == value,
     );
   }
 
@@ -32,12 +32,9 @@ extension LeaveTypeX on LeaveType {
 
   String get icon {
     switch (this) {
-      case LeaveType.sick:
-        return 'leave_sick.svg';
-      case LeaveType.personal:
-        return 'leave_personal.svg';
-      case LeaveType.vacation:
-        return 'icon_vacation.svg';
+      case LeaveType.sick: return 'leave_sick.svg';
+      case LeaveType.personal: return 'leave_personal.svg';
+      case LeaveType.vacation: return 'icon_vacation.svg';
       case LeaveType.maternity:
         return 'icon_maternity.svg';
       case LeaveType.paternity:

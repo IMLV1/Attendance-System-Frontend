@@ -642,7 +642,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                         onPressed: () async {
                           FloatingPopup(
                               title: 'ยกเลิกคำขอ',
-                              description: 'คุณยืนยันที่จะลบคำขอ${requestDetail!.requestDetail.leaveType} หมายเลข: ${widget.requestID} หรือไม่? การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                              description: 'คุณยืนยันที่จะยกเลิกคำขอ${requestDetail!.requestDetail.leaveType.display} หมายเลข: ${widget.requestID} หรือไม่? การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
                               buttons: (setError, context2) {
                                 return [
                                   FloatingPopupButton(
@@ -661,10 +661,10 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                                         Navigator.of(context2).pop();
                                         await Future.delayed(const Duration(milliseconds: 200));
                                         if (!context.mounted) return;
-                                        Navigator.pop(context);
+                                        Navigator.of(context, rootNavigator: true).pop();
                                         widget.onCancel();
                                       },
-                                      request: () => Utils.mockResponse() // LeaveRequestService().cancelRequest(widget.requestID),
+                                      request: () => LeaveRequestService().cancelRequest(widget.requestID),
                                   ),
                                 ];
                               }

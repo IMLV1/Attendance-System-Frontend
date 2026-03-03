@@ -94,8 +94,11 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
           leaveStatsInfo = LeaveInfoModel.fromJson(jsonData);
         });
       },
+      fetchOnInit: true,
       builder: (trigger, state, errorMessage) {
-        return Padding(
+        return (state == .loading) ?
+        CupertinoActivityIndicator() :
+        Padding(
           padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
           child: ServiceUpdater(
               request: () => LeaveRequestService().resendRequest(widget.requestId, remark!, oldFiles, allFiles, null),

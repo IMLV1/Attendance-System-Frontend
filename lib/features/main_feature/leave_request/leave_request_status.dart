@@ -1,5 +1,6 @@
 import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_request_detail.dart';
+import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -107,15 +108,6 @@ class LeaveRequestStatus extends StatefulWidget {
 
 class _LeaveRequestPage extends State<LeaveRequestStatus> {
 
-  final Map<String, String> leaveNames = {
-    'sick': 'ลาป่วย',
-    'personal': 'ลากิจส่วนตัว',
-    'vacation': 'ลาพักผ่อน',
-    'maternity': 'ลาคลอดบุตร',
-    'paternity': 'ลาช่วยเหลือภริยาคลอดบุตร',
-    'parental': 'ลากิจเพื่อเลี้ยงดูบุตร'
-  };
-
   List<PendingLeaveRequestModel> pendingLeaves = [];
   List<LeaveRequestModel> recentLeaves = [];
 
@@ -164,9 +156,7 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                 if (result != null) {
                                   final (id, leaveType, dateStart) = result;
 
-                                  print('$id, $leaveType, ${dateStart?.toIso8601String()}');
-
-                                  pendingLeaves.add(PendingLeaveRequestModel(id: id ?? '', leaveType: leaveType!, dateStart: dateStart!));
+                                  pendingLeaves.add(PendingLeaveRequestModel(id: id ?? '', leaveType: LeaveTypeX.fromString(leaveType!), dateStart: dateStart!));
                                 }
                               },
                             )
@@ -182,14 +172,16 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                             onSuccess: (index, data) => {
                               setState(() {
                                 switch (index) {
-                                  case 0: pendingLeaves = PendingLeaveRequestModel.getList(data['pending']);
+                                  case 0: {
+                                    pendingLeaves = PendingLeaveRequestModel.getList(data['pending']);
+                                  }
                                   case 1: {
                                     recentLeaves = LeaveRequestModel.getList(data['recent']);
                                   }
                                   case 2: {
 
-                                    final start =  DateTime.tryParse(data['start']);
-                                    final end =  DateTime.tryParse(data['end']);
+                                    final start = DateTime.tryParse(data['start']);
+                                    final end = DateTime.tryParse(data['end']);
 
                                     if (start != null) {
                                       filterStartAllow = DateTime(start.year, start.month, 1);
@@ -248,11 +240,11 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                           SeparatorCard(
                                             separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                                             children: [
-                                              ...pendingLeaves!.map((m) {
+                                              ...pendingLeaves.map((m) {
                                                 return AppButton(
                                                   icon: 'icon_pending.svg',
                                                   iconColor: Color(0xFFE79E00),
-                                                  title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
+                                                  title: '${m.leaveType.display} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
                                                   subTitle: 'หมายเลขคำขอ: ${m.id}',
                                                   weightTitle: FontWeight.w500,
                                                   onPressed: () {
@@ -318,6 +310,10 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                           Spacer(),
                                           InkWell(
                                             onTap: () {
+
+                                              print(filterStart);
+                                              print(filterEnd);
+
                                               DateFilterPopup(
                                                 maxHeight: 750,
                                                 allowDateFrom: filterStartAllow,
@@ -377,7 +373,7 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                             return AppButton(
                                               icon: m.status.icon,
                                               iconColor: m.status.color,
-                                              title: '${leaveNames[m.leaveType] ?? ''} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
+                                              title: '${m.leaveType.display} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
                                               subTitle: 'หมายเลขคำขอ: ${m.id}',
                                               weightTitle: FontWeight.w500,
                                               onPressed: () {
