@@ -63,11 +63,14 @@ class LeaveRequestService {
 
   Future<Response<dynamic>> getRecent(DateTime? filterStartDate, DateTime? filterEndDate) {
 
-    return dio.get('/api/leave_status/recent',
-      data: {
-        'startDate': filterStartDate?.toIso8601String(),
-        'endDate': filterEndDate?.toIso8601String(),
-      }
+    return dio.get(
+      '/api/leave_status/recent',
+      queryParameters: {
+        if (filterStartDate != null)
+          'startDate': filterStartDate.toIso8601String(),
+        if (filterEndDate != null)
+          'endDate': filterEndDate.toIso8601String(),
+      },
     );
   }
 
@@ -78,9 +81,9 @@ class LeaveRequestService {
   Future<Response<dynamic>> getRequestDetail(String requestId) {
     return dio.get(
       '/api/leave_status/detail',
-      data: {
-        'request-id': requestId
-      }
+      queryParameters: {
+        'request-id': requestId,
+      },
     );
   }
 
@@ -120,6 +123,7 @@ class LeaveRequestService {
     return dio.put(
       'api/leave_request/resend',
       data: {
+        'request-id': requestId,
         'remark': remark,
         'old-files': [...oldFiles.map((f) => f.fileName)],
         'files': multipartFiles,
@@ -134,10 +138,10 @@ class LeaveRequestService {
 
   Future<Response<dynamic>> getLeaveInfo(LeaveType leaveType) {
     return dio.get(
-      'api/leave_request/leave_info',
-      data: {
-        'leave-type': leaveType.name
-      }
+      '/api/leave_request/leave_info',
+      queryParameters: {
+        'leave-type': leaveType.name,
+      },
     );
   }
 }

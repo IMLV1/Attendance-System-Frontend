@@ -14,6 +14,7 @@ class PopupConfig {
   final FlexFit fit;
   final bool scroll;
   final Color buttonColor;
+  final bool safeArea;
 
   PopupConfig({
     required this.title,
@@ -26,6 +27,7 @@ class PopupConfig {
     this.fit = FlexFit.loose,
     this.scroll = true,
     this.buttonColor = AppColors.primaryColor,
+    this.safeArea = true,
   });
 
   // ฟังก์ชันช่วยก็อปปี้ค่าเดิม แล้วเปลี่ยนแค่บางค่า (เช่น เปลี่ยนแค่ isLoading)
@@ -40,6 +42,7 @@ class PopupConfig {
     FlexFit? fit,
     bool? scroll,
     Color? buttonColor,
+    bool? safeArea,
   }) {
     return PopupConfig(
       title: title ?? this.title,
@@ -51,7 +54,8 @@ class PopupConfig {
       minHeight: minHeight ?? this.minHeight,
       fit: fit ?? this.fit,
       scroll: scroll ?? this.scroll,
-      buttonColor: buttonColor ?? this.buttonColor
+      buttonColor: buttonColor ?? this.buttonColor,
+      safeArea: safeArea ?? this.safeArea,
     );
   }
 }
@@ -75,13 +79,13 @@ class PopupProvider extends InheritedWidget {
 
   // ⚡ เพิ่มฟังก์ชัน push แบบ Global ไว้ตรงนี้! ⚡
   // มันจะจัดการเอา Material สีทึบ และ ScrollView มาห่อให้ทุกหน้าอัตโนมัติ
-  Future<T?> push<T>(BuildContext context, Widget page, {bool scroll = true}) {
+  Future<T?> push<T>(BuildContext context, Widget page) {
     return Navigator.of(context).push<T>(
       MaterialPageRoute( // แนะนำให้ใช้ Cupertino เพื่อให้ตอนสไลด์ขอบมันเนียนกว่า Material
         builder: (navContext) {
 
           // 1. ห่อด้วย SingleChildScrollView (ถ้าตั้งค่า scroll เป็น true)
-          Widget content = scroll
+          Widget content = config.scroll
               ? SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             physics: const AlwaysScrollableScrollPhysics(),

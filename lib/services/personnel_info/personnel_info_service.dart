@@ -3,9 +3,62 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
 class PersonnelInfoService {
-
   final Dio dio = GetIt.I<ApiClient>().dio;
+
   Future<Response<dynamic>> getPersonnelList() async {
     return dio.get('api/personnel_info/users');
+  }
+
+  Future<Response<dynamic>> getPermissionLevel(String personnelID) async {
+    return dio.get(
+      '/api/personnel_info/permissions',
+      queryParameters: {
+        'id': personnelID,
+      },
+    );
+  }
+
+  Future<Response<dynamic>> getPending(String personnelID) {
+    return dio.get(
+      '/api/personnel_info/pending',
+      queryParameters: {
+        'id': personnelID,
+      },
+    );
+  }
+
+  Future<Response<dynamic>> getRecent(
+      String personnelID,
+      DateTime? filterStartDate,
+      DateTime? filterEndDate,
+      ) {
+    return dio.get(
+      '/api/personnel_info/recent',
+      queryParameters: {
+        'id': personnelID,
+        if (filterStartDate != null)
+          'startDate': filterStartDate.toIso8601String(),
+        if (filterEndDate != null)
+          'endDate': filterEndDate.toIso8601String(),
+      },
+    );
+  }
+
+  Future<Response<dynamic>> getFilterRange(String personnelID) {
+    return dio.get(
+      '/api/personnel_info/filter_range',
+      queryParameters: {
+        'id': personnelID,
+      },
+    );
+  }
+
+  Future<Response<dynamic>> getRequestDetail(String requestId) {
+    return dio.get(
+      '/api/personnel_info/detail',
+      queryParameters: {
+        'request-id': requestId,
+      },
+    );
   }
 }
