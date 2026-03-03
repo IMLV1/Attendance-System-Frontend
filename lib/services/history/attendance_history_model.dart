@@ -5,13 +5,15 @@ class AttendanceHistoryModel {
   final String? dow;
   final String? checkIn;
   final String? checkOut;
+  final String? leavePeriod;
 
   AttendanceHistoryModel(
   {
     required this.date,
     this.dow,
     this.checkIn,
-    this.checkOut
+    this.checkOut,
+    this.leavePeriod
   });
 
   //// factory — ต้องเขียน return เอง
@@ -22,6 +24,7 @@ class AttendanceHistoryModel {
       dow: json['dow'] as String?,
       checkIn: json['checkIn']?.toString(),
       checkOut: json['checkOut']?.toString(),
+      leavePeriod: json['leavePeriod']?.toString(),
     );
   }
 

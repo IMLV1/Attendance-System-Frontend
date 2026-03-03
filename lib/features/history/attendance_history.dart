@@ -1,21 +1,23 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/services/history/attendance_history_model.dart';
 import 'package:attendance_system/services/history/attendance_history_service.dart';
-import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_model.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
-import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/date_filter_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
-import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
+/// หน้าประวัติการเข้างาน (Attendance History)
+/// - มีตัวกรองช่วงวันที่ (DateFilterPopup)
+/// - ดึงข้อมูลจาก API ผ่าน AttendanceHistoryService
+/// - จัดกลุ่มรายการตาม "เดือน/ปี" แล้วแสดงเป็นหัวข้อ + list
+/// - คำนวณสถานะ: ตรงเวลา / สาย / ไม่สมบูรณ์ จากเวลาเข้างาน-ออกงาน
 class AttendanceHistory extends StatefulWidget {
   const AttendanceHistory({super.key});
 
@@ -24,28 +26,92 @@ class AttendanceHistory extends StatefulWidget {
 }
 
 class _AttendanceHistoryState extends State<AttendanceHistory> {
+  // -----------------------------
+  // 1) ตัวกรองวันที่ (Filter)
+  // -----------------------------
+  // วันเริ่มต้น/วันสิ้นสุด ที่ผู้ใช้เลือกไว้ (ส่งเข้า API เป็น query)
+  bool _defaultFilterSet = false;
+  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);//DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
   DateTime? filterStart;
   DateTime? filterEnd;
 
+  // -----------------------------
+  // 2) ข้อมูลหลักของหน้าจอ
+  // -----------------------------
+  // Mock Data
+  final List<AttendanceHistoryModel> _mockItem = [
+    AttendanceHistoryModel(
+      // เข้างานปกติ
+      date: DateTime.parse("2026-12-24"),
+      dow: "พุธ",
+      checkIn: "08:30",
+      checkOut: "18:30",
+      leavePeriod: "NONE",
+    ),
+    //** ลาเช้า **
+    AttendanceHistoryModel(
+      date: DateTime.parse("2026-12-25"),
+      dow: "พฤหัสบดี",
+      checkIn: "13:00",
+      checkOut: "18:30",
+      leavePeriod: "MORNING",
+    ),
+    AttendanceHistoryModel(
+      date: DateTime.parse("2026-12-26"),
+      dow: "ศุกร์",
+      checkIn: "09:00",
+      checkOut: "13:00",
+      leavePeriod: "AFTERNOON",
+    ),
+    AttendanceHistoryModel(
+      date: DateTime.parse("2026-12-27"),
+      dow: "เสาร์",
+      checkIn: null,
+      checkOut: null,
+      leavePeriod: "FULL_DAY",
+    ),
+  ];
+
+
+  // รายการประวัติที่ดึงมาจาก API (แปลงเป็น Model แล้วเก็บไว้แสดงผล)
   List<AttendanceHistoryModel> _items = [];
 
+  // -----------------------------
+  // 3) เวลาเข้างานมาตรฐาน (เอาไว้เทียบว่าสายไหม)
+  // -----------------------------
+  // ค่า default เป็น 0 ไว้ก่อน แล้วจะไปอ่านจาก AuthState.timeConfig ตอน build
   int _stdInHour = 0;
   int _stdInMinute = 0;
+
+  int _checkInLeaveHour = 0;
+  int _checkInLeaveMin = 0;
 
   @override
   Widget build(BuildContext context) {
 
+    // --------------------------------------------
+    // อ่าน config เวลาเข้างานจาก AuthState (Provider)
+    // - AuthState.timeConfig ถูก preload ตอน login/init
+    // - ใช้เป็น "เวลาเข้างานมาตรฐาน" เพื่อคำนวณ lateMinutes
+    // --------------------------------------------
     ConfigAttendanceTimeModel? setting = context.watch<AuthState>().timeConfig;
 
     _stdInHour = setting?.checkInTime.hour ?? 0;
     _stdInMinute = setting?.checkInTime.minute ?? 0;
 
-    // setting?.checkInLeaveTime
+    //จะใช้ตอนลาเช้า แล้วมา checkIn ตอนบ่าย (ค่า default เป็น 13.00 ถ้าไม่ได้เปลี่ยน)
+    _checkInLeaveHour = setting?.checkInLeaveTime.hour?? 0;
+    debugPrint("_checkInLeaveHour: $_checkInLeaveHour");
+    _checkInLeaveMin = setting?.checkInLeaveTime.minute?? 0;
+    debugPrint("_checkInLeaveMin: $_checkInLeaveMin");
+
 
     return AppScaffold(
       header: Header.subHeader(context, title: "บันทึกการเข้างาน"),
       content: SafeArea(
         child: Container(
+          // สีพื้นหลังของหน้า
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
           child: Padding(
@@ -54,70 +120,141 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
               children: [
                 Expanded(
                   child: SingleChildScrollView(
+                    // ให้เลื่อนแล้วคีย์บอร์ดหายเอง
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    // ให้ scroll ได้แม้ข้อมูลน้อย (ใช้กับ pull/UX)
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       spacing: 13,
                       children: [
+
+                        // ============================================================
+                        // ServiceUpdaterProMax = ตัวช่วยเรียก request แบบมี state + trigger ได้
+                        // - requests: คืน list ของ Future ที่ต้องยิง
+                        // - onSuccess: ได้ data กลับมาแล้วค่อย setState
+                        // - fetchOnInit: true แปลว่าเปิดหน้ามายิงเลย
+                        // - builder: ให้ UI ได้ trigger(index) เพื่อยิงใหม่ได้
+                        // ============================================================
                         ServiceUpdaterProMax(
-                            requests: [
-
-                              // {date: 2026-02-18, dow: จันทร์, checkIn: 09:30, checkOut: null}
-
-                              // Utils.mockResponse(
-                              //   data: [
-                              //     {
-                              //       'date': '2026-03-02',
-                              //       'dow': 'จันทร์',
-                              //       'checkIn': '01:07',
-                              //       'checkOut': null,
-                              //     }
-                              //   ]
-                              // )
-
-                              () => AttendanceHistoryService().fetchHistory(
-                                startDate: filterStart == null ? null : _toYmd(filterStart!),
+                            requests: () => [
+                              // ยิง API ดึงประวัติ โดยส่ง startDate/endDate (ถ้ามี)
+                              // _toYmd() แปลง DateTime -> "YYYY-MM-DD"
+                              AttendanceHistoryService().fetchHistory(
+                                //ถ้า ว่าง null
+                                startDate: filterStart == null ? null : _toYmd(filterStart!),//เช่น "2026-03-02"
                                 endDate: filterEnd == null ? null : _toYmd(filterEnd!),
                               )
                             ],
+
+                            // ถูกเรียกเมื่อ request สำเร็จ (index=0 คือ request ตัวแรก)
+                            // data คือ response ที่ service ส่งกลับมา (มักเป็น List/Map)
                             onSuccess: (index, data) {
-                              setState(() {
-                                _items = AttendanceHistoryModel.getList(data);
-                                _items.sort((a, b) => b.date.compareTo(a.date));
-                              });
-                            },
-                            fetchOnInit: true,
+                              // แปลง response เป็น list ของ AttendanceHistoryModel
+                              //_items = AttendanceHistoryModel.getList(data);
+
+                              //ใช้ mock data
+                              _items = _mockItem;
+
+
+                              //debug
+                              debugPrint("=== onSuccess index: $index ===");
+                              debugPrint("data runtimeType: ${data.runtimeType}");
+                              debugPrint("data: $data");
+
+                              // ตั้งค่า default filter ครั้งแรกจากข้อมูลใน DB
+                              if(!_defaultFilterSet && _items.isNotEmpty) {
+                                //วันที่ของตัวแรกใน list เป็นค่าเริ่มต้นทั้ง max min
+                                DateTime minDate = _items.first.date;
+                                DateTime maxDate = _items.first.date;
+
+                                //วนดูทุกวันใน list
+                                // ถ้าเจอวัน “เก่ากว่า” → อัปเดต minDate
+                                // ถ้าเจอวัน “ใหม่กว่า” → อัปเดต maxDate
+                                for (final item in _items) {
+                                  final d = item.date;
+                                  if (d.isBefore(minDate)) minDate = d;
+                                  if (d.isAfter(maxDate)) maxDate = d;
+                                }
+
+                                filterStart = _dateOnly(
+                                    minDate); // startDate = วันที่มีข้อมูลเก่าสุด
+                                filterEnd = _dateOnly(
+                                    maxDate); // endDate = วันที่มีข้อมูลล่าสุด
+                                _defaultFilterSet = true;
+                              }
+                              // เรียงจาก "ใหม่ -> เก่า"
+                              _items.sort((a, b) => b.date.compareTo(a.date));
+                              //เปลี่ยนค่ามาแล้ว “ข้างนอก” (ก่อนหน้า) เลยเรียก setState เพื่อ rebuild อย่างเดียว
+                              setState(() {});//rebuild
+                              },
+
+                            // เปิดหน้าแล้วให้ยิง request ทันที
+                            fetchOnInit: true,//ถ้าเป็น false ต้อง “สั่งโหลด” ก่อนถึงจะมีรายการขึ้น
+
+                            // builder ให้สร้าง UI โดยมี:
+                            // - trigger(i): ยิง request ลำดับ i ใหม่
+                            // - getState(i): ดู state ของ request i (loading/success/error)
                             builder: (trigger, getState) {
-                              // จัดกลุ่มข้อมูลตามเดือน/ปี เตรียมไว้สำหรับสร้าง UI
+                              // --------------------------------------------------
+                              // จัดกลุ่มข้อมูลตามเดือน/ปี เพื่อทำหัวข้อ
+                              // groupedItems: key = "มกราคม 2569", value = list ของวันในเดือนนั้น
+                              // --------------------------------------------------
                               final Map<String, List<AttendanceHistoryModel>> groupedItems = {};
-                              for (var item in _items) {
-                                final label = _monthYearLabel(item.date);
-                                groupedItems.putIfAbsent(label, () => []).add(item);
+
+                              //Loop ดึงข้อมูล
+                              for (final item in _items){
+                                final d = _dateOnly(item.date);//เอาข้อมูลแค่วันมาใช้
+
+                                //ถ้า วันที่ d มาก่อน วันของ filterStart -> ข้าม
+                                if(filterStart != null && d.isBefore(_dateOnly(filterStart!))){
+                                  continue;
+                                }
+
+                                //ถ้า วันที่ d มาหลัง วันของ filterEnd -> ข้าม
+                                if(filterEnd != null && d.isAfter(_dateOnly(filterEnd!))){
+                                  continue;
+                                }
+
+                                final label = _monthYearLabel(d);//ex = "มีนาคม 2569"
+                                //groupedItems คือ Map key เป็น String (เช่น "มีนาคม 2569") value เป็น List<AttendanceHistoryModel> (รายการของเดือนนั้น)
+                                //putIfAbsent = ้าใน Map ยังไม่มี key นี้ ให้สร้างค่าเริ่มต้นให้มัน ถ้า groupedItems ยังไม่มี "มีนาคม 2569" → ให้ใส่ key นี้เข้าไป พร้อม value เป็น [] (list ว่าง)
+                                // .add(item) เพื่อ เพิ่ม item เข้า list ของเดือนนั้น
+                                groupedItems.putIfAbsent(label, ()=> []).add(item);
+                                //ก็คือแบบว่า เอา item เข้าเดือนนั้น ถ้าเป็นเดือนใหม่ที่ยังไม่เคยมีใน groupedItems มันจะสร้าง key ใหม่ให้ใน groupedItems
                               }
 
                               return Column(
                                 spacing: 13,
                                 children: [
+
                                   // ================= UI ส่วนที่ 1: กล่องตัวกรอง (Filter) =================
                                   InkWell(
+                                    // กดแล้วเปิด DateFilterPopup
                                     onTap: () {
                                       DateFilterPopup(
+                                        // ส่งค่าปัจจุบันเข้าไป เพื่อให้ popup แสดงค่าที่เคยเลือกไว้
                                           currentDateFrom: filterStart,
                                           currentDateTo: filterEnd,
+
+                                          // callback ตอนกด "บันทึก" ใน popup
                                           onSubmit: (start, end) {
                                             setState(() {
+                                              // เก็บค่าวันที่ที่เลือกไว้ใน state ของหน้า
                                               filterStart = start;
                                               filterEnd = end;
                                             });
+
+                                            // ยิง request ใหม่ (index 0) เพื่อโหลดข้อมูลตาม filter
                                             trigger(0);
                                           }
                                       ).showPopup(context);
                                     },
+                                    //UI
                                     child: Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(22),
-                                        color: const Color(0xFFE9E9E9),
+                                        color: const Color(0xFFE9E9E9),//เทาอ่อน
                                       ),
                                       child: Column(
                                         spacing: 6,
@@ -134,10 +271,13 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                 ),
                                               ),
                                               const Text('ตัวกรอง'),
+                                              // ถ้ากำลังโหลด request 0 อยู่ แสดง spinner เล็กๆ
                                               if (getState(0) == ServiceUpdaterProMaxState.loading)
                                                 const CupertinoActivityIndicator(radius: 7),
                                             ],
                                           ),
+
+                                          // กล่องแสดงวันที่จาก/ถึงที่เลือกไว้
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                                             decoration: BoxDecoration(
@@ -147,6 +287,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                             child: Row(
                                               spacing: 10,
                                               children: [
+                                                // ฝั่งซ้าย "จากวันที่"
                                                 Expanded(
                                                     child: Row(
                                                       spacing: 10,
@@ -160,6 +301,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                               style: TextStyle(color: Color(0xFF626262)),
                                                             ),
                                                             Text(
+                                                              // แปลงเป็น dd/mm/yyyy+543 หรือ "---"
                                                               _formatDateDisplay(filterStart),
                                                               style: const TextStyle(fontSize: 14),
                                                             ),
@@ -168,7 +310,11 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                       ],
                                                     )
                                                 ),
+
+                                                // เส้นแบ่งกลาง
                                                 Container(width: 1.5, height: 40, color: const Color(0xFFB1B1B1)),
+
+                                                // ฝั่งขวา "ถึงวันที่"
                                                 Expanded(
                                                     child: Row(
                                                       spacing: 10,
@@ -197,7 +343,9 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                       ),
                                     ),
                                   ),
+
                                   // ================= UI ส่วนที่ 2: รายการประวัติ (History List) =================
+                                  // ถ้าไม่มีข้อมูล และไม่ได้กำลังโหลดอยู่ -> แสดง "ไม่มีข้อมูล"
                                   if (_items.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading)
                                     SeparatorCard(
                                       children: [
@@ -217,13 +365,16 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                       ],
                                     )
                                   else
+                                    // ถ้ามีข้อมูล -> วนตามเดือน/ปี
                                     Column(
                                       spacing: 15,
+                                      //สร้าง children หลายตัว โดย วนตามแต่ละกลุ่ม (แต่ละเดือน/ปี) แล้วเอา widget ที่สร้างได้ทั้งหมดมาเป็น list ใส่ใน children
                                       children: groupedItems.entries.map((entry) {
                                         return Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           spacing: 8,
                                           children: [
+                                            // หัวข้อเดือน/ปี เช่น "ธันวาคม 2569"
                                             Padding(
                                               padding: const EdgeInsets.only(left: 10),
                                               child: Text(
@@ -231,21 +382,38 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                               ),
                                             ),
+
+                                            // กล่องรายการของเดือนนั้นๆ
                                             SeparatorCard(
                                               separatorPadding: const EdgeInsets.only(left: 95, right: 15),
                                               children: entry.value.map((item) {
-                                                // ดึงและเตรียมข้อมูลก่อนแสดงผลแต่ละแถว
-                                                final day = item.date.day.toString();
-                                                final dow = item.dow ?? _thaiDowFromDate(item.date);
-                                                final timeIn = item.checkIn ?? "--:--";
-                                                final timeOut = item.checkOut ?? "--:--";
-                                                final ui = _computeUi(dow: dow, timeIn: timeIn, timeOut: timeOut);
 
+                                                // -----------------------------
+                                                // เตรียมข้อมูลแถว (row) ก่อนแสดง
+                                                // -----------------------------
+                                                final day = item.date.day.toString(); // เลขวัน เช่น "18"
+                                                final dow = item.dow ?? _thaiDowFromDate(item.date); // วันในสัปดาห์
+                                                final timeIn = item.checkIn ?? "--:--"; // เวลาเข้างาน
+                                                final timeOut = item.checkOut ?? "--:--"; // เวลาออกงาน
+                                                final leavePeriod = item.leavePeriod ?? "NONE";
+
+                                                // คำนวณสี/ข้อความสถานะ/ชั่วโมงทำงาน
+                                                final ui = _computeUi(
+                                                    dow: dow,
+                                                    timeIn: timeIn,
+                                                    timeOut: timeOut,
+                                                    leavePeriod: leavePeriod,
+                                                );
+
+                                                // -----------------------------
+                                                // UI ของแต่ละแถว
+                                                // -----------------------------
                                                 return Padding(
                                                   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                                                   child: Row(
                                                     crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
+                                                      // Badge วันที่: เลขวัน + วันในสัปดาห์
                                                       Container(
                                                         width: 64,
                                                         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -261,10 +429,13 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                         ),
                                                       ),
                                                       const SizedBox(width: 20),
+
+                                                      // รายละเอียดเวลา + สถานะ
                                                       Expanded(
                                                         child: Column(
                                                           crossAxisAlignment: CrossAxisAlignment.start,
                                                           children: [
+                                                            // แถวเวลาเข้างาน/ออกงาน
                                                             Row(
                                                               children: [
                                                                 Text("เข้างาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
@@ -277,8 +448,11 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                               ],
                                                             ),
                                                             const SizedBox(height: 8),
+
+                                                            // แถวสถานะ + ชั่วโมงทำงาน
                                                             Row(
                                                               children: [
+                                                                // Chip สถานะ: ตรงเวลา/สาย/ไม่สมบูรณ์ พร้อมไอคอน
                                                                 Container(
                                                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                                                   decoration: BoxDecoration(
@@ -291,6 +465,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                                         ui["statusIconAsset"],
                                                                         width: 16,
                                                                         height: 16,
+                                                                        // ย้อมสีไอคอนให้เป็นสีเดียวกับข้อความสถานะ
                                                                         colorFilter: ColorFilter.mode(ui["statusFg"], BlendMode.srcIn),
                                                                       ),
                                                                       const SizedBox(width: 6),
@@ -306,6 +481,8 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                                   ),
                                                                 ),
                                                                 const SizedBox(width: 12),
+
+                                                                // ไอคอนนาฬิกา + duration ชั่วโมงทำงาน
                                                                 SvgPicture.asset(
                                                                   'assets/images/clock_attendance.svg',
                                                                   width: 16,
@@ -345,6 +522,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
   // ================= Helpers (แยกเฉพาะ Logic เท่านั้น) =================
 
+  /// แปลง DateTime -> "YYYY-MM-DD" (ใช้ส่งเป็น query ให้ backend)
   String _toYmd(DateTime d) {
     final y = d.year.toString().padLeft(4, '0');
     final m = d.month.toString().padLeft(2, '0');
@@ -352,19 +530,23 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     return "$y-$m-$day";
   }
 
+  /// แสดงวันที่แบบไทย: dd/mm/(yyyy+543) ถ้า null แสดง "---"
   String _formatDateDisplay(DateTime? date) {
     if (date == null) return "---";
     return "${date.day}/${date.month}/${date.year + 543}";
   }
 
+  /// แปลงเลขเดือน -> ชื่อเดือนภาษาไทย
   String _thaiMonth(int m) {
     const months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
     if (m < 1 || m > 12) return '';
     return months[m];
   }
 
+  /// แสดงหัวข้อเดือน/ปีแบบไทย เช่น "ธันวาคม 2569"
   String _monthYearLabel(DateTime d) => "${_thaiMonth(d.month)} ${d.year + 543}";
 
+  /// ถ้า backend ส่ง dow เป็น null -> คำนวณจาก DateTime.weekday
   String _thaiDowFromDate(DateTime d) {
     switch (d.weekday) {
       case 1: return 'จันทร์';
@@ -378,11 +560,14 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     }
   }
 
+  /// เช็คว่าเวลาหาย/ไม่สมบูรณ์ไหม (ใช้เพื่อแยกเคส "ไม่สมบูรณ์")
   bool _isMissingTime(String t) {
     final s = t.trim();
     return s.isEmpty || s == '--:--' || s == '--.--' || s == '-';
   }
 
+  /// แปลง String เวลา "08.30" หรือ "08:30" -> DateTime(2000-01-01 HH:MM)
+  /// ใช้วันที่คงที่ (2000-01-01) เพื่อให้เปรียบเทียบเวลาได้ง่าย
   DateTime _parseTime(String t) {
     final s = t.trim().replaceAll('.', ':');
     final parts = s.split(':');
@@ -390,7 +575,9 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     final m = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
     return DateTime(2000, 1, 1, h, m);
   }
+  //ที่เลือก 2000-01-01 เพื่อทำให้ “เวลา” กลายเป็น DateTime ที่เทียบกันง่าย โดยไม่เอาวันจริงมาเกี่ยวครับ
 
+  /// แปลง Duration -> "H:MM" เช่น 7:05, 13:00
   String _formatHourMinute(Duration d) {
     if (d.isNegative) return '--:--';
     final totalMin = d.inMinutes;
@@ -399,6 +586,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     return '$h:${m.toString().padLeft(2, '0')}';
   }
 
+  /// แปลงจำนวน "นาที" -> "H:MM" เช่น 75 -> 1:15
   String _formatMinutesToHourMinute(int minutes) {
     if (minutes <= 0) return '0:00';
     final h = minutes ~/ 60;
@@ -406,6 +594,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     return '$h:${m.toString().padLeft(2, '0')}';
   }
 
+  /// เลือกสีพื้น badge ตามวันในสัปดาห์ (เพื่อทำ UI ให้ต่างกัน)
   Color _badgeColorByDow(String dow) {
     switch (dow.trim()) {
       case 'จันทร์': return const Color(0xFFFFF3CD);
@@ -419,15 +608,22 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     }
   }
 
+  /// คำนวณข้อมูล UI สำหรับแถวประวัติ 1 แถว:
+  /// - สี badge ตามวัน
+  /// - สถานะ: ไม่สมบูรณ์ / สาย / ตรงเวลา
+  /// - duration ชั่วโมงทำงาน
+  /// - ไอคอน/สีสำหรับ status chip
   Map<String, dynamic> _computeUi({
     required String dow,
     required String timeIn,
     required String timeOut,
+    required String leavePeriod
   }) {
     final badgeColor = _badgeColorByDow(dow);
     final inMissing = _isMissingTime(timeIn);
     final outMissing = _isMissingTime(timeOut);
 
+    // เคส 1) เวลาเข้า/ออกหายอย่างน้อยหนึ่งฝั่ง -> ไม่สมบูรณ์
     if (inMissing || outMissing) {
       return {
         "bgColor": badgeColor,
@@ -439,18 +635,31 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
       };
     }
 
+    // แปลงเวลาเข้า/ออก เป็น DateTime เพื่อหาผลต่าง
     final DateTime inDt = _parseTime(timeIn);
     final DateTime outDt = _parseTime(timeOut);
-    final stdDt = DateTime(2000, 1, 1, _stdInHour, _stdInMinute);
 
+
+    // ถ้าลาเช้า (MORNING) ใช้เวลา checkInLeaveTime เป็นมาตรฐานแทน
+    final DateTime stdDt = (leavePeriod == "MORNING")
+        ? DateTime(2000, 1, 1, _checkInLeaveHour, _checkInLeaveMin)// ถ้าใช่ setting?.checkIn
+        : DateTime(2000, 1, 1, _stdInHour, _stdInMinute);// ถ้าไม่ เวลาเข้างานมาตรฐาน จาก setting?.checkInTime
+
+    // lateMinutes > 0 แปลว่าเข้างานช้ากว่าเวลามาตรฐาน
     final lateMinutes = inDt.difference(stdDt).inMinutes;
+
+    // duration = เวลาออก - เวลาเข้า
     final duration = _formatHourMinute(outDt.difference(inDt));
 
+    // เคส 2) สาย
     if (lateMinutes > 0) {
       late String lateText;
+
+      // ถ้าสายเกิน 60 นาที -> แสดงเป็นชั่วโมง:นาที
       if (lateMinutes >= 60) {
         lateText = "สาย ${_formatMinutesToHourMinute(lateMinutes)} ชม.";
       } else {
+        // ถ้าสายน้อยกว่า 60 นาที -> แสดงเป็นนาที
         lateText = "สาย $lateMinutes นาที";
       }
 
@@ -464,6 +673,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
       };
     }
 
+    // เคส 3) ตรงเวลา (ไม่สาย และข้อมูลครบ)
     return {
       "bgColor": badgeColor,
       "statusText": "ตรงเวลา",
