@@ -151,12 +151,14 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                                                 .approved => 'อนุมัติแล้ว',
                                                 .rejected => 'ไม่อนุมัติ',
                                                 .pending => 'รออนุมัติ',
-                                                .overdue => 'เลยกำหนดเวลา'
+                                                .overdue => 'เลยกำหนดเวลา',
+                                                .canceled => 'ยกเลิก'
                                           },
                                           iconColor: status.color,
                                           weightTitle: FontWeight.w500,
                                           subTitle: switch (status) {
                                                 .overdue => 'คำขอนี้เลยกำหนดเวลาอนุมัติแล้ว',
+                                                .canceled => 'คำขอนี้ถูกยกเลิกแล้ว',
                                                 .pending => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${requestDetail?.approveDetail.approveRole ?? '-'}',
                                             _ => 'เนื่องจาก: ${requestDetail?.approveDetail.reason ?? '-'}',
                                           },
