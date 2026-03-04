@@ -68,7 +68,7 @@ class Header {
     );
   }
 
-  static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath = 'google_logo.svg', iconColor = Colors.white}) {
+  static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath = 'google_logo.svg', iconColor = Colors.white,String? firstTabText, String? firstTabRoute, String? secondTabText, String? secondTabRoute,}) {
 
     final width = MediaQuery
         .of(context)

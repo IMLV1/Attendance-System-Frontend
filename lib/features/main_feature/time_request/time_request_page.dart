@@ -268,6 +268,24 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
 
                                         ],
                                       ),
+                                      (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading) ?
+                                      SeparatorCard(
+                                        children: [
+                                          Container(
+                                            color: Colors.white,
+                                            width: double.infinity,
+                                            padding: EdgeInsetsGeometry.all(25),
+                                            child: Text(
+                                              'ไม่มีพบคำขอลางาน',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Color(0xFF7D7D7D), // สีจาง
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ) :
                                       SeparatorCard(
                                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                                         children: [

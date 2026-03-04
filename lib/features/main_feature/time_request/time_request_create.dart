@@ -137,10 +137,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
             alignment: Alignment.topCenter,
             child: Padding(
               padding: EdgeInsetsGeometry.only(
-                left: 10,
-                right: 10,
-                top: 20,
-                bottom: 10
+                  left: 10, right: 10, top: 20
               ),
               child: Stack(
                 children: [
@@ -489,7 +486,8 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                       SizedBox(
                           height: 2
                       ),
-                      Container(
+                      if (setting!.specifyRemark && setting.evidenceFile)
+                        Container(
                         padding: EdgeInsets.all(12) ,
                         decoration: BoxDecoration(
                             color: Color(0xFFEAEAEA),
@@ -1167,25 +1165,20 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                   //   ),
                   // ]
                   ServiceUpdater(
-                      request: () =>  TimeRequestService().create(
-                        TimeRequestModel(
-                          fromDate: _selectDate!.fromDate,
-                          toDate: _selectDate!.toDate,
-                          startTime: _selectDate!.startTime,
-                          endTime: _selectDate!.endTime,
-                          files: allFiles,
-                          remark: remarkController.text,
+                      request: () => TimeRequestService().create(
+                      TimeRequestModel(
+                        fromDate: _selectDate!.fromDate,
+                        toDate: _selectDate!.toDate,
+                        startTime: _selectDate!.startTime,
+                        endTime: _selectDate!.endTime,
+                        files: allFiles,
+                        remark: remarkController.text,
                         ),
-                        null,
+                      null,
                       ),
-
                       onSuccessResponse: (jsonData) {
-                        if (_selectDate == null ||
-                            _selectDate!.fromDate == null ||
-                            _selectDate!.toDate == null) {
-                          return;
-                        }
-                        final String? requestID = jsonData['request-id'] ?? '';
+                        final String? requestID = jsonData['request-id'];
+                        // Explicitly define the return type in the brackets <>
                         context.pop(
                           PendingAttendanceRequestModel(
                             id: requestID ?? '',
@@ -1194,7 +1187,6 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                           ),
                         );
                       },
-
                       builder: (trigger, state, errorMessage) {
                         return Padding(
                             padding: EdgeInsetsGeometry.symmetric(vertical: 20),
@@ -1208,9 +1200,11 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                       height: 42,
                                       child: ElevatedButton.icon(
                                         onPressed: (state != .loading) ? () {
+
                                           setState(() {
                                             _submitted = true;
                                           });
+
                                           if (_selectDate?.fromDate == null ||
                                               _selectDate?.toDate == null ||
                                               _selectDate?.startTime == null ||
@@ -1219,13 +1213,9 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                             return;
                                           }
 
-                                          if (setting!.requiredRemark && remarkController.text.isEmpty) {
-                                            return;
-                                          }
+                                          if (setting!.requiredRemark && remarkController.text.isEmpty) return;
 
-                                          if (setting!.requiredEvidenceFile && allFiles.isEmpty) {
-                                            return;
-                                          }
+                                          if (setting!.requiredEvidenceFile && allFiles.isEmpty) return;
 
                                           if (allFiles.fold(0, (sum, file) => sum + file.size) > limitFileSize) return;
 
@@ -1236,12 +1226,8 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                               fit: FlexFit.tight,
                                               maxHeight: 700,
                                               onSuccessResponse: (pngBytes, jsonData) {
-                                                if (_selectDate == null ||
-                                                    _selectDate!.fromDate == null ||
-                                                    _selectDate!.toDate == null) {
-                                                  return;
-                                                }
-                                                final String? requestID = jsonData['request-id'] ?? '';
+                                                final String? requestID = jsonData['request-id'];
+                                                // Explicitly define the return type in the brackets <>
                                                 context.pop(
                                                   PendingAttendanceRequestModel(
                                                     id: requestID ?? '',
@@ -1264,7 +1250,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                                             text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
                                                             children: [
                                                               TextSpan(
-                                                                text: 'ยืนยันการขอการเข้า-ออกงานในครั้งนี้เท่านั้น',
+                                                                text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
                                                                 style: TextStyle(
                                                                   fontWeight: FontWeight.bold,
                                                                   decoration: TextDecoration.underline,

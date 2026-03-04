@@ -72,21 +72,9 @@ class TimeRequestService {
 
     for (var file in files) {
       if (kIsWeb) {
-        multipartFiles.add(
-          MultipartFile.fromBytes(
-            file.bytes!,
-            filename: file.name,
-          ),
-        );
-      } else {
-        if (file.path != null) {
-          multipartFiles.add(
-            await MultipartFile.fromFile(
-              file.path!,
-              filename: file.name,
-            ),
-          );
-        }
+        multipartFiles.add(MultipartFile.fromBytes(file.bytes!, filename: file.name));
+      } else if (file.path != null) {
+        multipartFiles.add(await MultipartFile.fromFile(file.path!, filename: file.name));
       }
     }
 
@@ -111,19 +99,14 @@ class TimeRequestService {
   }
 
   Future<Response<dynamic>> getRecent(DateTime? filterStartDate, DateTime? filterEndDate,) async {
-    Map<String, dynamic> query = {};
-
-    if (filterStartDate != null) {
-      query['startDate'] = filterStartDate.toIso8601String();
-    }
-
-    if (filterEndDate != null) {
-      query['endDate'] = filterEndDate.toIso8601String();
-    }
-
     return dio.get(
       '/api/attendance_request/recent',
-      queryParameters: query,
+      queryParameters: {
+        if (filterStartDate != null)
+          'startDate': filterStartDate.toIso8601String(),
+        if (filterEndDate != null)
+          'endDate': filterEndDate.toIso8601String(),
+      },
     );
   }
 
@@ -132,10 +115,18 @@ class TimeRequestService {
   }
 
   Future<Response<dynamic>> delete(String id) async {
-    return dio.delete('/api/attendance_request/delete/$id');
+    return dio.delete('/api/attendance_request/delete',
+      data: {
+        'id': id,
+      }
+    );
   }
 
   Future<Response<dynamic>> getDetail(String id) async {
-    return dio.get('/api/attendance_request/detail/$id');
+    return dio.get('/api/attendance_request/detail',
+      queryParameters: {
+        'id': id,
+      },
+    );
   }
 }

@@ -175,7 +175,7 @@ class _CreateRoleState extends State<CreateRole> {
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
           child: Padding(
-            padding: EdgeInsetsGeometry.only(left: 10, right: 10, top: 20, bottom: 10),
+            padding: EdgeInsetsGeometry.only(left: 10, right: 10, top: 20),
             child: Stack(
               children: [
                 Column(

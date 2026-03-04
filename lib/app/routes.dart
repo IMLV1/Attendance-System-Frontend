@@ -10,6 +10,8 @@ import 'package:attendance_system/features/settings/admin_config/setting_attenda
 import 'package:attendance_system/features/settings/admin_config/setting_attendance_request.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_budget_year.dart';
 import 'package:attendance_system/features/settings/admin_config/setting_leave_type.dart';
+import 'package:attendance_system/features/settings/approval/attendance/attendance_approval.dart';
+import 'package:attendance_system/features/settings/approval/leave/leave_approval.dart';
 import 'package:attendance_system/features/settings/personnel_info/personnel_info.dart';
 import 'package:attendance_system/features/settings/setting_page.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_management.dart';
@@ -20,6 +22,7 @@ import 'package:go_router/go_router.dart';
 import '../core/auth/auth_state.dart';
 import '../features/auth/login_page.dart';
 import '../features/history/attendance_history.dart';
+import '../features/settings/approval/approval.dart';
 import '../features/settings/role_management/role_management.dart';
 import '../service_locator.dart';
 
@@ -73,6 +76,11 @@ final appRouter = GoRouter(
           path: '/settings',
           builder: (_, _) => const SettingPage(),
           routes: [
+            GoRoute(
+              name: RouteNames.approval,
+              path: 'approval',
+              builder: (_, _) => const Approval(),
+            ),
             GoRoute(
               name: RouteNames.settingBudgetYear,
               path: 'budget-year',

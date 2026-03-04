@@ -59,8 +59,9 @@ class SettingPage extends StatelessWidget {
                   SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
-                        IconTextButton(icon: 'icon_approval.svg', label: 'อนุมัติคำขอ'),
-                        IconTextButton(icon: 'icon_approval_history.svg', label: 'บันทึกการอนุมัติคำขอ'),
+                        IconTextButton(onPressed: () {
+                          context.pushNamed(RouteNames.approval);
+                        }, icon: 'icon_approval.svg', label: 'อนุมัติคำขอ'),
                         IconTextButton(onPressed: () {
                           context.pushNamed(RouteNames.personnelInfo);
                         }, icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
