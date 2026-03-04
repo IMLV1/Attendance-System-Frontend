@@ -135,12 +135,14 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                             .approved => 'อนุมัติแล้ว',
                             .rejected => 'ไม่อนุมัติ',
                             .pending => 'รออนุมัติ',
-                            .overdue => 'เลยกำหนดเวลา'
+                            .overdue => 'เลยกำหนดเวลา',
+                            .canceled => 'ยกเลิก',
                           },
                           iconColor: status.color,
                           weightTitle: FontWeight.w500,
                           subTitle: switch (status) {
                             .overdue => 'คำขอนี้เลยกำหนดเวลาอนุมัติแล้ว',
+                            .canceled => 'คำขอนี้ถูกยกเลิกแล้ว',
                             .pending => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${requestDetail?.approveDetail.approveRole ?? '-'}',
                             _ => 'เนื่องจาก: ${requestDetail?.approveDetail.reason ?? '-'}',
                           },
@@ -468,166 +470,186 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                         Text('ไฟล์ที่แนบมา')
                       ],
                     ),
-                    ...requestDetail!.requestDetail.evidenceFiles.map((file) {
+                    if (requestDetail!.requestDetail.evidenceFiles.isNotEmpty)
+                      ...requestDetail!.requestDetail.evidenceFiles.map((file) {
 
-                      bool downloading = false;
-                      MenuController menuController = MenuController();
+                        bool downloading = false;
+                        MenuController menuController = MenuController();
 
-                      return Material(
-                        color: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
-                        ),
-                        child: InkWell(
+                        return Material(
+                          color: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              FilePreviewPopup(
+                            side: BorderSide(
+                              color: Colors.grey.shade300,
+                              width: 1,
+                            ),
+                          ),
+                          child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () {
+                                FilePreviewPopup(
 
-                                  file: file
-                              ).showPopup(context);
-                            },
-                            splashFactory: NoSplash.splashFactory,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                                    child: Row(
-                                      spacing: 6,
-                                      children: [
-                                        SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: SvgPicture.asset(
-                                            file.fileType.toLowerCase() == 'pdf' ? 'assets/images/file.svg' : 'assets/images/photos_upload.svg',
-                                            colorFilter: ColorFilter.mode(Colors.grey.shade800, BlendMode.srcIn),
+                                    file: file
+                                ).showPopup(context);
+                              },
+                              splashFactory: NoSplash.splashFactory,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                      child: Row(
+                                        spacing: 6,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: SvgPicture.asset(
+                                              file.fileType.toLowerCase() == 'pdf' ? 'assets/images/file.svg' : 'assets/images/photos_upload.svg',
+                                              colorFilter: ColorFilter.mode(Colors.grey.shade800, BlendMode.srcIn),
+                                            ),
                                           ),
-                                        ),
-                                        Expanded(child: Text(file.fileName)),
-                                      ],
+                                          Expanded(child: Text(file.fileName)),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
 
-                                StatefulBuilder(
-                                    builder: (context, setState) {
-                                      return downloading ?
-                                      Padding(
-                                        padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
-                                        child: Center(child: CupertinoActivityIndicator()),
-                                      ) :
-                                      MenuAnchor(
-                                        controller: menuController,
-                                        useRootOverlay: true,
-                                        builder: (context, controller, child) {
-                                          return InkWell(
-                                            overlayColor: WidgetStatePropertyAll(Colors.transparent),
-                                            onTap: () {
-                                              menuController.open();
-                                            },
-                                            child: Padding(
-                                                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                                                child: SvgPicture.asset(
-                                                  'assets/images/icon_file_menu.svg',
-                                                  colorFilter: ColorFilter.mode(
-                                                    Colors.grey.shade600,
-                                                    BlendMode.srcIn,
-                                                  ),
-                                                )
-                                            ),
-                                          );
-                                        },
-                                        clipBehavior: Clip.none,
-                                        consumeOutsideTap: true,
-                                        style: const MenuStyle(
-                                          backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                                          elevation: WidgetStatePropertyAll(0),
-                                        ),
-                                        menuChildren: [
-                                          TweenAnimationBuilder<double>(
-                                            tween: Tween(begin: 0, end: 1),
-                                            duration: const Duration(milliseconds: 250),
-                                            curve: Curves.easeOut,
-                                            builder: (context, value, child) {
-                                              return Opacity(
-                                                opacity: value,
-                                                child: child,
-                                              );
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(20),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withValues(alpha: 0.18),
-                                                    blurRadius: 100,
-                                                    spreadRadius: 6,
-                                                    offset: Offset.zero,
-                                                  ),
-                                                ],
-                                              ),
-                                              child: SeparatorCard(
-                                                borderRadius: BorderRadius.circular(20),
-                                                children: [
-                                                  IconTextButton(
-                                                    icon: 'download.svg',
-                                                    arrow: false,
-                                                    label: 'ส่งออกไฟล์',
-                                                    onPressed: () async {
-                                                      menuController.close();
-                                                      Downloader(
-                                                          onDownloadStart: () => setState(() {
-                                                            downloading = true;
-                                                          }),
-                                                          onDownloadSuccess: () => setState(() {
-                                                            downloading = false;
-                                                          })
-                                                      ).downloadFile(file);
-                                                    },
-                                                  ),
-                                                  Padding(
-                                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
-                                                    child: Row(
-                                                      children: [
-                                                        Text(
-                                                          'ขนาด: ${Utils.formatBytes(file.fileSize)}',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF7D7D7D)
-                                                          ),
-                                                        )
-                                                      ],
+                                  StatefulBuilder(
+                                      builder: (context, setState) {
+                                        return downloading ?
+                                        Padding(
+                                          padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
+                                          child: Center(child: CupertinoActivityIndicator()),
+                                        ) :
+                                        MenuAnchor(
+                                          controller: menuController,
+                                          useRootOverlay: true,
+                                          builder: (context, controller, child) {
+                                            return InkWell(
+                                              overlayColor: WidgetStatePropertyAll(Colors.transparent),
+                                              onTap: () {
+                                                menuController.open();
+                                              },
+                                              child: Padding(
+                                                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                                  child: SvgPicture.asset(
+                                                    'assets/images/icon_file_menu.svg',
+                                                    colorFilter: ColorFilter.mode(
+                                                      Colors.grey.shade600,
+                                                      BlendMode.srcIn,
                                                     ),
                                                   )
-                                                ],
+                                              ),
+                                            );
+                                          },
+                                          clipBehavior: Clip.none,
+                                          consumeOutsideTap: true,
+                                          style: const MenuStyle(
+                                            backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+                                            elevation: WidgetStatePropertyAll(0),
+                                          ),
+                                          menuChildren: [
+                                            TweenAnimationBuilder<double>(
+                                              tween: Tween(begin: 0, end: 1),
+                                              duration: const Duration(milliseconds: 250),
+                                              curve: Curves.easeOut,
+                                              builder: (context, value, child) {
+                                                return Opacity(
+                                                  opacity: value,
+                                                  child: child,
+                                                );
+                                              },
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(20),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withValues(alpha: 0.18),
+                                                      blurRadius: 100,
+                                                      spreadRadius: 6,
+                                                      offset: Offset.zero,
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: SeparatorCard(
+                                                  borderRadius: BorderRadius.circular(20),
+                                                  children: [
+                                                    IconTextButton(
+                                                      icon: 'download.svg',
+                                                      arrow: false,
+                                                      label: 'ส่งออกไฟล์',
+                                                      onPressed: () async {
+                                                        menuController.close();
+                                                        Downloader(
+                                                            onDownloadStart: () => setState(() {
+                                                              downloading = true;
+                                                            }),
+                                                            onDownloadSuccess: () => setState(() {
+                                                              downloading = false;
+                                                            })
+                                                        ).downloadFile(file);
+                                                      },
+                                                    ),
+                                                    Padding(
+                                                      padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            'ขนาด: ${Utils.formatBytes(file.fileSize)}',
+                                                            style: TextStyle(
+                                                                color: Color(0xFF7D7D7D)
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                )
-                              ],
-                            )
-                        ),
-                      );
+                                          ],
+                                        );
+                                      }
+                                  )
+                                ],
+                              )
+                          ),
+                        );
 
-                      // if (file.fileType.toLowerCase() == 'pdf') {
-                      //   return SizedBox(
-                      //     height: 500, // สำคัญมาก
-                      //     child: SfPdfViewer.network(
-                      //         file.fileUrl
-                      //     ),
-                      //   );
-                      // }
-                      //
-                      // return Image.network(file.fileUrl);
-                    }),
+                        // if (file.fileType.toLowerCase() == 'pdf') {
+                        //   return SizedBox(
+                        //     height: 500, // สำคัญมาก
+                        //     child: SfPdfViewer.network(
+                        //         file.fileUrl
+                        //     ),
+                        //   );
+                        // }
+                        //
+                        // return Image.network(file.fileUrl);
+                      })
+                    else
+                      SizedBox(
+                        width: double.infinity,
+                        child: SeparatorCard(
+                          children: [
+                            Padding(
+                              padding: EdgeInsetsGeometry.all(20),
+                              child: Text(
+                                'ไม่มีไฟล์แนบ',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Color(0xFF7D7D7D), // สีจาง
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      )
                   ],
                 ),
 
@@ -642,7 +664,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                         onPressed: () async {
                           FloatingPopup(
                               title: 'ยกเลิกคำขอ',
-                              description: 'คุณยืนยันที่จะลบคำขอ${requestDetail!.requestDetail.leaveType} หมายเลข: ${widget.requestID} หรือไม่? การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                              description: 'คุณยืนยันที่จะยกเลิกคำขอ${requestDetail!.requestDetail.leaveType.display} หมายเลข: ${widget.requestID} หรือไม่? การดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
                               buttons: (setError, context2) {
                                 return [
                                   FloatingPopupButton(
@@ -661,10 +683,10 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                                         Navigator.of(context2).pop();
                                         await Future.delayed(const Duration(milliseconds: 200));
                                         if (!context.mounted) return;
-                                        Navigator.pop(context);
+                                        Navigator.of(context, rootNavigator: true).pop();
                                         widget.onCancel();
                                       },
-                                      request: () => Utils.mockResponse() // LeaveRequestService().cancelRequest(widget.requestID),
+                                      request: () => LeaveRequestService().cancelRequest(widget.requestID),
                                   ),
                                 ];
                               }
@@ -673,7 +695,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                       )
                     ],
                   )
-                else if (requestDetail!.approveDetail.status == .rejected)
+                else if ((requestDetail!.approveDetail.status == .rejected || requestDetail!.approveDetail.status == .canceled) && requestDetail!.requestDetail.dateFrom.isAfter(DateTime.now()))
                   SeparatorCard(
                     children: [
                       IconTextButton(

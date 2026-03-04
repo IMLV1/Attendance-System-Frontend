@@ -1,4 +1,10 @@
 import 'package:attendance_system/features/settings/personnel_info/choose_personnel.dart';
+import 'package:attendance_system/features/settings/personnel_info/overall_info.dart';
+import 'package:attendance_system/features/settings/personnel_info/personnel_attendance.dart';
+import 'package:attendance_system/features/settings/personnel_info/personnel_attendance_request.dart';
+import 'package:attendance_system/features/settings/personnel_info/personnel_data.dart';
+import 'package:attendance_system/features/settings/personnel_info/personnel_leave.dart';
+import 'package:attendance_system/features/settings/personnel_info/personnel_statistic.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_info.dart';
 import 'package:attendance_system/services/personnel_info/personnel_info_model.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
@@ -62,7 +68,6 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
                             children: [
                               SeparatorCard(
                                 children: [
-
                                   (userInfo != null) ?
                                   UserInfoButton(
                                     icon: Image.network(
@@ -122,33 +127,102 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
                                   separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
                                   children: [
                                     IconTextButton(
+                                      icon: 'icon_profile.svg',
+                                      label: 'ข้อมูลส่วนตัว',
+                                      onPressed: () async {
+                                        final personnel = await Navigator.of(context).push<PersonnelInfoModel>(
+                                            MaterialPageRoute(
+                                                builder: (_) => PersonnelData(personnel: userInfo!)
+                                            )
+                                        );
+                                        if (!mounted) return;
+                                        setState(() {
+                                          userInfo = personnel ?? userInfo;
+                                        });
+                                      },
+                                    ),
+                                    IconTextButton(
                                       icon: 'icon_attendance_history.svg',
-                                      label: 'การเข้างาน'
+                                      label: 'การเข้างาน',
+                                      onPressed: () async {
+                                        final personnel = await Navigator.of(context).push<PersonnelInfoModel>(
+                                            MaterialPageRoute(
+                                                builder: (_) => PersonnelAttendance(personnel: userInfo!)
+                                            )
+                                        );
+                                        if (!mounted) return;
+                                        setState(() {
+                                          userInfo = personnel ?? userInfo;
+                                        });
+                                      },
                                     ),
                                     IconTextButton(
-                                        icon: 'icon_leave.svg',
-                                        label: 'การลางาน'
+                                      icon: 'icon_leave.svg',
+                                      label: 'การลางาน',
+                                      onPressed: () async {
+                                        final personnel = await Navigator.of(context).push<PersonnelInfoModel>(
+                                          MaterialPageRoute(
+                                            builder: (_) => PersonnelLeave(personnel: userInfo!)
+                                          )
+                                        );
+
+                                        if (!mounted) return;
+
+                                        setState(() {
+                                          userInfo = personnel ?? userInfo;
+                                        });
+                                      },
                                     ),
                                     IconTextButton(
-                                        icon: 'icon_attendance_request_history.svg',
-                                        label: 'การขออนุมัติเวลางาน'
+                                      icon: 'icon_attendance_request_history.svg',
+                                      label: 'การขออนุมัติเวลางาน',
+                                      onPressed: () async {
+                                        final personnel = await Navigator.of(context).push<PersonnelInfoModel>(
+                                          MaterialPageRoute(
+                                            builder: (_) => PersonnelAttendanceRequest(personnel: userInfo!)
+                                          )
+                                        );
+                                        if (!mounted) return;
+                                        setState(() {
+                                          userInfo = personnel ?? userInfo;
+                                        });
+                                      },
+                                    ),
+                                    IconTextButton(
+                                      icon: 'icon_statistic.svg',
+                                      label: 'สถิติ',
+                                      onPressed: () async {
+                                        final personnel = await Navigator.of(context).push<PersonnelInfoModel>(
+                                          MaterialPageRoute(
+                                            builder: (_) => PersonnelStatistic(personnel: userInfo!)
+                                          )
+                                        );
+                                        if (!mounted) return;
+                                        setState(() {
+                                          userInfo = personnel ?? userInfo;
+                                        });
+                                      },
                                     ),
                                   ],
                                 )
                             ],
                           )
                         ),
-                        SeparatorCard(
-                          children: [
-                            IconTextButton(
-                              icon: 'icon_personnel_info.svg',
-                              label: 'ภาพรวมองค์กร',
-                              onPressed: () {
-
-                              },
-                            )
-                          ],
-                        )
+                        // SeparatorCard(
+                        //   children: [
+                        //     IconTextButton(
+                        //       icon: 'icon_personnel_info.svg',
+                        //       label: 'ภาพรวมบุคลากร',
+                        //       onPressed: () {
+                        //         Navigator.of(context).push<PersonnelInfoModel>(
+                        //           MaterialPageRoute(
+                        //             builder: (_) => OverallInfo()
+                        //           )
+                        //         );
+                        //       },
+                        //     )
+                        //   ],
+                        // )
                       ]
                     )
                   )

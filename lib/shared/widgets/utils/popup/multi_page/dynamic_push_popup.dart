@@ -80,6 +80,9 @@ class DynamicPushPopup {
                         ),
                         child: SafeArea(
                           top: false,
+                          bottom: currentConfig.safeArea,
+                          left: currentConfig.safeArea,
+                          right: currentConfig.safeArea,
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
                               maxHeight: MediaQuery.of(context).size.height * 0.88,

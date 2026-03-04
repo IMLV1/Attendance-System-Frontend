@@ -156,16 +156,47 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
 
   @override
   void initState() {
+    super.initState(); // Always call super.initState() first
+
     _rangeStart = widget.currentDateFrom;
     _rangeEnd = widget.currentDateTo;
     allowDateFrom = widget.allowDateFrom;
     allowDateTo = widget.allowDateTo;
 
-
-
     _focusedDay = _initialFocusedDay();
 
+    // 1. Generate the years list first
     years.addAll(getYears());
+
+    // 2. Calculate initial indices if currentDateFrom exists
+    if (_rangeStart != null) {
+      // Find index of the year
+      final yearStr = _rangeStart!.year.toString();
+      final yearIdx = years.indexOf(yearStr);
+
+      if (yearIdx != -1) {
+        selectedYearIndex = yearIdx;
+
+        // Find index of the month within that specific year's month list
+        final monthsInThatYear = getMonthOfYear(selectedYearIndex);
+        final monthIdx = monthsInThatYear.indexOf(_rangeStart!.month - 1);
+
+        if (monthIdx != -1) {
+          selectedMonthIndex = monthIdx;
+        }
+      }
+    } else {
+      // Fallback: If no date is selected, you might want to point
+      // the wheels to the current year/month if they exist in the range
+      final now = DateTime.now();
+      final yearIdx = years.indexOf(now.year.toString());
+      if (yearIdx != -1) {
+        selectedYearIndex = yearIdx;
+        final months = getMonthOfYear(selectedYearIndex);
+        final monthIdx = months.indexOf(now.month - 1);
+        selectedMonthIndex = monthIdx != -1 ? monthIdx : 0;
+      }
+    }
   }
 
   @override

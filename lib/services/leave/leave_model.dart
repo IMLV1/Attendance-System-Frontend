@@ -24,7 +24,7 @@ import '../user_management/user_management_model.dart';
 
 class LeaveRequestModel {
   final String id;
-  final String leaveType;
+  final LeaveType leaveType;
   final DateTime dateStart;
   final ApproveStatus status;
 
@@ -38,7 +38,7 @@ class LeaveRequestModel {
   factory LeaveRequestModel.fromJson(Map<String, dynamic> json) {
     return LeaveRequestModel(
       id: json['id'] ?? '',
-      leaveType: json['leave-type'] ?? '',
+      leaveType: LeaveTypeX.fromString(json['leave-type'] ?? ''),
       dateStart: DateTime.tryParse(json['date-start']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       status: ApproveStatusX.fromState(json['status'] ?? 'pending')
     );
@@ -53,7 +53,7 @@ class LeaveRequestModel {
 
 class PendingLeaveRequestModel {
   final String id;
-  final String leaveType;
+  final LeaveType leaveType;
   final DateTime dateStart;
 
   const PendingLeaveRequestModel({
@@ -64,9 +64,9 @@ class PendingLeaveRequestModel {
 
   factory PendingLeaveRequestModel.fromJson(Map<String, dynamic> json) {
     return PendingLeaveRequestModel(
-        id: json['id'] ?? '',
-        leaveType: json['leave-type'] ?? '',
-        dateStart: DateTime.tryParse(json['date-start']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      id: json['id'] ?? '',
+      leaveType: LeaveTypeX.fromString(json['leave-type'] ?? ''),
+      dateStart: DateTime.tryParse(json['date-start']) ?? DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 
@@ -147,11 +147,18 @@ class ApproveDetail {
 
   factory ApproveDetail.fromJson(Map<String, dynamic> json) {
     return ApproveDetail(
-      status: ApproveStatus.values.byName(json['status'] ?? 'pending'),
+      // Use your extension method for safety
+      status: ApproveStatusX.fromState(json['status']),
+
+      // Use ?? '' to handle nulls from the JSON
       approveRole: json['approve-role'] ?? '',
       approver: json['approver'] ?? '',
-      approveDate: DateTime.tryParse(json['approve-date']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       reason: json['reason'] ?? '',
+
+      // DateTime.tryParse already returns null safely,
+      // and you're already handling it with DateTime.fromMillisecondsSinceEpoch(0)
+      approveDate: DateTime.tryParse(json['approve-date']?.toString() ?? '')
+          ?? DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 }
@@ -162,23 +169,32 @@ class NetworkFile {
   final String fileType;
   final int fileSize;
 
-  const NetworkFile({required this.fileName, required this.fileUrl, required this.fileType, required this.fileSize});
+  const NetworkFile({
+    required this.fileName,
+    required this.fileUrl,
+    required this.fileType,
+    required this.fileSize
+  });
 
   factory NetworkFile.fromJson(Map<String, dynamic> json) {
     return NetworkFile(
-      fileName: json['file-name'],
-      fileUrl: json['file-url'],
-      fileType: json['file-type'],
+      // Added null checks to prevent further crashes if keys are missing
+      fileName: json['file-name'] ?? '',
+      fileUrl: json['file-url'] ?? '',
+      fileType: json['file-type'] ?? '',
       fileSize: json['file-size'] ?? 0,
     );
   }
 
-  static List<NetworkFile> getList(List<Map<String, dynamic>> json) {
-    return [...json.map((m) => NetworkFile.fromJson(m))];
+  // Change parameter type from List<Map<String, dynamic>> to List<dynamic>
+  static List<NetworkFile> getList(List<dynamic> items) {
+    return items.map((item) => NetworkFile.fromJson(
+      Map<String, dynamic>.from(item),
+    )).toList();
   }
 }
 
-enum ApproveStatus { pending, approved, rejected, overdue }
+enum ApproveStatus { pending, approved, rejected, overdue, canceled }
 
 extension ApproveStatusX on ApproveStatus {
 
@@ -216,6 +232,9 @@ extension ApproveStatusX on ApproveStatus {
 
       case ApproveStatus.overdue:
         return 'icon_overdue.svg';
+
+      case ApproveStatus.canceled:
+        return 'icon_request_cancel.svg';
     }
   }
 
@@ -232,6 +251,9 @@ extension ApproveStatusX on ApproveStatus {
 
       case ApproveStatus.overdue:
         return const Color(0xFF000000);
+
+      case ApproveStatus.canceled:
+        return const Color(0xFFFFA652);
     }
   }
 }
