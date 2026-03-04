@@ -19,7 +19,7 @@ class UserModel {
       email: json['email'],
       name: json['name'],
       avatarUrl: json['picture'],
-      roleType: List<String>.from(json['role'] ?? []),
+      roleType: List<String>.from(json['roles'] ?? json['all_roles'] ?? []),
     );
   }
 }
