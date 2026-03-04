@@ -1167,7 +1167,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                   //   ),
                   // ]
                   ServiceUpdater(
-                      request: () =>  TimeRequestService().timeRequestCreate(
+                      request: () =>  TimeRequestService().create(
                         TimeRequestModel(
                           fromDate: _selectDate!.fromDate,
                           toDate: _selectDate!.toDate,
@@ -1280,7 +1280,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                                 ],
                                               ),
                                               required: true,
-                                              request: (pngByte) => TimeRequestService().timeRequestCreate(
+                                              request: (pngByte) => TimeRequestService().create(
                                                 TimeRequestModel(
                                                   fromDate: _selectDate!.fromDate,
                                                   toDate: _selectDate!.toDate,

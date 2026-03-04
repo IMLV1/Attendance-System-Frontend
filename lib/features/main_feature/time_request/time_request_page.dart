@@ -91,10 +91,10 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                           ],
                         ),
                         ServiceUpdaterProMax(
-                          requests: [
-                            () => TimeRequestService().getTimeRequestPending(),
-                            () => TimeRequestService().getTimeRequestRecent(filterStart, filterEnd),
-                            () => TimeRequestService().getTimeRequestFilterRange(),
+                          requests: () => [
+                            TimeRequestService().getPending(),
+                            TimeRequestService().getRecent(filterStart, filterEnd),
+                            TimeRequestService().getFilterRange(),
                             // mockData1(),
                             // mockData2(),
                             // mockData3(),

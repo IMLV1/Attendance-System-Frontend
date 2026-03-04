@@ -77,7 +77,7 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
     final setting = authState.attendanceConfig;
 
     return ServiceUpdater(
-        request: () => TimeRequestService().timeRequestResend(
+        request: () => TimeRequestService().resend(
             widget.id,
             remark!,
             oldFiles,
@@ -154,7 +154,7 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
                               )
                             ],
                           ),
-                          request: (pngByte) => TimeRequestService().timeRequestResend(
+                          request: (pngByte) => TimeRequestService().resend(
                               widget.id,
                               remark!,
                               oldFiles,

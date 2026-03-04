@@ -9,15 +9,14 @@ import '../../core/network/api_client.dart';
 import '../leave/leave_model.dart';
 
 String formatTimeOfDay(TimeOfDay time) {
-  return '${time.hour.toString().padLeft(2, '0')}:'
-      '${time.minute.toString().padLeft(2, '0')}:00';
+  return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
 }
 
 
 class TimeRequestService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
-  Future<Response<dynamic>> timeRequestCreate(TimeRequestModel element, Uint8List? signature) async {
+  Future<Response<dynamic>> create(TimeRequestModel element, Uint8List? signature) async {
 
     List<MultipartFile> multipartFiles = [];
 
@@ -67,7 +66,7 @@ class TimeRequestService {
     );
   }
 
-  Future<Response<dynamic>> timeRequestResend(String id, String remark, List<NetworkFile> oldFiles, List<PlatformFile> files, Uint8List? signature) async {
+  Future<Response<dynamic>> resend(String id, String remark, List<NetworkFile> oldFiles, List<PlatformFile> files, Uint8List? signature) async {
 
     List<MultipartFile> multipartFiles = [];
 
@@ -107,36 +106,36 @@ class TimeRequestService {
     );
   }
 
-  Future<Response<dynamic>> getTimeRequestPending() async {
+  Future<Response<dynamic>> getPending() async {
     return dio.get('/api/attendance_request/pending');
   }
 
-  Future<Response<dynamic>> getTimeRequestRecent(DateTime? filterStartDate, DateTime? filterEndDate) async {
-    return dio.get('/api/attendance_request/recent',
-        data: {
-          'startDate': ?filterStartDate,
-          'endDate': ?filterEndDate,
-        }
+  Future<Response<dynamic>> getRecent(DateTime? filterStartDate, DateTime? filterEndDate,) async {
+    Map<String, dynamic> query = {};
+
+    if (filterStartDate != null) {
+      query['startDate'] = filterStartDate.toIso8601String();
+    }
+
+    if (filterEndDate != null) {
+      query['endDate'] = filterEndDate.toIso8601String();
+    }
+
+    return dio.get(
+      '/api/attendance_request/recent',
+      queryParameters: query,
     );
   }
 
-  Future<Response<dynamic>> getTimeRequestFilterRange() async {
+  Future<Response<dynamic>> getFilterRange() async {
     return dio.get('/api/attendance_request/filter_range');
   }
 
-  Future<Response<dynamic>> getTimeRequestDelete(String id) async {
-    return dio.get('/api/attendance_request/delete',
-      data: {
-        'id': id,
-      }
-    );
+  Future<Response<dynamic>> delete(String id) async {
+    return dio.delete('/api/attendance_request/delete/$id');
   }
 
-  Future<Response<dynamic>> getTimeRequestDetail(String id) async {
-    return dio.get('/api/attendance_request/detail',
-      data: {
-        'id': id,
-      }
-    );
+  Future<Response<dynamic>> getDetail(String id) async {
+    return dio.get('/api/attendance_request/detail/$id');
   }
 }

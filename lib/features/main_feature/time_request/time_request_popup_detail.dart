@@ -106,7 +106,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
     return ServiceLoader(
         request: () {
           // return mockData();
-          return TimeRequestService().getTimeRequestDetail(widget.id);
+          return TimeRequestService().getDetail(widget.id);
         },
         onSuccess: (val) {
           setState(() {
@@ -665,7 +665,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                   FloatingServicePopupButton(
                                     text: 'ยันยัน',
                                     foregroundColor: Colors.red,
-                                    request: () => TimeRequestService().getTimeRequestDelete(widget.id),
+                                    request: () => TimeRequestService().delete(widget.id),
                                     setError: setError,
                                     onSuccess: () async {
                                       Navigator.of(context1).pop();
