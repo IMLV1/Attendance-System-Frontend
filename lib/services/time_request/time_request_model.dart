@@ -133,7 +133,6 @@ class AttendanceRequestDetail {
   final TimeOfDay timeEnd;
   final String remark;
   final List<NetworkFile> evidenceFiles;
-  final DateTime requestDate;
 
   AttendanceRequestDetail({
     required this.dateFrom,
@@ -142,18 +141,16 @@ class AttendanceRequestDetail {
     required this.timeEnd,
     required this.remark,
     required this.evidenceFiles,
-    required this.requestDate,
   });
 
   factory AttendanceRequestDetail.fromJson(Map<String, dynamic> json) {
     return AttendanceRequestDetail(
-      dateFrom: DateTime.parse(json['date-from']),
-      dateTo: DateTime.parse(json['date-to']),
+      dateFrom: DateTime.tryParse(json['date-from']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      dateTo: DateTime.tryParse(json['date-to']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       timeStart: _parseTime(json['time-start']),
       timeEnd: _parseTime(json['time-end']),
       remark: json['remark'] ?? '',
       evidenceFiles: (json['evidence-files'] as List? ?? []).map((e) => NetworkFile.fromJson(e)).toList(),
-      requestDate: DateTime.parse(json['request-date']),
     );
   }
 
@@ -187,7 +184,7 @@ class AttendanceApproveDetail {
       approveRole: json['approve-role'] ?? '',
       approver: json['approver'] ?? '',
       reason: json['reason'] ?? '',
-      approveDate: DateTime.parse(json['approve-date']),
+      approveDate: DateTime.tryParse(json['approve-date'])?? DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 }

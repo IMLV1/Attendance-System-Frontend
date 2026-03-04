@@ -92,14 +92,15 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                         ),
                         ServiceUpdaterProMax(
                           requests: [
-                            () => TimeRequestService().getTimeRequestPending(),
-                            () => TimeRequestService().getTimeRequestRecent(filterStart, filterEnd),
-                            () => TimeRequestService().getTimeRequestFilterRange(),
+                            () =>TimeRequestService().getPending(),
+                            () =>TimeRequestService().getRecent(filterStart, filterEnd),
+                            () =>TimeRequestService().getFilterRange(),
                             // mockData1(),
                             // mockData2(),
                             // mockData3(),
                           ],
                           onSuccess: (idx, val) {
+                            print(val['recent']);
                             setState(() {
                               switch (idx) {
                                 case 0: pendingList = PendingAttendanceRequestModel.getList(val['pending']);
@@ -268,6 +269,24 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
 
                                         ],
                                       ),
+                                      (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading) ?
+                                      SeparatorCard(
+                                        children: [
+                                          Container(
+                                            color: Colors.white,
+                                            width: double.infinity,
+                                            padding: EdgeInsetsGeometry.all(25),
+                                            child: Text(
+                                              'ไม่มีพบคำขอลางาน',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Color(0xFF7D7D7D), // สีจาง
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ) :
                                       SeparatorCard(
                                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                                         children: [
@@ -276,11 +295,15 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                               icon: switch(m?.status) {
                                                 'approved' => 'icon_success.svg',
                                                 'rejected' => 'icon_cancel.svg',
+                                                'overdue'  => 'icon_overdue.svg',
+                                                'canceled' => 'icon_request_cancel.svg',
                                                 _ => 'icon_pending.svg'
                                               },
                                               iconColor: switch(m?.status) {
                                                 'approved' => Color(0xFF30D143),
                                                 'rejected' => Color(0xFFE7000B),
+                                                'overdue'  => Color(0xFF000000),
+                                                'canceled' => Color(0xFFFFA652),
                                                 _ => Color(0xFFE79E00)
                                               },
                                               title: formatRange(m.dateStart, m.dateEnd),

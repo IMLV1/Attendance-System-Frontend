@@ -77,7 +77,7 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
     final setting = authState.attendanceConfig;
 
     return ServiceUpdater(
-        request: () => TimeRequestService().timeRequestResend(
+        request: () => TimeRequestService().resend(
             widget.id,
             remark!,
             oldFiles,
@@ -139,7 +139,7 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
                                         text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
                                         children: [
                                           TextSpan(
-                                            text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
+                                            text: 'ยืนยันการขอการเข้า-ออกงานในครั้งนี้เท่านั้น',
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               decoration: TextDecoration.underline,
@@ -154,7 +154,7 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
                               )
                             ],
                           ),
-                          request: (pngByte) => TimeRequestService().timeRequestResend(
+                          request: (pngByte) => TimeRequestService().resend(
                               widget.id,
                               remark!,
                               oldFiles,
