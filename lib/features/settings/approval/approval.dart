@@ -85,9 +85,30 @@ class ApprovalState extends State<Approval> {
             ),
           ),
           Expanded(
-            child: select == 0
-                ? AttendanceApproval()
-                : LeaveApproval(),
+            child: SafeArea(
+              child: Container(
+                color: AppColors.backgroundColor,
+                alignment: Alignment.topCenter,
+                child: Padding(
+                    padding: EdgeInsets.only(
+                        left: 10, right: 10, top: 20
+                    ),
+                    child: Column(
+                        children: [
+                          Expanded(
+                              child: SingleChildScrollView(
+                                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                  physics: AlwaysScrollableScrollPhysics(),
+                                  child: select == 0
+                                      ? AttendanceApproval()
+                                      : LeaveApproval(),
+                              )
+                          )
+                        ]
+                    )
+                )
+              )
+            ),
           ),
         ],
       ),
