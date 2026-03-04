@@ -133,7 +133,18 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                 //     Text('สถานะปัจจุบัน')
                 //   ],
                 // ),
-
+                // icon: switch(m?.status) {
+                //   'approved' => 'icon_success.svg',
+                //   'rejected' => 'icon_cancel.svg',
+                //   'overdue'  => 'icon_overdue.svg',
+                //   _ => 'icon_pending.svg'
+                // },
+                // iconColor: switch(m?.status) {
+                //   'approved' => Color(0xFF30D143),
+                //   'rejected' => Color(0xFFE7000B),
+                //   'overdue'  => Color(0xFF000000),
+                //   _ => Color(0xFFE79E00)
+                // },
                 SeparatorCard(
                   borderRadius: BorderRadius.circular(22),
                   children: [
@@ -143,22 +154,35 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                           icon: switch(data?.approveDetail.status) {
                             'approved' => 'icon_success.svg',
                             'rejected' => 'icon_cancel.svg',
+                            'overdue'  => 'icon_overdue.svg',
+                            'canceled' => 'icon_request_cancel.svg',
                             _ => 'icon_pending.svg'
                           },
                           iconColor: switch(data?.approveDetail.status) {
                             'approved' => Color(0xFF30D143),
                             'rejected' => Color(0xFFE7000B),
+                            'overdue'  => Color(0xFF000000),
+                            'canceled' => Color(0xFFFFA652),
                             _ => Color(0xFFE79E00)
                           },
                           title: switch(data?.approveDetail.status) {
                             'approved' => 'อนุมัติแล้ว',
                             'rejected' => 'ไม่อนุมัติ',
+                            'overdue'  => 'เลยกำหนดเวลา',
+                            'canceled' => 'ยกเลิก',
                             _ => 'รอดำเนินการ'
                           },
                           weightTitle: FontWeight.w500,
-                          subTitle: data?.approveDetail.status == 'pending'
-                              ? 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
-                              : 'อนุมัติโดย ${data?.approveDetail.approver}' ?? '-',
+                          // subTitle: data?.approveDetail.status == 'pending'
+                          //     ? 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
+                          //     : 'อนุมัติโดย ${data?.approveDetail.approver}' ?? '-',
+                          subTitle: switch(data?.approveDetail.status) {
+                            'approved' => 'อนุมัติโดย ${data?.approveDetail.approver}',
+                            'rejected' => 'อนุมัติโดย ${data?.approveDetail.approver}',
+                            'overdue'  => 'คำขอนี้เลยกำหนดเวลาอนุมัติแล้ว',
+                            'canceled' => 'คำขอนี้ถูกยกเลิกแล้ว',
+                            _ => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
+                          },
                           arrow: false,
                           onPressed: data?.approveDetail.status != 'pending' ? () {
                             setState(() {
@@ -651,7 +675,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                         onPressed: () async {
                           FloatingPopup(
                               title: 'ยกเลิกคำขอ',
-                              description: 'คุณยืนยันที่จะลบคำขอหมายเลข: ${widget.id} หรือไม่? \n\nการดำเนินการนี้จะไม่สามารถย้อนกลับมาได้อีก',
+                              description: 'คุณยืนยันที่จะยกเลิกคำขอหมายเลข: ${widget.id} หรือไม่?',
                               buttons: (setError, context1) {
                                 return [
                                   FloatingPopupButton(
@@ -682,7 +706,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                       )
                     ],
                   )
-                ] else if (data?.approveDetail.status == 'rejected')...[
+                ] else if ((data!.approveDetail.status == 'rejected' || data!.approveDetail.status == 'canceled') && data!.requestDetail.dateFrom.isAfter(DateTime.now()))...[
                   SeparatorCard(
                     children: [
                       IconTextButton(

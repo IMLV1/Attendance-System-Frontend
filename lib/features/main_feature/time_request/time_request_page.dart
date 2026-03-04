@@ -91,10 +91,10 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                           ],
                         ),
                         ServiceUpdaterProMax(
-                          requests: () => [
-                            TimeRequestService().getPending(),
-                            TimeRequestService().getRecent(filterStart, filterEnd),
-                            TimeRequestService().getFilterRange(),
+                          requests: [
+                            () =>TimeRequestService().getPending(),
+                            () =>TimeRequestService().getRecent(filterStart, filterEnd),
+                            () =>TimeRequestService().getFilterRange(),
                             // mockData1(),
                             // mockData2(),
                             // mockData3(),
@@ -276,11 +276,15 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                               icon: switch(m?.status) {
                                                 'approved' => 'icon_success.svg',
                                                 'rejected' => 'icon_cancel.svg',
+                                                'overdue'  => 'icon_overdue.svg',
+                                                'canceled' => 'icon_request_cancel.svg',
                                                 _ => 'icon_pending.svg'
                                               },
                                               iconColor: switch(m?.status) {
                                                 'approved' => Color(0xFF30D143),
                                                 'rejected' => Color(0xFFE7000B),
+                                                'overdue'  => Color(0xFF000000),
+                                                'canceled' => Color(0xFFFFA652),
                                                 _ => Color(0xFFE79E00)
                                               },
                                               title: formatRange(m.dateStart, m.dateEnd),
