@@ -44,7 +44,7 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
             final nameEn = user.nameEN.toLowerCase();
 
             final roleMatch = user.roles.any((role) =>
-                role.name.toLowerCase().contains(input));
+              role.name.toLowerCase().contains(input));
 
             final initRole = user.initRole.toLowerCase();
 
@@ -60,7 +60,6 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
 
   @override
   void initState() {
-    // TODO: implement initState
     _onSearchChanged('');
   }
 

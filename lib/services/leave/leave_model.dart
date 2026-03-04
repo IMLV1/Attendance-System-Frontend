@@ -194,7 +194,7 @@ class NetworkFile {
   }
 }
 
-enum ApproveStatus { pending, approved, rejected, overdue }
+enum ApproveStatus { pending, approved, rejected, overdue, canceled }
 
 extension ApproveStatusX on ApproveStatus {
 
@@ -232,6 +232,9 @@ extension ApproveStatusX on ApproveStatus {
 
       case ApproveStatus.overdue:
         return 'icon_overdue.svg';
+
+      case ApproveStatus.canceled:
+        return 'icon_request_cancel.svg';
     }
   }
 
@@ -248,6 +251,9 @@ extension ApproveStatusX on ApproveStatus {
 
       case ApproveStatus.overdue:
         return const Color(0xFF000000);
+
+      case ApproveStatus.canceled:
+        return const Color(0xFFFFA652);
     }
   }
 }

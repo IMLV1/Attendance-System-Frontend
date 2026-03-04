@@ -60,7 +60,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                       spacing: 13,
                       children: [
                         ServiceUpdaterProMax(
-                            requests: () => [
+                            requests: [
 
                               // {date: 2026-02-18, dow: จันทร์, checkIn: 09:30, checkOut: null}
 
@@ -75,7 +75,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                               //   ]
                               // )
 
-                              AttendanceHistoryService().fetchHistory(
+                              () => AttendanceHistoryService().fetchHistory(
                                 startDate: filterStart == null ? null : _toYmd(filterStart!),
                                 endDate: filterEnd == null ? null : _toYmd(filterEnd!),
                               )
