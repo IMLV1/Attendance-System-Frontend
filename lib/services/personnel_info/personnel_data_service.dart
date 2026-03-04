@@ -2,19 +2,16 @@ import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
-class PersonnelInfoService {
+class PersonnelDataService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
-  Future<Response<dynamic>> getPersonnelList() async {
-    return dio.get('api/personnel_info/users');
-  }
-
-  Future<Response<dynamic>> getPermissionLevel(String personnelID) async {
+  Future<Response<dynamic>> getData(String personnelID) {
     return dio.get(
-      '/api/personnel_info/permissions',
+      '/api/personnel_info/personnel_data',
       queryParameters: {
         'id': personnelID,
       },
     );
   }
+
 }

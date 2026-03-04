@@ -13,6 +13,7 @@ import 'package:signature/signature.dart';
 class ServiceSignaturePage extends StatefulWidget {
   final void Function(Uint8List? pngByte)? onSuccess;
   final void Function(Uint8List? pngByte, dynamic data)? onSuccessResponse;
+  final void Function(Uint8List? pngByte, dynamic data)? onError;
   final Future<Response<dynamic>> Function(Uint8List? pngByte) request;
   final bool required;
   final Widget? infoWidget;
@@ -23,6 +24,7 @@ class ServiceSignaturePage extends StatefulWidget {
     super.key,
     this.onSuccess,
     this.onSuccessResponse,
+    this.onError,
     required this.request,
     this.infoWidget,
     this.importSignature = true,
@@ -71,6 +73,10 @@ class _ServiceSignaturePageState extends State<ServiceSignaturePage> {
     return Padding(
       padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
       child: ServiceUpdater(
+        onError: (data) async {
+          final bytes = await _controller.toPngBytes() ?? _current;
+          return widget.onError?.call(bytes, data);
+        },
         request: () async {
           final bytes = await _controller.toPngBytes() ?? _current;
           return widget.request(bytes);

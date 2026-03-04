@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 enum ServiceUpdaterProMaxState { loading, success, error, idle }
 
 class ServiceUpdaterProMax extends StatefulWidget {
+  // 1. แก้ไขประเภทของตัวแปรนี้
+  final List<Future<Response> Function()> requests;
 
-  final List<Future<Response>> Function() requests;
   final Widget Function(
       Function(int reqIndex) trigger,
       Function(int reqIndex) getState,
@@ -26,27 +27,26 @@ class ServiceUpdaterProMax extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() => _ServiceUpdaterProMaxState();
-
 }
 
 class _ServiceUpdaterProMaxState extends State<ServiceUpdaterProMax> {
-
   final List<ServiceUpdaterProMaxState> _states = [];
-
 
   ServiceUpdaterProMaxState _getState(int reqIndex) {
     return _states[reqIndex];
   }
 
   Future<void> _load(int reqIndex) async {
-
     setState(() {
       _states[reqIndex] = ServiceUpdaterProMaxState.loading;
     });
 
     try {
-      Response res = await widget.requests()[reqIndex];
+      // 2. แก้ไขการเรียกใช้ฟังก์ชันเพื่อให้ทำงานเฉพาะ request ที่ต้องการ
+      Response res = await widget.requests[reqIndex]();
+
       if (!mounted) return;
+
       if (res.statusCode! >= 200 && res.statusCode! < 300) {
         setState(() {
           widget.onSuccess?.call(reqIndex, res.data);
@@ -78,10 +78,12 @@ class _ServiceUpdaterProMaxState extends State<ServiceUpdaterProMax> {
   @override
   void initState() {
     super.initState();
-    _states.addAll(List.generate(widget.requests().length, (index) => ServiceUpdaterProMaxState.idle));
+    // 3. แก้ไขการอ้างอิง length
+    _states.addAll(List.generate(widget.requests.length, (index) => ServiceUpdaterProMaxState.idle));
 
     if (widget.fetchOnInit) {
-      for (int i = 0; i < widget.requests().length; i++) {
+      // 4. แก้ไขการอ้างอิง length
+      for (int i = 0; i < widget.requests.length; i++) {
         _load(i);
       }
     }
@@ -89,11 +91,6 @@ class _ServiceUpdaterProMaxState extends State<ServiceUpdaterProMax> {
 
   @override
   Widget build(BuildContext context) {
-
-    return widget.builder(
-        _load,
-        _getState
-    );
+    return widget.builder(_load, _getState);
   }
-
 }

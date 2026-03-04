@@ -11,8 +11,6 @@ import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/date_filter_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
-import 'package:attendance_system/shared/widgets/utils/popup/multi_page/example_usage.dart';
-import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:dio/dio.dart';
@@ -120,6 +118,9 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
   @override
   Widget build(BuildContext context) {
 
+    pendingLeaves.sort((a, b) => a.dateStart.toLocal().millisecondsSinceEpoch.compareTo(b.dateStart.toLocal().millisecondsSinceEpoch));
+    recentLeaves.sort((a, b) => b.dateStart.toLocal().millisecondsSinceEpoch.compareTo(a.dateStart.toLocal().millisecondsSinceEpoch));
+
     return AppScaffold(
       header: Header.mainHeader(
         context,
@@ -164,10 +165,10 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                         ),
 
                         ServiceUpdaterProMax(
-                            requests: () => [
-                              LeaveRequestService().getPending(),
-                              LeaveRequestService().getRecent(filterStart, filterEnd),
-                              LeaveRequestService().getFilterRange(),
+                            requests: [
+                              () => LeaveRequestService().getPending(),
+                              () => LeaveRequestService().getRecent(filterStart, filterEnd),
+                              () => LeaveRequestService().getFilterRange(),
                             ],
                             onSuccess: (index, data) => {
                               setState(() {
@@ -260,6 +261,7 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                                           requestID: m.id,
                                                           onCancel: () {
                                                             setState(() {
+                                                              recentLeaves.add(LeaveRequestModel(id: m.id, leaveType: m.leaveType, dateStart: m.dateStart, status: .canceled));
                                                               pendingLeaves.remove(m);
                                                             });
                                                           },
@@ -310,9 +312,6 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                           Spacer(),
                                           InkWell(
                                             onTap: () {
-
-                                              print(filterStart);
-                                              print(filterEnd);
 
                                               DateFilterPopup(
                                                 maxHeight: 750,
@@ -369,7 +368,7 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                       SeparatorCard(
                                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                                         children: [
-                                          ...recentLeaves!.map((m) {
+                                          ...recentLeaves.map((m) {
                                             return AppButton(
                                               icon: m.status.icon,
                                               iconColor: m.status.color,
