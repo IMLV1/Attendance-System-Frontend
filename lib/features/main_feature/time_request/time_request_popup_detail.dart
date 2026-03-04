@@ -35,7 +35,7 @@ Future<Response> mockData() async {
         'date-from': '2026-02-18T18:00:45.621Z',
         'date-to': '2026-02-18T18:00:45.621Z',
         'time-start': '08:00',
-        'time-end': '9:00',
+        'time-end': '09:00',
         'remark': 'ปวดหัว อาเจียน เป็นไข้ ทิฟฟี่แผงสีเขียว',
         'evidence-files': [
           {
@@ -51,7 +51,6 @@ Future<Response> mockData() async {
             'file-size': 5434478723
           }
         ],
-        'request-date': '2026-02-18T18:00:45.621Z',
       },
       'approve-detail': {
         'status': 'rejected', // pending, approved, rejected
@@ -109,6 +108,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
           return TimeRequestService().getDetail(widget.id);
         },
         onSuccess: (val) {
+          print(val);
           setState(() {
             data = AttendanceDetail.fromJson(val);
           });
@@ -695,7 +695,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                       Navigator.of(context1).pop();
                                       await Future.delayed(const Duration(milliseconds: 200));
                                       if (!context.mounted) return;
-                                      Navigator.pop(context);
+                                      Navigator.of(context, rootNavigator: true).pop();
                                       widget.onCancel();
                                     },
                                   )
