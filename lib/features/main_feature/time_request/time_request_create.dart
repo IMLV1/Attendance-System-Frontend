@@ -1264,7 +1264,7 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                                             text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
                                                             children: [
                                                               TextSpan(
-                                                                text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
+                                                                text: 'ยืนยันการขอการเข้า-ออกงานในครั้งนี้เท่านั้น',
                                                                 style: TextStyle(
                                                                   fontWeight: FontWeight.bold,
                                                                   decoration: TextDecoration.underline,
