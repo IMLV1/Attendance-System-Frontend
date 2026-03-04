@@ -1,3 +1,5 @@
+import '../../time_request/time_request_model.dart';
+
 class PendingAttendanceApprovalModel {
   final String id;
   final String name;
@@ -63,5 +65,45 @@ class RecentAttendanceApprovalModel {
 
   static List<RecentAttendanceApprovalModel> getList(List data) {
     return data.map((e) => RecentAttendanceApprovalModel.fromJson(e)).toList();
+  }
+}
+
+class AttendanceApprovalModel {
+  final AttendanceRequestDetail requestDetail;
+  final AttendanceApproveDetail approveDetail;
+  final UserDetail userDetail;
+
+  AttendanceApprovalModel({
+    required this.requestDetail,
+    required this.approveDetail,
+    required this.userDetail,
+  });
+
+  factory AttendanceApprovalModel.fromJson(Map<String, dynamic> json) {
+    return AttendanceApprovalModel(
+      requestDetail: AttendanceRequestDetail.fromJson(json['request-detail']),
+      approveDetail: AttendanceApproveDetail.fromJson(json['approve-detail']),
+      userDetail: UserDetail.fromJson(json['user-detail']),
+    );
+  }
+}
+
+class UserDetail {
+  final String avatarUrl;
+  final String name;
+  final String initRole;
+
+  UserDetail({
+    required this.avatarUrl,
+    required this.name,
+    required this.initRole,
+  });
+
+  factory UserDetail.fromJson(Map<String, dynamic> json) {
+    return UserDetail(
+      avatarUrl: json['avatar-url'],
+      name: json['name'],
+      initRole: json['init-role'],
+    );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:attendance_system/features/settings/approval/attendance/attendance_detail_popup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -167,24 +168,30 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                                 //   }
                                 // ).showPopup(context);
 
-                                // DynamicPushPopup(
-                                //   initialConfig: PopupConfig(
-                                //     title: 'รายละเอียด',
-                                //     fit: FlexFit.tight,
-                                //     maxHeight: 750,
-                                //   ),
-                                //   builder: (context) {
-                                //     return TimeRequestPopupDetail(
-                                //       id: m.id,
-                                //       onCancel: () {
-                                //         setState(() {
-                                //           pendingList.removeWhere((item) => item.id == m.id);
-                                //         });
-                                //       },
-                                //       onResend: () { },
-                                //     );
-                                //   }, // โยนหน้า 1 เข้าไป
-                                // ).showPopup(context);
+                                DynamicPushPopup(
+                                  initialConfig: PopupConfig(
+                                    title: 'รายละเอียด',
+                                      fit: FlexFit.tight,
+                                      maxHeight: 750,
+                                      scroll: false,
+                                      safeArea: false
+                                  ),
+                                  builder: (context) {
+                                    return AttendanceDetailPopup(
+                                      reqId: m.attendanceId,
+                                      onSuccess: () {
+                                        setState(() {
+
+                                        });
+                                      },
+                                      onRejected: () {
+                                        setState(() {
+
+                                        });
+                                      },
+                                    );
+                                  }, // โยนหน้า 1 เข้าไป
+                                ).showPopup(context);
                               },
                             );
                           })
