@@ -27,5 +27,9 @@ class AppColors {
   static const buttonDisableBackground = Color(0xFFE8E8E8);
 
   static const textmurasaki = Color(0xFF6B00C8);
+  static const yellowchart = Color(0xFFFAF068);
+  static const textgreen = Color(0xFF005B0C);
+
+
 
 }

@@ -25,7 +25,7 @@ import 'package:intl/intl.dart';
 
 import '../../shared/widgets/utils/services/service_loader.dart';
 
-class CheckinPage extends StatefulWidget{
+class CheckinPage extends StatefulWidget {
   const CheckinPage({super.key});
 
   @override
@@ -34,6 +34,8 @@ class CheckinPage extends StatefulWidget{
 
 class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   DateTime? _currentNetworkTime;
+
+  bool _isLoadingState = true; // เริ่มต้นให้เป็น true เสมอ
 
   String checkInTimeRecorded = "---";
   String checkOutTimeRecorded = "---";
@@ -92,41 +94,84 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     }
   }
 
+  // Future<void> _loadInitialState(DateTime networkTime) async {
+  //   final attendanceService = GetIt.I<AttendanceService>();
+  //   final todayStr = DateFormat('yyyy-MM-dd').format(networkTime);
+  //
+  //   // 1. 💡 ดึงข้อมูลจาก Backend ของเพื่อนคุณเป็นอันดับแรกเสมอ!
+  //   final serverData = await attendanceService.getTodayAttendance(todayStr);
+  //
+  //   if (serverData != null) {
+  //     // ✅ มีข้อมูลจาก Server เอามาโชว์ที่หน้าจอได้เลย
+  //     setState(() {
+  //       checkInTimeRecorded = serverData.checkInTime ?? "---";
+  //       checkOutTimeRecorded = serverData.checkOutTime ?? "---";
+  //       _hasCheckedIn = serverData.hasCheckedIn;
+  //       hasCheckedOut = serverData.hasCheckedOut;
+  //     });
+  //
+  //     // อัปเดต Local Storage ให้ตรงกับ Server เพื่อเป็น Cache สำรองเผื่อเน็ตหลุด
+  //     await attendanceService.saveLocalState(serverData);
+  //   } else {
+  //     // 2. ถ้า Backend ไม่มีข้อมูล (หรือเน็ตล่ม) ค่อยมาดูใน Local Storage เครื่องนี้
+  //     final localData = await attendanceService.getLocalState(networkTime);
+  //     if (localData != null) {
+  //       setState(() {
+  //         checkInTimeRecorded = localData.checkInTime ?? "---";
+  //         checkOutTimeRecorded = localData.checkOutTime ?? "---";
+  //         _hasCheckedIn = localData.hasCheckedIn;
+  //         hasCheckedOut = localData.hasCheckedOut;
+  //       });
+  //     } else {
+  //       // ถ้าไม่มีข้อมูลที่ไหนเลย ก็เคลียร์เป็นค่าว่าง
+  //       setState(() {
+  //         checkInTimeRecorded = "---";
+  //         checkOutTimeRecorded = "---";
+  //         _hasCheckedIn = false;
+  //         hasCheckedOut = false;
+  //       });
+  //     }
+  //   }
+  // }
+
   Future<void> _loadInitialState(DateTime networkTime) async {
-    final attendanceService = GetIt.I<AttendanceService>();
-    final todayStr = DateFormat('yyyy-MM-dd').format(networkTime);
+    setState(() {
+      _isLoadingState = true; // เริ่มแสดงหน้าโหลด
+    });
 
-    // 1. 💡 ดึงข้อมูลจาก Backend ของเพื่อนคุณเป็นอันดับแรกเสมอ!
-    final serverData = await attendanceService.getTodayAttendance(todayStr);
+    try {
+      final attendanceService = GetIt.I<AttendanceService>();
+      final todayStr = DateFormat('yyyy-MM-dd').format(networkTime);
 
-    if (serverData != null) {
-      // ✅ มีข้อมูลจาก Server เอามาโชว์ที่หน้าจอได้เลย
-      setState(() {
-        checkInTimeRecorded = serverData.checkInTime ?? "---";
-        checkOutTimeRecorded = serverData.checkOutTime ?? "---";
-        _hasCheckedIn = serverData.hasCheckedIn;
-        hasCheckedOut = serverData.hasCheckedOut;
-      });
+      // ดึงข้อมูลจาก Server
+      final serverData = await attendanceService.getTodayAttendance(todayStr);
 
-      // อัปเดต Local Storage ให้ตรงกับ Server เพื่อเป็น Cache สำรองเผื่อเน็ตหลุด
-      await attendanceService.saveLocalState(serverData);
-    } else {
-      // 2. ถ้า Backend ไม่มีข้อมูล (หรือเน็ตล่ม) ค่อยมาดูใน Local Storage เครื่องนี้
-      final localData = await attendanceService.getLocalState(networkTime);
-      if (localData != null) {
+      if (serverData != null) {
         setState(() {
-          checkInTimeRecorded = localData.checkInTime ?? "---";
-          checkOutTimeRecorded = localData.checkOutTime ?? "---";
-          _hasCheckedIn = localData.hasCheckedIn;
-          hasCheckedOut = localData.hasCheckedOut;
+          checkInTimeRecorded = serverData.checkInTime ?? "---";
+          checkOutTimeRecorded = serverData.checkOutTime ?? "---";
+          _hasCheckedIn = serverData.hasCheckedIn;
+          hasCheckedOut = serverData.hasCheckedOut;
         });
+        await attendanceService.saveLocalState(serverData);
       } else {
-        // ถ้าไม่มีข้อมูลที่ไหนเลย ก็เคลียร์เป็นค่าว่าง
+        // ถ้า Server ไม่มี ให้เช็ค Local
+        final localData = await attendanceService.getLocalState(networkTime);
+        if (localData != null) {
+          setState(() {
+            checkInTimeRecorded = localData.checkInTime ?? "---";
+            checkOutTimeRecorded = localData.checkOutTime ?? "---";
+            _hasCheckedIn = localData.hasCheckedIn;
+            hasCheckedOut = localData.hasCheckedOut;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error: $e");
+    } finally {
+      if (mounted) {
         setState(() {
-          checkInTimeRecorded = "---";
-          checkOutTimeRecorded = "---";
-          _hasCheckedIn = false;
-          hasCheckedOut = false;
+          _isLoadingState = false; // ปิดหน้าโหลดเมื่อข้อมูลทุกอย่างพร้อม
         });
       }
     }
@@ -204,8 +249,8 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       _resetDailyData(now);
       _lastResetDate = now;
     }
-    debugPrint("NOW: $now");
-    debugPrint("CUTOFF: ${configSetting.cutoffTime}");
+    // debugPrint("NOW: $now");
+    // debugPrint("CUTOFF: ${configSetting.cutoffTime}");
   }
 
   Future<void> _resetDailyData(DateTime now) async {
@@ -319,35 +364,77 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                   _startTimerLogic();
                 }
               },
-              builder: () => SafeArea(
-                child: SingleChildScrollView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _cardtime(),
-                      _buttonCheckin(),
-                      const SizedBox(height: 10),
-                      _currentstate(),
-                      const SizedBox(height: 10),
-                      SeparatorCard(
-                        separatorPadding: const EdgeInsets.all(10),
-                        children: [
-                          IconTextButton(
-                            icon: 'icon_attendance_history.svg',
-                            label: 'ดูบันทึกการเข้า-ออกงาน',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+              // builder: () => SafeArea(
+              //   child: SingleChildScrollView(
+              //     keyboardDismissBehavior:
+              //         ScrollViewKeyboardDismissBehavior.onDrag,
+              //     physics: const AlwaysScrollableScrollPhysics(),
+              //     padding: const EdgeInsets.symmetric(
+              //       horizontal: 20,
+              //       vertical: 20,
+              //     ),
+              //     child: Column(
+              //       crossAxisAlignment: CrossAxisAlignment.center,
+              //       children: [
+              //         _cardtime(),
+              //         _buttonCheckin(),
+              //         const SizedBox(height: 10),
+              //         _currentstate(),
+              //         const SizedBox(height: 10),
+              //         SeparatorCard(
+              //           separatorPadding: const EdgeInsets.all(10),
+              //           children: [
+              //             IconTextButton(
+              //               icon: 'icon_attendance_history.svg',
+              //               label: 'ดูบันทึกการเข้า-ออกงาน',
+              //             ),
+              //           ],
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+          builder: () {
+            // 💡 ถ้ายังโหลดไม่เสร็จ ให้โชว์หน้าจอขาว/เทา พร้อมตัวหมุนตรงกลางหน้าจอไปเลย
+            if (_isLoadingState || configSetting == null) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CupertinoActivityIndicator(radius: 15),
+                  ],
+                ),
+              );
+            }
+
+            // 💡 เมื่อโหลดเสร็จแล้วค่อยแสดง UI จริง
+            return SafeArea(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _cardtime(),
+                    _buttonCheckin(), // ตรงนี้ปุ่มจะมาพร้อมสถานะที่ถูกต้องทันที
+                    const SizedBox(height: 10),
+                    _currentstate(),
+                    const SizedBox(height: 10),
+                    SeparatorCard(
+                      separatorPadding: const EdgeInsets.all(10),
+                      children: [
+                        IconTextButton(
+                          icon: 'icon_attendance_history.svg',
+                          label: 'ดูบันทึกการเข้า-ออกงาน',
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+            );
+          }
             ),
     );
   }
@@ -438,7 +525,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         case "ABSENT":
           buttonColor = AppColors.buttonDisable;
           buttonText = "ขาดงาน";
-           showtext = 'ขาดงาน';
+          showtext = 'ขาดงาน';
           iconPath = 'assets/images/absent.svg';
           isDisabled = true;
           fontSize = 27;
@@ -507,43 +594,63 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: isDisabled ? null : () async {
-                  try {
-                    HapticFeedback.mediumImpact();
+                onTap: isDisabled
+                    ? null
+                    : () async {
+                        try {
+                          HapticFeedback.mediumImpact();
 
-                    // 💡 ใช้เวลามาตรฐานที่ผ่านการบวก Offset แล้ว
-                    final DateTime exactTime = DateTime.now().add(_timeOffset ?? Duration.zero);
-                    String nowTimeDisplay = DateFormat('HH:mm').format(exactTime);
+                          // 💡 ใช้เวลามาตรฐานที่ผ่านการบวก Offset แล้ว
+                          final DateTime exactTime = DateTime.now().add(
+                            _timeOffset ?? Duration.zero,
+                          );
+                          String nowTimeDisplay = DateFormat(
+                            'HH:mm',
+                          ).format(exactTime);
 
-                    setState(() {
-                      if (state == "CHECK_OUT_READY") {
-                        checkOutTimeRecorded = nowTimeDisplay;
-                        hasCheckedOut = true;
-                      } else {
-                        checkInTimeRecorded = nowTimeDisplay;
-                        _hasCheckedIn = true;
-                      }
-                    });
+                          setState(() {
+                            if (state == "CHECK_OUT_READY") {
+                              checkOutTimeRecorded = nowTimeDisplay;
+                              hasCheckedOut = true;
+                            } else {
+                              checkInTimeRecorded = nowTimeDisplay;
+                              _hasCheckedIn = true;
+                            }
+                          });
 
-                    // 💡 บันทึกลง Local Storage ของเครื่องนี้
-                    await _saveCurrentState();
+                          // 💡 บันทึกลง Local Storage ของเครื่องนี้
+                          await _saveCurrentState();
 
-                    String requestType = (state == "CHECK_OUT_READY") ? "CHECK_OUT" : "CHECK_IN";
-                    final attendanceService = GetIt.I<AttendanceService>();
+                          String requestType = (state == "CHECK_OUT_READY")
+                              ? "CHECK_OUT"
+                              : "CHECK_IN";
+                          final attendanceService =
+                              GetIt.I<AttendanceService>();
 
-                    // 💡 ส่งเวลาเข้า Backend (ถ้า Backend Error อย่างน้อย Local เราก็จำค่าไว้แล้ว)
-                    await attendanceService.postAttendance(exactTime, requestType);
+                          // 💡 ส่งเวลาเข้า Backend (ถ้า Backend Error อย่างน้อย Local เราก็จำค่าไว้แล้ว)
+                          await attendanceService.postAttendance(
+                            exactTime,
+                            requestType,
+                          );
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('บันทึกเวลา $nowTimeDisplay น. เรียบร้อยแล้ว')),
-                    );
-                  } catch (e) {
-                    debugPrint("เกิดข้อผิดพลาดในการบันทึก: $e");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('บันทึกสำเร็จลงเครื่อง แต่ยังส่งไม่ถึง Server')),
-                    );
-                  }
-                },
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'บันทึกเวลา $nowTimeDisplay น. เรียบร้อยแล้ว',
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          debugPrint("เกิดข้อผิดพลาดในการบันทึก: $e");
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'บันทึกสำเร็จลงเครื่อง แต่ยังส่งไม่ถึง Server',
+                              ),
+                            ),
+                          );
+                        }
+                      },
                 customBorder: CircleBorder(),
                 child: Container(
                   width: 190,
@@ -603,7 +710,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                 softWrap: true,
                 textAlign: TextAlign.start,
                 'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
-                    ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
+                ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.normal,
@@ -666,11 +773,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   }
 
   Widget _buildStatusItem({
-
     required String iconPath,
     required String title,
     required String time,
-
   }) {
     return Column(
       children: [
