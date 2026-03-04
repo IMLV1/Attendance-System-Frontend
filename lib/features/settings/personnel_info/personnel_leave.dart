@@ -136,6 +136,9 @@ class _PersonnelLeaveState extends State<PersonnelLeave> {
   @override
   Widget build(BuildContext context) {
 
+    pendingLeaves.sort((a, b) => a.dateStart.toLocal().millisecondsSinceEpoch.compareTo(b.dateStart.toLocal().millisecondsSinceEpoch));
+    recentLeaves.sort((a, b) => b.dateStart.toLocal().millisecondsSinceEpoch.compareTo(a.dateStart.toLocal().millisecondsSinceEpoch));
+
     return AppScaffold(
       header: Header.subHeader(
         context,
@@ -202,11 +205,11 @@ class _PersonnelLeaveState extends State<PersonnelLeave> {
                           )
                         ),
                         ServiceUpdaterProMax(
-                          requests: () => [
-                            mockData(),
-                            mockData2(),
-                            mockData3(),
-                            Utils.mockResponse(
+                          requests: [
+                            () => mockData(),
+                            () => mockData2(),
+                            () => mockData3(),
+                            () => Utils.mockResponse(
                               data: {
                                 'permission-level': 1
                               }
