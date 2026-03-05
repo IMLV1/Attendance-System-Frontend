@@ -98,7 +98,7 @@ class TimeRequestService {
     return dio.get('/api/attendance_request/pending');
   }
 
-  Future<Response<dynamic>> getRecent(DateTime? filterStartDate, DateTime? filterEndDate,) async {
+  Future<Response<dynamic>> getRecent(DateTime? filterStartDate, DateTime? filterEndDate) async {
     return dio.get(
       '/api/attendance_request/recent',
       queryParameters: {

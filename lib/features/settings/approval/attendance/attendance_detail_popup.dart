@@ -1,5 +1,5 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
-import 'package:attendance_system/services/assign_role_page/role_model.dart';
+import 'package:attendance_system/services/approval/attendance/attendance_service.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,6 +15,7 @@ import '../../../../shared/widgets/utils/app_button.dart';
 import '../../../../shared/widgets/utils/downloader.dart';
 import '../../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../../shared/widgets/utils/popup/file_preview_popup.dart';
+import '../../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/service_signature_page.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
@@ -41,6 +42,7 @@ class AttendanceDetailPopup extends StatefulWidget {
 class AttendanceDetailState extends State<AttendanceDetailPopup> {
   AttendanceApprovalModel? data;
   bool onSelect = false;
+  String status = '';
 
   final TextEditingController _textEditingController = TextEditingController();
 
@@ -643,7 +645,9 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                         ),
 
                         if (data!.approveDetail.status == 'pending' && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'approver'))
+
                           ServiceUpdater(
+                              // request: () => AttendanceApprovalService().approval(widget.reqId, status, _textEditingController.text, null),
                               request: () => Utils.mockResponse(),
                               builder: (trigger, state, errorMessage) {
                                 return Column(
@@ -758,6 +762,9 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                           ),
                                                         ),
                                                         onPressed: () async {
+
+                                                          status = 'rejected';
+
                                                           if (setting!.approveNeedSignature) {
                                                             final navigator = Navigator.of(context, rootNavigator: true);
                                                             final provider = PopupProvider.of(context);
@@ -801,7 +808,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                                   )
                                                                 ],
                                                               ),
-                                                              request: (pngByte) => Utils.mockResponse(),
+                                                              request: (pngByte) => AttendanceApprovalService().approval(widget.reqId, status, _textEditingController.text, pngByte!),
                                                               onSuccessResponse: (pngBytes, jsonData) {
                                                                 navigator.pop();
                                                                 widget.onRejected();
@@ -810,7 +817,35 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
 
                                                             provider.setConfig(oldConfig);
                                                           } else {
-                                                            trigger();
+                                                            FloatingPopup(
+                                                                title: 'ไม่อนุมัติคำขอ',
+                                                                description: 'คุณยืนยันที่จะไม่อนุมัติคำขอหมายเลข: ${widget.reqId} หรือไม่?',
+                                                                buttons: (setError, context1) {
+                                                                  return [
+                                                                    FloatingPopupButton(
+                                                                      onPressed: () {
+                                                                        Navigator.of(context1).pop();
+                                                                      },
+                                                                      text: 'ยกเลิก',
+                                                                      foregroundColor: Colors.white,
+                                                                      backgroundColor: AppColors.primaryColor,
+                                                                    ),
+                                                                    FloatingServicePopupButton(
+                                                                      text: 'ยันยัน',
+                                                                      foregroundColor: Colors.red,
+                                                                      request: () => trigger(),
+                                                                      setError: setError,
+                                                                      onSuccess: () async {
+                                                                        Navigator.of(context1).pop();
+                                                                        await Future.delayed(const Duration(milliseconds: 200));
+                                                                        if (!context.mounted) return;
+                                                                        Navigator.of(context, rootNavigator: true).pop();
+                                                                        widget.onRejected();
+                                                                      },
+                                                                    )
+                                                                  ];
+                                                                }
+                                                            ).showPopup(context);
                                                           }
                                                         },
                                                       )
@@ -865,6 +900,8 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                           ),
                                                         ),
                                                         onPressed: () async {
+                                                          status = 'approved';
+
                                                           if (setting!.approveNeedSignature) {
                                                             final navigator = Navigator.of(context, rootNavigator: true);
                                                             final provider = PopupProvider.of(context);
@@ -908,7 +945,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                                   )
                                                                 ],
                                                               ),
-                                                              request: (pngByte) => Utils.mockResponse(),
+                                                              request: (pngByte) => AttendanceApprovalService().approval(widget.reqId, status, _textEditingController.text, pngByte!),
                                                               onSuccessResponse: (pngBytes, jsonData) {
                                                                 navigator.pop();
                                                                 widget.onSuccess();
@@ -917,7 +954,35 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
 
                                                             provider.setConfig(oldConfig);
                                                           } else {
-                                                            trigger();
+                                                            FloatingPopup(
+                                                                title: 'อนุมัติคำขอ',
+                                                                description: 'คุณยืนยันที่จะอนุมัติคำขอหมายเลข: ${widget.reqId} หรือไม่?',
+                                                                buttons: (setError, context1) {
+                                                                  return [
+                                                                    FloatingPopupButton(
+                                                                      onPressed: () {
+                                                                        Navigator.of(context1).pop();
+                                                                      },
+                                                                      text: 'ยกเลิก',
+                                                                      foregroundColor: Colors.white,
+                                                                      backgroundColor: AppColors.primaryColor,
+                                                                    ),
+                                                                    FloatingServicePopupButton(
+                                                                      text: 'ยันยัน',
+                                                                      foregroundColor: Colors.red,
+                                                                      request: () => trigger(),
+                                                                      setError: setError,
+                                                                      onSuccess: () async {
+                                                                        Navigator.of(context1).pop();
+                                                                        await Future.delayed(const Duration(milliseconds: 200));
+                                                                        if (!context.mounted) return;
+                                                                        Navigator.of(context, rootNavigator: true).pop();
+                                                                        widget.onSuccess();
+                                                                      },
+                                                                    )
+                                                                  ];
+                                                                }
+                                                            ).showPopup(context);
                                                           }
                                                         },
                                                       )

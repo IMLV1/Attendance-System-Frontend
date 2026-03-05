@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -10,14 +12,39 @@ class AttendanceApprovalService {
     return dio.get('api/attendance-approval/pending');
   }
 
-  Future<Response<dynamic>> getRecent() async {
-    return dio.get('api/attendance-approval/recent');
+  Future<Response<dynamic>> getRecent(DateTime? filterStartDate, DateTime? filterEndDate) async {
+    return dio.get('api/attendance-approval/recent',
+      queryParameters: {
+        if (filterStartDate != null)
+          'startDate': filterStartDate.toIso8601String(),
+        if (filterEndDate != null)
+          'endDate': filterEndDate.toIso8601String(),
+      },
+    );
+  }
+
+  Future<Response<dynamic>> getFilterRange() async {
+    return dio.get('/api/attendance-approval/filter_range');
   }
 
   Future<Response<dynamic>> getDetail(String id) async {
     return dio.get('api/attendance-approval/detail',
       queryParameters: {
         'request-id': id
+      }
+    );
+  }
+
+  Future<Response<dynamic>> approval(String reqId, String status, String reason, Uint8List? signature) async {
+    return dio.put('api/attendance-approval/$reqId',
+      data: {
+        'status': status,
+        'reason': reason,
+        'signature-approval': signature != null ? MultipartFile.fromBytes(
+          signature,
+          filename: "signature.png",
+          contentType: DioMediaType.parse("image/png"),
+        ) : null
       }
     );
   }
