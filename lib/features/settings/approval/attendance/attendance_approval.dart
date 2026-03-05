@@ -1,4 +1,5 @@
 import 'package:attendance_system/features/settings/approval/attendance/attendance_detail_popup.dart';
+import 'package:attendance_system/services/approval/attendance/attendance_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -40,49 +41,55 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
       children: [
         ServiceUpdaterProMax(
             requests: [
-              ()=> Utils.mockResponse(
-                data: {
-                  'pending': [
-                    {
-                      'id': 'ATT',
-                      'name': 'กหฟ ฟหกกหฟ',
-                      'attendanceId': 'ATT213213'
-                    },
-                    {
-                    'id': 'ATT',
-                    'name': 'กหฟ ฟหกกหฟ',
-                    'attendanceId': 'ATT213213'
-                    },
-                  ]
-                }
-              ),
-              ()=> Utils.mockResponse(
-                  data: {
-                    'recent': [
-                      {
-                        'id': 'ATT',
-                        'name': 'กหฟ ฟหกกหฟ',
-                        'status': 'approved',
-                        'attendanceId': 'ATT213213'
-                      },
-                      {
-                        'id': 'ATT',
-                        'name': 'กหฟ ฟหกกหฟ',
-                        'status': 'rejected',
-                        'attendanceId': 'ATT213213'
-                      },
-                    ]
-                  }
-              ),
-              ()=> Utils.mockResponse(
-                data: {
-                'start': '2025-04-01T00:00:00.000Z',
-                'end': '2027-06-30T00:00:00.000Z'
-                }
-              )
-              // mockData1(),
-              // mockData2(),
-              // mockData3(),
+              // ()=> Utils.mockResponse(
+              //   data: {
+              //     'pending': [
+              //       {
+              //         'id': 'ATT',
+              //         'name': 'กหฟ ฟหกกหฟ',
+              //         'attendanceId': 'ATT213213'
+              //       },
+              //       {
+              //       'id': 'ATT',
+              //       'name': 'กหฟ ฟหกกหฟ',
+              //       'attendanceId': 'ATT213213'
+              //       },
+              //       {
+              //         'id': 'ATT',
+              //         'name': 'กหฟ ฟหกกหฟ',
+              //         'attendanceId': 'ATT213213'
+              //       },
+              //     ]
+              //   }
+              // ),
+              // ()=> Utils.mockResponse(
+              //     data: {
+              //       'recent': [
+              //         {
+              //           'id': 'ATT',
+              //           'name': 'กหฟ ฟหกกหฟ',
+              //           'status': 'approved',
+              //           'attendanceId': 'ATT213213'
+              //         },
+              //         {
+              //           'id': 'ATT',
+              //           'name': 'กหฟ ฟหกกหฟ',
+              //           'status': 'rejected',
+              //           'attendanceId': 'ATT213213'
+              //         },
+              //       ]
+              //     }
+              // ),
+              // ()=> Utils.mockResponse(
+              //   data: {
+              //   'start': '2025-04-01T00:00:00.000Z',
+              //   'end': '2027-06-30T00:00:00.000Z'
+              //   }
+              // )
+
+              () => AttendanceApprovalService().getPending(),
+              () => AttendanceApprovalService().getRecent(filterStart, filterEnd),
+              () => AttendanceApprovalService().getFilterRange(),
             ],
             onSuccess: (idx, val) {
               setState(() {
@@ -129,16 +136,22 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                             CupertinoActivityIndicator(radius: 7)
                         ],
                       ),
-                      (pendingList.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading) ? Padding(
-                        padding: EdgeInsetsGeometry.all(20),
-                        child: Text(
-                          'ไม่มีคำขอที่รอดำเนินการ',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF7D7D7D), // สีจาง
-                          ),
-                        ),
+                      (pendingList.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading) ? SeparatorCard(
+                        children: [
+                          Container(
+                            color: Colors.white,
+                            width: double.infinity,
+                            padding: EdgeInsetsGeometry.all(25),
+                            child: Text(
+                              'ไม่มีคำขอที่รอดำเนินการ',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFF7D7D7D), // สีจาง
+                              ),
+                            ),
+                          )
+                        ],
                       ) :
                       SeparatorCard(
                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
@@ -181,12 +194,14 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                                       reqId: m.attendanceId,
                                       onSuccess: () {
                                         setState(() {
-
+                                          pendingList.remove(m);
+                                          recentList.insert(0, RecentAttendanceApprovalModel(id: m.id, status: 'approved', name: m.name, attendanceId: m.attendanceId));
                                         });
                                       },
                                       onRejected: () {
                                         setState(() {
-
+                                          pendingList.remove(m);
+                                          recentList.insert(0, RecentAttendanceApprovalModel(id: m.id, status: 'rejected', name: m.name, attendanceId: m.attendanceId));
                                         });
                                       },
                                     );
@@ -260,7 +275,7 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                             width: double.infinity,
                             padding: EdgeInsetsGeometry.all(25),
                             child: Text(
-                              'ไม่มีพบคำขอลางาน',
+                              'ไม่มีพบคำขอเวลาเข้า-ออกงาน',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 15,
@@ -319,33 +334,30 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                                 //     }
                                 // ).showPopup(context);
 
-                                // DynamicPushPopup(
-                                //   initialConfig: PopupConfig(
-                                //     title: 'รายละเอียด',
-                                //     fit: FlexFit.tight,
-                                //     maxHeight: 750,
-                                //   ),
-                                //   builder: (context) {
-                                //     return TimeRequestPopupDetail(
-                                //       id: m.id,
-                                //       onCancel: () {
-                                //
-                                //       },
-                                //       onResend: () {
-                                //         setState(() {
-                                //           recentList.removeWhere((item) => item.id == m.id);
-                                //           pendingList.insert(0,
-                                //               PendingAttendanceRequestModel(
-                                //                 id: m.id,
-                                //                 dateStart: m.dateStart,
-                                //                 dateEnd: m.dateEnd,
-                                //               )
-                                //           );
-                                //         });
-                                //       },
-                                //     );
-                                //   }, // โยนหน้า 1 เข้าไป
-                                // ).showPopup(context);
+                                DynamicPushPopup(
+                                  initialConfig: PopupConfig(
+                                      title: 'รายละเอียด',
+                                      fit: FlexFit.tight,
+                                      maxHeight: 750,
+                                      scroll: false,
+                                      safeArea: false
+                                  ),
+                                  builder: (context) {
+                                    return AttendanceDetailPopup(
+                                      reqId: m.attendanceId,
+                                      onSuccess: () {
+                                        setState(() {
+
+                                        });
+                                      },
+                                      onRejected: () {
+                                        setState(() {
+
+                                        });
+                                      },
+                                    );
+                                  }, // โยนหน้า 1 เข้าไป
+                                ).showPopup(context);
                               },
                             );
                           })

@@ -201,10 +201,13 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                                             id: m.id,
                                                             onCancel: () {
                                                               setState(() {
-                                                                pendingList.removeWhere((item) => item.id == m.id);
+                                                                pendingList.remove(m);
+                                                                recentList.insert(0, AttendanceRequestModel(id: m.id, dateStart: m.dateStart, dateEnd: m.dateEnd, status: 'canceled'));
                                                               });
                                                             },
-                                                            onResend: () { },
+                                                            onResend: () {
+
+                                                            },
                                                           );
                                                       }, // โยนหน้า 1 เข้าไป
                                                     ).showPopup(context);
@@ -277,7 +280,7 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                             width: double.infinity,
                                             padding: EdgeInsetsGeometry.all(25),
                                             child: Text(
-                                              'ไม่มีพบคำขอลางาน',
+                                              'ไม่มีพบคำขอเวลาเข้า-ออกงาน',
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
                                                 fontSize: 15,
@@ -350,14 +353,8 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                                       },
                                                       onResend: () {
                                                         setState(() {
-                                                          recentList.removeWhere((item) => item.id == m.id);
-                                                          pendingList.insert(0,
-                                                              PendingAttendanceRequestModel(
-                                                                id: m.id,
-                                                                dateStart: m.dateStart,
-                                                                dateEnd: m.dateEnd,
-                                                              )
-                                                          );
+                                                          recentList.remove(m);
+                                                          pendingList.insert(0, PendingAttendanceRequestModel(id: m.id, dateStart: m.dateStart, dateEnd: m.dateEnd));
                                                         });
                                                       },
                                                     );
