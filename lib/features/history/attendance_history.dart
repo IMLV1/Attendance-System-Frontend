@@ -84,6 +84,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
   int _stdInHour = 0;
   int _stdInMinute = 0;
 
+  //เอาไว้ใช้กรณีที่ ลาเช้า จะใช้เวลานี้แทน
   int _checkInLeaveHour = 0;
   int _checkInLeaveMin = 0;
 
@@ -97,15 +98,17 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     // --------------------------------------------
     ConfigAttendanceTimeModel? setting = context.watch<AuthState>().timeConfig;
 
+    //เวลาเข้าทำงานมาตรฐาน
     _stdInHour = setting?.checkInTime.hour ?? 0;
     _stdInMinute = setting?.checkInTime.minute ?? 0;
 
     //จะใช้ตอนลาเช้า แล้วมา checkIn ตอนบ่าย (ค่า default เป็น 13.00 ถ้าไม่ได้เปลี่ยน)
+    var _checkInLeave = setting?.checkInLeaveTime;
+    debugPrint("_checkInLeave: $_checkInLeave");
     _checkInLeaveHour = setting?.checkInLeaveTime.hour?? 0;
     debugPrint("_checkInLeaveHour: $_checkInLeaveHour");
     _checkInLeaveMin = setting?.checkInLeaveTime.minute?? 0;
     debugPrint("_checkInLeaveMin: $_checkInLeaveMin");
-
 
     return AppScaffold(
       header: Header.subHeader(context, title: "บันทึกการเข้างาน"),
@@ -137,24 +140,23 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                         // ============================================================
                         ServiceUpdaterProMax(
                             requests: () => [
-                              // ยิง API ดึงประวัติ โดยส่ง startDate/endDate (ถ้ามี)
+                              // ยิง API ดึงประวัติ โดยส่ง startDate/endDate
                               // _toYmd() แปลง DateTime -> "YYYY-MM-DD"
                               AttendanceHistoryService().fetchHistory(
-                                //ถ้า ว่าง null
+                                //ถ้า ว่าง null ถ้าไม่  return เช่น "2026-03-02"
                                 startDate: filterStart == null ? null : _toYmd(filterStart!),//เช่น "2026-03-02"
                                 endDate: filterEnd == null ? null : _toYmd(filterEnd!),
                               )
                             ],
 
                             // ถูกเรียกเมื่อ request สำเร็จ (index=0 คือ request ตัวแรก)
-                            // data คือ response ที่ service ส่งกลับมา (มักเป็น List/Map)
+                            // data คือ response ที่ service ส่งกลับมา (เป็น List)
                             onSuccess: (index, data) {
-                              // แปลง response เป็น list ของ AttendanceHistoryModel
-                              //_items = AttendanceHistoryModel.getList(data);
+                              // แปลง response (data) เป็น list ของ AttendanceHistoryModel (from database)
+                              _items = AttendanceHistoryModel.getList(data);
 
                               //ใช้ mock data
-                              _items = _mockItem;
-
+                              //_items = _mockItem;
 
                               //debug
                               debugPrint("=== onSuccess index: $index ===");
@@ -176,10 +178,8 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                   if (d.isAfter(maxDate)) maxDate = d;
                                 }
 
-                                filterStart = _dateOnly(
-                                    minDate); // startDate = วันที่มีข้อมูลเก่าสุด
-                                filterEnd = _dateOnly(
-                                    maxDate); // endDate = วันที่มีข้อมูลล่าสุด
+                                filterStart = _dateOnly(minDate); // startDate = วันที่มีข้อมูลเก่าสุด
+                                filterEnd = _dateOnly(maxDate); // endDate = วันที่มีข้อมูลล่าสุด
                                 _defaultFilterSet = true;
                               }
                               // เรียงจาก "ใหม่ -> เก่า"
@@ -217,7 +217,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
                                 final label = _monthYearLabel(d);//ex = "มีนาคม 2569"
                                 //groupedItems คือ Map key เป็น String (เช่น "มีนาคม 2569") value เป็น List<AttendanceHistoryModel> (รายการของเดือนนั้น)
-                                //putIfAbsent = ้าใน Map ยังไม่มี key นี้ ให้สร้างค่าเริ่มต้นให้มัน ถ้า groupedItems ยังไม่มี "มีนาคม 2569" → ให้ใส่ key นี้เข้าไป พร้อม value เป็น [] (list ว่าง)
+                                //putIfAbsent = ถ้าใน Map ยังไม่มี key นี้ ให้สร้างค่าเริ่มต้นให้มัน Ex. ถ้า groupedItems ยังไม่มี "มีนาคม 2569" → ให้ใส่ key นี้เข้าไป พร้อม value เป็น [] (list ว่าง)
                                 // .add(item) เพื่อ เพิ่ม item เข้า list ของเดือนนั้น
                                 groupedItems.putIfAbsent(label, ()=> []).add(item);
                                 //ก็คือแบบว่า เอา item เข้าเดือนนั้น ถ้าเป็นเดือนใหม่ที่ยังไม่เคยมีใน groupedItems มันจะสร้าง key ใหม่ให้ใน groupedItems
