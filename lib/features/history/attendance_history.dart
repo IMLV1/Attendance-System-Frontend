@@ -139,10 +139,10 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                         // - builder: ให้ UI ได้ trigger(index) เพื่อยิงใหม่ได้
                         // ============================================================
                         ServiceUpdaterProMax(
-                            requests: () => [
+                            requests: [
                               // ยิง API ดึงประวัติ โดยส่ง startDate/endDate
                               // _toYmd() แปลง DateTime -> "YYYY-MM-DD"
-                              AttendanceHistoryService().fetchHistory(
+                              () => AttendanceHistoryService().fetchHistory(
                                 //ถ้า ว่าง null ถ้าไม่  return เช่น "2026-03-02"
                                 startDate: filterStart == null ? null : _toYmd(filterStart!),//เช่น "2026-03-02"
                                 endDate: filterEnd == null ? null : _toYmd(filterEnd!),
