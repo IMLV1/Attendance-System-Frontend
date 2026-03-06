@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
 
 class Utils {
   static String formatBytes(int bytes, {int decimals = 2}) {
@@ -43,5 +44,9 @@ class Utils {
       statusCode: statusCode,
       data: data,
     );
+  }
+
+  static String numberFormat(num number) {
+    return NumberFormat('#,##0.#').format(number);
   }
 }

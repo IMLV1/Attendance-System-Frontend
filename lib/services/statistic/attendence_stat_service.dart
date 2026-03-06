@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
-Future<Response<dynamic>> getAttendenceStat({
+Future<Response<dynamic>> getAttendanceStat({
   DateTime? startDate,
   DateTime? endDate,
 }) async{
