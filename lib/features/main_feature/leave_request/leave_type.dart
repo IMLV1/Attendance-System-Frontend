@@ -34,13 +34,13 @@ extension LeaveTypeX on LeaveType {
     switch (this) {
       case LeaveType.sick: return 'leave_sick.svg';
       case LeaveType.personal: return 'leave_personal.svg';
-      case LeaveType.vacation: return 'icon_vacation.svg';
+      case LeaveType.vacation: return 'leave_vacation.svg';
       case LeaveType.maternity:
-        return 'icon_maternity.svg';
+        return 'leave_maternity.svg';
       case LeaveType.paternity:
-        return 'icon_paternity.svg';
+        return 'leave_paternity.svg';
       case LeaveType.parental:
-        return 'icon_parental.svg';
+        return 'leave_parental.svg';
     }
   }
 
