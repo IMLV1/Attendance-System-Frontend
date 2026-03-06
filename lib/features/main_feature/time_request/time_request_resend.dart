@@ -88,6 +88,9 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
           Navigator.of(context, rootNavigator: true).pop();
           widget.onResend();
         },
+        onError: (data) {
+          print(data);
+        },
         builder: (trigger, state, errorMessage) {
 
           final bool isApiLoading = (state == ServiceUpdatorState.loading);

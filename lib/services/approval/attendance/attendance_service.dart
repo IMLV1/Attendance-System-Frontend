@@ -9,11 +9,11 @@ class AttendanceApprovalService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
   Future<Response<dynamic>> getPending() async {
-    return dio.get('api/attendance-approval/pending');
+    return dio.get('/api/attendance-approval/pending');
   }
 
   Future<Response<dynamic>> getRecent(DateTime? filterStartDate, DateTime? filterEndDate) async {
-    return dio.get('api/attendance-approval/recent',
+    return dio.get('/api/attendance-approval/recent',
       queryParameters: {
         if (filterStartDate != null)
           'startDate': filterStartDate.toIso8601String(),
@@ -28,7 +28,7 @@ class AttendanceApprovalService {
   }
 
   Future<Response<dynamic>> getDetail(String id) async {
-    return dio.get('api/attendance-approval/detail',
+    return dio.get('/api/attendance-approval/detail',
       queryParameters: {
         'request-id': id
       }
@@ -36,7 +36,7 @@ class AttendanceApprovalService {
   }
 
   Future<Response<dynamic>> approval(String reqId, String status, String reason, Uint8List? signature) async {
-    return dio.put('api/attendance-approval/$reqId',
+    return dio.put('/api/attendance-approval/$reqId',
       data: {
         'status': status,
         'reason': reason,
