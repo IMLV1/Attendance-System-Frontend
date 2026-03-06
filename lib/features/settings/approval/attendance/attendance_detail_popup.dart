@@ -113,7 +113,12 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 ProfileButton(
-                                  icon: SvgPicture.network(data!.userDetail.avatarUrl),
+                                  icon: SvgPicture.network(
+                                    data!.userDetail.avatarUrl,
+                                    errorBuilder: (_, _, _) {
+                                      return Image.asset('assets/images/profile.png');
+                                    },
+                                  ),
                                   title: data!.userDetail.name,
                                   subTitle: data!.userDetail.initRole,
                                   disable: true,

@@ -78,19 +78,21 @@ class TimeRequestService {
       }
     }
 
+    FormData formData = FormData.fromMap({
+      'id': id,
+      'remark': remark,
+      'old-files': oldFiles.map((f) => f.fileName).toList(),
+      'files': multipartFiles,
+      'signature': (signature != null) ? MultipartFile.fromBytes(
+        signature,
+        filename: "signature.png",
+        contentType: DioMediaType.parse("image/png"),
+      ) : null
+    });
+
     return dio.put(
-        'api/attendance_request/resend',
-        data: {
-          'id': id,
-          'remark': remark,
-          'old-files': [...oldFiles.map((f) => f.fileName)],
-          'files': multipartFiles,
-          'signature': (signature != null) ? MultipartFile.fromBytes(
-            signature,
-            filename: "signature.png",
-            contentType: DioMediaType.parse("image/png"),
-          ) : null
-        }
+      '/api/attendance_request/resend',
+      data: formData,
     );
   }
 
