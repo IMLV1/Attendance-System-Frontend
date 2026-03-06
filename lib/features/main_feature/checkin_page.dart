@@ -39,6 +39,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
   String checkInTimeRecorded = "---";
   String checkOutTimeRecorded = "---";
+  String holiday = "";
 
   bool _hasCheckedIn = false;
   bool isDisabled = false;
@@ -93,46 +94,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       debugPrint("ไม่สามารถโหลดการตั้งค่าเวลาได้: $e");
     }
   }
-
-  // Future<void> _loadInitialState(DateTime networkTime) async {
-  //   final attendanceService = GetIt.I<AttendanceService>();
-  //   final todayStr = DateFormat('yyyy-MM-dd').format(networkTime);
-  //
-  //   // 1. 💡 ดึงข้อมูลจาก Backend ของเพื่อนคุณเป็นอันดับแรกเสมอ!
-  //   final serverData = await attendanceService.getTodayAttendance(todayStr);
-  //
-  //   if (serverData != null) {
-  //     // ✅ มีข้อมูลจาก Server เอามาโชว์ที่หน้าจอได้เลย
-  //     setState(() {
-  //       checkInTimeRecorded = serverData.checkInTime ?? "---";
-  //       checkOutTimeRecorded = serverData.checkOutTime ?? "---";
-  //       _hasCheckedIn = serverData.hasCheckedIn;
-  //       hasCheckedOut = serverData.hasCheckedOut;
-  //     });
-  //
-  //     // อัปเดต Local Storage ให้ตรงกับ Server เพื่อเป็น Cache สำรองเผื่อเน็ตหลุด
-  //     await attendanceService.saveLocalState(serverData);
-  //   } else {
-  //     // 2. ถ้า Backend ไม่มีข้อมูล (หรือเน็ตล่ม) ค่อยมาดูใน Local Storage เครื่องนี้
-  //     final localData = await attendanceService.getLocalState(networkTime);
-  //     if (localData != null) {
-  //       setState(() {
-  //         checkInTimeRecorded = localData.checkInTime ?? "---";
-  //         checkOutTimeRecorded = localData.checkOutTime ?? "---";
-  //         _hasCheckedIn = localData.hasCheckedIn;
-  //         hasCheckedOut = localData.hasCheckedOut;
-  //       });
-  //     } else {
-  //       // ถ้าไม่มีข้อมูลที่ไหนเลย ก็เคลียร์เป็นค่าว่าง
-  //       setState(() {
-  //         checkInTimeRecorded = "---";
-  //         checkOutTimeRecorded = "---";
-  //         _hasCheckedIn = false;
-  //         hasCheckedOut = false;
-  //       });
-  //     }
-  //   }
-  // }
 
   Future<void> _loadInitialState(DateTime networkTime) async {
     setState(() {
@@ -351,90 +312,79 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                   _timeOffset = ntpNow.difference(DateTime.now());
                   _currentNetworkTime = ntpNow;
 
-                  final holidayService = GetIt.I<HolidayService>();
-                  final bool holidayStatus = await holidayService
-                      .checkTodayIsHoliday(ntpNow);
+                  try {
+                    final holidayService = GetIt.I<HolidayService>();
+                    String today = DateFormat('yyyy-MM-dd').format(ntpNow);
+                    final response = await holidayService.getPublicHolidays(today);
 
-                  if (!mounted) return;
-                  setState(() {
-                    isPublicHoliday = holidayStatus;
-                  });
+                    if (response.statusCode == 200) {
+                      Map<String, dynamic> holidayData = response.data;
+                      // String today = DateFormat('yyyy-MM-dd').format(ntpNow);
+
+
+                      if (holidayData['holiday_name'] != null &&
+                          holidayData['holiday_name']
+                              .toString()
+                              .isNotEmpty) {
+                        setState(() {
+                          isPublicHoliday = true;
+                          holiday = holidayData['holiday_name'];
+                        });
+                      } else {
+                        debugPrint("ไม่ใช้วันหยุด");
+                      }
+                    }
+                    }catch (e) {
+                    debugPrint("ไม่สามารถดึงได้ :$e}");
+                  }
 
                   await _loadInitialState(ntpNow);
                   _startTimerLogic();
                 }
               },
-              // builder: () => SafeArea(
-              //   child: SingleChildScrollView(
-              //     keyboardDismissBehavior:
-              //         ScrollViewKeyboardDismissBehavior.onDrag,
-              //     physics: const AlwaysScrollableScrollPhysics(),
-              //     padding: const EdgeInsets.symmetric(
-              //       horizontal: 20,
-              //       vertical: 20,
-              //     ),
-              //     child: Column(
-              //       crossAxisAlignment: CrossAxisAlignment.center,
-              //       children: [
-              //         _cardtime(),
-              //         _buttonCheckin(),
-              //         const SizedBox(height: 10),
-              //         _currentstate(),
-              //         const SizedBox(height: 10),
-              //         SeparatorCard(
-              //           separatorPadding: const EdgeInsets.all(10),
-              //           children: [
-              //             IconTextButton(
-              //               icon: 'icon_attendance_history.svg',
-              //               label: 'ดูบันทึกการเข้า-ออกงาน',
-              //             ),
-              //           ],
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              // ),
-          builder: () {
-            // 💡 ถ้ายังโหลดไม่เสร็จ ให้โชว์หน้าจอขาว/เทา พร้อมตัวหมุนตรงกลางหน้าจอไปเลย
-            if (_isLoadingState || configSetting == null) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CupertinoActivityIndicator(radius: 15),
-                  ],
-                ),
-              );
-            }
+              builder: () {
+                // 💡 ถ้ายังโหลดไม่เสร็จ ให้โชว์หน้าจอขาว/เทา พร้อมตัวหมุนตรงกลางหน้าจอไปเลย
+                if (_isLoadingState || configSetting == null) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [CupertinoActivityIndicator(radius: 15)],
+                    ),
+                  );
+                }
 
-            // 💡 เมื่อโหลดเสร็จแล้วค่อยแสดง UI จริง
-            return SafeArea(
-              child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _cardtime(),
-                    _buttonCheckin(), // ตรงนี้ปุ่มจะมาพร้อมสถานะที่ถูกต้องทันที
-                    const SizedBox(height: 10),
-                    _currentstate(),
-                    const SizedBox(height: 10),
-                    SeparatorCard(
-                      separatorPadding: const EdgeInsets.all(10),
+                // 💡 เมื่อโหลดเสร็จแล้วค่อยแสดง UI จริง
+                return SafeArea(
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        IconTextButton(
-                          icon: 'icon_attendance_history.svg',
-                          label: 'ดูบันทึกการเข้า-ออกงาน',
+                        _cardtime(),
+                        _buttonCheckin(), // ตรงนี้ปุ่มจะมาพร้อมสถานะที่ถูกต้องทันที
+                        const SizedBox(height: 10),
+                        _currentstate(),
+                        const SizedBox(height: 10),
+                        SeparatorCard(
+                          separatorPadding: const EdgeInsets.all(10),
+                          children: [
+                            IconTextButton(
+                              icon: 'icon_attendance_history.svg',
+                              label: 'ดูบันทึกการเข้า-ออกงาน',
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          }
+                  ),
+                );
+              },
             ),
     );
   }
@@ -509,7 +459,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     } else if (isPublicHoliday) {
       buttonColor = AppColors.buttonDisable;
       buttonText = "วันหยุดราชการ";
-      showtext = 'วันหยุดราชการ';
+      showtext = 'วันนี้คือ $holiday';
       iconPath = 'assets/images/publicholiday.svg';
       isDisabled = true;
       fontSize = 24;
@@ -517,7 +467,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       buttonColor = AppColors.buttonDisable;
       buttonText = "วันหยุด";
       showtext = 'วันหยุดสุดสัปดาห์';
-      iconPath = 'assets/images/weekend.svg'; // เตรียมไอคอนวันหยุดสุดสัปดาห์
+      iconPath = 'assets/images/weekend.svg';
       isDisabled = true;
       fontSize = 32;
     } else {
