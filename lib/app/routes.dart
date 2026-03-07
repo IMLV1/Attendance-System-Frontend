@@ -20,6 +20,7 @@ import 'package:go_router/go_router.dart';
 import '../core/auth/auth_state.dart';
 import '../features/auth/login_page.dart';
 import '../features/history/attendance_history.dart';
+import '../features/notification/notification.dart';
 import '../features/settings/approval/approval.dart';
 import '../features/settings/role_management/role_management.dart';
 import '../service_locator.dart';
@@ -68,6 +69,11 @@ final appRouter = GoRouter(
           name: RouteNames.checkin,
           path: '/check-in',
           pageBuilder: (_, _) => const NoTransitionPage(child: CheckinPage()),
+        ),
+        GoRoute(
+          name: RouteNames.notification,
+          path: '/notification',
+          pageBuilder: (_, _) => const NoTransitionPage(child: NotificationPage()),
         ),
         GoRoute(
           name: RouteNames.setting,
