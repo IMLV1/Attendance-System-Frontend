@@ -112,6 +112,9 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
       child: ServiceLoader(
           request: () => LeaveRequestService().getRequestDetail(widget.requestID),
           onSuccess: (val) {
+
+            print(val);
+
             setState(() {
               requestDetail = LeaveRequestDetailModel.fromJson(val);
             });
