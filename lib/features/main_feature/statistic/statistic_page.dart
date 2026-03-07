@@ -2,17 +2,23 @@ import 'package:attendance_system/features/main_feature/statistic/attendance_sta
 import 'package:attendance_system/features/main_feature/statistic/leave_statistic.dart';
 import 'package:attendance_system/features/main_feature/statistic/working_day.dart';
 import 'package:attendance_system/features/main_feature/statistic/working_hour.dart';
+import 'package:attendance_system/services/statistic/statistic_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/utils/animation/animated_widget.dart';
+import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
+import 'package:attendance_system/shared/widgets/utils/wheel_selector.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../services/statistic/attendance_stat_model.dart';
+import '../../../services/statistic/statistic_model.dart';
 
 class StatisticPage extends StatefulWidget {
   const StatisticPage({super.key});
@@ -78,6 +84,28 @@ Future<Response<dynamic>> getAttendanceStat() async {
 class _StatisticPageState extends State<StatisticPage> {
 
   StatisticModel? statistic;
+  WorkingHourModel? workingHour;
+  DateTime yearFilter = DateTime(DateTime.now().year);
+
+  DateTime? allowFilterStart;
+  DateTime? allowFilterEnd;
+
+  List<int> getYears(DateTime? start, DateTime? end) {
+    if (start == null || end == null) return [];
+
+    int startYear = start.year;
+    int endYear = end.year;
+
+    // สลับค่าถ้าปีเริ่มต้นมากกว่าปีสิ้นสุด
+    if (startYear > endYear) {
+      int temp = startYear;
+      startYear = endYear;
+      endYear = temp;
+    }
+
+    // สร้าง Array ของปี
+    return [for (int y = startYear; y <= endYear; y++) y];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,11 +132,18 @@ class _StatisticPageState extends State<StatisticPage> {
                     children: [
                       ServiceUpdaterProMax(
                         requests: [
-                          () => getAttendanceStat(),
+                          () => StatisticService().getStatistic(year: yearFilter),
+                          () => StatisticService().getWorkingHour(),
+                          () => StatisticService().getFilterRange(),
                         ],
                         onSuccess: (index, data) {
                           switch(index) {
                             case 0: statistic = StatisticModel.fromJson(data);
+                            case 1: workingHour = WorkingHourModel.fromJson(data);
+                            case 2: {
+                              allowFilterStart = DateTime.tryParse(data['start']);
+                              allowFilterEnd = DateTime.tryParse(data['end']);
+                            }
                           }
                         },
                         fetchOnInit: true,
@@ -124,7 +159,73 @@ class _StatisticPageState extends State<StatisticPage> {
                                   Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 6),
                                     child: InkWell(
-                                      onTap: () {},
+                                      onTap: () {
+
+                                        int selectedIndex = getYears(allowFilterStart, allowFilterEnd).indexOf(yearFilter.year);
+
+                                        PushPopup(
+                                          title: 'เลือกปีงบประมาณ',
+                                          buttonLabel: 'บันทึก',
+                                          fit: FlexFit.tight,
+                                          maxHeight: 650,
+                                          buttonAction: (context) {
+                                            Navigator.of(context).pop();
+                                            setState(() {
+                                              int year = getYears(allowFilterStart, allowFilterEnd)[selectedIndex];
+                                              yearFilter = DateTime(year);
+                                            });
+                                          },
+                                          builder: (context) {
+
+                                            bool opened = false;
+
+                                            return StatefulBuilder(
+                                              builder: (context, setState) {
+                                                return SeparatorCard(
+                                                  children: [
+                                                    Column(
+                                                      children: [
+                                                        IconTextValueButton(
+                                                          icon: 'budget_year.svg',
+                                                          label: 'ปีงบประมาณ',
+                                                          value: (getYears(allowFilterStart, allowFilterEnd)[selectedIndex] + 543).toString(),
+                                                          onPressed: () {
+                                                            setState(() {
+                                                              opened = !opened;
+                                                            });
+                                                          },
+                                                        ),
+                                                        AnimatedSizeWidget(
+                                                          enable: opened,
+                                                          child: Column(
+                                                            children: [
+                                                              Padding(
+                                                                padding: EdgeInsetsGeometry.symmetric(horizontal: 15),
+                                                                child: Divider(height: 0)
+                                                              ),
+                                                              WheelSelector(
+                                                                looping: false,
+                                                                height: 150,
+                                                                initialLeftIndex: selectedIndex,
+                                                                leftItems: getYears(allowFilterStart, allowFilterEnd).map((e) => (e + 543).toString()).toList(),
+                                                                onChanged: (left, right) {
+                                                                  setState(() {
+                                                                    selectedIndex = left;
+                                                                  });
+                                                                },
+                                                              )
+                                                            ],
+                                                          )
+                                                        )
+                                                      ],
+                                                    )
+                                                  ],
+                                                );
+                                              }
+                                            );
+                                          },
+                                        ).showPopup(context);
+                                      },
                                       child: Row(
                                         spacing: 6,
                                         children: [
@@ -133,10 +234,10 @@ class _StatisticPageState extends State<StatisticPage> {
                                             colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
                                           ),
                                           Text(
-                                              'ตัวกรอง',
-                                              style: TextStyle(
-                                                  color: Color(0xFF2C2C2C)
-                                              )
+                                            'ปีงบประมาณ ${yearFilter.year + 543}',
+                                            style: TextStyle(
+                                                color: Color(0xFF2C2C2C)
+                                            )
                                           ),
                                           if (getState(0) == ServiceUpdaterProMaxState.loading)
                                             CupertinoActivityIndicator()
@@ -174,7 +275,7 @@ class _StatisticPageState extends State<StatisticPage> {
                               ),
 
                               /// Working Hour
-                              WorkingHour()
+                              WorkingHour(workingHour)
                             ],
                           );
                         }

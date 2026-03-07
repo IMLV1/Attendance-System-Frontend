@@ -1,15 +1,19 @@
 import 'dart:math';
 
+import 'package:attendance_system/services/statistic/statistic_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+enum StatisticMode {total, week, month, year}
+
 class WorkingHour extends StatefulWidget {
 
-  const WorkingHour({super.key});
+  final WorkingHourModel? workingHour;
+
+  const WorkingHour(this.workingHour, {super.key});
 
   @override
   State<StatefulWidget> createState() => _WorkingHourState();
@@ -17,90 +21,235 @@ class WorkingHour extends StatefulWidget {
 
 class _WorkingHourState extends State<WorkingHour> {
 
+  StatisticMode selection = StatisticMode.total;
+
+  int touchedIndex = -1;
+
   @override
   Widget build(BuildContext context) {
 
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-      decoration: BoxDecoration(
-        color: Color(0xFFEAEAEA),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Column(
-        spacing: 13,
-        children: [
-          /// Title
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4),
-            child: Row(
-              spacing: 6,
-              children: [
-                SvgPicture.asset(
-                  'assets/images/working_hour.svg', // อย่าลืมเช็คชื่อไฟล์ icon นะครับ
-                  width: 16,
-                  height: 16,
+    return Column(
+      spacing: 6,
+      children: [
+        /// Title
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            spacing: 6,
+            children: [
+              SvgPicture.asset(
+                'assets/images/working_hour.svg', // อย่าลืมเช็คชื่อไฟล์ icon นะครับ
+                width: 16,
+                height: 16,
+              ),
+              Text(
+                'ชั่วโมงทำงาน',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.blackTextColor,
                 ),
-                Text(
-                  'ชั่วโมงทำงาน',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.blackTextColor,
+              ),
+            ],
+          ),
+        ),
+
+        Column(
+          spacing: 13,
+          children: [
+            /// Content
+            Container(
+              padding: EdgeInsetsGeometry.symmetric(horizontal: 20, vertical: 20),
+              height: 300,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Column(
+                spacing: 50,
+                children: [
+                  /// Selection Bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _selectionButton(
+                          text: 'ทั้งหมด',
+                          selected: selection == StatisticMode.total,
+                          onTap: () {
+                            setState(() {
+                              selection = StatisticMode.total;
+                              touchedIndex = -1;
+                            });
+                          }
+                      ),
+                      _selectionButton(
+                          text: 'สัปดาห์',
+                          selected: selection == StatisticMode.week,
+                          onTap: () {
+                            setState(() {
+                              selection = StatisticMode.week;
+                              touchedIndex = -1;
+                            });
+                          }
+                      ),
+                      _selectionButton(
+                          text: 'เดือน',
+                          selected: selection == StatisticMode.month,
+                          onTap: () {
+                            setState(() {
+                              selection = StatisticMode.month;
+                              touchedIndex = -1;
+                            });
+                          }
+                      ),
+                      _selectionButton(
+                          text: 'ปี',
+                          selected: selection == StatisticMode.year,
+                          onTap: () {
+                            setState(() {
+                              selection = StatisticMode.year;
+                              touchedIndex = -1;
+                            });
+                          }
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          /// Content
-          Container(
-            padding: EdgeInsetsGeometry.symmetric(horizontal: 20, vertical: 20),
-            height: 300,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
+                  Expanded(
+                      child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            // final random = Random();
+                            return _barChart(
+                              data: switch (selection) {
+                                StatisticMode.total => widget.workingHour?.total ?? {},
+                                StatisticMode.week => widget.workingHour?.week ?? {},
+                                StatisticMode.month => widget.workingHour?.month ?? {},
+                                StatisticMode.year => widget.workingHour?.year ?? {},
+                              }, // { for (var item in List.generate((random.nextDouble() * 31.0).toInt(), (i) => i)) '${item+1}' : random.nextDouble() * 50.0 },
+                              width: constraints.maxWidth,
+                            );
+                          }
+                      )
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              spacing: 50,
+
+            /// Summary
+            Row(
+              spacing: 10,
               children: [
-                /// Selection Bar
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _selectionButton(
-                      text: 'ทั้งหมด',
-                      selected: false,
-                    ),
-                    _selectionButton(
-                      text: 'สัปดาห์',
-                      selected: true,
-                    ),
-                    _selectionButton(
-                      text: 'เดือน',
-                      selected: false,
-                    ),
-                    _selectionButton(
-                      text: 'ปี',
-                      selected: false,
-                    ),
-                  ],
-                ),
-
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final random = Random();
-                      return _barChart(
-                        data: { for (var item in List.generate((random.nextDouble() * 31.0).toInt(), (i) => i)) '${item+1}' : random.nextDouble() * 50.0 },
-                        width: constraints.maxWidth,
-                      );
-                    }
-                  )
+                  child: Container(
+                  padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Row(
+                    spacing: 10,
+                    children: [
+                      SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: SvgPicture.asset('assets/images/total_working_hour.svg'),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown, // 👈 This tells the text to shrink if it overflows
+                              alignment: Alignment.centerLeft, // Keep it aligned to the left
+                              child: Text(
+                                'ชั่วโมงทำงานรวม',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w200,
+                                  color: AppColors.blackTextColor,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${switch(selection) {
+                                StatisticMode.total => widget.workingHour?.totalWorkingHour ?? 0,
+                                StatisticMode.week => widget.workingHour?.weeklyWorkingHour ?? 0,
+                                StatisticMode.month => widget.workingHour?.monthlyWorkingHour ?? 0,
+                                StatisticMode.year => widget.workingHour?.yearlyWorkingHour ?? 0,
+                              }} ชม.',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF7765FF), // AppColors.textmurasaki
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                )
                 ),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Row(
+                      spacing: 10,
+                      children: [
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: SvgPicture.asset('assets/images/average_working_hour.svg'),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FittedBox(
+                                  fit: BoxFit.scaleDown, // 👈 This tells the text to shrink if it overflows
+                                  alignment: Alignment.centerLeft, // Keep it aligned to the left
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'ชั่วโมงทำงานเฉลี่ยต่อ${(selection == StatisticMode.year ? 'เดือน' : selection == StatisticMode.total ? 'ปี' : 'วัน')}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w200,
+                                        color: AppColors.blackTextColor,
+                                      ),
+                                    ),
+                                  )
+                              ),
+                              Text(
+                                '${switch(selection) {
+                                  StatisticMode.total => widget.workingHour?.totalAverageHour ?? 0,
+                                  StatisticMode.week => widget.workingHour?.weeklyAverageHour ?? 0,
+                                  StatisticMode.month => widget.workingHour?.monthlyAverageHour ?? 0,
+                                  StatisticMode.year => widget.workingHour?.yearlyAverageHour ?? 0,
+                                }} ชม.',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFE33C74), // AppColors.textmurasaki
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               ],
-            ),
-          ),
-        ],
-      ),
+            )
+          ],
+        ),
+      ],
     );
   }
 
@@ -143,15 +292,15 @@ class _WorkingHourState extends State<WorkingHour> {
 
   Widget _barChart({required Map<String, double> data, required double width}) {
 
-    double keyWidth = getMaxKeyWidth(data, TextStyle(fontSize: 12));
+    double keyWidth = getMaxKeyWidth(data, TextStyle(fontSize: 11));
     int labelAmount = (width / (keyWidth + 3.5)).floor();
 
     double barWidth = min((width / data.length) * 0.5, 40);
 
+    double leftReverseSide = getReservedSize(text: data.isNotEmpty ? Utils.numberFormat(pow(10, (log(data.values.reduce(max).round().abs()) / ln10).floor() + 1) * 8) : '', style: TextStyle(fontSize: 11), extraPadding: 6);
+
     return BarChart(
       BarChartData(
-        // 1. Map labels to the X axis
-
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -166,7 +315,7 @@ class _WorkingHourState extends State<WorkingHour> {
                     return SideTitleWidget(
                       meta: meta,
                       space: 4, // space between bar and title
-                      child: Text(data.keys.toList()[index], style: TextStyle(fontSize: 12)),
+                      child: Text(data.keys.toList()[index], style: TextStyle(fontSize: 11)),
                     );
                   } else {
                     return const SizedBox.shrink();
@@ -182,13 +331,14 @@ class _WorkingHourState extends State<WorkingHour> {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 40,
+              reservedSize: leftReverseSide,
               getTitlesWidget: (double value, TitleMeta meta) {
                 return Padding(
                   padding: EdgeInsetsGeometry.only(right: 10),
                   child: Text(
                     Utils.numberFormat(value.round()),
                     textAlign: TextAlign.end,
+                    style: TextStyle(fontSize: 11),
                   ),
                 );
               }
@@ -218,15 +368,45 @@ class _WorkingHourState extends State<WorkingHour> {
           ),
         ),
 
-        // 2. Use the index as the 'x' parameter
+        barTouchData: BarTouchData(
+          handleBuiltInTouches: false,
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (data) {
+              return Color(0xFF8979FF).withValues(alpha: 0.2);
+            },
+            tooltipPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          ),
+          touchCallback: (FlTouchEvent event, barTouchResponse) {
+            // 2. Only trigger on Tap Up (when the user lifts their finger)
+            if (event is FlTapUpEvent) {
+              setState(() {
+                if (barTouchResponse != null && barTouchResponse.spot != null) {
+                  int tappedBarIndex = barTouchResponse.spot!.touchedBarGroupIndex;
+
+                  // 3. Toggle Logic
+                  if (touchedIndex == tappedBarIndex) {
+                    touchedIndex = -1; // Tap same bar -> close it
+                  } else {
+                    touchedIndex = tappedBarIndex; // Tap new bar -> open it
+                  }
+                } else {
+                  // Tap outside the bars -> close it
+                  touchedIndex = -1;
+                }
+              });
+            }
+          },
+        ),
+
         barGroups: data.keys.toList().asMap().entries.map((entry) {
           return BarChartGroupData(
             x: entry.key,
+            showingTooltipIndicators: touchedIndex == entry.key ? [0] : [],
             barRods: [
               BarChartRodData(
                 width: barWidth,
                 toY: data[entry.value] ?? 0,
-                color: Color(0xFF8979FF),
+                color: touchedIndex == entry.key || touchedIndex == -1 ? Color(0xFF8979FF) : Color(0xFFCBC4FF),
                 borderRadius: BorderRadius.circular(2),
               ),
             ],
@@ -252,5 +432,19 @@ class _WorkingHourState extends State<WorkingHour> {
     }
 
     return maxWidth;
+  }
+
+  double getReservedSize({
+    required String text,
+    required TextStyle style,
+    double extraPadding = 0.0,
+  }) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: TextDirection.ltr, // Required for TextPainter to layout
+    )..layout();
+
+    return textPainter.size.width + extraPadding;
   }
 }

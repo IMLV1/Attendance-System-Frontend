@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:attendance_system/services/personnel_info/personnel_info_model.dart';
+import 'package:attendance_system/services/personnel_info/personnel_info_service.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
@@ -112,38 +113,7 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
           ),
         ),
         ServiceLoader(
-          request: () => Utils.mockResponse(data: {
-            'data': [
-              {
-                'id': '1100000000000',
-                'name-th': 'ศ.ดร.ด้วยดี ตามไท',
-                'name-en': 'Prof. Dr. Duaydee Tamtai',
-                'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
-                'initial-role': 'วิศวกรรมคอมพิวเตอร์',
-                'roles': [
-                  {'role-id': '0000000001', 'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
-                ]
-              },
-              {
-                'id': '1100000000001',
-                'name-th': 'ศ.ดร.ด้วยดี ตามไท',
-                'name-en': 'Prof. Dr. Duaydee Tamtai',
-                'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
-                'initial-role': 'วิศวกรรมคอมพิวเตอร์',
-                'roles': [
-                  {'role-id': '0000000002', 'role-name': 'รองคณบดี', 'role-color': 'FFA51D'}
-                ]
-              },
-              {
-                'id': '1100000000002',
-                'name-th': 'ศ.ดร.ด้วยดี ตามไท',
-                'name-en': 'Prof. Dr. Duaydee Tamtai',
-                'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
-                'initial-role': 'วิศวกรรมคอมพิวเตอร์',
-                'roles': [],
-              },
-            ]
-          }), // PersonnelInfoService().getPersonnelList(),
+          request: () => PersonnelInfoService().getPersonnelList(),
           onSuccess: (jsonData) {
             setState(() {
               personnel = PersonnelInfoModel.getList(jsonData);
@@ -187,3 +157,33 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
   }
 }
 
+// Utils.mockResponse(data: {'data': [
+// {
+// 'id': '1100000000000',
+// 'name-th': 'ศ.ดร.ด้วยดี ตามไท',
+// 'name-en': 'Prof. Dr. Duaydee Tamtai',
+// 'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
+// 'initial-role': 'วิศวกรรมคอมพิวเตอร์',
+// 'roles': [
+// {'role-id': '0000000001', 'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
+// ]
+// },
+// {
+// 'id': '1100000000001',
+// 'name-th': 'ศ.ดร.ด้วยดี ตามไท',
+// 'name-en': 'Prof. Dr. Duaydee Tamtai',
+// 'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
+// 'initial-role': 'วิศวกรรมคอมพิวเตอร์',
+// 'roles': [
+// {'role-id': '0000000002', 'role-name': 'รองคณบดี', 'role-color': 'FFA51D'}
+// ]
+// },
+// {
+// 'id': '1100000000002',
+// 'name-th': 'ศ.ดร.ด้วยดี ตามไท',
+// 'name-en': 'Prof. Dr. Duaydee Tamtai',
+// 'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
+// 'initial-role': 'วิศวกรรมคอมพิวเตอร์',
+// 'roles': [],
+// },
+// ]}),

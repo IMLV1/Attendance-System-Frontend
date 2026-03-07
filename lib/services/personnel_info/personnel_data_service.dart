@@ -7,7 +7,7 @@ class PersonnelDataService {
 
   Future<Response<dynamic>> getData(String personnelID) {
     return dio.get(
-      '/api/personnel_info/personnel_data',
+      '/manager/personnel_info/personnel_data',
       queryParameters: {
         'id': personnelID,
       },

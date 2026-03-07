@@ -37,12 +37,13 @@ class _ServiceUpdaterProMaxState extends State<ServiceUpdaterProMax> {
   }
 
   Future<void> _load(int reqIndex) async {
+
     setState(() {
       _states[reqIndex] = ServiceUpdaterProMaxState.loading;
     });
 
     try {
-      // 2. แก้ไขการเรียกใช้ฟังก์ชันเพื่อให้ทำงานเฉพาะ request ที่ต้องการ
+
       Response res = await widget.requests[reqIndex]();
 
       if (!mounted) return;
@@ -89,8 +90,18 @@ class _ServiceUpdaterProMaxState extends State<ServiceUpdaterProMax> {
     }
   }
 
+  Future<void> _loadHandle(int reqIndex) async {
+    if (reqIndex < 0) {
+      for (int i = 0; i < widget.requests.length; i++) {
+        _load(i);
+      }
+    } else {
+      _load(reqIndex);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return widget.builder(_load, _getState);
+    return widget.builder(_loadHandle, _getState);
   }
 }

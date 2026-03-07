@@ -2,6 +2,8 @@ import 'package:attendance_system/features/settings/personnel_info/choose_person
 import 'package:attendance_system/features/settings/personnel_info/personnel_leave_detail.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/personnel_info/personnel_info_model.dart';
+import 'package:attendance_system/services/personnel_info/personnel_info_service.dart';
+import 'package:attendance_system/services/personnel_info/personnel_leave_service.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
@@ -160,85 +162,85 @@ class _PersonnelLeaveState extends State<PersonnelLeave> {
                   child: SingleChildScrollView(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     physics: AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      spacing: 13,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Color(0xFFE3E3E3),
-                            borderRadius: BorderRadius.circular(22),
-                          ),
-                          padding: EdgeInsetsGeometry.symmetric(horizontal: 12, vertical: 14),
-                          child: SeparatorCard(
-                            children: [
-                              UserInfoButton(
-                                icon: Image.network(
-                                  personnel!.avatarUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => Image.asset('assets/images/profile.svg'),
+                    child: ServiceUpdaterProMax(
+                      requests: [
+                        () => PersonnelLeaveService().getPending(personnel!.id),
+                        () => PersonnelLeaveService().getRecent(personnel!.id, filterStart, filterEnd),
+                        () => PersonnelLeaveService().getFilterRange(personnel!.id),
+                        () => PersonnelInfoService().getPermissionLevel(personnel!.id),
+                      ],
+                      onSuccess: (index, data) => {
+                        setState(() {
+                          switch (index) {
+                            case 0: pendingLeaves = PendingLeaveRequestModel.getList(data['pending']);
+                            case 1: recentLeaves = LeaveRequestModel.getList(data['recent']);
+                            case 2: {
+
+                              final start =  DateTime.tryParse(data['start']);
+                              final end =  DateTime.tryParse(data['end']);
+
+                              if (start != null) {
+                                filterStartAllow = DateTime(start.year, start.month, 1);
+                              }
+                              if (end != null) {
+                                filterEndAllow = DateTime(end.year, end.month + 1, 0);
+                              }
+                            }
+                            case 3: permissionLevel = data['permission-level'] ?? 0;
+                          }
+                        })
+                      },
+                      fetchOnInit: true,
+                      builder: (trigger, getState) {
+
+                        return Column(
+                          spacing: 13,
+                          children: [
+                            Container(
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFE3E3E3),
+                                  borderRadius: BorderRadius.circular(22),
                                 ),
-                                title: personnel!.nameTH,
-                                subTitle: personnel!.nameEN,
-                                roles: [
-                                  ...personnel!.roles,
-                                  Role(id: '0000000000', name: personnel!.initRole, color: Color(0xFF535353))
-                                ],
-                                onPressed: () {
-                                  PushPopup(
-                                      title: 'เลือกบุคลากร',
-                                      fit: FlexFit.tight,
-                                      maxHeight: 700,
-                                      scroll: false,
-                                      builder: (BuildContext context) {
-                                        return ChoosePersonnel(
-                                            onChoose: (personnel) {
-                                              setState(() {
-                                                this.personnel = personnel;
-                                              });
+                                padding: EdgeInsetsGeometry.symmetric(horizontal: 12, vertical: 14),
+                                child: SeparatorCard(
+                                  children: [
+                                    UserInfoButton(
+                                      icon: Image.network(
+                                        personnel!.avatarUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => Image.asset('assets/images/profile.svg'),
+                                      ),
+                                      title: personnel!.nameTH,
+                                      subTitle: personnel!.nameEN,
+                                      roles: [
+                                        ...personnel!.roles,
+                                        Role(id: '0000000000', name: personnel!.initRole, color: Color(0xFF535353))
+                                      ],
+                                      onPressed: () {
+                                        PushPopup(
+                                            title: 'เลือกบุคลากร',
+                                            fit: FlexFit.tight,
+                                            maxHeight: 700,
+                                            scroll: false,
+                                            builder: (BuildContext context) {
+                                              return ChoosePersonnel(
+                                                  onChoose: (personnel) {
+                                                    setState(() {
+                                                      this.personnel = personnel;
+                                                      pendingLeaves.clear();
+                                                      recentLeaves.clear();
+                                                    });
+                                                    trigger(-1);
+                                                  }
+                                              );
                                             }
-                                        );
-                                      }
-                                  ).showPopup(context);
-                                },
-                              )
-                            ],
-                          )
-                        ),
-                        ServiceUpdaterProMax(
-                          requests: [
-                            () => mockData(),
-                            () => mockData2(),
-                            () => mockData3(),
-                            () => Utils.mockResponse(
-                              data: {
-                                'permission-level': 1
-                              }
-                            )
-                          ],
-                          onSuccess: (index, data) => {
-                            setState(() {
-                              switch (index) {
-                                case 0: pendingLeaves = PendingLeaveRequestModel.getList(data['pending']);
-                                case 1: recentLeaves = LeaveRequestModel.getList(data['recent']);
-                                case 2: {
-
-                                  final start =  DateTime.tryParse(data['start']);
-                                  final end =  DateTime.tryParse(data['end']);
-
-                                  if (start != null) {
-                                    filterStartAllow = DateTime(start.year, start.month, 1);
-                                  }
-                                  if (end != null) {
-                                    filterEndAllow = DateTime(end.year, end.month + 1, 0);
-                                  }
-                                }
-                                case 3: permissionLevel = data['permission-level'] ?? 0;
-                              }
-                            })
-                          },
-                          fetchOnInit: true,
-                          builder: (trigger, getState) {
-                            return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ? Center(child: CupertinoActivityIndicator()) :
+                                        ).showPopup(context);
+                                      },
+                                    )
+                                  ],
+                                )
+                            ),
+                            (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ? Center(child: CupertinoActivityIndicator()) :
                             Column(
                               spacing: 13,
                               children: [
@@ -440,10 +442,10 @@ class _PersonnelLeaveState extends State<PersonnelLeave> {
                                   ],
                                 )
                               ],
-                            );
-                          }
-                        )
-                      ]
+                            )
+                          ],
+                        );
+                      }
                     )
                   )
                 )
