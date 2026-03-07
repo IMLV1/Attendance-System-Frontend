@@ -12,7 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../services/statistic/attendance_stat_model.dart';
+import '../../../services/statistic/statistic_model.dart';
 
 class StatisticPage extends StatefulWidget {
   const StatisticPage({super.key});
@@ -78,6 +78,7 @@ Future<Response<dynamic>> getAttendanceStat() async {
 class _StatisticPageState extends State<StatisticPage> {
 
   StatisticModel? statistic;
+  WorkingHourModel? workingHour;
 
   @override
   Widget build(BuildContext context) {
@@ -105,10 +106,86 @@ class _StatisticPageState extends State<StatisticPage> {
                       ServiceUpdaterProMax(
                         requests: [
                           () => getAttendanceStat(),
+                          () => Utils.mockResponse(
+                            data: {
+                              'total-working-hour': 10144.51,
+                              'total-average-hour': 802.0,
+                              'weekly-working-hour': 42.0,
+                              'weekly-average-hour': 25.0,
+                              'monthly-working-hour': 102.0,
+                              'monthly-average-hour': 240.0,
+                              'yearly-working-hour': 2452.0,
+                              'yearly-average-hour': 1020.0,
+                              'total': {
+                                '64': 1300.0,
+                                '65': 2117.0,
+                                '66': 1893.0,
+                                '67': 1529.0,
+                                '68': 1989.0,
+                                '69': 482.0,
+                              },
+                              'week': {
+                                'อา.': 13.0,
+                                'จ.': 21.0,
+                                'อ.': 8.0,
+                                'พ.': 6.0,
+                                'พฤ.': 5.5,
+                                'ศ.': 4.75,
+                                'ส.': 9.02,
+                              },
+                              'month': {
+                                '1': 13.0,
+                                '2': 18.0,
+                                '3': 13.0,
+                                '4': 1.0,
+                                '5': 13.0,
+                                '6': 3.0,
+                                '7': 13.0,
+                                '8': 18.0,
+                                '9': 12.0,
+                                '10': 13.0,
+                                '11': 5.0,
+                                '12': 13.0,
+                                '13': 6.0,
+                                '14': 13.0,
+                                '15': 9.0,
+                                '16': 3.0,
+                                '17': 17.0,
+                                '18': 7.0,
+                                '19': 7.0,
+                                '20': 0.0,
+                                '21': 3.0,
+                                '22': 5.0,
+                                '23': 7.0,
+                                '24': 4.0,
+                                '25': 8.0,
+                                '26': 4.0,
+                                '27': 16.0,
+                                '28': 2.0,
+                                '29': 13.0,
+                                '30': 10.0,
+                              },
+                              'year': {
+                                'ม.ค.': 19.98,
+                                'ก.พ.': 17.74,
+                                'มี.ค.': 13.48,
+                                'เม.ย.': 3.94,
+                                'พ.ค.': 2.61,
+                                'มิ.ย.': 5.30,
+                                'ก.ค.': 14.60,
+                                'ส.ค.': 7.89,
+                                'ก.ย.': 3.27,
+                                'ต.ค.': 10.77,
+                                'พ.ย.': 7.81,
+                                'ธ.ค.': 3.05,
+                              }
+                            }
+                          )
                         ],
                         onSuccess: (index, data) {
                           switch(index) {
                             case 0: statistic = StatisticModel.fromJson(data);
+                            case 1: workingHour = WorkingHourModel.fromJson(data);
                           }
                         },
                         fetchOnInit: true,
@@ -174,7 +251,7 @@ class _StatisticPageState extends State<StatisticPage> {
                               ),
 
                               /// Working Hour
-                              WorkingHour()
+                              WorkingHour(workingHour)
                             ],
                           );
                         }

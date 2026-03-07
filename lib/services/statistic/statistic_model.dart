@@ -111,3 +111,55 @@ class LeaveTypeDetailModel {
     );
   }
 }
+
+class WorkingHourModel {
+  final double totalWorkingHour;
+  final double totalAverageHour;
+  final double weeklyWorkingHour;
+  final double weeklyAverageHour;
+  final double monthlyWorkingHour;
+  final double monthlyAverageHour;
+  final double yearlyWorkingHour;
+  final double yearlyAverageHour;
+  final Map<String, double> total;
+  final Map<String, double> week;
+  final Map<String, double> month;
+  final Map<String, double> year;
+
+  WorkingHourModel({
+    required this.totalWorkingHour,
+    required this.totalAverageHour,
+    required this.weeklyWorkingHour,
+    required this.weeklyAverageHour,
+    required this.monthlyWorkingHour,
+    required this.monthlyAverageHour,
+    required this.yearlyWorkingHour,
+    required this.yearlyAverageHour,
+    required this.total,
+    required this.week,
+    required this.month,
+    required this.year,
+  });
+
+  factory WorkingHourModel.fromJson(Map<String, dynamic> json) {
+
+    Map<String, double> castMap(Map<dynamic, dynamic>? map) {
+      return map?.map((key, value) => MapEntry(key.toString(), (value as num).toDouble())) ?? {};
+    }
+
+    return WorkingHourModel(
+      totalWorkingHour: json['total-working-hour'] ?? 0.0,
+      totalAverageHour: json['total-average-hour'] ?? 0.0,
+      weeklyWorkingHour: json['weekly-working-hour'] ?? 0.0,
+      weeklyAverageHour: json['weekly-average-hour'] ?? 0.0,
+      monthlyWorkingHour: json['monthly-working-hour'] ?? 0.0,
+      monthlyAverageHour: json['monthly-average-hour'] ?? 0.0,
+      yearlyWorkingHour: json['yearly-working-hour'] ?? 0.0,
+      yearlyAverageHour: json['yearly-average-hour'] ?? 0.0,
+      total: castMap(json['total']),
+      week: castMap(json['week']),
+      month: castMap(json['month']),
+      year: castMap(json['year']),
+    );
+  }
+}

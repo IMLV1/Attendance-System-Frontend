@@ -1,7 +1,8 @@
-import 'package:attendance_system/services/statistic/attendance_stat_model.dart';
+import 'package:attendance_system/services/statistic/statistic_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class WorkingDay extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
-import 'package:attendance_system/services/statistic/attendance_stat_model.dart';
+import 'package:attendance_system/services/statistic/statistic_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:flutter/cupertino.dart';

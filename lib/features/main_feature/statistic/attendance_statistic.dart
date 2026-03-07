@@ -1,4 +1,4 @@
-import 'package:attendance_system/services/statistic/attendance_stat_model.dart';
+import 'package:attendance_system/services/statistic/statistic_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
