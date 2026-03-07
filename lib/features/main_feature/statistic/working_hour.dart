@@ -136,27 +136,115 @@ class _WorkingHourState extends State<WorkingHour> {
 
             /// Summary
             Row(
+              spacing: 10,
               children: [
-                Container(
-                  padding: EdgeInsetsGeometry.symmetric(horizontal: 20, vertical: 20),
+                Expanded(
+                  child: Container(
+                  padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 20),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(22),
                   ),
                   child: Row(
+                    spacing: 10,
                     children: [
-                      Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFECECEC),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
+                      SizedBox(
+                        width: 30,
+                        height: 30,
                         child: SvgPicture.asset('assets/images/total_working_hour.svg'),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown, // 👈 This tells the text to shrink if it overflows
+                              alignment: Alignment.centerLeft, // Keep it aligned to the left
+                              child: Text(
+                                'ชั่วโมงทำงานรวม',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w200,
+                                  color: AppColors.blackTextColor,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${switch(selection) {
+                                StatisticMode.total => widget.workingHour?.totalWorkingHour ?? 0,
+                                StatisticMode.week => widget.workingHour?.weeklyWorkingHour ?? 0,
+                                StatisticMode.month => widget.workingHour?.monthlyWorkingHour ?? 0,
+                                StatisticMode.year => widget.workingHour?.yearlyWorkingHour ?? 0,
+                              }} ชม.',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF7765FF), // AppColors.textmurasaki
+                              ),
+                            ),
+                          ],
+                        ),
                       )
                     ],
                   ),
+                )
                 ),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Row(
+                      spacing: 10,
+                      children: [
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: SvgPicture.asset('assets/images/average_working_hour.svg'),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FittedBox(
+                                  fit: BoxFit.scaleDown, // 👈 This tells the text to shrink if it overflows
+                                  alignment: Alignment.centerLeft, // Keep it aligned to the left
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'ชั่วโมงทำงานเฉลี่ยต่อ${(selection == StatisticMode.year ? 'เดือน' : selection == StatisticMode.total ? 'ปี' : 'วัน')}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w200,
+                                        color: AppColors.blackTextColor,
+                                      ),
+                                    ),
+                                  )
+                              ),
+                              Text(
+                                '${switch(selection) {
+                                  StatisticMode.total => widget.workingHour?.totalAverageHour ?? 0,
+                                  StatisticMode.week => widget.workingHour?.weeklyAverageHour ?? 0,
+                                  StatisticMode.month => widget.workingHour?.monthlyAverageHour ?? 0,
+                                  StatisticMode.year => widget.workingHour?.yearlyAverageHour ?? 0,
+                                }} ชม.',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFE33C74), // AppColors.textmurasaki
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               ],
             )
           ],

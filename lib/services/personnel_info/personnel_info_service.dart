@@ -6,12 +6,12 @@ class PersonnelInfoService {
   final Dio dio = GetIt.I<ApiClient>().dio;
 
   Future<Response<dynamic>> getPersonnelList() async {
-    return dio.get('api/personnel_info/users');
+    return dio.get('/manager/personnel_info/users');
   }
 
   Future<Response<dynamic>> getPermissionLevel(String personnelID) async {
     return dio.get(
-      '/api/personnel_info/permissions',
+      '/manager/personnel_info/permissions',
       queryParameters: {
         'id': personnelID,
       },

@@ -2,11 +2,17 @@ import 'package:attendance_system/features/main_feature/statistic/attendance_sta
 import 'package:attendance_system/features/main_feature/statistic/leave_statistic.dart';
 import 'package:attendance_system/features/main_feature/statistic/working_day.dart';
 import 'package:attendance_system/features/main_feature/statistic/working_hour.dart';
+import 'package:attendance_system/services/statistic/statistic_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/utils/animation/animated_widget.dart';
+import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
+import 'package:attendance_system/shared/widgets/utils/wheel_selector.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +85,27 @@ class _StatisticPageState extends State<StatisticPage> {
 
   StatisticModel? statistic;
   WorkingHourModel? workingHour;
+  DateTime yearFilter = DateTime(DateTime.now().year);
+
+  DateTime? allowFilterStart;
+  DateTime? allowFilterEnd;
+
+  List<int> getYears(DateTime? start, DateTime? end) {
+    if (start == null || end == null) return [];
+
+    int startYear = start.year;
+    int endYear = end.year;
+
+    // สลับค่าถ้าปีเริ่มต้นมากกว่าปีสิ้นสุด
+    if (startYear > endYear) {
+      int temp = startYear;
+      startYear = endYear;
+      endYear = temp;
+    }
+
+    // สร้าง Array ของปี
+    return [for (int y = startYear; y <= endYear; y++) y];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,87 +132,18 @@ class _StatisticPageState extends State<StatisticPage> {
                     children: [
                       ServiceUpdaterProMax(
                         requests: [
-                          () => getAttendanceStat(),
-                          () => Utils.mockResponse(
-                            data: {
-                              'total-working-hour': 10144.51,
-                              'total-average-hour': 802.0,
-                              'weekly-working-hour': 42.0,
-                              'weekly-average-hour': 25.0,
-                              'monthly-working-hour': 102.0,
-                              'monthly-average-hour': 240.0,
-                              'yearly-working-hour': 2452.0,
-                              'yearly-average-hour': 1020.0,
-                              'total': {
-                                '64': 1300.0,
-                                '65': 2117.0,
-                                '66': 1893.0,
-                                '67': 1529.0,
-                                '68': 1989.0,
-                                '69': 482.0,
-                              },
-                              'week': {
-                                'อา.': 13.0,
-                                'จ.': 21.0,
-                                'อ.': 8.0,
-                                'พ.': 6.0,
-                                'พฤ.': 5.5,
-                                'ศ.': 4.75,
-                                'ส.': 9.02,
-                              },
-                              'month': {
-                                '1': 13.0,
-                                '2': 18.0,
-                                '3': 13.0,
-                                '4': 1.0,
-                                '5': 13.0,
-                                '6': 3.0,
-                                '7': 13.0,
-                                '8': 18.0,
-                                '9': 12.0,
-                                '10': 13.0,
-                                '11': 5.0,
-                                '12': 13.0,
-                                '13': 6.0,
-                                '14': 13.0,
-                                '15': 9.0,
-                                '16': 3.0,
-                                '17': 17.0,
-                                '18': 7.0,
-                                '19': 7.0,
-                                '20': 0.0,
-                                '21': 3.0,
-                                '22': 5.0,
-                                '23': 7.0,
-                                '24': 4.0,
-                                '25': 8.0,
-                                '26': 4.0,
-                                '27': 16.0,
-                                '28': 2.0,
-                                '29': 13.0,
-                                '30': 10.0,
-                              },
-                              'year': {
-                                'ม.ค.': 19.98,
-                                'ก.พ.': 17.74,
-                                'มี.ค.': 13.48,
-                                'เม.ย.': 3.94,
-                                'พ.ค.': 2.61,
-                                'มิ.ย.': 5.30,
-                                'ก.ค.': 14.60,
-                                'ส.ค.': 7.89,
-                                'ก.ย.': 3.27,
-                                'ต.ค.': 10.77,
-                                'พ.ย.': 7.81,
-                                'ธ.ค.': 3.05,
-                              }
-                            }
-                          )
+                          () => StatisticService().getStatistic(year: yearFilter),
+                          () => StatisticService().getWorkingHour(),
+                          () => StatisticService().getFilterRange(),
                         ],
                         onSuccess: (index, data) {
                           switch(index) {
                             case 0: statistic = StatisticModel.fromJson(data);
                             case 1: workingHour = WorkingHourModel.fromJson(data);
+                            case 2: {
+                              allowFilterStart = DateTime.tryParse(data['start']);
+                              allowFilterEnd = DateTime.tryParse(data['end']);
+                            }
                           }
                         },
                         fetchOnInit: true,
@@ -201,7 +159,73 @@ class _StatisticPageState extends State<StatisticPage> {
                                   Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 6),
                                     child: InkWell(
-                                      onTap: () {},
+                                      onTap: () {
+
+                                        int selectedIndex = getYears(allowFilterStart, allowFilterEnd).indexOf(yearFilter.year);
+
+                                        PushPopup(
+                                          title: 'เลือกปีงบประมาณ',
+                                          buttonLabel: 'บันทึก',
+                                          fit: FlexFit.tight,
+                                          maxHeight: 650,
+                                          buttonAction: (context) {
+                                            Navigator.of(context).pop();
+                                            setState(() {
+                                              int year = getYears(allowFilterStart, allowFilterEnd)[selectedIndex];
+                                              yearFilter = DateTime(year);
+                                            });
+                                          },
+                                          builder: (context) {
+
+                                            bool opened = false;
+
+                                            return StatefulBuilder(
+                                              builder: (context, setState) {
+                                                return SeparatorCard(
+                                                  children: [
+                                                    Column(
+                                                      children: [
+                                                        IconTextValueButton(
+                                                          icon: 'budget_year.svg',
+                                                          label: 'ปีงบประมาณ',
+                                                          value: (getYears(allowFilterStart, allowFilterEnd)[selectedIndex] + 543).toString(),
+                                                          onPressed: () {
+                                                            setState(() {
+                                                              opened = !opened;
+                                                            });
+                                                          },
+                                                        ),
+                                                        AnimatedSizeWidget(
+                                                          enable: opened,
+                                                          child: Column(
+                                                            children: [
+                                                              Padding(
+                                                                padding: EdgeInsetsGeometry.symmetric(horizontal: 15),
+                                                                child: Divider(height: 0)
+                                                              ),
+                                                              WheelSelector(
+                                                                looping: false,
+                                                                height: 150,
+                                                                initialLeftIndex: selectedIndex,
+                                                                leftItems: getYears(allowFilterStart, allowFilterEnd).map((e) => (e + 543).toString()).toList(),
+                                                                onChanged: (left, right) {
+                                                                  setState(() {
+                                                                    selectedIndex = left;
+                                                                  });
+                                                                },
+                                                              )
+                                                            ],
+                                                          )
+                                                        )
+                                                      ],
+                                                    )
+                                                  ],
+                                                );
+                                              }
+                                            );
+                                          },
+                                        ).showPopup(context);
+                                      },
                                       child: Row(
                                         spacing: 6,
                                         children: [
@@ -210,10 +234,10 @@ class _StatisticPageState extends State<StatisticPage> {
                                             colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
                                           ),
                                           Text(
-                                              'ตัวกรอง',
-                                              style: TextStyle(
-                                                  color: Color(0xFF2C2C2C)
-                                              )
+                                            'ปีงบประมาณ ${yearFilter.year + 543}',
+                                            style: TextStyle(
+                                                color: Color(0xFF2C2C2C)
+                                            )
                                           ),
                                           if (getState(0) == ServiceUpdaterProMaxState.loading)
                                             CupertinoActivityIndicator()

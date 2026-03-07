@@ -1,29 +1,24 @@
+import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
+import 'package:get_it/get_it.dart';
 
-Future<Response<dynamic>> getAttendanceStat({
-  DateTime? startDate,
-  DateTime? endDate,
-}) async{
-  String? startStr = startDate != null ? DateFormat('yyyy-MM-dd').format(startDate) : null;
-  String? endStr = endDate != null ? DateFormat('yyyy-MM-dd').format(endDate) : null;
+class StatisticService {
+  final Dio dio = GetIt.I<ApiClient>().dio;
 
-  try{
-    debugPrint('API Request: กำลังดึงข้อมูลสถิติการเข้าออก...');
-    debugPrint('Start Date: $startStr, End Date: $endStr');
-
-    final response = await Dio().get(
-      'api/attendance/stat',
+  Future<Response<dynamic>> getStatistic({required DateTime year}) {
+    return dio.get(
+      '/user/statistic',
       queryParameters: {
-        if (startStr != null) 'startDate': startStr,
-        if (endStr != null) 'endDate': endStr,
+        'year': year
       },
     );
-    debugPrint('API Success: ได้รับข้อมูลสถิติการเข้าออกจาก Server');
-    return response;
-  }on DioException catch(e){
-    debugPrint('API Error: เกิดปัญหาในการดึงข้อมูลสถิติการเข้าออก: ${e.message}');
-    rethrow;
+  }
+
+  Future<Response<dynamic>> getWorkingHour() {
+    return dio.get('/user/statistic/hours');
+  }
+
+  Future<Response<dynamic>> getFilterRange() {
+    return dio.get('/user/statistic/filter_range');
   }
 }
