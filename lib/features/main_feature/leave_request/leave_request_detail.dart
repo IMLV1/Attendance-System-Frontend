@@ -152,7 +152,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                           arrow: false,
                           timeStamp: requestDetail?.approveDetail.approveDate != null
                               ? formatDateTime(requestDetail!.approveDetail.approveDate)
-                              : null,
+                              : 'EIEI',
                           onPressed: () {
                             setState(() {
                               onSelect = (!onSelect) ? true : false;

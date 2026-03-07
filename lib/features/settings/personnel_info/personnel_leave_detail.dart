@@ -558,7 +558,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                     ),
 
                     if (status == .pending && widget.permissionLevel >= 1)
-                    ServiceUpdater(
+                      ServiceUpdater(
                           request: () => Utils.mockResponse(),
                           builder: (trigger, state, errorMessage) {
                             return Column(
