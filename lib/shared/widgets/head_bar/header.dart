@@ -152,7 +152,9 @@ class Header {
           child: Row(
             children: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.pushNamed(RouteNames.notification);
+                },
                 icon: SvgPicture.asset(
                   'assets/images/notification.svg',
                   width: 26,
