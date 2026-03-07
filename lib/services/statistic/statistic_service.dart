@@ -15,7 +15,7 @@ class StatisticService {
   }
 
   Future<Response<dynamic>> getWorkingHour() {
-    return dio.get('/user/statistic/hours');
+    return dio.get('/user/statistic/working_hours');
   }
 
   Future<Response<dynamic>> getFilterRange() {

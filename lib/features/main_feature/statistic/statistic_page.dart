@@ -160,71 +160,93 @@ class _StatisticPageState extends State<StatisticPage> {
                                     padding: EdgeInsets.symmetric(horizontal: 6),
                                     child: InkWell(
                                       onTap: () {
+                                        if (statistic != null) {
+                                          int selectedIndex = getYears(
+                                            allowFilterStart, allowFilterEnd)
+                                            .indexOf(yearFilter.year);
+                                          PushPopup(
+                                            title: 'เลือกปีงบประมาณ',
+                                            buttonLabel: 'บันทึก',
+                                            fit: FlexFit.tight,
+                                            maxHeight: 650,
+                                            buttonAction: (context) {
+                                              Navigator.of(context).pop();
+                                              setState(() {
+                                                int year = getYears(
+                                                    allowFilterStart,
+                                                    allowFilterEnd)[selectedIndex];
+                                                yearFilter = DateTime(year);
+                                              });
+                                            },
+                                            builder: (context) {
+                                              bool opened = false;
 
-                                        int selectedIndex = getYears(allowFilterStart, allowFilterEnd).indexOf(yearFilter.year);
-
-                                        PushPopup(
-                                          title: 'เลือกปีงบประมาณ',
-                                          buttonLabel: 'บันทึก',
-                                          fit: FlexFit.tight,
-                                          maxHeight: 650,
-                                          buttonAction: (context) {
-                                            Navigator.of(context).pop();
-                                            setState(() {
-                                              int year = getYears(allowFilterStart, allowFilterEnd)[selectedIndex];
-                                              yearFilter = DateTime(year);
-                                            });
-                                          },
-                                          builder: (context) {
-
-                                            bool opened = false;
-
-                                            return StatefulBuilder(
-                                              builder: (context, setState) {
-                                                return SeparatorCard(
-                                                  children: [
-                                                    Column(
+                                              return StatefulBuilder(
+                                                  builder: (context, setState) {
+                                                    return SeparatorCard(
                                                       children: [
-                                                        IconTextValueButton(
-                                                          icon: 'budget_year.svg',
-                                                          label: 'ปีงบประมาณ',
-                                                          value: (getYears(allowFilterStart, allowFilterEnd)[selectedIndex] + 543).toString(),
-                                                          onPressed: () {
-                                                            setState(() {
-                                                              opened = !opened;
-                                                            });
-                                                          },
-                                                        ),
-                                                        AnimatedSizeWidget(
-                                                          enable: opened,
-                                                          child: Column(
-                                                            children: [
-                                                              Padding(
-                                                                padding: EdgeInsetsGeometry.symmetric(horizontal: 15),
-                                                                child: Divider(height: 0)
-                                                              ),
-                                                              WheelSelector(
-                                                                looping: false,
-                                                                height: 150,
-                                                                initialLeftIndex: selectedIndex,
-                                                                leftItems: getYears(allowFilterStart, allowFilterEnd).map((e) => (e + 543).toString()).toList(),
-                                                                onChanged: (left, right) {
-                                                                  setState(() {
-                                                                    selectedIndex = left;
-                                                                  });
-                                                                },
-                                                              )
-                                                            ],
-                                                          )
+                                                        Column(
+                                                          children: [
+                                                            IconTextValueButton(
+                                                              icon: 'budget_year.svg',
+                                                              label: 'ปีงบประมาณ',
+                                                              value: (getYears(
+                                                                  allowFilterStart,
+                                                                  allowFilterEnd)[selectedIndex] +
+                                                                  543)
+                                                                  .toString(),
+                                                              onPressed: () {
+                                                                setState(() {
+                                                                  opened =
+                                                                  !opened;
+                                                                });
+                                                              },
+                                                            ),
+                                                            AnimatedSizeWidget(
+                                                                enable: opened,
+                                                                child: Column(
+                                                                  children: [
+                                                                    Padding(
+                                                                        padding: EdgeInsetsGeometry
+                                                                            .symmetric(
+                                                                            horizontal: 15),
+                                                                        child: Divider(
+                                                                            height: 0)
+                                                                    ),
+                                                                    WheelSelector(
+                                                                      looping: false,
+                                                                      height: 150,
+                                                                      initialLeftIndex: selectedIndex,
+                                                                      leftItems: getYears(
+                                                                          allowFilterStart,
+                                                                          allowFilterEnd)
+                                                                          .map((
+                                                                          e) =>
+                                                                          (e +
+                                                                              543)
+                                                                              .toString())
+                                                                          .toList(),
+                                                                      onChanged: (
+                                                                          left,
+                                                                          right) {
+                                                                        setState(() {
+                                                                          selectedIndex =
+                                                                              left;
+                                                                        });
+                                                                      },
+                                                                    )
+                                                                  ],
+                                                                )
+                                                            )
+                                                          ],
                                                         )
                                                       ],
-                                                    )
-                                                  ],
-                                                );
-                                              }
-                                            );
-                                          },
-                                        ).showPopup(context);
+                                                    );
+                                                  }
+                                              );
+                                            },
+                                          ).showPopup(context);
+                                        }
                                       },
                                       child: Row(
                                         spacing: 6,
