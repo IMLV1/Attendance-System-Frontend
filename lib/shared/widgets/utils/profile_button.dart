@@ -7,8 +7,19 @@ class ProfileButton extends StatelessWidget {
   final String subTitle;
   final bool disable;
   final VoidCallback? onPressed;
+  final double? widthProfile;
+  final double? heightProfile;
 
-  const ProfileButton({super.key, required this.icon, required this.title, required this.subTitle, this.disable = false, this.onPressed});
+  const ProfileButton({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subTitle,
+    this.disable = false,
+    this.onPressed,
+    this.widthProfile = 60,
+    this.heightProfile = 60
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +47,8 @@ class ProfileButton extends StatelessWidget {
                       spacing: 13,
                       children: [
                         Container(
-                          width: 60,
-                          height: 60,
+                          width: widthProfile,
+                          height: heightProfile,
                           clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(50),
