@@ -8,7 +8,7 @@ class ServiceUpdater extends StatefulWidget {
 
   final Future<Response> Function() request;
   final Widget Function(
-    Function() trigger,
+    void Function() trigger,
     ServiceUpdatorState state,
     String errorMessage,
   ) builder;

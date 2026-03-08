@@ -322,64 +322,64 @@ class _DateSelectState extends State<DateSelect> {
             Column(
               children: [
                 IconTextValueButton(
-                    icon: 'calendar_in.svg',
-                    label: 'จากวันที่',
-                    arrow: false,
-                    value: (_rangeStart != null) ? '${DateFormat.MMMd('th_TH').format(_rangeStart!)} ${num.parse(DateFormat.y('th_TH').format(_rangeStart!)) + 543}' : '---'
+                  icon: 'calendar_in.svg',
+                  label: 'จากวันที่',
+                  arrow: false,
+                  value: (_rangeStart != null) ? '${DateFormat.MMMd('th_TH').format(_rangeStart!)} ${num.parse(DateFormat.y('th_TH').format(_rangeStart!)) + 543}' : '---'
                 ),
                 AnimatedSizeWidget(
-                    enable: _rangeStart != null,
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                          child: Divider(height: 0),
-                        ),
-                        Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                            child: Row(
-                              spacing: 10,
-                              children: [
-                                SizedBox(
-                                  height: 20,
-                                  width: 20,
+                  enable: _rangeStart != null,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                        child: Divider(height: 0),
+                      ),
+                      Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                          child: Row(
+                            spacing: 10,
+                            children: [
+                              SizedBox(
+                                height: 20,
+                                width: 20,
 
+                              ),
+                              Expanded(
+                                child: Text(
+                                    'ช่วงครึ่งวัน',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.black,
+                                    )
                                 ),
-                                Expanded(
-                                  child: Text(
-                                      'ช่วงครึ่งวัน',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.black,
+                              ),
+
+                              TextToggleSwitch(
+                                isFirst: widget.dateData?.fromDateMorning ?? true,
+                                onChanged: (bool isFirst) {
+                                  setState(() {
+                                    _fromDateMorning = isFirst;
+                                  });
+
+                                  widget.onChanged(
+                                      LeaveDate(
+                                        fromDate: _rangeStart,
+                                        toDate: _rangeEnd,
+                                        fromDateMorning: _fromDateMorning,
+                                        toDateMorning: _toDateMorning,
                                       )
-                                  ),
-                                ),
-
-                                TextToggleSwitch(
-                                  isFirst: widget.dateData?.fromDateMorning ?? true,
-                                  onChanged: (bool isFirst) {
-                                    setState(() {
-                                      _fromDateMorning = isFirst;
-                                    });
-
-                                    widget.onChanged(
-                                        LeaveDate(
-                                          fromDate: _rangeStart,
-                                          toDate: _rangeEnd,
-                                          fromDateMorning: _fromDateMorning,
-                                          toDateMorning: _toDateMorning,
-                                        )
-                                    );
-                                  },
-                                  label1: 'เช้า',
-                                  label2: 'เย็น',
-                                  color: Color(0xFF4986FF),
-                                ),
-                              ],
-                            )
-                        )
-                      ],
-                    )
+                                  );
+                                },
+                                label1: 'เช้า',
+                                label2: 'เย็น',
+                                color: Color(0xFF4986FF),
+                              ),
+                            ],
+                          )
+                      )
+                    ],
+                  )
                 )
               ],
             )

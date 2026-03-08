@@ -121,7 +121,8 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                           },
                             fetchOnInit: true,
                             builder: (trigger, getState) {
-                              return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ? Center(child: CupertinoActivityIndicator()) :
+                              return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ?
+                              Center(child: CupertinoActivityIndicator()) :
                               Column(
                                 spacing: 13,
                                 children: [

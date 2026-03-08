@@ -384,151 +384,171 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                                     const Text('ไฟล์ที่แนบมา')
                                   ],
                                 ),
-                                ...requestDetail!.requestDetail.evidenceFiles.map((file) {
-                                  bool downloading = false;
-                                  MenuController menuController = MenuController();
+                                if (requestDetail!.requestDetail.evidenceFiles.isNotEmpty)
+                                  ...requestDetail!.requestDetail.evidenceFiles.map((file) {
+                                    bool downloading = false;
+                                    MenuController menuController = MenuController();
 
-                                  return Material(
-                                    color: Colors.white,
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      side: BorderSide(
-                                        color: Colors.grey.shade300,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: InkWell(
+                                    return Material(
+                                      color: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
-                                        onTap: () {
-                                          FilePreviewPopup(file: file).showPopup(context);
-                                        },
-                                        splashFactory: NoSplash.splashFactory,
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                                                child: Row(
-                                                  spacing: 6,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 20,
-                                                      height: 20,
-                                                      child: SvgPicture.asset(
-                                                        file.fileType.toLowerCase() == 'pdf' ? 'assets/images/file.svg' : 'assets/images/photos_upload.svg',
-                                                        colorFilter: ColorFilter.mode(Colors.grey.shade800, BlendMode.srcIn),
+                                        side: BorderSide(
+                                          color: Colors.grey.shade300,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: InkWell(
+                                          borderRadius: BorderRadius.circular(8),
+                                          onTap: () {
+                                            FilePreviewPopup(file: file).showPopup(context);
+                                          },
+                                          splashFactory: NoSplash.splashFactory,
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                                  child: Row(
+                                                    spacing: 6,
+                                                    children: [
+                                                      SizedBox(
+                                                        width: 20,
+                                                        height: 20,
+                                                        child: SvgPicture.asset(
+                                                          file.fileType.toLowerCase() == 'pdf' ? 'assets/images/file.svg' : 'assets/images/photos_upload.svg',
+                                                          colorFilter: ColorFilter.mode(Colors.grey.shade800, BlendMode.srcIn),
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Expanded(child: Text(file.fileName)),
-                                                  ],
+                                                      Expanded(child: Text(file.fileName)),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
-                                            ),
 
-                                            StatefulBuilder(
-                                                builder: (context, setState) {
-                                                  return downloading ?
-                                                  const Padding(
-                                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
-                                                    child: Center(child: CupertinoActivityIndicator()),
-                                                  ) :
-                                                  MenuAnchor(
-                                                    controller: menuController,
-                                                    useRootOverlay: true,
-                                                    builder: (context, controller, child) {
-                                                      return InkWell(
-                                                        overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-                                                        onTap: () {
-                                                          menuController.open();
-                                                        },
-                                                        child: Padding(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                                                            child: SvgPicture.asset(
-                                                              'assets/images/icon_file_menu.svg',
-                                                              colorFilter: ColorFilter.mode(
-                                                                Colors.grey.shade600,
-                                                                BlendMode.srcIn,
-                                                              ),
-                                                            )
-                                                        ),
-                                                      );
-                                                    },
-                                                    clipBehavior: Clip.none,
-                                                    consumeOutsideTap: true,
-                                                    style: const MenuStyle(
-                                                      backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                                                      elevation: WidgetStatePropertyAll(0),
-                                                    ),
-                                                    menuChildren: [
-                                                      TweenAnimationBuilder<double>(
-                                                        tween: Tween(begin: 0, end: 1),
-                                                        duration: const Duration(milliseconds: 250),
-                                                        curve: Curves.easeOut,
-                                                        builder: (context, value, child) {
-                                                          return Opacity(
-                                                            opacity: value,
-                                                            child: child,
-                                                          );
-                                                        },
-                                                        child: Container(
-                                                          decoration: BoxDecoration(
-                                                            color: Colors.white,
-                                                            borderRadius: BorderRadius.circular(20),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                color: Colors.black.withValues(alpha: 0.18),
-                                                                blurRadius: 100,
-                                                                spreadRadius: 6,
-                                                                offset: Offset.zero,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: SeparatorCard(
-                                                            borderRadius: BorderRadius.circular(20),
-                                                            children: [
-                                                              IconTextButton(
-                                                                icon: 'download.svg',
-                                                                arrow: false,
-                                                                label: 'ส่งออกไฟล์',
-                                                                onPressed: () async {
-                                                                  menuController.close();
-                                                                  Downloader(
-                                                                      onDownloadStart: () => setState(() {
-                                                                        downloading = true;
-                                                                      }),
-                                                                      onDownloadSuccess: () => setState(() {
-                                                                        downloading = false;
-                                                                      })
-                                                                  ).downloadFile(file);
-                                                                },
-                                                              ),
-                                                              Padding(
-                                                                padding: const EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
-                                                                child: Row(
-                                                                  children: [
-                                                                    Text(
-                                                                      'ขนาด: ${Utils.formatBytes(file.fileSize)}',
-                                                                      style: const TextStyle(
-                                                                          color: Color(0xFF7D7D7D)
-                                                                      ),
-                                                                    )
-                                                                  ],
+                                              StatefulBuilder(
+                                                  builder: (context, setState) {
+                                                    return downloading ?
+                                                    const Padding(
+                                                      padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
+                                                      child: Center(child: CupertinoActivityIndicator()),
+                                                    ) :
+                                                    MenuAnchor(
+                                                      controller: menuController,
+                                                      useRootOverlay: true,
+                                                      builder: (context, controller, child) {
+                                                        return InkWell(
+                                                          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+                                                          onTap: () {
+                                                            menuController.open();
+                                                          },
+                                                          child: Padding(
+                                                              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                                              child: SvgPicture.asset(
+                                                                'assets/images/icon_file_menu.svg',
+                                                                colorFilter: ColorFilter.mode(
+                                                                  Colors.grey.shade600,
+                                                                  BlendMode.srcIn,
                                                                 ),
                                                               )
-                                                            ],
+                                                          ),
+                                                        );
+                                                      },
+                                                      clipBehavior: Clip.none,
+                                                      consumeOutsideTap: true,
+                                                      style: const MenuStyle(
+                                                        backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+                                                        elevation: WidgetStatePropertyAll(0),
+                                                      ),
+                                                      menuChildren: [
+                                                        TweenAnimationBuilder<double>(
+                                                          tween: Tween(begin: 0, end: 1),
+                                                          duration: const Duration(milliseconds: 250),
+                                                          curve: Curves.easeOut,
+                                                          builder: (context, value, child) {
+                                                            return Opacity(
+                                                              opacity: value,
+                                                              child: child,
+                                                            );
+                                                          },
+                                                          child: Container(
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white,
+                                                              borderRadius: BorderRadius.circular(20),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: Colors.black.withValues(alpha: 0.18),
+                                                                  blurRadius: 100,
+                                                                  spreadRadius: 6,
+                                                                  offset: Offset.zero,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: SeparatorCard(
+                                                              borderRadius: BorderRadius.circular(20),
+                                                              children: [
+                                                                IconTextButton(
+                                                                  icon: 'download.svg',
+                                                                  arrow: false,
+                                                                  label: 'ส่งออกไฟล์',
+                                                                  onPressed: () async {
+                                                                    menuController.close();
+                                                                    Downloader(
+                                                                        onDownloadStart: () => setState(() {
+                                                                          downloading = true;
+                                                                        }),
+                                                                        onDownloadSuccess: () => setState(() {
+                                                                          downloading = false;
+                                                                        })
+                                                                    ).downloadFile(file);
+                                                                  },
+                                                                ),
+                                                                Padding(
+                                                                  padding: const EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        'ขนาด: ${Utils.formatBytes(file.fileSize)}',
+                                                                        style: const TextStyle(
+                                                                            color: Color(0xFF7D7D7D)
+                                                                        ),
+                                                                      )
+                                                                    ],
+                                                                  ),
+                                                                )
+                                                              ],
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                }
-                                            )
-                                          ],
+                                                      ],
+                                                    );
+                                                  }
+                                              )
+                                            ],
+                                          )
+                                      ),
+                                    );
+                                  })
+                                else
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: SeparatorCard(
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsetsGeometry.all(20),
+                                          child: Text(
+                                            'ไม่มีไฟล์แนบ',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              color: Color(0xFF7D7D7D), // สีจาง
+                                            ),
+                                          ),
                                         )
+                                      ],
                                     ),
-                                  );
-                                }),
+                                  ),
                                 const SizedBox(height: 140)
                               ],
                             ),
@@ -538,7 +558,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                     ),
 
                     if (status == .pending && widget.permissionLevel >= 1)
-                    ServiceUpdater(
+                      ServiceUpdater(
                           request: () => Utils.mockResponse(),
                           builder: (trigger, state, errorMessage) {
                             return Column(

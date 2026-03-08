@@ -7,7 +7,7 @@ class PersonnelLeaveService {
 
   Future<Response<dynamic>> getPending(String personnelID) {
     return dio.get(
-      '/manager/personnel_info/pending',
+      '/manager/personnel_info/leave/pending',
       queryParameters: {
         'id': personnelID,
       },
@@ -15,7 +15,7 @@ class PersonnelLeaveService {
   }
   Future<Response<dynamic>> getRecent(String personnelID, DateTime? filterStartDate, DateTime? filterEndDate,) {
     return dio.get(
-      '/manager/personnel_info/recent',
+      '/manager/personnel_info/leave/recent',
       queryParameters: {
         'id': personnelID,
         if (filterStartDate != null)
@@ -27,7 +27,7 @@ class PersonnelLeaveService {
   }
   Future<Response<dynamic>> getFilterRange(String personnelID) {
     return dio.get(
-      '/manager/personnel_info/filter_range',
+      '/manager/personnel_info/leave/filter_range',
       queryParameters: {
         'id': personnelID,
       },
@@ -35,7 +35,7 @@ class PersonnelLeaveService {
   }
   Future<Response<dynamic>> getRequestDetail(String requestId) {
     return dio.get(
-      '/manager/personnel_info/detail',
+      '/manager/personnel_info/leave/detail',
       queryParameters: {
         'request-id': requestId,
       },

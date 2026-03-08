@@ -164,6 +164,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                               _ => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
                                             },
                                             arrow: false,
+                                            timeStamp: data?.approveDetail.status != 'pending' ? DateFormat.MMMd('th_TH').format(data!.approveDetail.approveDate) : '',
                                             onPressed: data?.approveDetail.status != 'pending' ? () {
                                               setState(() {
                                                 onSelect = !onSelect;
@@ -651,11 +652,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
 
                         if (data!.approveDetail.status == 'pending' && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'approver'))
 
-                          ServiceUpdater(
-                              // request: () => AttendanceApprovalService().approval(widget.reqId, status, _textEditingController.text, null),
-                              request: () => Utils.mockResponse(),
-                              builder: (trigger, state, errorMessage) {
-                                return Column(
+                          Column(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     Container(
@@ -823,8 +820,8 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                             provider.setConfig(oldConfig);
                                                           } else {
                                                             FloatingPopup(
-                                                                title: 'ไม่อนุมัติคำขอ',
-                                                                description: 'คุณยืนยันที่จะไม่อนุมัติคำขอหมายเลข: ${widget.reqId} หรือไม่?',
+                                                                title: 'ปฏิเสธคำขอ',
+                                                                description: 'คุณยืนยันที่จะปฏิเสธคำขอหมายเลข: ${widget.reqId} หรือไม่?',
                                                                 buttons: (setError, context1) {
                                                                   return [
                                                                     FloatingPopupButton(
@@ -838,7 +835,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                                     FloatingServicePopupButton(
                                                                       text: 'ยันยัน',
                                                                       foregroundColor: Colors.red,
-                                                                      request: () => trigger(),
+                                                                      request: () => AttendanceApprovalService().approval(widget.reqId, status, _textEditingController.text, null),
                                                                       setError: setError,
                                                                       onSuccess: () async {
                                                                         Navigator.of(context1).pop();
@@ -975,7 +972,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                                     FloatingServicePopupButton(
                                                                       text: 'ยันยัน',
                                                                       foregroundColor: Colors.red,
-                                                                      request: () => trigger(),
+                                                                      request: () => AttendanceApprovalService().approval(widget.reqId, status, _textEditingController.text, null), // Utils.mockResponse(),
                                                                       setError: setError,
                                                                       onSuccess: () async {
                                                                         Navigator.of(context1).pop();
@@ -999,9 +996,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                         ))
                                     ),
                                   ],
-                                );
-                              }
-                          )
+                                )
                       ],
                     );
                   }

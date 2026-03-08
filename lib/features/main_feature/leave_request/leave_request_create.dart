@@ -225,11 +225,11 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                         _selectedDate = leaveDate;
 
                                                                         return DateSelect(
-                                                                            dateData: leaveDate,
-                                                                            allowRetroactive: setting!.allowRetroactive,
-                                                                            onChanged: (LeaveDate date) {
-                                                                              _selectedDate = date;
-                                                                            }
+                                                                          dateData: leaveDate,
+                                                                          allowRetroactive: setting!.allowRetroactive,
+                                                                          onChanged: (LeaveDate date) {
+                                                                            _selectedDate = date;
+                                                                          }
                                                                         );
                                                                       },
                                                                       buttonAction: (context) {
