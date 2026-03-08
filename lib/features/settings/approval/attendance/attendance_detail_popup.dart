@@ -123,6 +123,8 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                   title: data!.userDetail.name,
                                   subTitle: data!.userDetail.initRole,
                                   disable: true,
+                                  widthProfile: 50,
+                                  heightProfile: 50,
                                 ),
 
                                 if (data!.approveDetail.status != 'pending') ...[
