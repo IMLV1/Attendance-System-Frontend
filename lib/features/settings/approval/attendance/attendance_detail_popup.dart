@@ -57,43 +57,44 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
           children: [
             Flexible(
               child: ServiceLoader(
-                  request: () => Utils.mockResponse(
-                    data: {
-                      'request-detail': {
-                        'date-from': '2026-02-18T18:00:45.621Z',
-                        'date-to': '2026-02-18T18:00:45.621Z',
-                        'time-start': '08:00',
-                        'time-end': '9:00',
-                        'remark': 'ปวดหัว อาเจียน เป็นไข้ ทิฟฟี่แผงสีเขียว',
-                        'evidence-files': [
-                          {
-                            'file-name': 'final algorithm.pdf',
-                            'file-url': 'https://drive.google.com/uc?export=download&id=1vlrDqDVuYZhqy8E3HQXf8DsxctgnYUCN',
-                            'file-type': 'pdf',
-                            'file-size': 3079943
-                          },
-                          {
-                            'file-name': 'IMG_3535.jpg',
-                            'file-url': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=69a11568&is=699fc3e8&hm=156a11fcf6d2687752a07202dac4988fd913061d0fe04c11b82df47b62994eab&=&format=webp&width=669&height=1189',
-                            'file-type': 'jpg',
-                            'file-size': 5434478723
-                          }
-                        ],
-                      },
-                      'approve-detail': {
-                        'status': 'pending', // pending, approved, rejected, overdue
-                        'approve-role': 'คณบดี',
-                        'approver': 'ด้วยดี ตามไท',
-                        'reason': 'ดีมาก',
-                        'approve-date': '2026-02-01T08:00:00.000Z',
-                      },
-                      'user-detail': {
-                        'avatar-url': 'https://roboavatars.dogonews.com/7d90efaaa63901818458d811b71fcb96?set=set1',
-                        'name': 'ด้วยดี ตามไท',
-                        'init-role': 'อาจารย์ประจำภาควิชาคอมพิวเตอร์'
-                      }
-                    },
-                  ),
+                  // request: () => Utils.mockResponse(
+                  //   data: {
+                  //     'request-detail': {
+                  //       'date-from': '2026-02-18T18:00:45.621Z',
+                  //       'date-to': '2026-02-18T18:00:45.621Z',
+                  //       'time-start': '08:00',
+                  //       'time-end': '9:00',
+                  //       'remark': 'ปวดหัว อาเจียน เป็นไข้ ทิฟฟี่แผงสีเขียว',
+                  //       'evidence-files': [
+                  //         {
+                  //           'file-name': 'final algorithm.pdf',
+                  //           'file-url': 'https://drive.google.com/uc?export=download&id=1vlrDqDVuYZhqy8E3HQXf8DsxctgnYUCN',
+                  //           'file-type': 'pdf',
+                  //           'file-size': 3079943
+                  //         },
+                  //         {
+                  //           'file-name': 'IMG_3535.jpg',
+                  //           'file-url': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=69a11568&is=699fc3e8&hm=156a11fcf6d2687752a07202dac4988fd913061d0fe04c11b82df47b62994eab&=&format=webp&width=669&height=1189',
+                  //           'file-type': 'jpg',
+                  //           'file-size': 5434478723
+                  //         }
+                  //       ],
+                  //     },
+                  //     'approve-detail': {
+                  //       'status': 'pending', // pending, approved, rejected, overdue
+                  //       'approve-role': 'คณบดี',
+                  //       'approver': 'ด้วยดี ตามไท',
+                  //       'reason': 'ดีมาก',
+                  //       'approve-date': '2026-02-01T08:00:00.000Z',
+                  //     },
+                  //     'user-detail': {
+                  //       'avatar-url': 'https://roboavatars.dogonews.com/7d90efaaa63901818458d811b71fcb96?set=set1',
+                  //       'name': 'ด้วยดี ตามไท',
+                  //       'init-role': 'อาจารย์ประจำภาควิชาคอมพิวเตอร์'
+                  //     }
+                  //   },
+                  // ),
+                  request: () => AttendanceApprovalService().getDetail(widget.reqId),
                   onSuccess: (val) {
                     setState(() {
                       data = AttendanceApprovalModel.fromJson(val);
