@@ -1,3 +1,4 @@
+import 'package:attendance_system/services/approval/leave/leave_service.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -13,7 +14,9 @@ import '../../../../shared/widgets/utils/app_button.dart';
 import '../../../../shared/widgets/utils/downloader.dart';
 import '../../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../../shared/widgets/utils/popup/file_preview_popup.dart';
+import '../../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
+import '../../../../shared/widgets/utils/popup/multi_page/service_signature_page.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
 import '../../../../shared/widgets/utils/services/service_loader.dart';
 import '../../../../shared/widgets/utils/services/service_updater.dart';
@@ -55,7 +58,7 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
           children: [
             Flexible( // ✅ แก้ไขที่ 2: เปลี่ยน Expanded เป็น Flexible
               child: ServiceLoader(
-                  request: () => mockData(), // mockData(),
+                  request: () => LeaveApprovalService().getRequestDetail(widget.requestID), // mockData(),
                   onSuccess: (val) {
                     setState(() {
                       requestDetail = LeaveRequestDetailModel.fromJson(val);
@@ -472,7 +475,348 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                           ),
                         ),
 
-                        /// TODO: implement Approve Button
+                        if (status == .pending)
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                  decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.05),
+                                        blurRadius: 15,
+                                        spreadRadius: 2,
+                                        offset: const Offset(0, 0),
+                                      ),
+                                    ],
+                                  ),
+                                  child: SafeArea(child: SeparatorCard(
+                                    separatorPadding: const EdgeInsetsGeometry.symmetric(horizontal: 15),
+                                    children: [
+                                      TextField(
+                                        controller: _textEditingController,
+                                        maxLines: 1,
+                                        decoration: InputDecoration(
+                                          errorStyle: const TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 14
+                                          ),
+                                          isDense: true,
+                                          hintText: 'ระบุเหตุผล...',
+                                          hintStyle: const TextStyle(
+                                              color: Color(0xFF7D7D7D),
+                                              fontSize: 15
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            vertical: 13,
+                                            horizontal: 15,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(22),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          errorBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(22),
+                                            borderSide: const BorderSide(
+                                              color: Colors.red,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          focusedErrorBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(22),
+                                            borderSide: const BorderSide(
+                                              color: Colors.red,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
+                                        child: Row(
+                                          spacing: 15,
+                                          children: [
+                                            Expanded(
+                                                child: ElevatedButton(
+                                                  style: ButtonStyle(
+                                                    minimumSize: const WidgetStatePropertyAll(Size(0, 0)),
+                                                    padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+                                                    backgroundColor: const WidgetStatePropertyAll(Color(0xFFFFD9D9)),
+                                                    shape: WidgetStatePropertyAll(
+                                                        RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(50)
+                                                        )
+                                                    ),
+                                                    shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+                                                    overlayColor: WidgetStateProperty<Color?>.fromMap(<WidgetState, Color?>{
+                                                      WidgetState.pressed: Colors.white.withValues(alpha: 0.4),
+                                                    }),
+                                                  ),
+                                                  child: Container(
+                                                    padding: const EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 8),
+                                                    child: Stack(
+                                                      children: [
+                                                        const Row(
+                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                          children: [
+                                                            Text(
+                                                              'ไม่อนุมัติ',
+                                                              style: TextStyle(
+                                                                  fontSize: 15,
+                                                                  color: Color(0xFFFF4040),
+                                                                  fontWeight: FontWeight.w600
+                                                              ),
+                                                            )
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.start,
+                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                          children: [
+                                                            SvgPicture.asset(
+                                                              'assets/images/icon_cancel.svg',
+                                                              width: 20,
+                                                              height: 20,
+                                                              colorFilter: const ColorFilter.mode(Color(0xFFFF4040), BlendMode.srcIn),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+
+                                                    if (setting!.approveNeedSignature) {
+                                                      final navigator = Navigator.of(context, rootNavigator: true);
+                                                      final provider = PopupProvider.of(context);
+                                                      final oldConfig = provider.config;
+
+                                                      provider.setConfig(PopupConfig(
+                                                        title: 'ลายเซ็น',
+                                                        buttonLabel: 'ไม่อนุมัติ',
+                                                        maxHeight: 700,
+                                                        scroll: false,
+                                                      ));
+
+                                                      await provider.push(context, ServiceSignaturePage(
+                                                        required: true,
+                                                        infoWidget: Row(
+                                                          spacing: 5,
+                                                          children: [
+                                                            SvgPicture.asset(
+                                                              'assets/images/iicon.svg',
+                                                              width: 15,
+                                                              height: 15,
+                                                            ),
+                                                            const Expanded(
+                                                                child: Text.rich(
+                                                                    TextSpan(
+                                                                      text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                                                                      children: [
+                                                                        TextSpan(
+                                                                          text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
+                                                                          style: TextStyle(
+                                                                            fontWeight: FontWeight.bold,
+                                                                            decoration: TextDecoration.underline,
+                                                                          ),
+                                                                        ),
+                                                                        TextSpan(
+                                                                          text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                                                                        ),
+                                                                      ],
+                                                                    )
+                                                                )
+                                                            )
+                                                          ],
+                                                        ),
+                                                        request: (pngByte) => LeaveApprovalService().approval(widget.requestID, ApproveStatus.rejected.state, _textEditingController.text, pngByte),
+                                                        onSuccessResponse: (pngBytes, jsonData) {
+                                                          navigator.pop();
+                                                          widget.onRejected();
+                                                        },
+                                                      ));
+
+                                                      provider.setConfig(oldConfig);
+                                                    } else {
+                                                      FloatingPopup(
+                                                          title: 'ปฏิเสธคำขอ',
+                                                          description: 'คุณยืนยันที่จะปฏิเสธคำขอหมายเลข: ${widget.requestID} หรือไม่?',
+                                                          buttons: (setError, context1) {
+                                                            return [
+                                                              FloatingPopupButton(
+                                                                onPressed: () {
+                                                                  Navigator.of(context1).pop();
+                                                                },
+                                                                text: 'ยกเลิก',
+                                                                foregroundColor: Colors.white,
+                                                                backgroundColor: AppColors.primaryColor,
+                                                              ),
+                                                              FloatingServicePopupButton(
+                                                                text: 'ยันยัน',
+                                                                foregroundColor: Colors.red,
+                                                                request: () => LeaveApprovalService().approval(widget.requestID, ApproveStatus.rejected.state, _textEditingController.text, null),
+                                                                setError: setError,
+                                                                onSuccess: () async {
+                                                                  Navigator.of(context1).pop();
+                                                                  await Future.delayed(const Duration(milliseconds: 200));
+                                                                  if (!context.mounted) return;
+                                                                  Navigator.of(context, rootNavigator: true).pop();
+                                                                  widget.onRejected();
+                                                                },
+                                                              )
+                                                            ];
+                                                          }
+                                                      ).showPopup(context);
+                                                    }
+                                                  },
+                                                )
+                                            ),
+                                            Expanded(
+                                                child: ElevatedButton(
+                                                  style: ButtonStyle(
+                                                    minimumSize: const WidgetStatePropertyAll(Size(0, 0)),
+                                                    padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+                                                    backgroundColor: const WidgetStatePropertyAll(Color(0xFFCDF2E4)),
+                                                    shape: WidgetStatePropertyAll(
+                                                        RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(50)
+                                                        )
+                                                    ),
+                                                    shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+                                                    overlayColor: WidgetStateProperty<Color?>.fromMap(<WidgetState, Color?>{
+                                                      WidgetState.pressed: Colors.white.withValues(alpha: 0.4),
+                                                    }),
+                                                  ),
+                                                  child: Container(
+                                                    padding: const EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 8),
+                                                    child: Stack(
+                                                      children: [
+                                                        const Row(
+                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                          children: [
+                                                            Text(
+                                                              'อนุมัติ',
+                                                              style: TextStyle(
+                                                                fontSize: 15,
+                                                                color: Color(0xFF03BC78),
+                                                                fontWeight: FontWeight.w600,
+                                                              ),
+                                                            )
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.start,
+                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                          children: [
+                                                            SvgPicture.asset(
+                                                              'assets/images/icon_cancel.svg',
+                                                              width: 20,
+                                                              height: 20,
+                                                              colorFilter: const ColorFilter.mode(Color(0xFF03BC78), BlendMode.srcIn),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    if (setting!.approveNeedSignature) {
+                                                      final navigator = Navigator.of(context, rootNavigator: true);
+                                                      final provider = PopupProvider.of(context);
+                                                      final oldConfig = provider.config;
+
+                                                      provider.setConfig(PopupConfig(
+                                                        title: 'ลายเซ็น',
+                                                        buttonLabel: 'อนุมัติ',
+                                                        maxHeight: 700,
+                                                        scroll: false,
+                                                      ));
+
+                                                      await provider.push(context, ServiceSignaturePage(
+                                                        required: true,
+                                                        infoWidget: Row(
+                                                          spacing: 5,
+                                                          children: [
+                                                            SvgPicture.asset(
+                                                              'assets/images/iicon.svg',
+                                                              width: 15,
+                                                              height: 15,
+                                                            ),
+                                                            const Expanded(
+                                                                child: Text.rich(
+                                                                    TextSpan(
+                                                                      text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                                                                      children: [
+                                                                        TextSpan(
+                                                                          text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
+                                                                          style: TextStyle(
+                                                                            fontWeight: FontWeight.bold,
+                                                                            decoration: TextDecoration.underline,
+                                                                          ),
+                                                                        ),
+                                                                        TextSpan(
+                                                                          text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                                                                        ),
+                                                                      ],
+                                                                    )
+                                                                )
+                                                            )
+                                                          ],
+                                                        ),
+                                                        request: (pngByte) => LeaveApprovalService().approval(widget.requestID, ApproveStatus.approved.state, _textEditingController.text, pngByte),
+                                                        onSuccessResponse: (pngBytes, jsonData) {
+                                                          navigator.pop();
+                                                          widget.onApproved;
+                                                        },
+                                                      ));
+
+                                                      provider.setConfig(oldConfig);
+                                                    } else {
+                                                      FloatingPopup(
+                                                          title: 'อนุมัติคำขอ',
+                                                          description: 'คุณยืนยันที่จะอนุมัติคำขอหมายเลข: ${widget.requestID} หรือไม่?',
+                                                          buttons: (setError, context1) {
+                                                            return [
+                                                              FloatingPopupButton(
+                                                                onPressed: () {
+                                                                  Navigator.of(context1).pop();
+                                                                },
+                                                                text: 'ยกเลิก',
+                                                                foregroundColor: Colors.white,
+                                                                backgroundColor: AppColors.primaryColor,
+                                                              ),
+                                                              FloatingServicePopupButton(
+                                                                text: 'ยันยัน',
+                                                                foregroundColor: Colors.red,
+                                                                request: () => LeaveApprovalService().approval(widget.requestID, ApproveStatus.approved.state, _textEditingController.text, null),
+                                                                setError: setError,
+                                                                onSuccess: () async {
+                                                                  Navigator.of(context1).pop();
+                                                                  await Future.delayed(const Duration(milliseconds: 200));
+                                                                  if (!context.mounted) return;
+                                                                  Navigator.of(context, rootNavigator: true).pop();
+                                                                  widget.onApproved;
+                                                                },
+                                                              )
+                                                            ];
+                                                          }
+                                                      ).showPopup(context);
+                                                    }
+                                                  },
+                                                )
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ))
+                              ),
+                            ],
+                          )
                       ],
                     );
                   }

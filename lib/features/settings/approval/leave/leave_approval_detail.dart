@@ -1,3 +1,4 @@
+import 'package:attendance_system/services/approval/leave/leave_service.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
@@ -52,55 +53,56 @@ class _LeaveApprovalDetail extends State<LeaveApprovalDetail> {
                 color: AppColors.backgroundColor,
                 alignment: Alignment.topCenter,
                 child: ServiceLoader(
-                    request: () => Utils.mockResponse(
-                      data: {
-                        'user-detail': {
-                          'name': 'ด้วยดี ตามไทย',
-                          'init-role': 'อาจารย์ประจำภาควิชาคอมพิวเตอร์',
-                          'avatar-url': '',
-                        },
-                        'leave-info': {
-                          'sick': {
-                            'used_days': 1.5,
-                            'quota_days': 60.0
-                          },
-                          'personal': {
-                            'used_days': 1.0,
-                            'quota_days': 60.5
-                          },
-                          'vacation': {
-                            'used_days': 1.5,
-                            'quota_days': 60.5
-                          },
-                          'maternity': {
-                            'used_days': 1.0,
-                            'quota_days': 60.0
-                          },
-                          'paternity': {
-                            'used_days': 1.0,
-                            'quota_days': 60.0
-                          },
-                          'parental': {
-                            'used_days': 1.0,
-                            'quota_days': 60.0
-                          },
-                        },
-                        'user-pending': [
-                          {
-                            'request-id': 'REQ0021312',
-                            'type': 'sick',
-                            'date-from': '2026-02-15T18:00:45.621Z',
-                            'date-to': '2026-02-28T18:00:45.621Z',
-                          },
-                          {
-                            'request-id': 'REQ0021312',
-                            'type': 'sick',
-                            'date-from': '2026-02-15T18:00:45.621Z',
-                            'date-to': '2026-02-28T18:00:45.621Z',
-                          },
-                        ]
-                      }
-                    ),
+                    // request: () => Utils.mockResponse(
+                    //   data: {
+                    //     'user-detail': {
+                    //       'name': 'ด้วยดี ตามไทย',
+                    //       'init-role': 'อาจารย์ประจำภาควิชาคอมพิวเตอร์',
+                    //       'avatar-url': '',
+                    //     },
+                    //     'leave-info': {
+                    //       'sick': {
+                    //         'used_days': 1.5,
+                    //         'quota_days': 60.0
+                    //       },
+                    //       'personal': {
+                    //         'used_days': 1.0,
+                    //         'quota_days': 60.5
+                    //       },
+                    //       'vacation': {
+                    //         'used_days': 1.5,
+                    //         'quota_days': 60.5
+                    //       },
+                    //       'maternity': {
+                    //         'used_days': 1.0,
+                    //         'quota_days': 60.0
+                    //       },
+                    //       'paternity': {
+                    //         'used_days': 1.0,
+                    //         'quota_days': 60.0
+                    //       },
+                    //       'parental': {
+                    //         'used_days': 1.0,
+                    //         'quota_days': 60.0
+                    //       },
+                    //     },
+                    //     'user-pending': [
+                    //       {
+                    //         'request-id': 'REQ0021312',
+                    //         'type': 'sick',
+                    //         'date-from': '2026-02-15T18:00:45.621Z',
+                    //         'date-to': '2026-02-28T18:00:45.621Z',
+                    //       },
+                    //       {
+                    //         'request-id': 'REQ0021312',
+                    //         'type': 'sick',
+                    //         'date-from': '2026-02-15T18:00:45.621Z',
+                    //         'date-to': '2026-02-28T18:00:45.621Z',
+                    //       },
+                    //     ]
+                    //   }
+                    // ),
+                    request: () => LeaveApprovalService().getUserDetail(widget.userId),
                     onSuccess: (val) {
                       print(val);
                       setState(() {
@@ -147,12 +149,12 @@ class _LeaveApprovalDetail extends State<LeaveApprovalDetail> {
                                             child:  Column(
                                                 spacing: 5,
                                                 children: [
-                                                  _buildLegend(LeaveType.sick, model?.leaveDetail.sick),
-                                                  _buildLegend(LeaveType.personal, model?.leaveDetail.personal),
-                                                  _buildLegend(LeaveType.vacation, model?.leaveDetail.vacation),
-                                                  _buildLegend(LeaveType.maternity, model?.leaveDetail.maternity),
-                                                  _buildLegend(LeaveType.paternity, model?.leaveDetail.paternity),
-                                                  _buildLegend(LeaveType.parental, model?.leaveDetail.parental),
+                                                  _buildLegend(LeaveType.sick, model?.leaveDetail.sick, pending),
+                                                  _buildLegend(LeaveType.personal, model?.leaveDetail.personal, pending),
+                                                  _buildLegend(LeaveType.vacation, model?.leaveDetail.vacation, pending),
+                                                  _buildLegend(LeaveType.maternity, model?.leaveDetail.maternity, pending),
+                                                  _buildLegend(LeaveType.paternity, model?.leaveDetail.paternity, pending),
+                                                  _buildLegend(LeaveType.parental, model?.leaveDetail.parental, pending),
                                                 ]
                                             ),
                                           ),
@@ -247,7 +249,9 @@ class _LeaveApprovalDetail extends State<LeaveApprovalDetail> {
   }
 }
 
-Widget _buildLegend(LeaveType leaveType, LeaveTypeDetailModel? leaveData) {
+Widget _buildLegend(LeaveType leaveType, LeaveTypeDetailModel? leaveData, List<PendingUserDetail> pending) {
+
+  int count = pending.where((e) => e.type == leaveType).length;
 
   return Row(
     spacing: 6,
@@ -270,9 +274,9 @@ Widget _buildLegend(LeaveType leaveType, LeaveTypeDetailModel? leaveData) {
                   fit: BoxFit.scaleDown, // 👈 This tells the text to shrink if it overflows
                   alignment: Alignment.centerLeft, // Keep it aligned to the left
                   child: Text(
-                    leaveType.display,
+                    '${leaveType.display} ${count <= 0 ? '' : '($count)'}',
                     style: TextStyle(
-                        color: Color(0xFF767676),
+                        color: Color(0xFF3A3A3A),
                         fontSize: 13
                     ),
                   )

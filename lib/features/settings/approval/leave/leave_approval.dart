@@ -1,4 +1,5 @@
 import 'package:attendance_system/features/settings/personnel_info/personnel_leave_detail.dart';
+import 'package:attendance_system/services/approval/leave/leave_service.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -49,63 +50,62 @@ class _LeaveApprovalState extends State<LeaveApproval> {
       children: [
         ServiceUpdaterProMax(
             requests: [
-                ()=> Utils.mockResponse(
-                  data: {
-                    'pending': [
-                      {
-                        'user-id': 'ATT',
-                        'name': 'กหฟ ฟหกกหฟ',
-                        'request-count': 4,
-                        'avatar-url': '',
-                      },
-                      {
-                        'user-id': 'ATT',
-                        'name': 'กหฟ ฟหกกหฟdsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-                        'request-count': 5,
-                        'avatar-url': '',
-                      },
-                      {
-                        'user-id': 'ATT',
-                        'name': 'กหฟ ฟหกกหฟ',
-                        'request-count': 6,
-                        'avatar-url': '',
-                      },
-                    ]
-                  }
-                ),
+              // ()=> Utils.mockResponse(
+              //     data: {
+              //       'pending': [
+              //         {
+              //           'user-id': 'ATT',
+              //           'name': 'กหฟ ฟหกกหฟ',
+              //           'request-count': 4,
+              //           'avatar-url': '',
+              //         },
+              //         {
+              //           'user-id': 'ATT',
+              //           'name': 'กหฟ ฟหกกหฟdsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              //           'request-count': 5,
+              //           'avatar-url': '',
+              //         },
+              //         {
+              //           'user-id': 'ATT',
+              //           'name': 'กหฟ ฟหกกหฟ',
+              //           'request-count': 6,
+              //           'avatar-url': '',
+              //         },
+              //       ]
+              //     }
+              //   ),
+              // ()=> Utils.mockResponse(
+              //     data: {
+              //       'recent': [
+              //         {
+              //           'user-id': 'ATT',
+              //           'name': 'กหฟ ฟหกกหฟ',
+              //           'status': 'approved',
+              //           'request-id': 'LEV000000000030',
+              //           'type': 'sick',
+              //           'date-start': '2026-02-18T18:00:45.621Z',
+              //         },
+              //         {
+              //           'user-id': 'ATT',
+              //           'name': 'กหฟ ฟหกกหฟ',
+              //           'status': 'rejected',
+              //           'request-id': 'ATT213213',
+              //           'type': 'personal',
+              //           'date-start': '2026-02-18T18:00:45.621Z',
+              //         },
+              //       ]
+              //     }
+              //   ),
+              // ()=> Utils.mockResponse(
+              //     data: {
+              //       'start': '2025-04-01T00:00:00.000Z',
+              //       'end': '2027-06-30T00:00:00.000Z'
+              //     }
+              // )
 
-              ()=> Utils.mockResponse(
-                  data: {
-                    'recent': [
-                      {
-                        'user-id': 'ATT',
-                        'name': 'กหฟ ฟหกกหฟ',
-                        'status': 'approved',
-                        'request-id': 'LEV000000000030',
-                        'type': 'sick',
-                        'date-start': '2026-02-18T18:00:45.621Z',
-                      },
-                      {
-                        'user-id': 'ATT',
-                        'name': 'กหฟ ฟหกกหฟ',
-                        'status': 'rejected',
-                        'request-id': 'ATT213213',
-                        'type': 'personal',
-                        'date-start': '2026-02-18T18:00:45.621Z',
-                      },
-                    ]
-                  }
-                ),
-              ()=> Utils.mockResponse(
-                  data: {
-                    'start': '2025-04-01T00:00:00.000Z',
-                    'end': '2027-06-30T00:00:00.000Z'
-                  }
-              )
-
-              // () => AttendanceApprovalService().getPending(),
-              // () => AttendanceApprovalService().getRecent(filterStart, filterEnd),
-              // () => AttendanceApprovalService().getFilterRange(),
+              () => LeaveApprovalService().pending(),
+              () => LeaveApprovalService().recent(filterStart, filterEnd),
+              () => LeaveApprovalService().getFilterRange()
             ],
             onSuccess: (idx, val) {
               print(val);
