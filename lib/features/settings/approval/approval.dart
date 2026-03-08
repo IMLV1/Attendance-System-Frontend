@@ -6,7 +6,8 @@ import '../../../shared/widgets/head_bar/header.dart';
 import 'leave/leave_approval.dart';
 
 class Approval extends StatefulWidget {
-  const Approval({super.key});
+  final int initialTab;
+  const Approval({super.key, this.initialTab = 0});
 
   @override
   State<Approval> createState() { return ApprovalState(); }
@@ -14,68 +15,90 @@ class Approval extends StatefulWidget {
 
 class ApprovalState extends State<Approval> {
 
-  int select = 0;
+  late int select;
+
+  @override
+  void initState() {
+    super.initState();
+    select = widget.initialTab;
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      header: Header.mainHeader(
+      header: Header.subHeader(
         context,
         title: 'อนุมัติคำขอ',
-        subTitle: 'Approval',
       ),
       content: Column(
         children: [
+          // Folder Style Tab Switcher (Reference: User Image)
           Container(
-            padding: EdgeInsetsGeometry.only(left: 15, right: 15),
-            height: 30,
-            decoration: BoxDecoration(
-              color: AppColors.barColor,
-            ),
+            color: AppColors.barColor, // Match header's maroon color
+            height: 54, // Increased height slightly to accommodate shadow
+            padding: const EdgeInsets.only(left: 15, right: 15, top: 12),
             child: Row(
               children: [
+                // Attendance Tab
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        select = 0;
-                      });
-                    },
+                  child: InkWell(
+                    onTap: () => setState(() => select = 0),
                     child: Container(
-                      color: select == 0 ? Colors.pink : null,
+                      decoration: BoxDecoration(
+                        color: select == 0 ? AppColors.backgroundColor : Colors.transparent,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(10),
+                          topRight: Radius.circular(10),
+                        ),
+                        boxShadow: select == 0 ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.12),
+                            blurRadius: 6,
+                            offset: const Offset(0, -2),
+                          ),
+                        ] : null,
+                      ),
                       alignment: Alignment.center,
                       child: Text(
                         'เวลาเข้า-ออก',
                         style: TextStyle(
-                          color: select == 0
-                              ? Colors.white
-                              : Color(0xFFCFCFCF),
-                          fontWeight: FontWeight.bold,
+                          color: select == 0 ? AppColors.barColor : Colors.white70,
+                          fontWeight: select == 0 ? FontWeight.bold : FontWeight.w500,
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ),
                 ),
-
-                SizedBox(width: 15),
-
+                
+                const SizedBox(width: 4),
+                
+                // Leave Tab
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        select = 1;
-                      });
-                    },
+                  child: InkWell(
+                    onTap: () => setState(() => select = 1),
                     child: Container(
+                      decoration: BoxDecoration(
+                        color: select == 1 ? AppColors.backgroundColor : Colors.transparent,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(10),
+                          topRight: Radius.circular(10),
+                        ),
+                        boxShadow: select == 1 ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.12),
+                            blurRadius: 6,
+                            offset: const Offset(0, -2),
+                          ),
+                        ] : null,
+                      ),
                       alignment: Alignment.center,
-                      color: select == 1 ? Colors.pink : null,
                       child: Text(
                         'การลางาน',
                         style: TextStyle(
-                          color: select == 1
-                              ? Colors.white
-                              : Color(0xFFCFCFCF),
-                          fontWeight: FontWeight.bold,
+                          color: select == 1 ? AppColors.barColor : Colors.white70,
+                          fontWeight: select == 1 ? FontWeight.bold : FontWeight.w500,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -83,6 +106,12 @@ class ApprovalState extends State<Approval> {
                 ),
               ],
             ),
+          ),
+          
+          // Small Bridge Layer to connect active tab to content
+          Container(
+            height: 1,
+            color: AppColors.backgroundColor,
           ),
           Expanded(
             child: SafeArea(

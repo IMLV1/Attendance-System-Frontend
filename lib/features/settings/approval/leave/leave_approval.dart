@@ -328,7 +328,7 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                             width: double.infinity,
                             padding: EdgeInsetsGeometry.all(25),
                             child: Text(
-                              'ไม่มีพบคำขอเวลาเข้า-ออกงาน',
+                              'ไม่พบคำขอลางาน',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 15,

@@ -1,5 +1,7 @@
 import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/core/utils/navigation_guard.dart';
+import 'package:attendance_system/features/settings/admin_config/admin_config_utils.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -43,6 +45,29 @@ class BottomNavigation extends StatelessWidget {
     );
   }
 
+  void _onNavigate(BuildContext context, String routeName) {
+    final guard = context.read<NavigationGuard>();
+    if (guard.isDirty) {
+      AdminConfigUtils.showSaveConfirmation(
+        context: context,
+        onSave: () async {
+          final res = await guard.onSave!();
+          guard.reset();
+          if (context.mounted) {
+            context.goNamed(routeName);
+          }
+          return res;
+        },
+        onDiscard: () {
+          guard.reset();
+          context.goNamed(routeName);
+        },
+      );
+    } else {
+      context.goNamed(routeName);
+    }
+  }
+
   Widget _navigationItem(BuildContext context, String path, String routeName, String iconPath, String label) {
 
     return Expanded(
@@ -52,7 +77,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          context.goNamed(routeName);
+          _onNavigate(context, routeName);
         },
 
         child: Column(
@@ -90,7 +115,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          context.goNamed(routeName);
+          _onNavigate(context, routeName);
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -142,7 +167,7 @@ class BottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
 
         onTap: () {
-          context.goNamed(routeName);
+          _onNavigate(context, routeName);
         },
         child: Transform.translate(
             offset: Offset(-2, 0),

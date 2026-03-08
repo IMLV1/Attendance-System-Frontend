@@ -1,13 +1,15 @@
+import 'package:attendance_system/features/settings/admin_config/admin_config_utils.dart';
 import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_model.dart';
 import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_service.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
+import 'package:attendance_system/core/utils/navigation_guard.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../shared/theme/app_colors.dart';
 
@@ -43,48 +45,39 @@ class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
 
   @override
   Widget build(BuildContext context) {
+    final isDirty = data != null && !initData!.isSame(data!);
+
+    // Update global navigation guard
+    context.read<NavigationGuard>().update(
+      isDirty: isDirty,
+      onSave: () => ConfigAttendanceRequestService().update(data!),
+      onDiscard: () {
+        context.read<NavigationGuard>().reset();
+        Navigator.of(context).pop();
+      },
+    );
+
     return AppScaffold(
         header: Header.subHeader(
             context, title: 'ตั้งค่าการขออนุมัติเวลา',
             onBack: () {
-              if (data == null || initData!.isSame(data!)) {
-                Navigator.of(context).pop();
-              } else {
-                FloatingPopup(
-
-                    title: 'บันทึกการเปลี่ยนแปลง',
-                    description: 'คุณยืนยันที่จะบันทึกการเปลี่ยนแปลงนี้หรือไม่',
-
-                    buttons: (void Function(String) setError, BuildContext context1) {
-                      return [
-
-                        FloatingPopupButton(
-                            foregroundColor: Colors.red,
-                            onPressed: () {
-                              Navigator.of(context1).pop();
-                              Navigator.pop(context);
-                            },
-                            text: 'ละทิ้ง'
-                        ),
-
-                        FloatingServicePopupButton(
-                            backgroundColor: AppColors.primaryColor,
-                            foregroundColor: Colors.white,
-                            onSuccess: () {
-                              Navigator.of(context1).pop();
-                              Navigator.pop(context);
-                            },
-                            text: 'บันทึก',
-                            request: () => ConfigAttendanceRequestService().update(data!),
-                            setError: setError
-                        )
-                      ];
-                    }
-                ).showPopup(context);
-              }
+              Navigator.of(context).maybePop();
             }
         ),
-        content: SafeArea(
+        content: PopScope(
+          canPop: data == null || initData!.isSame(data!),
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+
+            AdminConfigUtils.showSaveConfirmation(
+              context: context,
+              onSave: () => ConfigAttendanceRequestService().update(data!),
+              onDiscard: () {
+                Navigator.of(context).pop();
+              },
+            );
+          },
+          child: SafeArea(
             child: Container(
                 color: AppColors.backgroundColor,
                 alignment: Alignment.topCenter,
@@ -107,7 +100,7 @@ class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
                                   },
                                   builder: () {
                                     return SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                       physics: AlwaysScrollableScrollPhysics(),
                                       child: Column(
                                         spacing: 13,
@@ -200,6 +193,7 @@ class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
                     )
                 )
             )
+          )
         )
     );
   }

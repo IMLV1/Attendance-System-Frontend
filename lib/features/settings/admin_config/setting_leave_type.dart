@@ -1,15 +1,17 @@
+import 'package:attendance_system/features/settings/admin_config/admin_config_utils.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
-import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
+import 'package:attendance_system/core/utils/navigation_guard.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 Future<Response> mockData() async {
   await Future.delayed(const Duration(milliseconds: 200));
@@ -91,48 +93,39 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
 
   @override
   Widget build(BuildContext context) {
+    final isDirty = data != null && !initData!.isSame(data!);
+
+    // Update global navigation guard
+    context.read<NavigationGuard>().update(
+      isDirty: isDirty,
+      onSave: () => ConfigLeaveService().update(data!),
+      onDiscard: () {
+        context.read<NavigationGuard>().reset();
+        Navigator.of(context).pop();
+      },
+    );
+
     return AppScaffold(
         header: Header.subHeader(
-            context, title: 'ตั้งค่าการลงชื่อเข้า-ออกงาน',
+            context, title: 'ตั้งค่าประเภทการลา',
             onBack: () {
-              if (data == null || initData!.isSame(data!)) {
-                Navigator.of(context).pop();
-              } else {
-                FloatingPopup(
-
-                    title: 'บันทึกการเปลี่ยนแปลง',
-                    description: 'คุณยืนยันที่จะบันทึกการเปลี่ยนแปลงนี้หรือไม่',
-
-                    buttons: (void Function(String) setError, BuildContext context1) {
-                      return [
-
-                        FloatingPopupButton(
-                            foregroundColor: Colors.red,
-                            onPressed: () {
-                              Navigator.of(context1).pop();
-                              Navigator.pop(context);
-                            },
-                            text: 'ละทิ้ง'
-                        ),
-
-                        FloatingServicePopupButton(
-                            backgroundColor: AppColors.primaryColor,
-                            foregroundColor: Colors.white,
-                            onSuccess: () {
-                              Navigator.of(context1).pop();
-                              Navigator.pop(context);
-                            },
-                            text: 'บันทึก',
-                            request: () => ConfigLeaveService().update(data!),
-                            setError: setError
-                        )
-                      ];
-                    }
-                ).showPopup(context);
-              }
+              Navigator.of(context).maybePop();
             }
         ),
-        content: SafeArea(
+        content: PopScope(
+          canPop: data == null || initData!.isSame(data!),
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+
+            AdminConfigUtils.showSaveConfirmation(
+              context: context,
+              onSave: () => ConfigLeaveService().update(data!),
+              onDiscard: () {
+                Navigator.of(context).pop();
+              },
+            );
+          },
+          child: SafeArea(
             child: Container(
                 color: AppColors.backgroundColor,
                 alignment: Alignment.topCenter,
@@ -155,7 +148,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                   },
                                   builder: () {
                                     return SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                       physics: AlwaysScrollableScrollPhysics(),
                                       child: Column(
                                         spacing: 13,
@@ -267,6 +260,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                     )
                 )
             )
+          )
         )
     );
   }
@@ -302,117 +296,150 @@ class _ConfigLeaveState extends State<ConfigLeave> {
 
   @override
   Widget build(BuildContext context) {
+    final isDirty = data != null && !widget.data.isSame(data!);
+
+    // Update global navigation guard
+    context.read<NavigationGuard>().update(
+      isDirty: isDirty,
+      onSave: () async {
+        context.read<NavigationGuard>().reset();
+        if (context.mounted) Navigator.pop(context, data);
+        return Response(requestOptions: RequestOptions(path: ''));
+      },
+      onDiscard: () {
+        context.read<NavigationGuard>().reset();
+        Navigator.pop(context, widget.data);
+      },
+    );
+
     return AppScaffold(
         header: Header.subHeader(
           context, title: 'ตั้งค่า: ${widget.name}',
           onBack: () {
-            Navigator.pop(context, data);
+            Navigator.of(context).maybePop();
           }
         ),
-        content: SafeArea(
-          child: Container(
-            color: AppColors.backgroundColor,
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 10, right: 10, top: 20, bottom: 20),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                      physics: AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        spacing: 13,
-                        children: [
-                          SeparatorCard(
-                            separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                            children: [
-                              ToggleSwitch(
-                                icon: 'icon_request_signature.svg',
-                                label: 'ส่งคำขอต้องการลายเซ็น',
-                                value: data!.requestNeedSignature,
-                                onChanged: (value) {
-                                  setState(() {
-                                    data = data!.copyWith(requestNeedSignature: value);
-                                  });
-                                },
-                              ),
-                              ToggleSwitch(
-                                icon: 'icon_request_signature.svg',
-                                label: 'อนุมัติต้องการลายเซ็น',
-                                value: data!.approveNeedSignature,
-                                onChanged: (value) {
-                                  setState(() {
-                                    data = data!.copyWith(approveNeedSignature: value);
-                                  });
-                                },
-                              )
-                            ],
-                          ),
-                          SeparatorCard(
-                            separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                            children: [
-                              ToggleSwitch(
-                                icon: 'allow_retroactive.svg',
-                                label: 'อนุญาติให้ลาย้อนหลัง',
-                                value: data!.allowRetroactive,
-                                onChanged: (value) {
-                                  setState(() {
-                                    data = data!.copyWith(allowRetroactive: value);
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          SeparatorCard(
-                            separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                            children: [
-                              ToggleSwitch(
-                                icon: 'icon_specify_approval.svg',
-                                label: 'การระบุหมายเหตุ',
-                                value: data!.specifyRemark,
-                                subValue: data!.requiredRemark,
-                                subSwitch: true,
-                                onChanged: (value) {
-                                  setState(() {
-                                    data = data!.copyWith(specifyRemark: value);
-                                    if (!value) data = data!.copyWith(requiredRemark: false);
-                                  });
-                                },
-                                subLabel: 'จำเป็นต้องระบุ',
-                                onSubChanged: (value) {
-                                  setState(() {
-                                    data = data!.copyWith(requiredRemark: value);
-                                  });
-                                },
-                              ),
-                              ToggleSwitch(
-                                icon: 'icon_attach_evidence.svg',
-                                label: 'แนบไฟล์หลักฐาน',
-                                subSwitch: true,
-                                value: data!.evidenceFile,
-                                subValue: data!.requiredEvidenceFile,
-                                onChanged: (value) {
-                                  setState(() {
-                                    data = data!.copyWith(evidenceFile: value);
-                                    if (!value) data = data!.copyWith(requiredEvidenceFile: false);
-                                  });
-                                },
-                                subLabel: 'จำเป็นต้องแนบ',
-                                onSubChanged: (value) {
-                                  setState(() {
-                                    data = data!.copyWith(requiredEvidenceFile: value);
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
+        content: PopScope(
+          canPop: data == null || widget.data.isSame(data!),
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+
+            AdminConfigUtils.showSaveConfirmation(
+              context: context,
+              onSave: () async {
+                if (context.mounted) Navigator.pop(context, data);
+                return Response(requestOptions: RequestOptions(path: ''));
+              },
+              onDiscard: () {
+                Navigator.pop(context, widget.data);
+              },
+            );
+          },
+          child: SafeArea(
+            child: Container(
+              color: AppColors.backgroundColor,
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 10, right: 10, top: 20, bottom: 20),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                        physics: AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          spacing: 13,
+                          children: [
+                            SeparatorCard(
+                              separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                              children: [
+                                ToggleSwitch(
+                                  icon: 'icon_request_signature.svg',
+                                  label: 'ส่งคำขอต้องการลายเซ็น',
+                                  value: data!.requestNeedSignature,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      data = data!.copyWith(requestNeedSignature: value);
+                                    });
+                                  },
+                                ),
+                                ToggleSwitch(
+                                  icon: 'icon_request_signature.svg',
+                                  label: 'อนุมัติต้องการลายเซ็น',
+                                  value: data!.approveNeedSignature,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      data = data!.copyWith(approveNeedSignature: value);
+                                    });
+                                  },
+                                )
+                              ],
+                            ),
+                            SeparatorCard(
+                              separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                              children: [
+                                ToggleSwitch(
+                                  icon: 'allow_retroactive.svg',
+                                  label: 'อนุญาติให้ลาย้อนหลัง',
+                                  value: data!.allowRetroactive,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      data = data!.copyWith(allowRetroactive: value);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            SeparatorCard(
+                              separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                              children: [
+                                ToggleSwitch(
+                                  icon: 'icon_specify_approval.svg',
+                                  label: 'การระบุหมายเหตุ',
+                                  value: data!.specifyRemark,
+                                  subValue: data!.requiredRemark,
+                                  subSwitch: true,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      data = data!.copyWith(specifyRemark: value);
+                                      if (!value) data = data!.copyWith(requiredRemark: false);
+                                    });
+                                  },
+                                  subLabel: 'จำเป็นต้องระบุ',
+                                  onSubChanged: (value) {
+                                    setState(() {
+                                      data = data!.copyWith(requiredRemark: value);
+                                    });
+                                  },
+                                ),
+                                ToggleSwitch(
+                                  icon: 'icon_attach_evidence.svg',
+                                  label: 'แนบไฟล์หลักฐาน',
+                                  subSwitch: true,
+                                  value: data!.evidenceFile,
+                                  subValue: data!.requiredEvidenceFile,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      data = data!.copyWith(evidenceFile: value);
+                                      if (!value) data = data!.copyWith(requiredEvidenceFile: false);
+                                    });
+                                  },
+                                  subLabel: 'จำเป็นต้องแนบ',
+                                  onSubChanged: (value) {
+                                    setState(() {
+                                      data = data!.copyWith(requiredEvidenceFile: value);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     )
-                  )
-                ]
+                  ]
+                )
               )
             )
           )

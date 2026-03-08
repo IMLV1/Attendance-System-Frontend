@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -44,7 +45,7 @@ class LeaveApprovalService {
   }
 
   Future<Response<dynamic>> approval(String reqId, String status, String reason, Uint8List? signature) async {
-    return dio.put('/api/leave-approval/$reqId',
+    final response = await dio.put('/api/leave-approval/$reqId',
         data: {
           'status': status,
           'reason': reason,
@@ -55,5 +56,11 @@ class LeaveApprovalService {
           ) : null
         }
     );
+
+    if (response.statusCode == 200) {
+      NotificationService().sendApprovalResponseNotification('LEAVE_REQUEST', reqId, status);
+    }
+
+    return response;
   }
 }

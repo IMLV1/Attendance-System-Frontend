@@ -275,7 +275,7 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                             width: double.infinity,
                             padding: EdgeInsetsGeometry.all(25),
                             child: Text(
-                              'ไม่มีพบคำขอเวลาเข้า-ออกงาน',
+                              'ไม่พบคำขอเวลาเข้า-ออกงาน',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 15,

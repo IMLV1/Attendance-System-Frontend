@@ -1,14 +1,16 @@
+import 'package:attendance_system/features/settings/admin_config/admin_config_utils.dart';
 import 'package:attendance_system/services/system_config/budget_year/config_budget_year_model.dart';
 import 'package:attendance_system/services/system_config/budget_year/config_budget_year_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
-import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/wheel_selector.dart';
+import 'package:attendance_system/core/utils/navigation_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SettingBudgetYear extends StatefulWidget {
   const SettingBudgetYear({super.key});
@@ -59,50 +61,39 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
 
   @override
   Widget build(BuildContext context) {
-    // ❌ ลบการสร้าง List ใน build ออก
+    final isDirty = initDayIndex != selectedDayIndex || initMonthIndex != selectedMonthIndex;
+
+    // Update global navigation guard
+    context.read<NavigationGuard>().update(
+      isDirty: isDirty,
+      onSave: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
+      onDiscard: () {
+        context.read<NavigationGuard>().reset();
+        Navigator.of(context).pop();
+      },
+    );
 
     return AppScaffold(
         header: Header.subHeader(context,
           title: 'ตั้งค่าปีงบประมาณ',
           onBack: () {
-            if (initDayIndex == selectedDayIndex && initMonthIndex == selectedMonthIndex) {
-              Navigator.of(context).pop();
-            } else {
-              FloatingPopup(
-
-                  title: 'บันทึกการเปลี่ยนแปลง',
-                  description: 'คุณยืนยันที่จะบันทึกการเปลี่ยนแปลงนี้หรือไม่',
-
-                  buttons: (void Function(String) setError, BuildContext context1) {
-                    return [
-
-                      FloatingPopupButton(
-                          foregroundColor: Colors.red,
-                          onPressed: () {
-                            Navigator.of(context1).pop();
-                            Navigator.pop(context);
-                          },
-                          text: 'ละทิ้ง'
-                      ),
-
-                      FloatingServicePopupButton(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: Colors.white,
-                          onSuccess: () {
-                            Navigator.of(context1).pop();
-                            Navigator.pop(context);
-                          },
-                          text: 'บันทึก',
-                          request: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
-                          setError: setError
-                      )
-                    ];
-                  }
-              ).showPopup(context);
-            }
+            Navigator.of(context).maybePop();
           }
         ),
-        content: SafeArea(
+        content: PopScope(
+          canPop: initDayIndex == selectedDayIndex && initMonthIndex == selectedMonthIndex,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+
+            AdminConfigUtils.showSaveConfirmation(
+              context: context,
+              onSave: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
+              onDiscard: () {
+                Navigator.of(context).pop();
+              },
+            );
+          },
+          child: SafeArea(
             child: Container(
                 color: AppColors.backgroundColor,
                 alignment: Alignment.topCenter,
@@ -130,7 +121,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                               },
                               builder: () {
                                 return SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                     physics: AlwaysScrollableScrollPhysics(),
                                     child: SeparatorCard(
                                       separatorPadding: EdgeInsetsGeometry.symmetric(
@@ -179,6 +170,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                     )
                 )
             )
+          )
         )
     );
   }

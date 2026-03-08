@@ -1,4 +1,5 @@
 import 'package:attendance_system/services/time_request/time_request_model.dart';
+import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -60,10 +61,19 @@ class TimeRequestService {
       data['files'] = multipartFiles;
     }
 
-    return dio.post(
+    final response = await dio.post(
       '/api/attendance_request/create',
       data: FormData.fromMap(data),
     );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final String? requestNumber = response.data['request-number'] ?? response.data['id']; // Time request might use 'id'
+      if (requestNumber != null) {
+        NotificationService().sendRequestNotification('APPROVER_ATTENDANCE', requestNumber);
+      }
+    }
+
+    return response;
   }
 
   Future<Response<dynamic>> resend(String id, String remark, List<NetworkFile> oldFiles, List<PlatformFile> files, Uint8List? signature) async {
