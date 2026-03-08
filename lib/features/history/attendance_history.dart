@@ -30,48 +30,13 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
   // 1) ตัวกรองวันที่ (Filter)
   // -----------------------------
   // วันเริ่มต้น/วันสิ้นสุด ที่ผู้ใช้เลือกไว้ (ส่งเข้า API เป็น query)
-  bool _defaultFilterSet = false;
   DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);//DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
   DateTime? filterStart;
   DateTime? filterEnd;
 
-  // -----------------------------
-  // 2) ข้อมูลหลักของหน้าจอ
-  // -----------------------------
-  // Mock Data
-  final List<AttendanceHistoryModel> _mockItem = [
-    AttendanceHistoryModel(
-      // เข้างานปกติ
-      date: DateTime.parse("2026-12-24"),
-      dow: "พุธ",
-      checkIn: "08:30",
-      checkOut: "18:30",
-      leavePeriod: "NONE",
-    ),
-    //** ลาเช้า **
-    AttendanceHistoryModel(
-      date: DateTime.parse("2026-12-25"),
-      dow: "พฤหัสบดี",
-      checkIn: "13:00",
-      checkOut: "18:30",
-      leavePeriod: "MORNING",
-    ),
-    AttendanceHistoryModel(
-      date: DateTime.parse("2026-12-26"),
-      dow: "ศุกร์",
-      checkIn: "09:00",
-      checkOut: "13:00",
-      leavePeriod: "AFTERNOON",
-    ),
-    AttendanceHistoryModel(
-      date: DateTime.parse("2026-12-27"),
-      dow: "เสาร์",
-      checkIn: null,
-      checkOut: null,
-      leavePeriod: "FULL_DAY",
-    ),
-  ];
+  DateTime? filterStartAllow;
+  DateTime? filterEndAllow;
 
 
   // รายการประวัติที่ดึงมาจาก API (แปลงเป็น Model แล้วเก็บไว้แสดงผล)
@@ -103,12 +68,8 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     _stdInMinute = setting?.checkInTime.minute ?? 0;
 
     //จะใช้ตอนลาเช้า แล้วมา checkIn ตอนบ่าย (ค่า default เป็น 13.00 ถ้าไม่ได้เปลี่ยน)
-    var _checkInLeave = setting?.checkInLeaveTime;
-    debugPrint("_checkInLeave: $_checkInLeave");
     _checkInLeaveHour = setting?.checkInLeaveTime.hour?? 0;
-    debugPrint("_checkInLeaveHour: $_checkInLeaveHour");
     _checkInLeaveMin = setting?.checkInLeaveTime.minute?? 0;
-    debugPrint("_checkInLeaveMin: $_checkInLeaveMin");
 
     return AppScaffold(
       header: Header.subHeader(context, title: "บันทึกการเข้างาน"),
@@ -146,47 +107,37 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                 //ถ้า ว่าง null ถ้าไม่  return เช่น "2026-03-02"
                                 startDate: filterStart == null ? null : _toYmd(filterStart!),//เช่น "2026-03-02"
                                 endDate: filterEnd == null ? null : _toYmd(filterEnd!),
-                              )
+                              ),
+
+                              () => AttendanceHistoryService().getFilterRange(),
                             ],
 
                             // ถูกเรียกเมื่อ request สำเร็จ (index=0 คือ request ตัวแรก)
                             // data คือ response ที่ service ส่งกลับมา (เป็น List)
                             onSuccess: (index, data) {
-                              // แปลง response (data) เป็น list ของ AttendanceHistoryModel (from database)
-                              _items = AttendanceHistoryModel.getList(data);
+                              setState(() {
+                                switch(index) {
+                                  case 0: {
+                                    // แปลง response (data) เป็น list ของ AttendanceHistoryModel (from database)
+                                    _items = AttendanceHistoryModel.getList(data);
 
-                              //ใช้ mock data
-                              //_items = _mockItem;
+                                    // เรียงจาก "ใหม่ -> เก่า"
+                                    _items.sort((a, b) => b.date.compareTo(a.date));
+                                  }
+                                  case 1: {
+                                    final start = DateTime.tryParse(data['start']);
+                                    final end = DateTime.tryParse(data['end']);
 
-                              //debug
-                              debugPrint("=== onSuccess index: $index ===");
-                              debugPrint("data runtimeType: ${data.runtimeType}");
-                              debugPrint("data: $data");
-
-                              // ตั้งค่า default filter ครั้งแรกจากข้อมูลใน DB
-                              if(!_defaultFilterSet && _items.isNotEmpty) {
-                                //วันที่ของตัวแรกใน list เป็นค่าเริ่มต้นทั้ง max min
-                                DateTime minDate = _items.first.date;
-                                DateTime maxDate = _items.first.date;
-
-                                //วนดูทุกวันใน list
-                                // ถ้าเจอวัน “เก่ากว่า” → อัปเดต minDate
-                                // ถ้าเจอวัน “ใหม่กว่า” → อัปเดต maxDate
-                                for (final item in _items) {
-                                  final d = item.date;
-                                  if (d.isBefore(minDate)) minDate = d;
-                                  if (d.isAfter(maxDate)) maxDate = d;
+                                    if (start != null) {
+                                      filterStartAllow = DateTime(start.year, start.month, 1);
+                                    }
+                                    if (end != null) {
+                                      filterEndAllow = DateTime(end.year, end.month + 1, 0);
+                                    }
+                                  }
                                 }
-
-                                filterStart = _dateOnly(minDate); // startDate = วันที่มีข้อมูลเก่าสุด
-                                filterEnd = _dateOnly(maxDate); // endDate = วันที่มีข้อมูลล่าสุด
-                                _defaultFilterSet = true;
-                              }
-                              // เรียงจาก "ใหม่ -> เก่า"
-                              _items.sort((a, b) => b.date.compareTo(a.date));
-                              //เปลี่ยนค่ามาแล้ว “ข้างนอก” (ก่อนหน้า) เลยเรียก setState เพื่อ rebuild อย่างเดียว
-                              setState(() {});//rebuild
-                              },
+                              });
+                            },
 
                             // เปิดหน้าแล้วให้ยิง request ทันที
                             fetchOnInit: true,//ถ้าเป็น false ต้อง “สั่งโหลด” ก่อนถึงจะมีรายการขึ้น
@@ -235,6 +186,9 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                         // ส่งค่าปัจจุบันเข้าไป เพื่อให้ popup แสดงค่าที่เคยเลือกไว้
                                           currentDateFrom: filterStart,
                                           currentDateTo: filterEnd,
+
+                                          allowDateFrom: filterStartAllow,
+                                          allowDateTo: filterEndAllow,
 
                                           // callback ตอนกด "บันทึก" ใน popup
                                           onSubmit: (start, end) {

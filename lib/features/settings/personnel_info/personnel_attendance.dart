@@ -1,16 +1,22 @@
+import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/features/settings/personnel_info/choose_personnel.dart';
-import 'package:attendance_system/features/settings/personnel_info/personnel_leave_detail.dart';
-import 'package:attendance_system/services/leave/leave_model.dart';
+import 'package:attendance_system/services/history/attendance_history_model.dart';
+import 'package:attendance_system/services/personnel_info/personnel_attendance_service.dart';
 import 'package:attendance_system/services/personnel_info/personnel_info_model.dart';
+import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/date_filter_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 class PersonnelAttendance extends StatefulWidget {
 
@@ -27,13 +33,28 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
 
   PersonnelInfoModel? personnel;
 
-  int permissionLevel = 0;
+  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);//DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  DateTime? filterStart;
+  DateTime? filterEnd;
 
   DateTime? filterStartAllow;
   DateTime? filterEndAllow;
 
-  DateTime? filterStart;
-  DateTime? filterEnd;
+
+  // รายการประวัติที่ดึงมาจาก API (แปลงเป็น Model แล้วเก็บไว้แสดงผล)
+  List<AttendanceHistoryModel> _items = [];
+
+  // -----------------------------
+  // 3) เวลาเข้างานมาตรฐาน (เอาไว้เทียบว่าสายไหม)
+  // -----------------------------
+  // ค่า default เป็น 0 ไว้ก่อน แล้วจะไปอ่านจาก AuthState.timeConfig ตอน build
+  int _stdInHour = 0;
+  int _stdInMinute = 0;
+
+  //เอาไว้ใช้กรณีที่ ลาเช้า จะใช้เวลานี้แทน
+  int _checkInLeaveHour = 0;
+  int _checkInLeaveMin = 0;
 
   @override
   void initState() {
@@ -43,80 +64,533 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
 
   @override
   Widget build(BuildContext context) {
+
+    ConfigAttendanceTimeModel? setting = context.watch<AuthState>().timeConfig;
+
+    //เวลาเข้าทำงานมาตรฐาน
+    _stdInHour = setting?.checkInTime.hour ?? 0;
+    _stdInMinute = setting?.checkInTime.minute ?? 0;
+
+    //จะใช้ตอนลาเช้า แล้วมา checkIn ตอนบ่าย (ค่า default เป็น 13.00 ถ้าไม่ได้เปลี่ยน)
+    _checkInLeaveHour = setting?.checkInLeaveTime.hour?? 0;
+    _checkInLeaveMin = setting?.checkInLeaveTime.minute?? 0;
+
     return AppScaffold(
-        header: Header.subHeader(
-            context,
-            title: 'บันทึกการเข้างาน',
-            onBack: () {
-              Navigator.of(context).pop(personnel);
-            }
-        ),
-        content: SafeArea(
-            child: Container(
-                color: AppColors.backgroundColor,
-                alignment: Alignment.topCenter,
-                child: Padding(
-                    padding: EdgeInsets.only(
-                        left: 10, right: 10, top: 20),
-                    child: Column(
-                        children: [
-                          Expanded(
-                              child: SingleChildScrollView(
-                                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                                  physics: AlwaysScrollableScrollPhysics(),
-                                  child: Column(
-                                      spacing: 13,
-                                      children: [
-                                        Container(
-                                            decoration: BoxDecoration(
-                                              color: Color(0xFFE3E3E3),
-                                              borderRadius: BorderRadius.circular(22),
-                                            ),
-                                            padding: EdgeInsetsGeometry.symmetric(horizontal: 12, vertical: 14),
-                                            child: SeparatorCard(
-                                              children: [
-                                                UserInfoButton(
-                                                  icon: Image.network(
-                                                    personnel!.avatarUrl,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder: (_, _, _) => Image.asset('assets/images/profile.svg'),
-                                                  ),
-                                                  title: personnel!.nameTH,
-                                                  subTitle: personnel!.nameEN,
-                                                  roles: [
-                                                    ...personnel!.roles,
-                                                    Role(id: '0000000000', name: personnel!.initRole, color: Color(0xFF535353))
-                                                  ],
-                                                  onPressed: () {
-                                                    PushPopup(
-                                                        title: 'เลือกบุคลากร',
-                                                        fit: FlexFit.tight,
-                                                        maxHeight: 700,
-                                                        scroll: false,
-                                                        builder: (BuildContext context) {
-                                                          return ChoosePersonnel(
-                                                              onChoose: (personnel) {
-                                                                setState(() {
-                                                                  this.personnel = personnel;
-                                                                });
-                                                              }
-                                                          );
-                                                        }
-                                                    ).showPopup(context);
-                                                  },
-                                                )
-                                              ],
-                                            )
-                                        )
-                                      ]
+      header: Header.subHeader(
+        context,
+        title: 'บันทึกการเข้างาน',
+        onBack: () {
+          Navigator.of(context).pop(personnel);
+        }
+      ),
+      content: SafeArea(
+        child: Container(
+          color: AppColors.backgroundColor,
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 10, right: 10, top: 20),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    physics: AlwaysScrollableScrollPhysics(),
+                    child: ServiceUpdaterProMax(
+                      requests: [
+                        () => PersonnelAttendanceService().fetchHistory(
+                          //ถ้า ว่าง null ถ้าไม่  return เช่น "2026-03-02"
+                          personnelId: personnel!.id,
+                          startDate: filterStart == null ? null : _toYmd(filterStart!),//เช่น "2026-03-02"
+                          endDate: filterEnd == null ? null : _toYmd(filterEnd!),
+                        ),
+
+                        () => PersonnelAttendanceService().getFilterRange(personnelId: personnel!.id),
+                      ],
+                      onSuccess: (index, data) {
+                        setState(() {
+                          switch(index) {
+                            case 0: {
+                              _items = AttendanceHistoryModel.getList(data);
+                              _items.sort((a, b) => b.date.compareTo(a.date));
+                            }
+                            case 1: {
+                              final start = DateTime.tryParse(data['start']);
+                              final end = DateTime.tryParse(data['end']);
+
+                              if (start != null) {
+                                filterStartAllow = DateTime(start.year, start.month, 1);
+                              }
+                              if (end != null) {
+                                filterEndAllow = DateTime(end.year, end.month + 1, 0);
+                              }
+                            }
+                          }
+                        });
+                      },
+                      fetchOnInit: true,
+                      builder: (trigger, getState) {
+
+                        final Map<String, List<AttendanceHistoryModel>> groupedItems = {};
+
+                        //Loop ดึงข้อมูล
+                        for (final item in _items){
+                          final d = _dateOnly(item.date);//เอาข้อมูลแค่วันมาใช้
+
+                          //ถ้า วันที่ d มาก่อน วันของ filterStart -> ข้าม
+                          if(filterStart != null && d.isBefore(_dateOnly(filterStart!))){
+                            continue;
+                          }
+
+                          //ถ้า วันที่ d มาหลัง วันของ filterEnd -> ข้าม
+                          if(filterEnd != null && d.isAfter(_dateOnly(filterEnd!))){
+                            continue;
+                          }
+
+                          final label = _monthYearLabel(d);//ex = "มีนาคม 2569"
+                          //groupedItems คือ Map key เป็น String (เช่น "มีนาคม 2569") value เป็น List<AttendanceHistoryModel> (รายการของเดือนนั้น)
+                          //putIfAbsent = ถ้าใน Map ยังไม่มี key นี้ ให้สร้างค่าเริ่มต้นให้มัน Ex. ถ้า groupedItems ยังไม่มี "มีนาคม 2569" → ให้ใส่ key นี้เข้าไป พร้อม value เป็น [] (list ว่าง)
+                          // .add(item) เพื่อ เพิ่ม item เข้า list ของเดือนนั้น
+                          groupedItems.putIfAbsent(label, ()=> []).add(item);
+                          //ก็คือแบบว่า เอา item เข้าเดือนนั้น ถ้าเป็นเดือนใหม่ที่ยังไม่เคยมีใน groupedItems มันจะสร้าง key ใหม่ให้ใน groupedItems
+                        }
+
+                        return Column(
+                          spacing: 13,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Color(0xFFE3E3E3),
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              padding: EdgeInsetsGeometry.symmetric(horizontal: 12, vertical: 14),
+                              child: SeparatorCard(
+                                children: [
+                                  UserInfoButton(
+                                    icon: Image.network(
+                                      personnel!.avatarUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => Image.asset('assets/images/profile.svg'),
+                                    ),
+                                    title: personnel!.nameTH,
+                                    subTitle: personnel!.nameEN,
+                                    roles: [
+                                      ...personnel!.roles,
+                                      Role(id: '0000000000', name: personnel!.initRole, color: Color(0xFF535353))
+                                    ],
+                                    onPressed: () {
+                                      PushPopup(
+                                        title: 'เลือกบุคลากร',
+                                        fit: FlexFit.tight,
+                                        maxHeight: 700,
+                                        scroll: false,
+                                        builder: (BuildContext context) {
+                                          return ChoosePersonnel(
+                                            onChoose: (personnel) {
+                                              setState(() {
+                                                this.personnel = personnel;
+                                              });
+                                              trigger(-1);
+                                            }
+                                          );
+                                        }
+                                      ).showPopup(context);
+                                    },
                                   )
+                                ],
                               )
-                          )
-                        ]
+                            ),
+
+                            Column(
+                              spacing: 6,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsetsGeometry.symmetric(horizontal: 6),
+                                  child: InkWell(
+                                    // กดแล้วเปิด DateFilterPopup
+                                    onTap: () {
+                                      DateFilterPopup(
+                                        // ส่งค่าปัจจุบันเข้าไป เพื่อให้ popup แสดงค่าที่เคยเลือกไว้
+                                          currentDateFrom: filterStart,
+                                          currentDateTo: filterEnd,
+
+                                          allowDateFrom: filterStartAllow,
+                                          allowDateTo: filterEndAllow,
+
+                                          // callback ตอนกด "บันทึก" ใน popup
+                                          onSubmit: (start, end) {
+                                            setState(() {
+                                              // เก็บค่าวันที่ที่เลือกไว้ใน state ของหน้า
+                                              filterStart = start;
+                                              filterEnd = end;
+                                            });
+
+                                            // ยิง request ใหม่ (index 0) เพื่อโหลดข้อมูลตาม filter
+                                            trigger(0);
+                                          }
+                                      ).showPopup(context);
+                                    },
+                                    //UI
+                                    child: Row(
+                                      spacing: 6,
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/images/filter.svg',
+                                          colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
+                                        ),
+                                        Text(
+                                            'ตัวกรอง',
+                                            style: TextStyle(
+                                              color: Color(0xFF2C2C2C),
+                                            )
+                                        ),
+                                        if (getState(0) == ServiceUpdaterProMaxState.loading)
+                                          CupertinoActivityIndicator(),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                Column(
+                                  spacing: 13,
+                                  children: [
+
+                                    // ================= UI ส่วนที่ 2: รายการประวัติ (History List) =================
+                                    // ถ้าไม่มีข้อมูล และไม่ได้กำลังโหลดอยู่ -> แสดง "ไม่มีข้อมูล"
+                                    if (_items.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading)
+                                      SeparatorCard(
+                                        children: [
+                                          Container(
+                                            color: Colors.white,
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(25),
+                                            child: const Text(
+                                              'ไม่มีข้อมูล',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Color(0xFF7D7D7D),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      )
+                                    else
+                                    // ถ้ามีข้อมูล -> วนตามเดือน/ปี
+                                      Column(
+                                        spacing: 15,
+                                        //สร้าง children หลายตัว โดย วนตามแต่ละกลุ่ม (แต่ละเดือน/ปี) แล้วเอา widget ที่สร้างได้ทั้งหมดมาเป็น list ใส่ใน children
+                                        children: groupedItems.entries.map((entry) {
+                                          return Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            spacing: 8,
+                                            children: [
+                                              // หัวข้อเดือน/ปี เช่น "ธันวาคม 2569"
+                                              Padding(
+                                                padding: const EdgeInsets.only(left: 10),
+                                                child: Text(
+                                                  entry.key,
+                                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+
+                                              // กล่องรายการของเดือนนั้นๆ
+                                              SeparatorCard(
+                                                separatorPadding: const EdgeInsets.only(left: 95, right: 15),
+                                                children: entry.value.map((item) {
+
+                                                  // -----------------------------
+                                                  // เตรียมข้อมูลแถว (row) ก่อนแสดง
+                                                  // -----------------------------
+                                                  final day = item.date.day.toString(); // เลขวัน เช่น "18"
+                                                  final dow = item.dow ?? _thaiDowFromDate(item.date); // วันในสัปดาห์
+                                                  final timeIn = item.checkIn ?? "--:--"; // เวลาเข้างาน
+                                                  final timeOut = item.checkOut ?? "--:--"; // เวลาออกงาน
+                                                  final leavePeriod = item.leavePeriod ?? "NONE";
+
+                                                  // คำนวณสี/ข้อความสถานะ/ชั่วโมงทำงาน
+                                                  final ui = _computeUi(
+                                                    dow: dow,
+                                                    timeIn: timeIn,
+                                                    timeOut: timeOut,
+                                                    leavePeriod: leavePeriod,
+                                                  );
+
+                                                  // -----------------------------
+                                                  // UI ของแต่ละแถว
+                                                  // -----------------------------
+                                                  return Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                                                    child: Row(
+                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      children: [
+                                                        // Badge วันที่: เลขวัน + วันในสัปดาห์
+                                                        Container(
+                                                          width: 64,
+                                                          padding: const EdgeInsets.symmetric(vertical: 4),
+                                                          decoration: BoxDecoration(
+                                                            color: ui["bgColor"],
+                                                            borderRadius: BorderRadius.circular(14),
+                                                          ),
+                                                          child: Column(
+                                                            children: [
+                                                              Text(day, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700, height: 1.2)),
+                                                              Text(dow, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 20),
+
+                                                        // รายละเอียดเวลา + สถานะ
+                                                        Expanded(
+                                                          child: Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                              // แถวเวลาเข้างาน/ออกงาน
+                                                              Row(
+                                                                children: [
+                                                                  Text("เข้างาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                                                  Text(timeIn, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                                                                  const SizedBox(width: 11),
+                                                                  Text("|", style: TextStyle(color: Colors.grey.shade400)),
+                                                                  const SizedBox(width: 11),
+                                                                  Text("ออกงาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                                                  Text(timeOut, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                                                                ],
+                                                              ),
+                                                              const SizedBox(height: 8),
+
+                                                              // แถวสถานะ + ชั่วโมงทำงาน
+                                                              Row(
+                                                                children: [
+                                                                  // Chip สถานะ: ตรงเวลา/สาย/ไม่สมบูรณ์ พร้อมไอคอน
+                                                                  Container(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                                    decoration: BoxDecoration(
+                                                                      color: ui["statusBg"],
+                                                                      borderRadius: BorderRadius.circular(20),
+                                                                    ),
+                                                                    child: Row(
+                                                                      children: [
+                                                                        SvgPicture.asset(
+                                                                          ui["statusIconAsset"],
+                                                                          width: 16,
+                                                                          height: 16,
+                                                                          // ย้อมสีไอคอนให้เป็นสีเดียวกับข้อความสถานะ
+                                                                          colorFilter: ColorFilter.mode(ui["statusFg"], BlendMode.srcIn),
+                                                                        ),
+                                                                        const SizedBox(width: 6),
+                                                                        Text(
+                                                                          ui["statusText"],
+                                                                          style: TextStyle(
+                                                                            fontSize: 12,
+                                                                            fontWeight: FontWeight.w600,
+                                                                            color: ui["statusFg"],
+                                                                          ),
+                                                                        )
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(width: 12),
+
+                                                                  // ไอคอนนาฬิกา + duration ชั่วโมงทำงาน
+                                                                  SvgPicture.asset(
+                                                                    'assets/images/clock_attendance.svg',
+                                                                    width: 16,
+                                                                    height: 16,
+                                                                  ),
+                                                                  const SizedBox(width: 6),
+                                                                  Text(ui["duration"], style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+                                                                ],
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                              )
+                                            ],
+                                          );
+                                        }).toList(),
+                                      )
+                                  ],
+                                ),
+                              ],
+                            )
+                          ]
+                        );
+                      }
                     )
+                  )
                 )
+              ]
             )
+          )
         )
+      )
     );
+  }
+
+  String _toYmd(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return "$y-$m-$day";
+  }
+
+  /// แสดงวันที่แบบไทย: dd/mm/(yyyy+543) ถ้า null แสดง "---"
+  String _formatDateDisplay(DateTime? date) {
+    if (date == null) return "---";
+    return "${date.day}/${date.month}/${date.year + 543}";
+  }
+
+  /// แปลงเลขเดือน -> ชื่อเดือนภาษาไทย
+  String _thaiMonth(int m) {
+    const months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+    if (m < 1 || m > 12) return '';
+    return months[m];
+  }
+
+  /// แสดงหัวข้อเดือน/ปีแบบไทย เช่น "ธันวาคม 2569"
+  String _monthYearLabel(DateTime d) => "${_thaiMonth(d.month)} ${d.year + 543}";
+
+  /// ถ้า backend ส่ง dow เป็น null -> คำนวณจาก DateTime.weekday
+  String _thaiDowFromDate(DateTime d) {
+    switch (d.weekday) {
+      case 1: return 'จันทร์';
+      case 2: return 'อังคาร';
+      case 3: return 'พุธ';
+      case 4: return 'พฤหัสบดี';
+      case 5: return 'ศุกร์';
+      case 6: return 'เสาร์';
+      case 7: return 'อาทิตย์';
+      default: return '';
+    }
+  }
+
+  /// เช็คว่าเวลาหาย/ไม่สมบูรณ์ไหม (ใช้เพื่อแยกเคส "ไม่สมบูรณ์")
+  bool _isMissingTime(String t) {
+    final s = t.trim();
+    return s.isEmpty || s == '--:--' || s == '--.--' || s == '-';
+  }
+
+  /// แปลง String เวลา "08.30" หรือ "08:30" -> DateTime(2000-01-01 HH:MM)
+  /// ใช้วันที่คงที่ (2000-01-01) เพื่อให้เปรียบเทียบเวลาได้ง่าย
+  DateTime _parseTime(String t) {
+    final s = t.trim().replaceAll('.', ':');
+    final parts = s.split(':');
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+    return DateTime(2000, 1, 1, h, m);
+  }
+  //ที่เลือก 2000-01-01 เพื่อทำให้ “เวลา” กลายเป็น DateTime ที่เทียบกันง่าย โดยไม่เอาวันจริงมาเกี่ยวครับ
+
+  /// แปลง Duration -> "H:MM" เช่น 7:05, 13:00
+  String _formatHourMinute(Duration d) {
+    if (d.isNegative) return '--:--';
+    final totalMin = d.inMinutes;
+    final h = totalMin ~/ 60;
+    final m = totalMin % 60;
+    return '$h:${m.toString().padLeft(2, '0')}';
+  }
+
+  /// แปลงจำนวน "นาที" -> "H:MM" เช่น 75 -> 1:15
+  String _formatMinutesToHourMinute(int minutes) {
+    if (minutes <= 0) return '0:00';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return '$h:${m.toString().padLeft(2, '0')}';
+  }
+
+  /// เลือกสีพื้น badge ตามวันในสัปดาห์ (เพื่อทำ UI ให้ต่างกัน)
+  Color _badgeColorByDow(String dow) {
+    switch (dow.trim()) {
+      case 'จันทร์': return const Color(0xFFFFF3CD);
+      case 'อังคาร': return const Color(0xFFF7ECFE);
+      case 'พุธ': return const Color(0xFFEAF5EE);
+      case 'พฤหัสบดี': return const Color(0xFFFFE0B2);
+      case 'ศุกร์': return const Color(0xFFBBDEFB);
+      case 'เสาร์': return const Color(0xFFE1BEE7);
+      case 'อาทิตย์': return const Color(0xFFFFE5E5);
+      default: return const Color(0xFFF2F4F7);
+    }
+  }
+
+  /// คำนวณข้อมูล UI สำหรับแถวประวัติ 1 แถว:
+  /// - สี badge ตามวัน
+  /// - สถานะ: ไม่สมบูรณ์ / สาย / ตรงเวลา
+  /// - duration ชั่วโมงทำงาน
+  /// - ไอคอน/สีสำหรับ status chip
+  Map<String, dynamic> _computeUi({
+    required String dow,
+    required String timeIn,
+    required String timeOut,
+    required String leavePeriod
+  }) {
+    final badgeColor = _badgeColorByDow(dow);
+    final inMissing = _isMissingTime(timeIn);
+    final outMissing = _isMissingTime(timeOut);
+
+    // เคส 1) เวลาเข้า/ออกหายอย่างน้อยหนึ่งฝั่ง -> ไม่สมบูรณ์
+    if (inMissing || outMissing) {
+      return {
+        "bgColor": badgeColor,
+        "statusText": "ไม่สมบูรณ์",
+        "statusBg": const Color(0xFFFFE5E5),
+        "statusFg": const Color(0xFFD32F2F),
+        "duration": "--.-- ชั่วโมง",
+        "statusIconAsset": "assets/images/warning2_outline__attendance.svg",
+      };
+    }
+
+    // แปลงเวลาเข้า/ออก เป็น DateTime เพื่อหาผลต่าง
+    final DateTime inDt = _parseTime(timeIn);
+    final DateTime outDt = _parseTime(timeOut);
+
+
+    // ถ้าลาเช้า (MORNING) ใช้เวลา checkInLeaveTime เป็นมาตรฐานแทน
+    final DateTime stdDt = (leavePeriod == "MORNING")
+        ? DateTime(2000, 1, 1, _checkInLeaveHour, _checkInLeaveMin)// ถ้าใช่ setting?.checkIn
+        : DateTime(2000, 1, 1, _stdInHour, _stdInMinute);// ถ้าไม่ เวลาเข้างานมาตรฐาน จาก setting?.checkInTime
+
+    // lateMinutes > 0 แปลว่าเข้างานช้ากว่าเวลามาตรฐาน
+    final lateMinutes = inDt.difference(stdDt).inMinutes;
+
+    // duration = เวลาออก - เวลาเข้า
+    final duration = _formatHourMinute(outDt.difference(inDt));
+
+    // เคส 2) สาย
+    if (lateMinutes > 0) {
+      late String lateText;
+
+      // ถ้าสายเกิน 60 นาที -> แสดงเป็นชั่วโมง:นาที
+      if (lateMinutes >= 60) {
+        lateText = "สาย ${_formatMinutesToHourMinute(lateMinutes)} ชม.";
+      } else {
+        // ถ้าสายน้อยกว่า 60 นาที -> แสดงเป็นนาที
+        lateText = "สาย $lateMinutes นาที";
+      }
+
+      return {
+        "bgColor": badgeColor,
+        "statusText": lateText,
+        "statusBg": const Color(0xFFFFF3CD),
+        "statusFg": const Color(0xFFB26A00),
+        "duration": "$duration ชั่วโมง",
+        "statusIconAsset": "assets/images/warning_outline__attendance.svg",
+      };
+    }
+
+    // เคส 3) ตรงเวลา (ไม่สาย และข้อมูลครบ)
+    return {
+      "bgColor": badgeColor,
+      "statusText": "ตรงเวลา",
+      "statusBg": const Color(0xFFE6F4EA),
+      "statusFg": const Color(0xFF1E8E3E),
+      "duration": "$duration ชั่วโมง",
+      "statusIconAsset": "assets/images/check_circle__attendance.svg",
+    };
   }
 }

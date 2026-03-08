@@ -256,10 +256,15 @@ class _StatisticPageState extends State<StatisticPage> {
                                             colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
                                           ),
                                           Text(
-                                            'ปีงบประมาณ ${yearFilter.year + 543}',
-                                            style: TextStyle(
-                                                color: Color(0xFF2C2C2C)
-                                            )
+                                              'ปีงบประมาณ ${yearFilter.year + 543}',
+                                              style: TextStyle(
+                                                  color: Color(0xFF2C2C2C),
+                                                  fontWeight: FontWeight.bold
+                                              )
+                                          ),
+                                          SvgPicture.asset(
+                                            'assets/images/icon_next.svg',
+                                            colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
                                           ),
                                           if (getState(0) == ServiceUpdaterProMaxState.loading)
                                             CupertinoActivityIndicator()

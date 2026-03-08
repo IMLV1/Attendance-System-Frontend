@@ -134,7 +134,7 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
       return allowDateFrom!;
     }
 
-    return now;
+    return widget.currentDateFrom ?? now;
   }
 
   List<int> getMonthOfYear(int yearIndex) {
