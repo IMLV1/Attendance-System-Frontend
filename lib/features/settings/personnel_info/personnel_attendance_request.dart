@@ -105,6 +105,7 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                           }
                         });
                       },
+                      fetchOnInit: true,
                       builder: (trigger, getState) {
                         return Column(
                           spacing: 13,
@@ -226,6 +227,8 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                                                       title: 'รายละเอียด',
                                                       fit: FlexFit.tight,
                                                       maxHeight: 750,
+                                                      scroll: false,
+                                                      safeArea: false,
                                                     ),
                                                     builder: (context) {
                                                       return PersonnelAttendanceRequestDetail(
@@ -379,6 +382,8 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                                                   title: 'รายละเอียด',
                                                   fit: FlexFit.tight,
                                                   maxHeight: 750,
+                                                  scroll: false,
+                                                  safeArea: false,
                                                 ),
                                                 builder: (context) {
                                                   return PersonnelAttendanceRequestDetail(

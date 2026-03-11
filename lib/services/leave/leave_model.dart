@@ -133,7 +133,7 @@ class RequestDetail {
 class ApproveDetail {
   final ApproveStatus status;
   final String approver;
-  final DateTime approveDate;
+  final DateTime? approveDate;
   final String reason;
   final String approveRole;
 
@@ -157,8 +157,7 @@ class ApproveDetail {
 
       // DateTime.tryParse already returns null safely,
       // and you're already handling it with DateTime.fromMillisecondsSinceEpoch(0)
-      approveDate: DateTime.tryParse(json['approve-date']?.toString() ?? '')
-          ?? DateTime.fromMillisecondsSinceEpoch(0),
+      approveDate: DateTime.tryParse(json['approve-date'] ?? ''),
     );
   }
 }

@@ -13,6 +13,7 @@ import 'package:attendance_system/features/settings/admin_config/setting_leave_t
 import 'package:attendance_system/features/settings/personnel_info/personnel_info.dart';
 import 'package:attendance_system/features/settings/setting_page.dart';
 import 'package:attendance_system/features/settings/user_management/user/user_management.dart';
+
 import 'package:attendance_system/shared/widgets/base_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -73,7 +74,7 @@ final appRouter = GoRouter(
         GoRoute(
           name: RouteNames.notification,
           path: '/notification',
-          pageBuilder: (_, _) => const NoTransitionPage(child: NotificationPage()),
+          builder: (_, _) => const NotificationPage(),
         ),
         GoRoute(
           name: RouteNames.setting,
@@ -83,7 +84,10 @@ final appRouter = GoRouter(
             GoRoute(
               name: RouteNames.approval,
               path: 'approval',
-              builder: (_, _) => const Approval(),
+              builder: (context, state) {
+                final initialTab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+                return Approval(initialTab: initialTab);
+              },
             ),
             GoRoute(
               name: RouteNames.settingBudgetYear,
@@ -161,6 +165,7 @@ final appRouter = GoRouter(
             ),
           ]
         ),
+
       ],
     ),
   ],

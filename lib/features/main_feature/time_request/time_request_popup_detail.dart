@@ -108,7 +108,9 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
           return TimeRequestService().getDetail(widget.id);
         },
         onSuccess: (val) {
+
           print(val);
+
           setState(() {
             data = AttendanceDetail.fromJson(val);
           });
@@ -184,14 +186,17 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                             _ => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
                           },
                           arrow: false,
-                          onPressed: data?.approveDetail.status != 'pending' ? () {
+                          timeStamp: data?.approveDetail.approveDate != null
+                              ? formatDateTime(data!.approveDetail.approveDate!)
+                              : null,
+                          onPressed: () {
                             setState(() {
                               onSelect = !onSelect;
                             });
-                          } : null,
+                          },
                         ),
                         AnimatedSizeWidget(
-                          enable: onSelect,
+                          enable: onSelect && !(data!.approveDetail.status == 'pending' || data!.approveDetail.status == 'overdue' || data!.approveDetail.status == 'canceled'),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 6,
@@ -504,7 +509,8 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                         Text('ไฟล์ที่แนบมา')
                       ],
                     ),
-                    ...data!.requestDetail.evidenceFiles.map((file) {
+                    if (data!.requestDetail.evidenceFiles.isNotEmpty)
+                      ...data!.requestDetail.evidenceFiles.map((file) {
 
                       bool downloading = false;
                       MenuController menuController = MenuController();
@@ -661,7 +667,26 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                       // }
                       //
                       // return Image.network(file.fileUrl);
-                    }),
+                    })
+                    else
+                      SizedBox(
+                        width: double.infinity,
+                        child: SeparatorCard(
+                          children: [
+                            Padding(
+                              padding: EdgeInsetsGeometry.all(20),
+                              child: Text(
+                                'ไม่มีไฟล์แนบ',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Color(0xFF7D7D7D), // สีจาง
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      )
                   ],
                 ),
                 if (data?.approveDetail.status == 'pending') ...[
@@ -706,7 +731,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                       )
                     ],
                   )
-                ] else if ((data!.approveDetail.status == 'rejected' || data!.approveDetail.status == 'canceled') && data!.requestDetail.dateFrom.isAfter(DateTime.now()))...[
+                ] else if ((data!.approveDetail.status == 'rejected' || data!.approveDetail.status == 'canceled')) ...[
                   SeparatorCard(
                     children: [
                       IconTextButton(
@@ -720,9 +745,9 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                           final oldConfig = provider.config;
 
                           provider.setConfig(PopupConfig(
-                              title: 'แก้ไขรายละเอียด',
-                              buttonLabel: 'ส่งอีกครั้ง',
-                              maxHeight: 700
+                            title: 'แก้ไขรายละเอียด',
+                            buttonLabel: 'ส่งอีกครั้ง',
+                            maxHeight: 700,
                             // buttonAction: (ctx) {...} ยังไม่ต้องใส่ เพราะเดี๋ยวหน้า 2 จะมาทับให้
                           ));
 

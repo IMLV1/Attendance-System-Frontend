@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ntp/ntp.dart';
 
 import '../../services/check-in/check-in_model.dart';
@@ -377,6 +378,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                             IconTextButton(
                               icon: 'icon_attendance_history.svg',
                               label: 'ดูบันทึกการเข้า-ออกงาน',
+                              onPressed: () {
+                                context.push('/settings/attendance-history');
+                              },
                             ),
                           ],
                         ),

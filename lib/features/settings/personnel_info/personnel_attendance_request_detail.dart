@@ -1,6 +1,7 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/features/main_feature/time_request/time_request_resend.dart';
 import 'package:attendance_system/services/approval/attendance/attendance_service.dart';
+import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
@@ -107,6 +108,7 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
 
   AttendanceDetail? data;
   bool onSelect = false;
+  String status = '';
 
   final TextEditingController _textEditingController = TextEditingController();
 
@@ -116,912 +118,918 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
     final auth = context.read<AuthState>();
     final setting = auth.attendanceConfig;
 
-    return ServiceLoader(
-        request: () {
-          // return mockData();
-          return TimeRequestService().getDetail(widget.id);
-        },
-        onSuccess: (val) {
-          setState(() {
-            data = AttendanceDetail.fromJson(val);
-          });
-        },
-        builder: () {
-
-          return Padding(
-            padding: EdgeInsetsGeometry.only(left: 15, right: 15),
-            child: Column(
-              spacing: 13,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                // Row(
-                //   spacing: 6,
-                //   children: [
-                //     SvgPicture.asset(
-                //       'assets/images/icon_status_list.svg',
-                //       width: 15,
-                //       height: 15,
-                //     ),
-                //     Text('สถานะปัจจุบัน')
-                //   ],
-                // ),
-                // icon: switch(m?.status) {
-                //   'approved' => 'icon_success.svg',
-                //   'rejected' => 'icon_cancel.svg',
-                //   'overdue'  => 'icon_overdue.svg',
-                //   _ => 'icon_pending.svg'
-                // },
-                // iconColor: switch(m?.status) {
-                //   'approved' => Color(0xFF30D143),
-                //   'rejected' => Color(0xFFE7000B),
-                //   'overdue'  => Color(0xFF000000),
-                //   _ => Color(0xFFE79E00)
-                // },
-                SeparatorCard(
-                  borderRadius: BorderRadius.circular(22),
-                  children: [
-                    Column(
-                      children: [
-                        AppButton(
-                          icon: switch(data?.approveDetail.status) {
-                            'approved' => 'icon_success.svg',
-                            'rejected' => 'icon_cancel.svg',
-                            'overdue'  => 'icon_overdue.svg',
-                            'canceled' => 'icon_request_cancel.svg',
-                            _ => 'icon_pending.svg'
-                          },
-                          iconColor: switch(data?.approveDetail.status) {
-                            'approved' => Color(0xFF30D143),
-                            'rejected' => Color(0xFFE7000B),
-                            'overdue'  => Color(0xFF000000),
-                            'canceled' => Color(0xFFFFA652),
-                            _ => Color(0xFFE79E00)
-                          },
-                          title: switch(data?.approveDetail.status) {
-                            'approved' => 'อนุมัติแล้ว',
-                            'rejected' => 'ไม่อนุมัติ',
-                            'overdue'  => 'เลยกำหนดเวลา',
-                            'canceled' => 'ยกเลิก',
-                            _ => 'รอดำเนินการ'
-                          },
-                          weightTitle: FontWeight.w500,
-                          // subTitle: data?.approveDetail.status == 'pending'
-                          //     ? 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
-                          //     : 'อนุมัติโดย ${data?.approveDetail.approver}' ?? '-',
-                          subTitle: switch(data?.approveDetail.status) {
-                            'approved' => 'อนุมัติโดย ${data?.approveDetail.approver}',
-                            'rejected' => 'อนุมัติโดย ${data?.approveDetail.approver}',
-                            'overdue'  => 'คำขอนี้เลยกำหนดเวลาอนุมัติแล้ว',
-                            'canceled' => 'คำขอนี้ถูกยกเลิกแล้ว',
-                            _ => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
-                          },
-                          arrow: false,
-                          onPressed: data?.approveDetail.status != 'pending' ? () {
-                            setState(() {
-                              onSelect = !onSelect;
-                            });
-                          } : null,
-                        ),
-                        AnimatedSizeWidget(
-                          enable: onSelect,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 6,
-                            children: [
-                              Padding(
-                                  padding: EdgeInsetsGeometry.only(right: 15, left: 60),
-                                  child: Divider(height: 0)
-                              ),
-                              Padding(
-                                  padding: const EdgeInsets.only(left: 60, right: 15),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'เนื่องจาก:',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: AppColors.lightTextColor,
-                                        ),
-                                      ),
-                                      Text(
-                                        data?.approveDetail.reason ?? '-',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                        ),
-                                        softWrap: true,
-                                      ),
-                                      SizedBox(height: 10)
-                                    ],
-                                  )
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    )
-                  ],
-                ),
-
-                Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(22),
-                      color: Color(0xFFEAEAEA)
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppButton(
-                        icon: 'icon_time_request.svg',
-                        title: 'การเข้างาน - ออกงาน',
-                        bg: Colors.white,
-                        weightTitle: FontWeight.w500,
-                        subTitle: 'หมายเลขตำขอ ${widget.id}',
-                        arrow: false,
-                      ),
-                      Container(
-                          padding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
-                          decoration: BoxDecoration(
-                              color: Color(0xFFEAEAEA),
-                              borderRadius: BorderRadius.circular(22)
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Column(
-                                spacing: 10,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                            child: Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 10
-                                              ),
-                                              child: Row(
-                                                spacing: 10,
-                                                children: [
-                                                  SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child: SvgPicture.asset(
-                                                      'assets/images/calendar_in.svg',
-                                                      colorFilter: ColorFilter.mode(Color(0xFF5F5F5F), BlendMode.srcIn),
-                                                    ),
-                                                  ),
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                          'จากวันที่',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Color(0xFF626262)
-                                                          )
-                                                      ),
-                                                      Text(
-                                                          _formatDate(data?.requestDetail.dateFrom),
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black
-                                                          )
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                        ),
-                                        Container(
-                                            width: 1.5,
-                                            height: 40,
-                                            color: Colors.grey[400],
-                                            margin: EdgeInsetsGeometry.symmetric(
-                                                horizontal: 3
-                                            )
-                                        ),
-                                        Expanded(
-                                            child: Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 10
-                                              ),
-                                              child: Row(
-                                                spacing: 10,
-                                                children: [
-                                                  SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child: SvgPicture.asset(
-                                                      'assets/images/calendar_out.svg',
-                                                      colorFilter: ColorFilter.mode(
-                                                          Color(0xFF5F5F5F),
-                                                          BlendMode.srcIn
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                          'ถึงวันที่',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Color(0xFF626262)
-                                                          )
-                                                      ),
-                                                      Text(
-                                                          _formatDate(data?.requestDetail.dateTo),
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black
-                                                          )
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
-                                    spacing: 10,
-                                    children: [
-                                      Expanded(
-                                          child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(25),
-                                              ),
-                                              child: Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 3
-                                                ),
-                                                child: Row(
-                                                  spacing: 10,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 20,
-                                                      height: 20,
-                                                      child: SvgPicture.asset(
-                                                        'assets/images/clock_calendar.svg',
-                                                        colorFilter: ColorFilter.mode(
-                                                            Color(0xFF626262),
-                                                            BlendMode.srcIn
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                            'เวลาเข้างาน',
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Color(0xFF626262)
-                                                            )
-                                                        ),
-                                                        Text(
-                                                            _formatTime(data?.requestDetail.timeStart),
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black
-                                                            )
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                          )
-                                      ),
-                                      Expanded(
-                                          child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(22),
-                                              ),
-                                              child: Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 3
-                                                ),
-                                                child: Row(
-                                                  spacing: 10,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 20,
-                                                      height: 20,
-                                                      child: SvgPicture.asset(
-                                                        'assets/images/clock_calendar.svg',
-                                                        colorFilter: ColorFilter.mode(
-                                                            Color(0xFF626262),
-                                                            BlendMode.srcIn
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                            'เวลาออกงาน',
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Color(0xFF626262)
-                                                            )
-                                                        ),
-                                                        Text(
-                                                            _formatTime(data?.requestDetail.timeEnd),
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black
-                                                            )
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                          )
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ],
-                          )
-                      ),
-                      Padding(
-                        padding: EdgeInsetsGeometry.symmetric(horizontal: 15),
+    return Padding(
+        padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+        child: ServiceLoader(
+            request: () {
+              // return mockData();
+              return TimeRequestService().getDetail(widget.id);
+            },
+            onSuccess: (val) {
+              setState(() {
+                data = AttendanceDetail.fromJson(val);
+              });
+            },
+            builder: () {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded( // ✅ แก้ไขที่ 4: ใช้ Flexible ชั้นเดียว แทนการซ้อน Expanded -> Column -> Expanded
+                    child: SingleChildScrollView(
+                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                        physics: const AlwaysScrollableScrollPhysics(),
                         child: Column(
+                          spacing: 13,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'หมายเหตุ:',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.lightTextColor,
-                              ),
-                            ),
-                            Text(
-                              data?.requestDetail.remark ?? '-',
-                              style: TextStyle(
-                                fontSize: 12,
-                              ),
-                              softWrap: true,
-                            ),
-                            SizedBox(height: 10)
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                Column(
-                  spacing: 10,
-                  children: [
-                    Row(
-                      spacing: 6,
-                      children: [
-                        SvgPicture.asset('assets/images/icon_attach_evidence.svg'),
-                        Text('ไฟล์ที่แนบมา')
-                      ],
-                    ),
-                    ...data!.requestDetail.evidenceFiles.map((file) {
-
-                      bool downloading = false;
-                      MenuController menuController = MenuController();
-
-                      return Material(
-                        color: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
-                        ),
-                        child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              FilePreviewPopup(
-                                  file: file
-                              ).showPopup(context);
-                            },
-                            splashFactory: NoSplash.splashFactory,
-                            child: Row(
+                            SeparatorCard(
+                              borderRadius: BorderRadius.circular(22),
                               children: [
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                                    child: Row(
-                                      spacing: 6,
-                                      children: [
-                                        SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: SvgPicture.asset(
-                                            file.fileType.toLowerCase() == 'pdf' ? 'assets/images/file.svg' : 'assets/images/photos_upload.svg',
-                                            colorFilter: ColorFilter.mode(Colors.grey.shade800, BlendMode.srcIn),
-                                          ),
-                                        ),
-                                        Expanded(child: Text(file.fileName)),
-                                      ],
+                                Column(
+                                  children: [
+                                    AppButton(
+                                      icon: switch(data?.approveDetail.status) {
+                                        'approved' => 'icon_success.svg',
+                                        'rejected' => 'icon_cancel.svg',
+                                        'overdue'  => 'icon_overdue.svg',
+                                        'canceled' => 'icon_request_cancel.svg',
+                                        _ => 'icon_pending.svg'
+                                      },
+                                      iconColor: switch(data?.approveDetail.status) {
+                                        'approved' => Color(0xFF30D143),
+                                        'rejected' => Color(0xFFE7000B),
+                                        'overdue'  => Color(0xFF000000),
+                                        'canceled' => Color(0xFFFFA652),
+                                        _ => Color(0xFFE79E00)
+                                      },
+                                      title: switch(data?.approveDetail.status) {
+                                        'approved' => 'อนุมัติแล้ว',
+                                        'rejected' => 'ไม่อนุมัติ',
+                                        'overdue'  => 'เลยกำหนดเวลา',
+                                        'canceled' => 'ยกเลิก',
+                                        _ => 'รอดำเนินการ'
+                                      },
+                                      weightTitle: FontWeight.w500,
+// subTitle: data?.approveDetail.status == 'pending'
+//     ? 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
+//     : 'อนุมัติโดย ${data?.approveDetail.approver}' ?? '-',
+                                      subTitle: switch(data?.approveDetail.status) {
+                                        'approved' => 'อนุมัติโดย ${data?.approveDetail.approver}',
+                                        'rejected' => 'อนุมัติโดย ${data?.approveDetail.approver}',
+                                        'overdue'  => 'คำขอนี้เลยกำหนดเวลาอนุมัติแล้ว',
+                                        'canceled' => 'คำขอนี้ถูกยกเลิกแล้ว',
+                                        _ => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
+                                      },
+                                      arrow: false,
+                                      timeStamp: data?.approveDetail.approveDate != null
+                                          ? formatDateTime(data!.approveDetail.approveDate!)
+                                          : null,
+                                      onPressed: () {
+                                        setState(() {
+                                          onSelect = !onSelect;
+                                        });
+                                      },
                                     ),
-                                  ),
-                                ),
-
-                                StatefulBuilder(
-                                    builder: (context, setState) {
-                                      return downloading ?
-                                      Padding(
-                                        padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
-                                        child: Center(child: CupertinoActivityIndicator()),
-                                      ) :
-                                      MenuAnchor(
-                                        controller: menuController,
-                                        builder: (context, controller, child) {
-                                          return InkWell(
-                                            overlayColor: WidgetStatePropertyAll(Colors.transparent),
-                                            onTap: () {
-                                              menuController.open();
-                                            },
-                                            child: Padding(
-                                                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                                                child: SvgPicture.asset(
-                                                  'assets/images/icon_file_menu.svg',
-                                                  colorFilter: ColorFilter.mode(
-                                                    Colors.grey.shade600,
-                                                    BlendMode.srcIn,
-                                                  ),
-                                                )
-                                            ),
-                                          );
-                                        },
-                                        clipBehavior: Clip.none,
-                                        consumeOutsideTap: true,
-                                        style: const MenuStyle(
-                                          backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                                          elevation: WidgetStatePropertyAll(0),
-                                        ),
-                                        menuChildren: [
-                                          TweenAnimationBuilder<double>(
-                                            tween: Tween(begin: 0, end: 1),
-                                            duration: const Duration(milliseconds: 250),
-                                            curve: Curves.easeOut,
-                                            builder: (context, value, child) {
-                                              return Opacity(
-                                                opacity: value,
-                                                child: child,
-                                              );
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(20),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withValues(alpha: 0.18),
-                                                    blurRadius: 100,
-                                                    spreadRadius: 6,
-                                                    offset: Offset.zero,
-                                                  ),
-                                                ],
-                                              ),
-                                              child: SeparatorCard(
-                                                borderRadius: BorderRadius.circular(20),
+                                    AnimatedSizeWidget(
+                                      enable: onSelect && !(data!.approveDetail.status == 'pending' || data!.approveDetail.status == 'overdue' || data!.approveDetail.status == 'canceled'),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        spacing: 6,
+                                        children: [
+                                          Padding(
+                                              padding: EdgeInsetsGeometry.only(right: 15, left: 60),
+                                              child: Divider(height: 0)
+                                          ),
+                                          Padding(
+                                              padding: const EdgeInsets.only(left: 60, right: 15),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  IconTextButton(
-                                                    icon: 'download.svg',
-                                                    arrow: false,
-                                                    label: 'ส่งออกไฟล์',
-                                                    onPressed: () async {
-                                                      menuController.close();
-                                                      Downloader(
-                                                          onDownloadStart: () => setState(() {
-                                                            downloading = true;
-                                                          }),
-                                                          onDownloadSuccess: () => setState(() {
-                                                            downloading = false;
-                                                          })
-                                                      ).downloadFile(file);
-                                                    },
-                                                  ),
-                                                  Padding(
-                                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
-                                                    child: Row(
-                                                      children: [
-                                                        Text(
-                                                          'ขนาด: ${Utils.formatBytes(file.fileSize)}',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF7D7D7D)
-                                                          ),
-                                                        )
-                                                      ],
+                                                  Text(
+                                                    'เนื่องจาก:',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: AppColors.lightTextColor,
                                                     ),
-                                                  )
+                                                  ),
+                                                  Text(
+                                                    data?.approveDetail.reason ?? '-',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                    ),
+                                                    softWrap: true,
+                                                  ),
+                                                  SizedBox(height: 10)
                                                 ],
-                                              ),
-                                            ),
+                                              )
                                           ),
                                         ],
-                                      );
-                                    }
+                                      ),
+                                    )
+                                  ],
                                 )
                               ],
-                            )
-                        ),
-                      );
-
-                      // if (file.fileType.toLowerCase() == 'pdf') {
-                      //   return SizedBox(
-                      //     height: 500, // สำคัญมาก
-                      //     child: SfPdfViewer.network(
-                      //         file.fileUrl
-                      //     ),
-                      //   );
-                      // }
-                      //
-                      // return Image.network(file.fileUrl);
-                    }),
-                  ],
-                ),
-                if (data?.approveDetail.status == 'pending' && widget.permissionLevel >= 1)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 0),
                             ),
-                          ],
-                        ),
-                        child: SafeArea(child: SeparatorCard(
-                          separatorPadding: const EdgeInsetsGeometry.symmetric(horizontal: 15),
-                          children: [
-                            TextField(
-                              controller: _textEditingController,
-                              maxLines: 1,
-                              decoration: InputDecoration(
-                                errorStyle: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 14
-                                ),
-                                isDense: true,
-                                hintText: 'ระบุเหตุผล...',
-                                hintStyle: const TextStyle(
-                                    color: Color(0xFF7D7D7D),
-                                    fontSize: 15
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 13,
-                                  horizontal: 15,
-                                ),
-                                border: OutlineInputBorder(
+                            Container(
+                              decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(22),
-                                  borderSide: BorderSide.none,
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(22),
-                                  borderSide: const BorderSide(
-                                    color: Colors.red,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(22),
-                                  borderSide: const BorderSide(
-                                    color: Colors.red,
-                                    width: 1.5,
-                                  ),
-                                ),
+                                  color: Color(0xFFEAEAEA)
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
-                              child: Row(
-                                spacing: 15,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                      child: ElevatedButton(
-                                        style: ButtonStyle(
-                                          minimumSize: const WidgetStatePropertyAll(Size(0, 0)),
-                                          padding: const WidgetStatePropertyAll(EdgeInsets.zero),
-                                          backgroundColor: const WidgetStatePropertyAll(Color(0xFFFFD9D9)),
-                                          shape: WidgetStatePropertyAll(
-                                              RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(50)
-                                              )
-                                          ),
-                                          shadowColor: const WidgetStatePropertyAll(Colors.transparent),
-                                          overlayColor: WidgetStateProperty<Color?>.fromMap(<WidgetState, Color?>{
-                                            WidgetState.pressed: Colors.white.withValues(alpha: 0.4),
-                                          }),
-                                        ),
-                                        child: Container(
-                                          padding: const EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 8),
-                                          child: Stack(
+                                  AppButton(
+                                    icon: 'icon_time_request.svg',
+                                    title: 'การเข้างาน - ออกงาน',
+                                    bg: Colors.white,
+                                    weightTitle: FontWeight.w500,
+                                    subTitle: 'หมายเลขตำขอ ${widget.id}',
+                                    arrow: false,
+                                  ),
+                                  Container(
+                                      padding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
+                                      decoration: BoxDecoration(
+                                          color: Color(0xFFEAEAEA),
+                                          borderRadius: BorderRadius.circular(22)
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Column(
+                                            spacing: 10,
                                             children: [
-                                              const Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    'ไม่อนุมัติ',
-                                                    style: TextStyle(
-                                                        fontSize: 15,
-                                                        color: Color(0xFFFF4040),
-                                                        fontWeight: FontWeight.w600
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  SvgPicture.asset(
-                                                    'assets/images/icon_cancel.svg',
-                                                    width: 20,
-                                                    height: 20,
-                                                    colorFilter: const ColorFilter.mode(Color(0xFFFF4040), BlendMode.srcIn),
-                                                  ),
-                                                ],
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        onPressed: () async {
-                                          if (setting!.approveNeedSignature) {
-                                            final navigator = Navigator.of(context, rootNavigator: true);
-                                            final provider = PopupProvider.of(context);
-                                            final oldConfig = provider.config;
-
-                                            provider.setConfig(PopupConfig(
-                                              title: 'ลายเซ็น',
-                                              buttonLabel: 'ไม่อนุมัติ',
-                                              maxHeight: 700,
-                                              scroll: false,
-                                            ));
-
-                                            await provider.push(context, ServiceSignaturePage(
-                                              required: true,
-                                              infoWidget: Row(
-                                                spacing: 5,
-                                                children: [
-                                                  SvgPicture.asset(
-                                                    'assets/images/iicon.svg',
-                                                    width: 15,
-                                                    height: 15,
-                                                  ),
-                                                  const Expanded(
-                                                      child: Text.rich(
-                                                          TextSpan(
-                                                            text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(16),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                        child: Padding(
+                                                          padding: EdgeInsets.symmetric(
+                                                              horizontal: 12,
+                                                              vertical: 10
+                                                          ),
+                                                          child: Row(
+                                                            spacing: 10,
                                                             children: [
-                                                              TextSpan(
-                                                                text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
-                                                                style: TextStyle(
-                                                                  fontWeight: FontWeight.bold,
-                                                                  decoration: TextDecoration.underline,
+                                                              SizedBox(
+                                                                width: 20,
+                                                                height: 20,
+                                                                child: SvgPicture.asset(
+                                                                  'assets/images/calendar_in.svg',
+                                                                  colorFilter: ColorFilter.mode(Color(0xFF5F5F5F), BlendMode.srcIn),
                                                                 ),
                                                               ),
-                                                              TextSpan(
-                                                                text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                                                              Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  Text(
+                                                                      'จากวันที่',
+                                                                      style: TextStyle(
+                                                                          fontSize: 13,
+                                                                          color: Color(0xFF626262)
+                                                                      )
+                                                                  ),
+                                                                  Text(
+                                                                      _formatDate(data?.requestDetail.dateFrom),
+                                                                      style: TextStyle(
+                                                                          fontSize: 13,
+                                                                          color: Colors.black
+                                                                      )
+                                                                  ),
+                                                                ],
                                                               ),
                                                             ],
+                                                          ),
+                                                        )
+                                                    ),
+                                                    Container(
+                                                        width: 1.5,
+                                                        height: 40,
+                                                        color: Colors.grey[400],
+                                                        margin: EdgeInsetsGeometry.symmetric(
+                                                            horizontal: 3
+                                                        )
+                                                    ),
+                                                    Expanded(
+                                                        child: Padding(
+                                                          padding: EdgeInsets.symmetric(
+                                                              horizontal: 12,
+                                                              vertical: 10
+                                                          ),
+                                                          child: Row(
+                                                            spacing: 10,
+                                                            children: [
+                                                              SizedBox(
+                                                                width: 20,
+                                                                height: 20,
+                                                                child: SvgPicture.asset(
+                                                                  'assets/images/calendar_out.svg',
+                                                                  colorFilter: ColorFilter.mode(
+                                                                      Color(0xFF5F5F5F),
+                                                                      BlendMode.srcIn
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  Text(
+                                                                      'ถึงวันที่',
+                                                                      style: TextStyle(
+                                                                          fontSize: 13,
+                                                                          color: Color(0xFF626262)
+                                                                      )
+                                                                  ),
+                                                                  Text(
+                                                                      _formatDate(data?.requestDetail.dateTo),
+                                                                      style: TextStyle(
+                                                                          fontSize: 13,
+                                                                          color: Colors.black
+                                                                      )
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Row(
+                                                spacing: 10,
+                                                children: [
+                                                  Expanded(
+                                                      child: Container(
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius: BorderRadius.circular(25),
+                                                          ),
+                                                          child: Padding(
+                                                            padding: EdgeInsets.symmetric(
+                                                                horizontal: 10,
+                                                                vertical: 3
+                                                            ),
+                                                            child: Row(
+                                                              spacing: 10,
+                                                              children: [
+                                                                SizedBox(
+                                                                  width: 20,
+                                                                  height: 20,
+                                                                  child: SvgPicture.asset(
+                                                                    'assets/images/clock_calendar.svg',
+                                                                    colorFilter: ColorFilter.mode(
+                                                                        Color(0xFF626262),
+                                                                        BlendMode.srcIn
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  children: [
+                                                                    Text(
+                                                                        'เวลาเข้างาน',
+                                                                        style: TextStyle(
+                                                                            fontSize: 13,
+                                                                            color: Color(0xFF626262)
+                                                                        )
+                                                                    ),
+                                                                    Text(
+                                                                        _formatTime(data?.requestDetail.timeStart),
+                                                                        style: TextStyle(
+                                                                            fontSize: 13,
+                                                                            color: Colors.black
+                                                                        )
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          )
+                                                      )
+                                                  ),
+                                                  Expanded(
+                                                      child: Container(
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius: BorderRadius.circular(22),
+                                                          ),
+                                                          child: Padding(
+                                                            padding: EdgeInsets.symmetric(
+                                                                horizontal: 10,
+                                                                vertical: 3
+                                                            ),
+                                                            child: Row(
+                                                              spacing: 10,
+                                                              children: [
+                                                                SizedBox(
+                                                                  width: 20,
+                                                                  height: 20,
+                                                                  child: SvgPicture.asset(
+                                                                    'assets/images/clock_calendar.svg',
+                                                                    colorFilter: ColorFilter.mode(
+                                                                        Color(0xFF626262),
+                                                                        BlendMode.srcIn
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  children: [
+                                                                    Text(
+                                                                        'เวลาออกงาน',
+                                                                        style: TextStyle(
+                                                                            fontSize: 13,
+                                                                            color: Color(0xFF626262)
+                                                                        )
+                                                                    ),
+                                                                    Text(
+                                                                        _formatTime(data?.requestDetail.timeEnd),
+                                                                        style: TextStyle(
+                                                                            fontSize: 13,
+                                                                            color: Colors.black
+                                                                        )
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            ),
                                                           )
                                                       )
                                                   )
                                                 ],
-                                              ),
-                                              request: (pngByte) => Utils.mockResponse(),
-                                              onSuccessResponse: (pngBytes, jsonData) {
-                                                navigator.pop();
-                                                widget.onRejected();
-                                              },
-                                            ));
-
-                                            provider.setConfig(oldConfig);
-                                          } else {
-                                            FloatingPopup(
-                                                title: 'ปฏิเสธคำขอ',
-                                                description: 'คุณยืนยันที่จะปฏิเสธคำขอหมายเลข: ${widget.id} หรือไม่?',
-                                                buttons: (setError, context1) {
-                                                  return [
-                                                    FloatingPopupButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context1).pop();
-                                                      },
-                                                      text: 'ยกเลิก',
-                                                      foregroundColor: Colors.white,
-                                                      backgroundColor: AppColors.primaryColor,
-                                                    ),
-                                                    FloatingServicePopupButton(
-                                                      text: 'ยันยัน',
-                                                      foregroundColor: Colors.red,
-                                                      request: () => AttendanceApprovalService().approval(widget.id, 'rejected', _textEditingController.text, null),
-                                                      setError: setError,
-                                                      onSuccess: () async {
-                                                        Navigator.of(context1).pop();
-                                                        await Future.delayed(const Duration(milliseconds: 200));
-                                                        if (!context.mounted) return;
-                                                        Navigator.of(context, rootNavigator: true).pop();
-                                                        widget.onApproved();
-                                                      },
-                                                    )
-                                                  ];
-                                                }
-                                            ).showPopup(context);
-                                          }
-                                        },
+                                              )
+                                            ],
+                                          ),
+                                        ],
                                       )
                                   ),
-                                  Expanded(
-                                      child: ElevatedButton(
-                                        style: ButtonStyle(
-                                          minimumSize: const WidgetStatePropertyAll(Size(0, 0)),
-                                          padding: const WidgetStatePropertyAll(EdgeInsets.zero),
-                                          backgroundColor: const WidgetStatePropertyAll(Color(0xFFCDF2E4)),
-                                          shape: WidgetStatePropertyAll(
-                                              RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(50)
-                                              )
-                                          ),
-                                          shadowColor: const WidgetStatePropertyAll(Colors.transparent),
-                                          overlayColor: WidgetStateProperty<Color?>.fromMap(<WidgetState, Color?>{
-                                            WidgetState.pressed: Colors.white.withValues(alpha: 0.4),
-                                          }),
-                                        ),
-                                        child: Container(
-                                          padding: const EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 8),
-                                          child: Stack(
-                                            children: [
-                                              const Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    'อนุมัติ',
-                                                    style: TextStyle(
-                                                      fontSize: 15,
-                                                      color: Color(0xFF03BC78),
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  SvgPicture.asset(
-                                                    'assets/images/icon_cancel.svg',
-                                                    width: 20,
-                                                    height: 20,
-                                                    colorFilter: const ColorFilter.mode(Color(0xFF03BC78), BlendMode.srcIn),
-                                                  ),
-                                                ],
-                                              )
-                                            ],
+                                  Padding(
+                                    padding: EdgeInsetsGeometry.symmetric(horizontal: 15),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'หมายเหตุ:',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: AppColors.lightTextColor,
                                           ),
                                         ),
-                                        onPressed: () async {
-                                          if (setting!.approveNeedSignature) {
-                                            final navigator = Navigator.of(context, rootNavigator: true);
-                                            final provider = PopupProvider.of(context);
-                                            final oldConfig = provider.config;
-
-                                            provider.setConfig(PopupConfig(
-                                              title: 'ลายเซ็น',
-                                              buttonLabel: 'อนุมัติ',
-                                              maxHeight: 700,
-                                              scroll: false,
-                                            ));
-
-                                            await provider.push(context, ServiceSignaturePage(
-                                              required: true,
-                                              infoWidget: Row(
-                                                spacing: 5,
-                                                children: [
-                                                  SvgPicture.asset(
-                                                    'assets/images/iicon.svg',
-                                                    width: 15,
-                                                    height: 15,
-                                                  ),
-                                                  const Expanded(
-                                                      child: Text.rich(
-                                                          TextSpan(
-                                                            text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
-                                                            children: [
-                                                              TextSpan(
-                                                                text: 'ยืนยันการขอลางานในครั้งนี้เท่านั้น',
-                                                                style: TextStyle(
-                                                                  fontWeight: FontWeight.bold,
-                                                                  decoration: TextDecoration.underline,
-                                                                ),
-                                                              ),
-                                                              TextSpan(
-                                                                text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
-                                                              ),
-                                                            ],
-                                                          )
-                                                      )
-                                                  )
-                                                ],
-                                              ),
-                                              request: (pngByte) => AttendanceApprovalService().approval(widget.id, 'approved', _textEditingController.text, pngByte),
-                                              onSuccessResponse: (pngBytes, jsonData) {
-                                                navigator.pop();
-                                                widget.onApproved();
-                                              },
-                                            ));
-
-                                            provider.setConfig(oldConfig);
-                                          } else {
-                                            FloatingPopup(
-                                                title: 'อนุมัติคำขอ',
-                                                description: 'คุณยืนยันที่จะอนุมัติคำขอหมายเลข: ${widget.id} หรือไม่?',
-                                                buttons: (setError, context1) {
-                                                  return [
-                                                    FloatingPopupButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context1).pop();
-                                                      },
-                                                      text: 'ยกเลิก',
-                                                      foregroundColor: Colors.white,
-                                                      backgroundColor: AppColors.primaryColor,
-                                                    ),
-                                                    FloatingServicePopupButton(
-                                                      text: 'ยันยัน',
-                                                      foregroundColor: Colors.red,
-                                                      request: () => AttendanceApprovalService().approval(widget.id, 'approved', _textEditingController.text, null),
-                                                      setError: setError,
-                                                      onSuccess: () async {
-                                                        Navigator.of(context1).pop();
-                                                        await Future.delayed(const Duration(milliseconds: 200));
-                                                        if (!context.mounted) return;
-                                                        Navigator.of(context, rootNavigator: true).pop();
-                                                        widget.onApproved();
-                                                      },
-                                                    )
-                                                  ];
-                                                }
-                                            ).showPopup(context);
-                                          }
-                                        },
-                                      )
+                                        Text(
+                                          data?.requestDetail.remark ?? '-',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                          ),
+                                          softWrap: true,
+                                        ),
+                                        SizedBox(height: 10)
+                                      ],
+                                    ),
                                   )
                                 ],
                               ),
-                            )
+                            ),
+                            Column(
+                              spacing: 10,
+                              children: [
+                                Row(
+                                  spacing: 6,
+                                  children: [
+                                    SvgPicture.asset('assets/images/icon_attach_evidence.svg'),
+                                    Text('ไฟล์ที่แนบมา')
+                                  ],
+                                ),
+                                if (data!.requestDetail.evidenceFiles.isNotEmpty)
+                                  ...data!.requestDetail.evidenceFiles.map((file) {
+
+                                    bool downloading = false;
+                                    MenuController menuController = MenuController();
+
+                                    return Material(
+                                      color: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        side: BorderSide(
+                                          color: Colors.grey.shade300,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: InkWell(
+                                          borderRadius: BorderRadius.circular(8),
+                                          onTap: () {
+                                            FilePreviewPopup(
+                                                file: file
+                                            ).showPopup(context);
+                                          },
+                                          splashFactory: NoSplash.splashFactory,
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                                  child: Row(
+                                                    spacing: 6,
+                                                    children: [
+                                                      SizedBox(
+                                                        width: 20,
+                                                        height: 20,
+                                                        child: SvgPicture.asset(
+                                                          file.fileType.toLowerCase() == 'pdf' ? 'assets/images/file.svg' : 'assets/images/photos_upload.svg',
+                                                          colorFilter: ColorFilter.mode(Colors.grey.shade800, BlendMode.srcIn),
+                                                        ),
+                                                      ),
+                                                      Expanded(child: Text(file.fileName)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                              StatefulBuilder(
+                                                  builder: (context, setState) {
+                                                    return downloading ?
+                                                    Padding(
+                                                      padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
+                                                      child: Center(child: CupertinoActivityIndicator()),
+                                                    ) :
+                                                    MenuAnchor(
+                                                      controller: menuController,
+                                                      builder: (context, controller, child) {
+                                                        return InkWell(
+                                                          overlayColor: WidgetStatePropertyAll(Colors.transparent),
+                                                          onTap: () {
+                                                            menuController.open();
+                                                          },
+                                                          child: Padding(
+                                                              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                                              child: SvgPicture.asset(
+                                                                'assets/images/icon_file_menu.svg',
+                                                                colorFilter: ColorFilter.mode(
+                                                                  Colors.grey.shade600,
+                                                                  BlendMode.srcIn,
+                                                                ),
+                                                              )
+                                                          ),
+                                                        );
+                                                      },
+                                                      clipBehavior: Clip.none,
+                                                      consumeOutsideTap: true,
+                                                      style: const MenuStyle(
+                                                        backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+                                                        elevation: WidgetStatePropertyAll(0),
+                                                      ),
+                                                      menuChildren: [
+                                                        TweenAnimationBuilder<double>(
+                                                          tween: Tween(begin: 0, end: 1),
+                                                          duration: const Duration(milliseconds: 250),
+                                                          curve: Curves.easeOut,
+                                                          builder: (context, value, child) {
+                                                            return Opacity(
+                                                              opacity: value,
+                                                              child: child,
+                                                            );
+                                                          },
+                                                          child: Container(
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white,
+                                                              borderRadius: BorderRadius.circular(20),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: Colors.black.withValues(alpha: 0.18),
+                                                                  blurRadius: 100,
+                                                                  spreadRadius: 6,
+                                                                  offset: Offset.zero,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: SeparatorCard(
+                                                              borderRadius: BorderRadius.circular(20),
+                                                              children: [
+                                                                IconTextButton(
+                                                                  icon: 'download.svg',
+                                                                  arrow: false,
+                                                                  label: 'ส่งออกไฟล์',
+                                                                  onPressed: () async {
+                                                                    menuController.close();
+                                                                    Downloader(
+                                                                        onDownloadStart: () => setState(() {
+                                                                          downloading = true;
+                                                                        }),
+                                                                        onDownloadSuccess: () => setState(() {
+                                                                          downloading = false;
+                                                                        })
+                                                                    ).downloadFile(file);
+                                                                  },
+                                                                ),
+                                                                Padding(
+                                                                  padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        'ขนาด: ${Utils.formatBytes(file.fileSize)}',
+                                                                        style: TextStyle(
+                                                                            color: Color(0xFF7D7D7D)
+                                                                        ),
+                                                                      )
+                                                                    ],
+                                                                  ),
+                                                                )
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  }
+                                              )
+                                            ],
+                                          )
+                                      ),
+                                    );
+                                  })
+                                else
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: SeparatorCard(
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsetsGeometry.all(20),
+                                          child: Text(
+                                            'ไม่มีไฟล์แนบ',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              color: Color(0xFF7D7D7D), // สีจาง
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                const SizedBox(height: 140)
+                              ],
+                            ),
                           ],
-                        ))
-                      ),
-                    ],
-                  )
-              ],
-            ),
-          );
-        }
+                        ),
+                    )
+                  ),
+                  if (data?.approveDetail.status == 'pending' && widget.permissionLevel >= 1)
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 15,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 0),
+                                ),
+                              ],
+                            ),
+                            child: SafeArea(child: SeparatorCard(
+                              separatorPadding: const EdgeInsetsGeometry.symmetric(horizontal: 15),
+                              children: [
+                                TextField(
+                                  controller: _textEditingController,
+                                  maxLines: 1,
+                                  decoration: InputDecoration(
+                                    errorStyle: const TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 14
+                                    ),
+                                    isDense: true,
+                                    hintText: 'ระบุเหตุผล...',
+                                    hintStyle: const TextStyle(
+                                        color: Color(0xFF7D7D7D),
+                                        fontSize: 15
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 13,
+                                      horizontal: 15,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(22),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(22),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(22),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
+                                  child: Row(
+                                    spacing: 15,
+                                    children: [
+                                      Expanded(
+                                          child: ElevatedButton(
+                                            style: ButtonStyle(
+                                              minimumSize: const WidgetStatePropertyAll(Size(0, 0)),
+                                              padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+                                              backgroundColor: const WidgetStatePropertyAll(Color(0xFFFFD9D9)),
+                                              shape: WidgetStatePropertyAll(
+                                                  RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(50)
+                                                  )
+                                              ),
+                                              shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+                                              overlayColor: WidgetStateProperty<Color?>.fromMap(<WidgetState, Color?>{
+                                                WidgetState.pressed: Colors.white.withValues(alpha: 0.4),
+                                              }),
+                                            ),
+                                            child: Container(
+                                              padding: const EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 8),
+                                              child: Stack(
+                                                children: [
+                                                  const Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [
+                                                      Text(
+                                                        'ไม่อนุมัติ',
+                                                        style: TextStyle(
+                                                            fontSize: 15,
+                                                            color: Color(0xFFFF4040),
+                                                            fontWeight: FontWeight.w600
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        'assets/images/icon_cancel.svg',
+                                                        width: 20,
+                                                        height: 20,
+                                                        colorFilter: const ColorFilter.mode(Color(0xFFFF4040), BlendMode.srcIn),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              if (setting!.approveNeedSignature) {
+                                                final navigator = Navigator.of(context, rootNavigator: true);
+                                                final provider = PopupProvider.of(context);
+                                                final oldConfig = provider.config;
+
+                                                provider.setConfig(PopupConfig(
+                                                  title: 'ลายเซ็น',
+                                                  buttonLabel: 'ไม่อนุมัติ',
+                                                  maxHeight: 700,
+                                                  scroll: false,
+                                                ));
+
+                                                await provider.push(context, ServiceSignaturePage(
+                                                  required: true,
+                                                  infoWidget: Row(
+                                                    spacing: 5,
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        'assets/images/iicon.svg',
+                                                        width: 15,
+                                                        height: 15,
+                                                      ),
+                                                      const Expanded(
+                                                          child: Text.rich(
+                                                              TextSpan( 
+                                                                text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text: 'ยืนยันการปฏิเสธคำขอลงเวลาเข้า-ออกในครั้งนี้เท่านั้น',
+                                                                    style: TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      decoration: TextDecoration.underline,
+                                                                    ),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                                                                  ),
+                                                                ],
+                                                              )
+                                                          )
+                                                      )
+                                                    ],
+                                                  ),
+                                                  request: (pngByte) => AttendanceApprovalService().approval(widget.id, 'rejected', _textEditingController.text, pngByte),
+                                                  onSuccessResponse: (pngBytes, jsonData) {
+                                                    navigator.pop();
+                                                    widget.onRejected();
+
+                                                    NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', widget.id, 'REJECTED');
+                                                  },
+                                                ));
+
+                                                provider.setConfig(oldConfig);
+                                              } else {
+                                                FloatingPopup(
+                                                    title: 'ปฏิเสธคำขอ',
+                                                    description: 'คุณยืนยันที่จะปฏิเสธคำขอหมายเลข: ${widget.id} หรือไม่?',
+                                                    buttons: (setError, context1) {
+                                                      return [
+                                                        FloatingPopupButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context1).pop();
+                                                          },
+                                                          text: 'ยกเลิก',
+                                                          foregroundColor: Colors.white,
+                                                          backgroundColor: AppColors.primaryColor,
+                                                        ),
+                                                        FloatingServicePopupButton(
+                                                          text: 'ยันยัน',
+                                                          foregroundColor: Colors.red,
+                                                          request: () => AttendanceApprovalService().approval(widget.id, 'rejected', _textEditingController.text, null),
+                                                          setError: setError,
+                                                          onSuccess: () async {
+                                                            Navigator.of(context1).pop();
+                                                            await Future.delayed(const Duration(milliseconds: 200));
+                                                            if (!context.mounted) return;
+                                                            Navigator.of(context, rootNavigator: true).pop();
+                                                            widget.onRejected();
+
+                                                            NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', widget.id, 'REJECTED');
+                                                          },
+                                                        )
+                                                      ];
+                                                    }
+                                                ).showPopup(context);
+                                              }
+                                            },
+                                          )
+                                      ),
+                                      Expanded(
+                                          child: ElevatedButton(
+                                            style: ButtonStyle(
+                                              minimumSize: const WidgetStatePropertyAll(Size(0, 0)),
+                                              padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+                                              backgroundColor: const WidgetStatePropertyAll(Color(0xFFCDF2E4)),
+                                              shape: WidgetStatePropertyAll(
+                                                  RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(50)
+                                                  )
+                                              ),
+                                              shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+                                              overlayColor: WidgetStateProperty<Color?>.fromMap(<WidgetState, Color?>{
+                                                WidgetState.pressed: Colors.white.withValues(alpha: 0.4),
+                                              }),
+                                            ),
+                                            child: Container(
+                                              padding: const EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 8),
+                                              child: Stack(
+                                                children: [
+                                                  const Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [
+                                                      Text(
+                                                        'อนุมัติ',
+                                                        style: TextStyle(
+                                                          fontSize: 15,
+                                                          color: Color(0xFF03BC78),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        'assets/images/icon_cancel.svg',
+                                                        width: 20,
+                                                        height: 20,
+                                                        colorFilter: const ColorFilter.mode(Color(0xFF03BC78), BlendMode.srcIn),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              if (setting!.approveNeedSignature) {
+                                                final navigator = Navigator.of(context, rootNavigator: true);
+                                                final provider = PopupProvider.of(context);
+                                                final oldConfig = provider.config;
+
+                                                provider.setConfig(PopupConfig(
+                                                  title: 'ลายเซ็น',
+                                                  buttonLabel: 'อนุมัติ',
+                                                  maxHeight: 700,
+                                                  scroll: false,
+                                                ));
+
+                                                await provider.push(context, ServiceSignaturePage(
+                                                  required: true,
+                                                  infoWidget: Row(
+                                                    spacing: 5,
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        'assets/images/iicon.svg',
+                                                        width: 15,
+                                                        height: 15,
+                                                      ),
+                                                      const Expanded(
+                                                          child: Text.rich(
+                                                              TextSpan(
+                                                                text: 'โปรดทราบว่า การเซ็นลายเซ็นดิจิทัลนี้ใช้สำหรับ',
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text: 'ยืนยันการอนุมัติคำขอลงเวลาเข้า-ออกในครั้งนี้เท่านั้น',
+                                                                    style: TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      decoration: TextDecoration.underline,
+                                                                    ),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text: ' และจะไม่ถูกนำไปใช้เพื่อวัตถุประสงค์อื่น',
+                                                                  ),
+                                                                ],
+                                                              )
+                                                          )
+                                                      )
+                                                    ],
+                                                  ),
+                                                  request: (pngByte) => AttendanceApprovalService().approval(widget.id, 'approved', _textEditingController.text, pngByte),
+                                                  onSuccessResponse: (pngBytes, jsonData) {
+                                                    navigator.pop();
+                                                    widget.onApproved();
+
+                                                    NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', widget.id, 'APPROVED');
+                                                  },
+                                                ));
+
+                                                provider.setConfig(oldConfig);
+                                              } else {
+                                                FloatingPopup(
+                                                    title: 'อนุมัติคำขอ',
+                                                    description: 'คุณยืนยันที่จะอนุมัติคำขอหมายเลข: ${widget.id} หรือไม่?',
+                                                    buttons: (setError, context1) {
+                                                      return [
+                                                        FloatingPopupButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context1).pop();
+                                                          },
+                                                          text: 'ยกเลิก',
+                                                          foregroundColor: Colors.white,
+                                                          backgroundColor: AppColors.primaryColor,
+                                                        ),
+                                                        FloatingServicePopupButton(
+                                                          text: 'ยันยัน',
+                                                          foregroundColor: Colors.red,
+                                                          request: () => AttendanceApprovalService().approval(widget.id, 'approved', _textEditingController.text, null),
+                                                          setError: setError,
+                                                          onSuccess: () async {
+                                                            Navigator.of(context1).pop();
+                                                            await Future.delayed(const Duration(milliseconds: 200));
+                                                            if (!context.mounted) return;
+                                                            Navigator.of(context, rootNavigator: true).pop();
+                                                            widget.onApproved();
+
+                                                            NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', widget.id, 'APPROVED');
+                                                          },
+                                                        )
+                                                      ];
+                                                    }
+                                                ).showPopup(context);
+                                              }
+                                            },
+                                          )
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ))
+                        ),
+                      ],
+                    )
+                ],
+              );
+            }
+        )
     );
   }
 }

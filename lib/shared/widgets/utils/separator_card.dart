@@ -35,7 +35,7 @@ class SeparatorCard extends StatelessWidget {
       return result;
     }
 
-    return Container(
+    return children.isNotEmpty ? Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
             color: AppColors.cardColor,
@@ -44,6 +44,6 @@ class SeparatorCard extends StatelessWidget {
         child: Column(
           children: withSeparator(children),
         )
-    );
+    ) : SizedBox.shrink();
   }
 }

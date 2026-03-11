@@ -605,7 +605,7 @@ class _EditRoleState extends State<EditRole> {
                                                                 width: 15,
                                                                 height: 15,
                                                               ),
-                                                              Text('ค้นหาตำแหน่ง...',
+                                                              Text('ค้นหาผู้ใช้...',
                                                                 style: TextStyle(
                                                                     color: Color(0xFF7D7D7D),
                                                                     fontSize: 15
@@ -660,7 +660,7 @@ class _EditRoleState extends State<EditRole> {
                                                                         });
                                                                       },
                                                                     );
-                                                                  })
+                                                                  }),
                                                                 ],
                                                               ),
                                                             )
@@ -683,29 +683,34 @@ class _EditRoleState extends State<EditRole> {
 
                             /// ===== Member list =====
                             if (_filteredMembers.isNotEmpty)
-                              SeparatorCard(
-                                separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 68),
+                              Column(
                                 children: [
-                                  ..._filteredMembers.map((m) {
-                                    return UserCancelCheckbox(
-                                      icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
-                                      title: m.thName,
-                                      subTitle: m.enName,
-                                      checkBox: false,
-                                      onCancel: () {
-                                        setState(() {
-                                          final newMembers = List<Member>.from(_role.members)
-                                            ..removeWhere((e) => e.id == m.id);
+                                  SeparatorCard(
+                                    separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 68),
+                                    children: [
+                                      ..._filteredMembers.map((m) {
+                                        return UserCancelCheckbox(
+                                            icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
+                                            title: m.thName,
+                                            subTitle: m.enName,
+                                            checkBox: false,
+                                            onCancel: () {
+                                              setState(() {
+                                                final newMembers = List<Member>.from(_role.members)
+                                                  ..removeWhere((e) => e.id == m.id);
 
-                                          _role = _role.copyWith(members: newMembers);
+                                                _role = _role.copyWith(members: newMembers);
 
-                                          _filteredMembers = _role.members;
-                                        });
-                                      }
-                                    );
-                                  }),
+                                                _filteredMembers = _role.members;
+                                              });
+                                            }
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                  SizedBox(height: 60),
                                 ],
-                              ),
+                              )
                           ],
                         ),
                       )
@@ -778,14 +783,14 @@ class _EditRoleState extends State<EditRole> {
                                 ),
                               ),
                             ),
+                            if (state == ServiceUpdatorState.error)
                             SizedBox(
                               height: 25,
-                              child: (state == ServiceUpdatorState.error) ?
-                              Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                              child: Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
                                 style: TextStyle(
                                     color: Colors.red
                                 )
-                              ) : SizedBox()
+                              )
                             )
                           ],
                         );

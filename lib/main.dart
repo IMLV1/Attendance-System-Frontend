@@ -9,6 +9,8 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'app/app.dart';
 import 'core/auth/auth_state.dart';
 import 'service_locator.dart';
+import 'services/notification/notification_provider.dart';
+import 'package:attendance_system/core/utils/navigation_guard.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -41,8 +43,18 @@ void main() async {
   ]);
 
   runApp(
-    ChangeNotifierProvider<AuthState>.value(
-      value: getIt<AuthState>(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthState>.value(
+          value: getIt<AuthState>(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider()..fetchNotifications(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NavigationGuard(),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         builder: (context, child) {

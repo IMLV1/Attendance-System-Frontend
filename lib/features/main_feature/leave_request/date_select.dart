@@ -253,14 +253,16 @@ class _DateSelectState extends State<DateSelect> {
               }
             ),
             enabledDayPredicate: (day) {
-              final today = DateTime.now();
-              return (widget.allowRetroactive) ? true : !day.isBefore(
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day + 1);
+
+              return (widget.allowRetroactive) ? true : day.isAfter(
                 DateTime(today.year, today.month, today.day),
               );
             },
             locale: 'th_TH',
-            firstDay: DateTime(DateTime.now().year - 100 ,1 ,1),
-            lastDay: DateTime(DateTime.now().year + 100 ,12 ,31),
+            firstDay: DateTime(2000),
+            lastDay: DateTime(2100),
             focusedDay: _focusedDay,
             rangeStartDay: _rangeStart,
             rangeEndDay: _rangeEnd,

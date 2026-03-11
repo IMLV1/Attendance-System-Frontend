@@ -2,6 +2,7 @@ import 'package:attendance_system/features/main_feature/leave_request/date_selec
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
+import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
@@ -55,6 +56,8 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
 
   LeaveInfoModel? leaveStatsInfo;
 
+  bool _isConfigured = false;
+
   double getLeaveDays() {
     double leaveDays = widget.leaveDate.toDate!.difference(widget.leaveDate.fromDate!).inDays + 1;
     double period = (widget.leaveDate.fromDateMorning ? 0 : -0.5) + (widget.leaveDate.toDateMorning ? -0.5 : 0);
@@ -105,6 +108,8 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
               onSuccessResponse: (jsonData) {
                 Navigator.of(context, rootNavigator: true).pop();
                 widget.onResend();
+
+                NotificationService().sendRequestNotification('APPROVER_LEAVE', widget.requestId);
               },
               builder: (trigger, state, errorMessage) {
 
@@ -115,8 +120,11 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
 
                   final provider = PopupProvider.of(context);
 
-                  // อัปเดตเฉพาะเมื่อสถานะมันเปลี่ยน เพื่อไม่ให้มันรีเฟรชรัวๆ
-                  if (provider.config.isLoading != isApiLoading || provider.config.buttonAction != trigger) {
+                  // 👈 เปลี่ยนเงื่อนไขมาเช็ค !_isConfigured แทนการเช็ค trigger
+                  if (provider.config.isLoading != isApiLoading || !_isConfigured) {
+
+                    _isConfigured = true; // 👈 สั่งให้บันทึกว่าตั้งค่าปุ่มไปแล้ว จะได้ไม่วนลูปอีก
+
                     provider.setConfig(
                       // copyWith ดีมากตรงที่มันจะเก็บ Title เดิมไว้ แต่เปลี่ยนแค่ปุ่มกับ Loading
                         provider.config.copyWith(
@@ -187,6 +195,8 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
                                 onSuccessResponse: (pngBytes, jsonData) {
                                   Navigator.of(context, rootNavigator: true).pop();
                                   widget.onResend();
+
+                                  NotificationService().sendRequestNotification('APPROVER_LEAVE', widget.requestId);
                                 },
                               ));
 

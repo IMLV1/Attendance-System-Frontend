@@ -306,8 +306,18 @@ class _PersonnelLeaveState extends State<PersonnelLeave> {
                                                       return PersonnelLeaveDetail(
                                                         requestID: m.id,
                                                         permissionLevel: permissionLevel,
-                                                        onApproved: () {  },
-                                                        onRejected: () {  },
+                                                        onApproved: () {
+                                                          setState(() {
+                                                            pendingLeaves.remove(m);
+                                                            recentLeaves.add(LeaveRequestModel(id: m.id, dateStart: m.dateStart, status: .approved, leaveType: m.leaveType));
+                                                          });
+                                                        },
+                                                        onRejected: () {
+                                                          setState(() {
+                                                            pendingLeaves.remove(m);
+                                                            recentLeaves.add(LeaveRequestModel(id: m.id, dateStart: m.dateStart, status: .rejected, leaveType: m.leaveType));
+                                                          });
+                                                        },
                                                       );
                                                     }, // โยนหน้า 1 เข้าไป
                                                   ).showPopup(context);

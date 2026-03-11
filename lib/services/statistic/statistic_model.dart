@@ -106,8 +106,8 @@ class LeaveTypeDetailModel {
 
   factory LeaveTypeDetailModel.fromJson(Map<String, dynamic> json) {
     return LeaveTypeDetailModel(
-      usedDays: json['used_days'] ?? 0.0,
-      quotaDays: json['quota_days'] ?? 0.0,
+      usedDays: (json['used_days'] as num?)?.toDouble() ?? 0.0,
+      quotaDays: (json['quota_days'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
@@ -143,19 +143,27 @@ class WorkingHourModel {
 
   factory WorkingHourModel.fromJson(Map<String, dynamic> json) {
 
-    Map<String, double> castMap(Map<dynamic, dynamic>? map) {
-      return map?.map((key, value) => MapEntry(key.toString(), (value as num).toDouble())) ?? {};
+    // Updated to accept dynamic to prevent casting errors,
+    // and safely checks if it's actually a Map before parsing.
+    Map<String, double> castMap(dynamic map) {
+      if (map == null || map is! Map) return {};
+      return map.map<String, double>(
+            (key, value) => MapEntry(key.toString(), (value as num).toDouble()),
+      );
     }
 
     return WorkingHourModel(
-      totalWorkingHour: json['total-working-hour'] ?? 0.0,
-      totalAverageHour: json['total-average-hour'] ?? 0.0,
-      weeklyWorkingHour: json['weekly-working-hour'] ?? 0.0,
-      weeklyAverageHour: json['weekly-average-hour'] ?? 0.0,
-      monthlyWorkingHour: json['monthly-working-hour'] ?? 0.0,
-      monthlyAverageHour: json['monthly-average-hour'] ?? 0.0,
-      yearlyWorkingHour: json['yearly-working-hour'] ?? 0.0,
-      yearlyAverageHour: json['yearly-average-hour'] ?? 0.0,
+      // Safely cast all numbers via 'num' before converting to double
+      totalWorkingHour: (json['total-working-hour'] as num?)?.toDouble() ?? 0.0,
+      totalAverageHour: (json['total-average-hour'] as num?)?.toDouble() ?? 0.0,
+      weeklyWorkingHour: (json['weekly-working-hour'] as num?)?.toDouble() ?? 0.0,
+      weeklyAverageHour: (json['weekly-average-hour'] as num?)?.toDouble() ?? 0.0,
+      monthlyWorkingHour: (json['monthly-working-hour'] as num?)?.toDouble() ?? 0.0,
+      monthlyAverageHour: (json['monthly-average-hour'] as num?)?.toDouble() ?? 0.0,
+      yearlyWorkingHour: (json['yearly-working-hour'] as num?)?.toDouble() ?? 0.0,
+      yearlyAverageHour: (json['yearly-average-hour'] as num?)?.toDouble() ?? 0.0,
+
+      // Safely parse the nested maps
       total: castMap(json['total']),
       week: castMap(json['week']),
       month: castMap(json['month']),

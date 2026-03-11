@@ -60,11 +60,6 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
   }
 
   @override
-  void initState() {
-    _onSearchChanged('');
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Column(
       spacing: 13,
@@ -117,6 +112,7 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
           onSuccess: (jsonData) {
             setState(() {
               personnel = PersonnelInfoModel.getList(jsonData);
+              filteredPersonnel = personnel;
             });
           },
           builder: () {

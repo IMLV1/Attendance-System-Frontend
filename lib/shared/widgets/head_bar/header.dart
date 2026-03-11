@@ -1,9 +1,11 @@
 import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
+import 'package:attendance_system/services/notification/notification_provider.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class Header {
 
@@ -151,15 +153,50 @@ class Header {
           padding: const EdgeInsets.only(right: 10),
           child: Row(
             children: [
-              IconButton(
-                onPressed: () {
-                  context.pushNamed(RouteNames.notification);
+              Consumer<NotificationProvider>(
+                builder: (context, notificationProvider, child) {
+                  final unreadCount = notificationProvider.unreadCount;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          context.push('/notification');
+                        },
+                        icon: SvgPicture.asset(
+                          'assets/images/notification.svg',
+                          width: 26,
+                          height: 26,
+                        ),
+                      ),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: 8,
+                          top: 16,
+                          child: InkWell(
+                            onTap: () {
+                              context.push('/notification');
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                unreadCount > 99 ? '99+' : unreadCount.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          )
+                        ),
+                    ],
+                  );
                 },
-                icon: SvgPicture.asset(
-                  'assets/images/notification.svg',
-                  width: 26,
-                  height: 26,
-                ),
               ),
               if (Responsive.isMobile(context)) IconButton(
                 onPressed: () {

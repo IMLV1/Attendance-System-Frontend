@@ -168,7 +168,7 @@ class AttendanceApproveDetail {
   final String approveRole;
   final String approver;
   final String reason;
-  final DateTime approveDate;
+  final DateTime? approveDate;
 
   AttendanceApproveDetail({
     required this.status,
@@ -184,7 +184,7 @@ class AttendanceApproveDetail {
       approveRole: json['approve-role'] ?? '',
       approver: json['approver'] ?? '',
       reason: json['reason'] ?? '',
-      approveDate: DateTime.tryParse(json['approve-date'])?? DateTime.fromMillisecondsSinceEpoch(0),
+      approveDate: DateTime.tryParse(json['approve-date'] ?? ''),
     );
   }
 }

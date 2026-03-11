@@ -108,11 +108,15 @@ class _LeaveApprovalState extends State<LeaveApproval> {
               () => LeaveApprovalService().getFilterRange()
             ],
             onSuccess: (idx, val) {
-              print(val);
               setState(() {
                 switch (idx) {
-                  case 0: pendingList = PendingLeaveApproval.getList(val['pending']);
-                  case 1: recentList = RecentLeaveApproval.getList(val['recent']);
+                  case 0: {
+
+                    print(val);
+
+                    pendingList = PendingLeaveApproval.getList(val['data']['pending']);
+                  }
+                  case 1: recentList = RecentLeaveApproval.getList(val['data']['recent']);
                   case 2: {
                     final start = DateTime.tryParse(val['start']);
                     final end = DateTime.tryParse(val['end']);
@@ -173,9 +177,9 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                       SeparatorCard(
                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                         children: [
-                          ...pendingList!.map((m) {
+                          ...pendingList.map((m) {
                             return UserInfoButton(
-                              icon: SvgPicture.network(
+                              icon: Image.network(
                                 m.avatarUrl,
                                 errorBuilder: (_, _, _) {
                                   return Image.asset('assets/images/profile.png');
@@ -328,7 +332,7 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                             width: double.infinity,
                             padding: EdgeInsetsGeometry.all(25),
                             child: Text(
-                              'ไม่มีพบคำขอเวลาเข้า-ออกงาน',
+                              'ไม่พบคำขอลางาน',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 15,

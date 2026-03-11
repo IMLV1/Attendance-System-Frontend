@@ -29,7 +29,7 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
   final List<String> hours = List.generate(24, (index) => index.toString().padLeft(2, '0'),);
   final List<String> minutes = List.generate(60, (index) => index.toString().padLeft(2, '0'),);
 
-  DateTime _focusedDay = DateTime.now();
+  DateTime _focusedDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day - 1);
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
@@ -63,7 +63,7 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
   void initState() {
     super.initState();
 
-    _focusedDay = widget.dateData?.fromDate ?? DateTime.now();
+    _focusedDay = widget.dateData?.fromDate ?? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day - 1);
     _rangeStart = widget.dateData?.fromDate;
     _rangeEnd = widget.dateData?.toDate;
 
@@ -244,15 +244,15 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                                           child: SeparatorCard(
                                             borderRadius: BorderRadius.circular(0),
                                             children: [
-                                              for (int i = -1; i <= 10; i++)
+                                              for (int i = 0; i <= 100; i++)
                                                 utils.TextButton(
                                                   arrow: false,
-                                                  label: (DateTime.now().year + 543 + i).toString(),
+                                                  label: (DateTime.now().year + 543 - i).toString(),
                                                   onPressed: () {
                                                     setState(() {
                                                       _yearController.close();
                                                       _focusedDay = DateTime(
-                                                          DateTime.now().year + i, focusedMonth.month
+                                                          DateTime.now().year - i, focusedMonth.month
                                                       );
                                                     });
                                                   },
@@ -271,12 +271,16 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                   );
                 }
             ),
-            enabledDayPredicate: (_) {
-              return true;
-            },
+            firstDay: DateTime(2000),
+            lastDay: DateTime(2100),
             locale: 'th_TH',
-            firstDay: DateTime(DateTime.now().year - 100 ,1 ,1),
-            lastDay: DateTime(DateTime.now().year + 100 ,31 ,12),
+            enabledDayPredicate: (day) {
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+
+              // Return true only for days strictly BEFORE today
+              return day.isBefore(today);
+            },
             focusedDay: _focusedDay,
             rangeStartDay: _rangeStart,
             rangeEndDay: _rangeEnd,

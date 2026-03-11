@@ -84,6 +84,8 @@ class PopupProvider extends InheritedWidget {
       MaterialPageRoute( // แนะนำให้ใช้ Cupertino เพื่อให้ตอนสไลด์ขอบมันเนียนกว่า Material
         builder: (navContext) {
 
+          print(config.scroll);
+
           // 1. ห่อด้วย SingleChildScrollView (ถ้าตั้งค่า scroll เป็น true)
           Widget content = config.scroll
               ? SingleChildScrollView(

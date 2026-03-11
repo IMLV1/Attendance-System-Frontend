@@ -139,14 +139,14 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
 
   List<int> getMonthOfYear(int yearIndex) {
     return [
-      for (int i = ((allowDateFrom?.year ?? DateTime.now().year - 100) == int.parse(years[yearIndex])) ? (allowDateFrom?.month ?? 1) - 1 : 0 ; i <= (((allowDateTo?.year ?? DateTime.now().year) == int.parse(years[yearIndex])) ? (allowDateTo?.month ?? DateTime.now().month) - 1 : 11); i++)
+      for (int i = ((allowDateFrom?.year ?? DateTime.now().year) == int.parse(years[yearIndex])) ? (allowDateFrom?.month ?? DateTime.now().month) - 1 : 0 ; i <= (((allowDateTo?.year ?? DateTime.now().year) == int.parse(years[yearIndex])) ? (allowDateTo?.month ?? DateTime.now().month) - 1 : 11); i++)
         i
     ];
   }
 
   List<String> getYears() {
     return [
-      for (int i = (allowDateFrom?.year ?? DateTime.now().year - 100); i <= (allowDateTo?.year ?? DateTime.now().year); i++)
+      for (int i = (allowDateFrom?.year ?? DateTime.now().year); i <= (allowDateTo?.year ?? DateTime.now().year); i++)
         i.toString()
     ];
   }

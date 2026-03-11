@@ -92,6 +92,7 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
               () => AttendanceApprovalService().getFilterRange(),
             ],
             onSuccess: (idx, val) {
+
               setState(() {
                 switch (idx) {
                   case 0: pendingList = PendingAttendanceApprovalModel.getList(val['pending']);
@@ -195,13 +196,13 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                                       onSuccess: () {
                                         setState(() {
                                           pendingList.remove(m);
-                                          recentList.insert(0, RecentAttendanceApprovalModel(id: m.id, status: 'approved', name: m.name, attendanceId: m.attendanceId));
+                                          recentList.insert(0, RecentAttendanceApprovalModel(status: 'approved', name: m.name, attendanceId: m.attendanceId));
                                         });
                                       },
                                       onRejected: () {
                                         setState(() {
                                           pendingList.remove(m);
-                                          recentList.insert(0, RecentAttendanceApprovalModel(id: m.id, status: 'rejected', name: m.name, attendanceId: m.attendanceId));
+                                          recentList.insert(0, RecentAttendanceApprovalModel(status: 'rejected', name: m.name, attendanceId: m.attendanceId));
                                         });
                                       },
                                     );
@@ -275,7 +276,7 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                             width: double.infinity,
                             padding: EdgeInsetsGeometry.all(25),
                             child: Text(
-                              'ไม่มีพบคำขอเวลาเข้า-ออกงาน',
+                              'ไม่พบคำขอเวลาเข้า-ออกงาน',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 15,

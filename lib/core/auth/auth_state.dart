@@ -34,6 +34,8 @@ class AuthState extends ChangeNotifier {
     status = ok ? AuthStatus.authenticated : AuthStatus.unauthenticated;
 
     if (status == AuthStatus.authenticated) {
+      user = await repo.getUser();
+
       {
         Response response = await ProfileService().getProfile();
         if (response.statusCode == 200) {
@@ -63,7 +65,7 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loginWithGoogle() async {
+  Future<String> loginWithGoogle() async {
     try {
       final result = await repo.loginWithGoogle();
       user = result.user;
@@ -93,9 +95,12 @@ class AuthState extends ChangeNotifier {
           attendanceConfig = ConfigAttendanceRequestModel.fromJson(response.data);
         }
       }
+
+      return '';
     } catch (e) {
       status = AuthStatus.unauthenticated;
-      rethrow;
+      await logout();
+      return 'ไม่สามารถเข้าสู่ระบบได้ กรุณาติดต่อนักทรัพยากรบุคคล';
     } finally {
       notifyListeners();
     }

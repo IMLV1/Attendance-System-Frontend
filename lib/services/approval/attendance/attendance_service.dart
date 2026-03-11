@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -36,8 +37,9 @@ class AttendanceApprovalService {
   }
 
   Future<Response<dynamic>> approval(String reqId, String status, String reason, Uint8List? signature) async {
-    return dio.put('/api/attendance-approval/$reqId',
-      data: {
+
+    FormData formData = FormData.fromMap(
+      {
         'status': status,
         'reason': reason,
         'signature-approval': signature != null ? MultipartFile.fromBytes(
@@ -47,5 +49,11 @@ class AttendanceApprovalService {
         ) : null
       }
     );
+
+    final response = await dio.put('/api/attendance-approval/$reqId',
+      data: formData,
+    );
+
+    return response;
   }
 }
