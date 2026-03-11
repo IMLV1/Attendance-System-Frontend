@@ -66,13 +66,6 @@ class TimeRequestService {
       data: FormData.fromMap(data),
     );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final String? requestNumber = response.data['request-number'] ?? response.data['id']; // Time request might use 'id'
-      if (requestNumber != null) {
-        NotificationService().sendRequestNotification('APPROVER_ATTENDANCE', requestNumber);
-      }
-    }
-
     return response;
   }
 

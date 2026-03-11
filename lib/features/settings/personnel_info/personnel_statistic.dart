@@ -95,14 +95,17 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
                           () => PersonnelStatisticService().getFilterRange(personnelId: personnel!.id),
                         ],
                         onSuccess: (index, data) {
-                          switch(index) {
-                            case 0: statistic = StatisticModel.fromJson(data);
-                            case 1: workingHour = WorkingHourModel.fromJson(data);
-                            case 2: {
-                              allowFilterStart = DateTime.tryParse(data['start']);
-                              allowFilterEnd = DateTime.tryParse(data['end']);
+
+                          setState(() {
+                            switch(index) {
+                              case 0: statistic = StatisticModel.fromJson(data);
+                              case 1: workingHour = WorkingHourModel.fromJson(data);
+                              case 2: {
+                                allowFilterStart = DateTime.tryParse(data['start']);
+                                allowFilterEnd = DateTime.tryParse(data['end']);
+                              }
                             }
-                          }
+                          });
                         },
                         fetchOnInit: true,
                         builder: (trigger, getState) {

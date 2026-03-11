@@ -6,6 +6,7 @@ import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
@@ -27,13 +28,16 @@ class SettingPage extends StatelessWidget {
 
     Uint8List? signature;
 
+    AuthState authState = context.read<AuthState>();
+    List<String> userType = authState.user?.roleType ?? [];
+
     return AppScaffold(
       header: Header.subHeader(context,
         title: 'การตั้งค่าและการจัดการ'
       ),
       content: SafeArea(
         child: SingleChildScrollView(
-  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const AlwaysScrollableScrollPhysics(),
 
           child: Container(
@@ -48,51 +52,27 @@ class SettingPage extends StatelessWidget {
                   SeparatorCard(
                     separatorPadding: EdgeInsets.only(left: 45, right: 15),
                     children: [
-                      //(onPressed: () {
-                      //                           context.push('/settings/user-management');
-                      //                         }
                       IconTextButton(onPressed: () {
                         context.pushNamed(RouteNames.attendanceHistory);
                       }, icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
                     ]
                   ),
-                  SeparatorCard(
+                  if (['admin', 'hr', 'main', 'special'].any((test) => userType.contains(test)))
+                    SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
-                        IconTextButton(onPressed: () {
-                          context.pushNamed(RouteNames.approval);
-                        }, icon: 'icon_approval.svg', label: 'อนุมัติคำขอ'),
-                        IconTextButton(onPressed: () {
-                          context.pushNamed(RouteNames.personnelInfo);
-                        }, icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
-                        // ToggleSwitch(
-                        //   icon: 'icon_role.svg',
-                        //   label: 'แนบเอกสาร',
-                        //   subSwitch: true,
-                        //   subLabel: 'จำเป็นต้องแนบ',
-                        //   onChanged: (val) {
-                        //     debugPrint('main: $val');
-                        //   },
-                        //   onSubChanged: (val) {
-                        //     debugPrint('sub: $val');
-                        //   },
-                        // ),
-                        // ToggleSwitch(
-                        //   icon: 'icon_role.svg',
-                        //   label: 'แนบเอกสาร',
-                        //   subSwitch: true,
-                        //   subLabel: 'จำเป็นต้องแนบ',
-                        //   onChanged: (val) {
-                        //     debugPrint('main: $val');
-                        //   },
-                        //   onSubChanged: (val) {
-                        //     debugPrint('sub: $val');
-                        //   },
-                        // ),
-                        //IconTextButton(icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
+                        if (['admin', 'main'].any((test) => userType.contains(test)))
+                          IconTextButton(onPressed: () {
+                            context.pushNamed(RouteNames.approval);
+                          }, icon: 'icon_approval.svg', label: 'อนุมัติคำขอ'),
+                        if (['admin', 'hr', 'main', 'special'].any((test) => userType.contains(test)))
+                          IconTextButton(onPressed: () {
+                            context.pushNamed(RouteNames.personnelInfo);
+                          }, icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
                       ]
-                  ),
-                  SeparatorCard(
+                    ),
+                  if (['admin', 'hr'].any((test) => userType.contains(test)))
+                    SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
                         IconTextButton(onPressed: () {
@@ -103,7 +83,8 @@ class SettingPage extends StatelessWidget {
                         },icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
                       ]
                   ),
-                  SeparatorCard(
+                  if (userType.contains('admin'))
+                    SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
                         IconTextButton(onPressed: () {
@@ -119,16 +100,18 @@ class SettingPage extends StatelessWidget {
                           context.pushNamed(RouteNames.settingLeaveType);
                         }, icon: 'icon_setting.svg', label: 'ประเภทการลางาน'),
                       ]
-                  ),
+                    ),
 
                   StatefulBuilder(
                     builder: (context, setState) {
+
                       return SeparatorCard(
                         separatorPadding: EdgeInsets.only(left: 45, right: 15),
                         children: [
                           ServiceUpdater(
                             request: () => SignatureService().get(),
                             onSuccessResponse: (pngBytes) {
+
                               setState(() {
                                 signature = pngBytes;
                               });
@@ -170,13 +153,35 @@ class SettingPage extends StatelessWidget {
                     }
                   ),
                   SeparatorCard(
-                      separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                      children: [
-                        IconTextButton(arrow: false, onPressed: () async {
-                          await context.read<AuthState>().logout();
-                        }, icon: 'icon_logout.svg', label: 'ออกจากระบบ', color: Colors.red),
-                        // TODO: change Color red in label text and change Icon
-                      ]
+                    separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                    children: [
+                      IconTextButton(arrow: false, onPressed: () async {
+
+                        FloatingPopup(
+
+                          title: 'ออกจากระบบ',
+                          description: 'คุณยืนยันที่จะออกจากระบบหรือไม่?',
+                          buttons: (parent, context) => [
+                            FloatingPopupButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              backgroundColor: AppColors.primaryColor,
+                              foregroundColor: Colors.white,
+                              text: 'ยกเลิก'
+                            ),
+                            FloatingPopupButton(
+                              onPressed: () async {
+                                Navigator.of(context).pop();
+                                await authState.logout();
+                              },
+                              foregroundColor: Colors.red,
+                              text: 'ยืนยัน'
+                            )
+                          ]
+                        ).showPopup(context);
+                      }, icon: 'icon_logout.svg', label: 'ออกจากระบบ', color: Colors.red),
+                    ]
                   ),
                 ]
               )

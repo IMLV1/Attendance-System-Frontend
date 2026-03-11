@@ -1,19 +1,16 @@
 import '../../time_request/time_request_model.dart';
 
 class PendingAttendanceApprovalModel {
-  final String id;
   final String name;
   final String attendanceId;
 
   PendingAttendanceApprovalModel({
-    required this.id,
     required this.name,
     required this.attendanceId,
   });
 
   factory PendingAttendanceApprovalModel.fromJson(Map<String, dynamic> json) {
     return PendingAttendanceApprovalModel(
-      id: json['id'],
       name: json['name'],
       attendanceId: json['attendanceId'],
     );
@@ -21,7 +18,6 @@ class PendingAttendanceApprovalModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
       'attendanceId': attendanceId,
     };
@@ -33,13 +29,11 @@ class PendingAttendanceApprovalModel {
 }
 
 class RecentAttendanceApprovalModel {
-  final String id;
   final String status;
   final String name;
   final String attendanceId;
 
   RecentAttendanceApprovalModel({
-    required this.id,
     required this.status,
     required this.name,
     required this.attendanceId,
@@ -47,7 +41,6 @@ class RecentAttendanceApprovalModel {
 
   factory RecentAttendanceApprovalModel.fromJson(Map<String, dynamic> json) {
     return RecentAttendanceApprovalModel(
-      id: json['id'],
       status: json['status'],
       name: json['name'],
       attendanceId: json['attendanceId'],
@@ -56,7 +49,6 @@ class RecentAttendanceApprovalModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'status': status,
       'name': name,
       'attendanceId': attendanceId,

@@ -87,7 +87,7 @@ class UserInfoButton extends StatelessWidget {
               ],
             )
             ),
-          if (roles == [])
+          if (roles.isNotEmpty)
             Expanded(
               flex: 2,
               child: IntrinsicHeight(

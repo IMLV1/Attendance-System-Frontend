@@ -293,11 +293,29 @@ class _WorkingHourState extends State<WorkingHour> {
   Widget _barChart({required Map<String, double> data, required double width}) {
 
     double keyWidth = getMaxKeyWidth(data, TextStyle(fontSize: 11));
-    int labelAmount = (width / (keyWidth + 3.5)).floor();
+
+    // SAFEGUARD 1: Ensure labelAmount is never less than 1 to prevent division by zero later
+    int labelAmount = max(1, (width / (keyWidth + 3.5)).floor());
 
     double barWidth = min((width / data.length) * 0.5, 40);
 
-    double leftReverseSide = getReservedSize(text: data.isNotEmpty ? Utils.numberFormat(pow(10, (log(data.values.reduce(max).round().abs()) / ln10).floor() + 1) * 8) : '', style: TextStyle(fontSize: 11), extraPadding: 6);
+    // SAFEGUARD 2: Safely get the max value
+    double maxValue = data.isNotEmpty ? data.values.reduce(max) : 0.0;
+
+    // SAFEGUARD 3: Only run the log calculation if the max value is greater than 0
+    String leftReservedText = '';
+    if (maxValue > 0) {
+      int exponent = (log(maxValue.round().abs()) / ln10).floor() + 1;
+      leftReservedText = Utils.numberFormat(pow(10, exponent) * 8);
+    } else {
+      leftReservedText = '0'; // Fallback text to reserve layout space when all values are 0
+    }
+
+    double leftReverseSide = getReservedSize(
+        text: leftReservedText,
+        style: TextStyle(fontSize: 11),
+        extraPadding: 6
+    );
 
     return BarChart(
       BarChartData(

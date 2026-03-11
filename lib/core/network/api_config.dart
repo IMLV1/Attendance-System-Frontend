@@ -15,12 +15,12 @@ class ApiConfig {
     const isProd = bool.fromEnvironment('dart.vm.product');
 
     if (isProd) {
-      baseUrl = 'http://20.194.9.179:3000';
+      baseUrl = 'http://mc-developcraft.net:3000';
     } else {
       if (kIsWeb) {
-        baseUrl = 'http://20.194.9.179:3000'; // Web
+        baseUrl = 'http://mc-developcraft.net:3000'; // Web
       } else {
-        baseUrl = 'http://20.194.9.179:3000'; // Android Emulator / iOS
+        baseUrl = 'http://mc-developcraft.net:3000'; // Android Emulator / iOS
       }
     }
   }

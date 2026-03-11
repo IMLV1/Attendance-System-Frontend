@@ -6,7 +6,7 @@ import 'notification_model.dart';
 import 'dart:async';
 
 class NotificationService {
-  // Mock data to simulate the backend
+  // Mock data to simulate the backend (kept as requested, not currently used)
   final List<NotificationModel> _mockNotifications = [
     NotificationModel(
       id: "notif_1",
@@ -70,38 +70,58 @@ class NotificationService {
     ),
   ];
 
-  /// Fetch notifications from the simulated backend
+  final Dio _dio = GetIt.I<ApiClient>().dio;
+
+  /// Fetch notifications from the backend
   Future<List<NotificationModel>> fetchNotifications() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-    debugPrint("[NotificationService] Fetched ${_mockNotifications.length} notifications (Mock Data)");
-    return List.from(_mockNotifications); // Return a copy of the list
+    try {
+      final response = await _dio.get('/api/notifications');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => NotificationModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint("[NotificationService] Error fetching notifications: $e");
+      return [];
+    }
   }
 
-  /// Mark a specific notification as read in the simulated backend
+  /// Mark a specific notification as read
   Future<bool> markAsRead(String notificationId) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    final index = _mockNotifications.indexWhere((n) => n.id == notificationId);
-    if (index != -1) {
-      _mockNotifications[index] = _mockNotifications[index].copyWith(isRead: true);
-      debugPrint("[NotificationService] Marked notification $notificationId as read");
-      return true;
+    try {
+      final response = await _dio.patch('/api/notifications/$notificationId/read');
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("[NotificationService] Error marking as read: $e");
+      return false;
     }
-    return false;
   }
 
-  /// Mark all notifications as read in the simulated backend
+  /// Mark all notifications as read
   Future<bool> markAllAsRead() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    for (int i = 0; i < _mockNotifications.length; i++) {
-      _mockNotifications[i] = _mockNotifications[i].copyWith(isRead: true);
+    try {
+      final response = await _dio.patch('/api/notifications/read-all');
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("[NotificationService] Error marking all as read: $e");
+      return false;
     }
-    debugPrint("[NotificationService] Marked all notifications as read");
-    return true;
+  }
+
+  /// Get unread notification count
+  Future<int> getUnreadCount() async {
+    try {
+      final response = await _dio.get('/api/notifications/unread-count');
+      if (response.statusCode == 200) {
+        return response.data['count'] as int;
+      }
+      return 0;
+    } catch (e) {
+      debugPrint("[NotificationService] Error getting unread count: $e");
+      return 0;
+    }
   }
 
   /// Send a notification to the approver when a new request is created

@@ -14,117 +14,132 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // final role = context.watch<AuthState>().role;
-
     return AppScaffold(
-      hideNavigation: true,
-      // header: Header.mainHeader(context),
-      content: SafeArea(
+        hideNavigation: true,
+        // header: Header.mainHeader(context),
+        content: SafeArea(
 
-        child: Container(
-            color: AppColors.backgroundColor,
-            alignment: Alignment.center,
+            child: Container(
+                color: AppColors.backgroundColor,
+                alignment: Alignment.center,
 
-            padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20),
 
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: _AppLogoLoginCard(),
-                ),
-                Spacer(),
+                child: Column(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: _AppLogoLoginCard(),
+                    ),
+                    Spacer(),
 
-                Text(
-                  'Copyright © 2026 CatIsPink Inc. All rights reserved. KU Time Attendance System',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.lightTextColor,
-                  ),
-                ),
-              ],
+                    Text(
+                      'Copyright © 2026 CatIsPink Inc. All rights reserved. KU Time Attendance System',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.lightTextColor,
+                      ),
+                    ),
+                  ],
 
+                )
             )
         )
-      )
     );
   }
 }
 
-class _AppLogoLoginCard extends StatelessWidget {
+class _AppLogoLoginCard extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _AppLogoLoginCardState();
+}
+
+class _AppLogoLoginCardState extends State<_AppLogoLoginCard> {
+
+  String error = '';
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-        builder: (context, pageConstraints) {
-          return Column(
-            spacing: 13.r(context),
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              /// 🔹 LOGO
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final logoWidth = (constraints.maxWidth * 0.55).clamp(120.0, 260.0);
+      builder: (context, pageConstraints) {
+        return Column(
+          spacing: 13.r(context),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            /// 🔹 LOGO
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final logoWidth = (constraints.maxWidth * 0.55).clamp(120.0, 260.0);
 
-                  return Image.asset(
-                    'assets/images/app_logo.png',
-                    width: logoWidth,
-                    fit: BoxFit.contain,
-                  );
-                },
+                return Image.asset(
+                  'assets/images/app_logo.png',
+                  width: logoWidth,
+                  fit: BoxFit.contain,
+                );
+              },
+            ),
+
+            /// 🔹 CARD
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight:
+                !Responsive.isMobile(context) ? 350 : double.infinity,
               ),
+              child: AspectRatio(
+                aspectRatio: 362 / 244,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final scale = Responsive.scaleFromWidth(
+                      currentWidth: constraints.maxWidth,
+                    );
 
-              /// 🔹 CARD
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight:
-                  !Responsive.isMobile(context) ? 350 : double.infinity,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 362 / 244,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final scale = Responsive.scaleFromWidth(
-                        currentWidth: constraints.maxWidth,
-                      );
-
-                      return Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 14 * scale,
-                          vertical: 20 * scale,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              spacing: 4 * scale,
-                              children: [
-                                Text(
-                                  "เข้าสู่ระบบ",
-                                  style: TextStyle(
-                                    fontSize: 18 * scale,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.greyTextColor,
+                    return Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 14 * scale,
+                            vertical: 20 * scale,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                spacing: 4 * scale,
+                                children: [
+                                  Text(
+                                    "เข้าสู่ระบบ",
+                                    style: TextStyle(
+                                      fontSize: 18 * scale,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.greyTextColor,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  "ใช้บัญชี Google ของคุณเพื่อเข้าใช้งาน",
-                                  style: TextStyle(
-                                    fontSize: 13 * scale,
-                                    color: AppColors.lightTextColor,
+                                  Text(
+                                    "ใช้บัญชี Google ของคุณเพื่อเข้าใช้งาน",
+                                    style: TextStyle(
+                                      fontSize: 13 * scale,
+                                      color: AppColors.lightTextColor,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
 
-                                  /// 🔹 BUTTON
+                              /// 🔹 BUTTON
+                              Column(
+                                spacing: 6,
+                                children: [
                                   ElevatedButton(
                                     onPressed: () async {
-                                      await context.read<AuthState>().loginWithGoogle();
+
+                                      String res = await context.read<AuthState>().loginWithGoogle();
+
+                                      setState(() {
+                                        error = res;
+                                      });
                                     },
                                     style: ElevatedButton.styleFrom(
                                       padding:
@@ -149,47 +164,57 @@ class _AppLogoLoginCard extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-
-                            /// 🔹 FOOTNOTE
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 10 * scale,
-                              ),
-                              child: RichText(
-                                textAlign: TextAlign.center,
-                                text: TextSpan(
-                                  style: TextStyle(
-                                    fontSize: 11 * scale,
-                                    color: AppColors.greyTextColor,
-                                  ),
-                                  children: [
-                                    const TextSpan(
-                                      text:
-                                      "หากพบปัญหาในการเข้าสู่ระบบ กรุณาติดต่อ",
-                                    ),
-                                    TextSpan(
-                                      text: "นักทรัพยากรบุคคล",
+                                  if (error.isNotEmpty)
+                                    Text(
+                                      error,
                                       style: TextStyle(
-                                        color: AppColors.primaryColor,
+                                          color: Colors.red,
+                                          fontSize: 12
                                       ),
                                     ),
-                                    const TextSpan(
-                                      text: "ฝ่ายสำนักงานเลขานุการ",
+                                ],
+                              ),
+
+                              /// 🔹 FOOTNOTE
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10 * scale,
+                                ),
+                                child: RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 11 * scale,
+                                      color: AppColors.greyTextColor,
                                     ),
-                                  ],
+                                    children: [
+                                      const TextSpan(
+                                        text:
+                                        "หากพบปัญหาในการเข้าสู่ระบบ กรุณาติดต่อ",
+                                      ),
+                                      TextSpan(
+                                        text: "นักทรัพยากรบุคคล",
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor,
+                                        ),
+                                      ),
+                                      const TextSpan(
+                                        text: "ฝ่ายสำนักงานเลขานุการ",
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                            ],
+                          ),
+                        );
+                  },
                 ),
               ),
-            ],
-          );
-        },
-      );
+            ),
+          ],
+        );
+      },
+    );
   }
 }

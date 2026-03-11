@@ -228,6 +228,7 @@ class AttendanceStatistic extends StatelessWidget {
     final double onTime = (statistic?.attendanceDetail.onTimeDays ?? 0) / (statistic?.actualWorkDays ?? 1) * 100;
     final double late = (statistic?.attendanceDetail.lateDays ?? 0) / (statistic?.actualWorkDays ?? 1) * 100;
     final double absent = (statistic?.attendanceDetail.absentDays ?? 0) / (statistic?.actualWorkDays ?? 1) * 100;
+    final double noData = 100 - (onTime + late + absent);
 
     return Stack(
       alignment: Alignment.center,
@@ -256,6 +257,12 @@ class AttendanceStatistic extends StatelessWidget {
                 PieChartSectionData(
                   color: AppColors.buttonCheckOut,
                   value: absent,
+                  radius: 12,
+                  showTitle: false,
+                ),
+                PieChartSectionData(
+                  color: Colors.grey.shade300,
+                  value: noData,
                   radius: 12,
                   showTitle: false,
                 ),

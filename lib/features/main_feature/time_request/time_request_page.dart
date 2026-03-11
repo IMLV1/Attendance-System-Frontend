@@ -100,7 +100,6 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                             // mockData3(),
                           ],
                           onSuccess: (idx, val) {
-                            print(val['recent']);
                             setState(() {
                               switch (idx) {
                                 case 0: pendingList = PendingAttendanceRequestModel.getList(val['pending']);

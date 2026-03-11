@@ -104,9 +104,11 @@ class _LeaveApprovalDetail extends State<LeaveApprovalDetail> {
                     // ),
                     request: () => LeaveApprovalService().getUserDetail(widget.userId),
                     onSuccess: (val) {
+
                       print(val);
+
                       setState(() {
-                        model = LeaveApprovalModel.fromJson(val);
+                        model = LeaveApprovalModel.fromJson(val['data']);
                         pending = model!.pendingUser;
                       });
                     },
@@ -126,7 +128,7 @@ class _LeaveApprovalDetail extends State<LeaveApprovalDetail> {
                                           SeparatorCard(
                                             children: [
                                               ProfileButton(
-                                                icon: SvgPicture.network(
+                                                icon: Image.network(
                                                   model!.userDetail.avatarUrl,
                                                   errorBuilder: (_, _, _) {
                                                     return Image.asset('assets/images/profile.png');

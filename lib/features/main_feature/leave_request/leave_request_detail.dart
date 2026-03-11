@@ -114,7 +114,6 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
           onSuccess: (val) {
 
             print(val);
-
             setState(() {
               requestDetail = LeaveRequestDetailModel.fromJson(val);
             });
@@ -151,7 +150,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                           },
                           arrow: false,
                           timeStamp: requestDetail?.approveDetail.approveDate != null
-                              ? formatDateTime(requestDetail!.approveDetail.approveDate)
+                              ? formatDateTime(requestDetail!.approveDetail.approveDate!)
                               : null,
                           onPressed: () {
                             setState(() {
@@ -160,7 +159,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                           },
                         ),
                         AnimatedSizeWidget(
-                          enable: onSelect && !(status == .pending || status == .overdue),
+                          enable: onSelect && !(status == .pending || status == .overdue || status == .canceled),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 6,

@@ -57,13 +57,6 @@ class LeaveRequestService {
       data: formData
     );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final String? requestNumber = response.data['request-number'] ?? response.data['requestNumber'];
-      if (requestNumber != null) {
-        NotificationService().sendRequestNotification('APPROVER_LEAVE', requestNumber);
-      }
-    }
-
     return response;
   }
 

@@ -42,6 +42,8 @@ class _ServiceSignaturePageState extends State<ServiceSignaturePage> {
   Uint8List? _imported;
   String? _error;
 
+  bool _isConfigured = false;
+
   @override
   void initState() {
     super.initState();
@@ -96,13 +98,16 @@ class _ServiceSignaturePageState extends State<ServiceSignaturePage> {
         builder: (trigger, state, errorMessage) {
 
           final bool isApiLoading = (state == ServiceUpdatorState.loading);
+          final provider = PopupProvider.of(context); // 👈 ดึงค่าไว้ตรงนี้ (ใน Build Phase)
 
-          // ⚡ ส่งปุ่ม "ส่ง" ขึ้นไปที่ Header ด้านบน
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (ModalRoute.of(context)?.isCurrent != true) return;
 
-            final provider = PopupProvider.of(context);
-            if (provider.config.isLoading != isApiLoading || provider.config.buttonAction != trigger) {
+            // 👈 2. เช็คจากตัวแปร !_isConfigured แทน
+            if (provider.config.isLoading != isApiLoading || !_isConfigured) {
+
+              _isConfigured = true; // 👈 3. ล็อคไว้ไม่ให้มันอัปเดตปุ่มซ้ำอีก
+
               provider.setConfig(
                   provider.config.copyWith(
                     isLoading: isApiLoading,

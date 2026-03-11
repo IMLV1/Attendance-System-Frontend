@@ -1,3 +1,5 @@
+import 'package:attendance_system/core/auth/user_model.dart';
+
 import '../network/api_client.dart';
 import 'auth_api_service.dart';
 import 'auth_result.dart';
@@ -9,6 +11,7 @@ abstract class AuthRepository {
   Future<bool> hasToken();
   Future<void> logout();
   Future<void> forceLogout();
+  Future<UserModel?> getUser();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -63,6 +66,15 @@ class AuthRepositoryImpl implements AuthRepository {
       await storage.clear();
       apiClient.clearToken();
       return false;
+    }
+  }
+
+  @override
+  Future<UserModel?> getUser() async {
+    try {
+      return await api.getMe();
+    } catch (_) {
+      return null;
     }
   }
 

@@ -141,7 +141,7 @@ class _NotificationPageState extends State<NotificationPage> {
         iconColor = Colors.red;
       } else {
         iconName = 'leave.svg';
-        iconColor = Colors.grey;
+        iconColor = const Color(0xFFFFAD00);
       }
     } else if (notification.type == 'ATTENDANCE_REQUEST' || notification.type == 'APPROVER_ATTENDANCE') {
        if (notification.status == 'APPROVED') {
@@ -152,7 +152,7 @@ class _NotificationPageState extends State<NotificationPage> {
         iconColor = Colors.red;
       } else {
         iconName = 'clock_attendance.svg';
-        iconColor = Colors.grey;
+        iconColor = const Color(0xFFFFAD00);
       }
     }
 

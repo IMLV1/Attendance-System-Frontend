@@ -45,21 +45,22 @@ class LeaveApprovalService {
   }
 
   Future<Response<dynamic>> approval(String reqId, String status, String reason, Uint8List? signature) async {
-    final response = await dio.put('/api/leave-approval/$reqId',
-        data: {
-          'status': status,
-          'reason': reason,
-          'signature-approval': signature != null ? MultipartFile.fromBytes(
-            signature,
-            filename: "signature.png",
-            contentType: DioMediaType.parse("image/png"),
-          ) : null
-        }
+
+    FormData formData = FormData.fromMap(
+      {
+        'status': status,
+        'reason': reason,
+        'signature-approval': signature != null ? MultipartFile.fromBytes(
+          signature,
+          filename: "signature.png",
+          contentType: DioMediaType.parse("image/png"),
+        ) : null
+      }
     );
 
-    if (response.statusCode == 200) {
-      NotificationService().sendApprovalResponseNotification('LEAVE_REQUEST', reqId, status);
-    }
+    final response = await dio.put('/api/leave-approval/$reqId',
+      data: formData
+    );
 
     return response;
   }

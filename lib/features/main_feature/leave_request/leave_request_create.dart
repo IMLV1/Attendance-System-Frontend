@@ -3,6 +3,7 @@ import 'package:attendance_system/features/main_feature/leave_request/leave_type
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
+import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
@@ -668,6 +669,10 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                             context.pop<(String?, String?, DateTime?)?>(
                               (requestID, leaveType?.name, leaveDate?.fromDate),
                             );
+
+                            if (requestID != null) {
+                              NotificationService().sendRequestNotification('APPROVER_LEAVE', requestID);
+                            }
                           },
                           builder: (trigger, state, errorMessage) {
                             return Padding(
@@ -709,7 +714,11 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                     final String? requestID = jsonData['request-id'];
                                                     context.pop<(String?, String?, DateTime?)?>(
                                                       (requestID, leaveType?.name, leaveDate?.fromDate),
-                                                    ); 
+                                                    );
+
+                                                    if (requestID != null) {
+                                                      NotificationService().sendRequestNotification('APPROVER_LEAVE', requestID);
+                                                    }
                                                   },
                                                   infoWidget: Row(
                                                     spacing: 5,

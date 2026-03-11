@@ -37,8 +37,9 @@ class AttendanceApprovalService {
   }
 
   Future<Response<dynamic>> approval(String reqId, String status, String reason, Uint8List? signature) async {
-    final response = await dio.put('/api/attendance-approval/$reqId',
-      data: {
+
+    FormData formData = FormData.fromMap(
+      {
         'status': status,
         'reason': reason,
         'signature-approval': signature != null ? MultipartFile.fromBytes(
@@ -49,9 +50,9 @@ class AttendanceApprovalService {
       }
     );
 
-    if (response.statusCode == 200) {
-      NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', reqId, status);
-    }
+    final response = await dio.put('/api/attendance-approval/$reqId',
+      data: formData,
+    );
 
     return response;
   }
