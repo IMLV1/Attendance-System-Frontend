@@ -112,7 +112,7 @@ class UserInfoButton extends StatelessWidget {
                                 color: m.color.withAlpha((20 * 255 / 100).toInt()),
                               ),
                               child: Text(
-                                m.name as String,
+                                m.name,
                                 style: TextStyle(
                                   color: m.color,
                                   fontSize: 10

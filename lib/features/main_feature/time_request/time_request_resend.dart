@@ -93,9 +93,6 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
 
         NotificationService().sendRequestNotification('APPROVER_ATTENDANCE', widget.id);
       },
-      onError: (data) {
-        print(data);
-      },
       builder: (trigger, state, errorMessage) {
 
         final bool isApiLoading = (state == ServiceUpdatorState.loading);

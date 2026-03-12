@@ -10,7 +10,7 @@ class PersonnelStatisticService {
       '/manager/personnel_info/statistic',
       queryParameters: {
         'id': personnelId,
-        'year': year,
+        'year': year.year,
       },
     );
   }

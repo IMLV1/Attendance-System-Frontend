@@ -9,6 +9,7 @@ import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:collection/collection.dart';
 
 class ChoosePersonnel extends StatefulWidget {
 
@@ -113,6 +114,10 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
             setState(() {
               personnel = PersonnelInfoModel.getList(jsonData);
               filteredPersonnel = personnel;
+
+              filteredPersonnel.sort((a, b) {
+                return compareNatural(a.nameTH, b.nameTH);
+              });
             });
           },
           builder: () {

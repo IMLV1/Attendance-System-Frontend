@@ -38,9 +38,9 @@ class LeaveApprovalService {
 
   Future<Response<dynamic>> getRequestDetail(String id) async {
     return dio.get('/api/leave-approval/request_detail',
-        queryParameters: {
-          'request-id': id
-        }
+      queryParameters: {
+        'request-id': id
+      }
     );
   }
 

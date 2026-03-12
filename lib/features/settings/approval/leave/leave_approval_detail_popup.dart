@@ -1,6 +1,8 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/services/approval/leave/leave_approval_detail_model.dart';
 import 'package:attendance_system/services/approval/leave/leave_service.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
+import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -28,10 +30,12 @@ import '../../../main_feature/leave_request/leave_type.dart';
 
 class LeaveApprovalDetailPopup extends StatefulWidget {
   final String requestID;
+  final bool showProfile;
   final void Function() onApproved;
   final void Function() onRejected;
   const LeaveApprovalDetailPopup({
     super.key,
+    this.showProfile = true,
     required this.requestID,
     required this.onApproved,
     required this.onRejected,
@@ -44,7 +48,7 @@ class LeaveApprovalDetailPopup extends StatefulWidget {
 }
 
 class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
-  LeaveRequestDetailModel? requestDetail;
+  LeaveApprovalDetailModel? requestDetail;
   bool onSelect = false;
 
   LeaveSetting? setting;
@@ -62,7 +66,8 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
         request: () => LeaveApprovalService().getRequestDetail(widget.requestID), // mockData(),
         onSuccess: (val) {
           setState(() {
-            requestDetail = LeaveRequestDetailModel.fromJson(val['data']);
+            print(val);
+            requestDetail = LeaveApprovalDetailModel.fromJson(val['data']);
             setting = requestDetail!.requestDetail.leaveType.getSetting(context);
           });
         },
@@ -80,6 +85,20 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                     spacing: 13,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (widget.showProfile)
+                        ProfileButton(
+                          icon: Image.network(
+                            requestDetail!.userDetail.avatarUrl,
+                            errorBuilder: (_, _, _) {
+                              return Image.asset('assets/images/profile.png');
+                            },
+                          ),
+                          title: requestDetail!.userDetail.name,
+                          subTitle: requestDetail!.userDetail.initRole,
+                          disable: true,
+                          widthProfile: 50,
+                          heightProfile: 50,
+                        ),
                       SeparatorCard(
                         borderRadius: BorderRadius.circular(22),
                         children: [

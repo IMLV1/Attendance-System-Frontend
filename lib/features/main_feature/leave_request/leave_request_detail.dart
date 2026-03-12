@@ -697,7 +697,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                       )
                     ],
                   )
-                else if ((requestDetail!.approveDetail.status == .rejected || requestDetail!.approveDetail.status == .canceled) && requestDetail!.requestDetail.dateFrom.isAfter(DateTime.now()))
+                else if ((requestDetail!.approveDetail.status == .rejected || requestDetail!.approveDetail.status == .canceled) && (requestDetail!.requestDetail.leaveType.getSetting(context)!.allowRetroactive || requestDetail!.requestDetail.dateFrom.isAfter(DateTime.now())))
                   SeparatorCard(
                     children: [
                       IconTextButton(

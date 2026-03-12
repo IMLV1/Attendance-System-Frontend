@@ -109,6 +109,7 @@ class _StatisticPageState extends State<StatisticPage> {
 
   @override
   Widget build(BuildContext context) {
+
     return AppScaffold(
       hideNavigation: false,
       header: Header.mainHeader(
@@ -172,13 +173,14 @@ class _StatisticPageState extends State<StatisticPage> {
                                             fit: FlexFit.tight,
                                             maxHeight: 650,
                                             buttonAction: (context) {
-                                              Navigator.of(context).pop();
                                               setState(() {
+                                                Navigator.of(context).pop();
                                                 int year = getYears(
                                                     allowFilterStart,
                                                     allowFilterEnd)[selectedIndex];
                                                 yearFilter = DateTime(year);
                                               });
+                                              trigger(-1);
                                             },
                                             builder: (context) {
                                               bool opened = false;

@@ -50,59 +50,6 @@ class _LeaveApprovalState extends State<LeaveApproval> {
       children: [
         ServiceUpdaterProMax(
             requests: [
-              // ()=> Utils.mockResponse(
-              //     data: {
-              //       'pending': [
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟ',
-              //           'request-count': 4,
-              //           'avatar-url': '',
-              //         },
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟdsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-              //           'request-count': 5,
-              //           'avatar-url': '',
-              //         },
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟ',
-              //           'request-count': 6,
-              //           'avatar-url': '',
-              //         },
-              //       ]
-              //     }
-              //   ),
-              // ()=> Utils.mockResponse(
-              //     data: {
-              //       'recent': [
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟ',
-              //           'status': 'approved',
-              //           'request-id': 'LEV000000000030',
-              //           'type': 'sick',
-              //           'date-start': '2026-02-18T18:00:45.621Z',
-              //         },
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟ',
-              //           'status': 'rejected',
-              //           'request-id': 'ATT213213',
-              //           'type': 'personal',
-              //           'date-start': '2026-02-18T18:00:45.621Z',
-              //         },
-              //       ]
-              //     }
-              //   ),
-              // ()=> Utils.mockResponse(
-              //     data: {
-              //       'start': '2025-04-01T00:00:00.000Z',
-              //       'end': '2027-06-30T00:00:00.000Z'
-              //     }
-              // )
-
               () => LeaveApprovalService().pending(),
               () => LeaveApprovalService().recent(filterStart, filterEnd),
               () => LeaveApprovalService().getFilterRange()
@@ -110,13 +57,11 @@ class _LeaveApprovalState extends State<LeaveApproval> {
             onSuccess: (idx, val) {
               setState(() {
                 switch (idx) {
-                  case 0: {
-
+                  case 0: pendingList = PendingLeaveApproval.getList(val['data']['pending']);
+                  case 1: {
                     print(val);
-
-                    pendingList = PendingLeaveApproval.getList(val['data']['pending']);
+                    recentList = RecentLeaveApproval.getList(val['data']['recent']);
                   }
-                  case 1: recentList = RecentLeaveApproval.getList(val['data']['recent']);
                   case 2: {
                     final start = DateTime.tryParse(val['start']);
                     final end = DateTime.tryParse(val['end']);
@@ -345,11 +290,11 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                       SeparatorCard(
                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                         children: [
-                          ...recentList!.map((m) {
+                          ...recentList.map((m) {
                             return AppButton(
                               icon: m.status.icon,
                               iconColor: m.status.color,
-                              title: '${m.type.display} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
+                              title: '${m.type.display} | ${m.name}',
                               subTitle: 'หมายเลขคำขอ: ${m.requestId}',
                               weightTitle: FontWeight.w500,
                               onPressed: () async {

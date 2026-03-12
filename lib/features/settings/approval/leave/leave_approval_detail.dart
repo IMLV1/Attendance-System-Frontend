@@ -215,6 +215,7 @@ class _LeaveApprovalDetail extends State<LeaveApprovalDetail> {
                                                             builder: (context) {
                                                               return LeaveApprovalDetailPopup(
                                                                 requestID: m.reqId,
+                                                                showProfile: false,
                                                                 onApproved: () {
                                                                   setState(() {
                                                                     pending.remove(m);

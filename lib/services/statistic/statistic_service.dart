@@ -9,7 +9,7 @@ class StatisticService {
     return dio.get(
       '/user/statistic',
       queryParameters: {
-        'year': year
+        'year': year.year
       },
     );
   }
