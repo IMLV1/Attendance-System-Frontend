@@ -47,7 +47,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   bool isDisabled = false;
   bool hasCheckedOut = false;
 
-  bool isOnLeave = false; // ลางาน
+  // bool isOnLeave = false; // ลางาน
   bool isPublicHoliday = false; // วันหยุดราชการ/นักขัตฤกษ์
 
   ConfigAttendanceTimeModel? configSetting;
@@ -300,17 +300,17 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     // 2. ตรวจสอบสถานะการลา
     if (currentLeave != null && currentLeave!.isApproved) {
-      if (currentLeave!.leaveType == "FULL_DAY") return "LEAVE_FULL_DAY";
+      if (currentLeave!.leaveType == "FULL_DAY") return "FULL_DAY";
 
       // ลาครึ่งวันเช้า: ถ้ายังไม่ถึงเวลาเข้างานช่วงบ่าย ให้โชว์ปุ่มลา
       if (currentLeave!.leaveType == "MORNING" && currentTime < checkInLeaveLimit) {
-        return "LEAVE_MORNING";
+        return "MORNING";
       }
 
       // ลาครึ่งวันบ่าย: ถ้าถึงเวลาเริ่มลาบ่ายแล้ว ให้โชว์ปุ่มลา (ยกเว้นเช็คเอาต์ไปแล้ว)
       if (currentLeave!.leaveType == "AFTERNOON" && currentTime >= checkOutLeaveLimit) {
         if (hasCheckedOut) return "FINISHED";
-        return "LEAVE_AFTERNOON";
+        return "AFTERNOON";
       }
     }
 
@@ -403,32 +403,22 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
                     String today = DateFormat('yyyy-MM-dd').format(ntpNow);
                     //final response = await holidayService.getPublicHolidays(today);
-
                     final results = await Future.wait([
-                      holidayService.getPublicHolidays(today), // ส่งวันที่ไปเช็ควันหยุด
-                      leaveService.getLeave(today),            // ส่งวันที่ไปเช็คการลา
+                      // จัดการ Holiday แยกต่างหาก
+                      holidayService.getPublicHolidays(today).catchError((e) {
+                        debugPrint("❌ Holiday Service Error: $e");
+                        return Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+                      }),
+
+                      // จัดการ Leave แยกต่างหาก
+                      leaveService.getLeave(today).catchError((e) {
+                        debugPrint("❌ Leave Service Error: $e");
+                        return Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+                      }),
                     ]);
 
                     final holidayRes = results[0];
                     final leaveRes = results[1];
-
-                    // if (response.statusCode == 200) {
-                    //   Map<String, dynamic> holidayData = response.data;
-                    //   // String today = DateFormat('yyyy-MM-dd').format(ntpNow);
-                    //
-                    //
-                    //   if (holidayData['holiday_name'] != null &&
-                    //       holidayData['holiday_name']
-                    //           .toString()
-                    //           .isNotEmpty) {
-                    //     setState(() {
-                    //       isPublicHoliday = true;
-                    //       holiday = holidayData['holiday_name'];
-                    //     });
-                    //   } else {
-                    //     debugPrint("ไม่ใช้วันหยุด");
-                    //   }
-                    // }
 
                     setState(() {
                       // 1. จัดการข้อมูลวันหยุด
@@ -442,10 +432,22 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                       }
 
                       // 2. จัดการข้อมูลการลา (ใช้ Model ที่คุณสร้าง)
-                      if (leaveRes.statusCode == 200 &&
-                          leaveRes.data != null) {
-                        // Mapping ข้อมูลเข้า Model ที่คุณตั้งชื่อไว้
-                        currentLeave = AttendanceLeaveModel.fromJson(leaveRes.data);
+                      // 2. จัดการข้อมูลการลา
+                      if (leaveRes.statusCode == 200 && leaveRes.data != null) {
+                        debugPrint("Leave Data จาก Backend: ${leaveRes.data}");
+
+                        Map<String, dynamic> responseData = leaveRes.data;
+
+                        // เช็คว่ามีคีย์ 'data' และมีข้อมูลของ 'today' (วันที่ปัจจุบัน) หรือไม่
+                        if (responseData['data'] != null && responseData['data'][today] != null) {
+                          var todayLeaveData = responseData['data'][today];
+
+                          // โยนเฉพาะก้อนของวันนี้เข้าไปใน Model
+                          currentLeave = AttendanceLeaveModel.fromJson(todayLeaveData);
+                          debugPrint("✅ แกะข้อมูลลาสำเร็จ: ประเภท ${currentLeave?.leaveType}, อนุมัติ: ${currentLeave?.isApproved}");
+                        } else {
+                          debugPrint("ℹ️ วันนี้ไม่มีประวัติการลา");
+                        }
                       }
                     });
                     }catch (e) {
@@ -566,14 +568,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     double fontSize;
     bool isDisabled = false;
 
-    if (isOnLeave) {
-      buttonColor = AppColors.buttonDisable;
-      buttonText = "ลางาน";
-      showtext = 'ลางาน';
-      iconPath = 'assets/images/leave.svg'; // เตรียมไอคอนลา
-      isDisabled = true;
-      fontSize = 27;
-    } else if (isPublicHoliday) {
+    if (isPublicHoliday) {
       buttonColor = AppColors.buttonDisable;
       buttonText = "วันหยุดราชการ";
       showtext = 'วันนี้คือ $holiday';
@@ -589,8 +584,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       fontSize = 32;
     } else {
       switch (state) {
-
-        case "LEAVE_FULL_DAY":
+        case "FULL_DAY":
           buttonColor = AppColors.buttonDisable;
           buttonText = currentLeave?.leaveName ?? "ลาเต็มวัน";
           showtext = 'วันนี้คุณได้ลางานทั้งวัน';
@@ -599,7 +593,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           fontSize = 27;
           break;
 
-        case "LEAVE_MORNING":
+        case "MORNING":
           buttonColor = AppColors.buttonDisable;
           buttonText = "ลาช่วงเช้า";
           // ดึงเวลาเข้างานจาก Config มาแสดง
@@ -610,7 +604,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           fontSize = 27;
           break;
 
-        case "LEAVE_AFTERNOON":
+        case "AFTERNOON":
           buttonColor = AppColors.buttonDisable;
           buttonText = "ลาช่วงบ่าย";
           showtext = 'คุณลางานช่วงบ่าย';

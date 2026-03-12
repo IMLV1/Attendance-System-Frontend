@@ -1,4 +1,5 @@
 import 'package:attendance_system/services/check-in/check-in_service.dart';
+import 'package:attendance_system/services/check-in/check_in-leave-service.dart';
 import 'package:attendance_system/services/check-in/holiday_service.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/profile_page/profile_service.dart';
@@ -60,6 +61,8 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<ConfigAttendanceTimeService>(() => ConfigAttendanceTimeService());
 
   getIt.registerLazySingleton<NotificationService>(() => NotificationService());
+
+  getIt.registerLazySingleton<Leaveservice>(() => Leaveservice(getIt<Dio>()));
 
   getIt.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(
