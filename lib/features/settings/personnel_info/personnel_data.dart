@@ -12,9 +12,7 @@ import 'package:attendance_system/shared/widgets/utils/services/service_updater_
 import 'package:attendance_system/shared/widgets/utils/text_role_button.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
-import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class PersonnelData extends StatefulWidget {

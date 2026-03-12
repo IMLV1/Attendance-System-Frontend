@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/navigation_guard.dart';
 import 'package:attendance_system/features/settings/admin_config/admin_config_utils.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_service.dart';
@@ -8,7 +9,6 @@ import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
-import 'package:attendance_system/core/utils/navigation_guard.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

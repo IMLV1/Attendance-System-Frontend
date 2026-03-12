@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -38,9 +37,9 @@ class LeaveApprovalService {
 
   Future<Response<dynamic>> getRequestDetail(String id) async {
     return dio.get('/api/leave-approval/request_detail',
-        queryParameters: {
-          'request-id': id
-        }
+      queryParameters: {
+        'request-id': id
+      }
     );
   }
 

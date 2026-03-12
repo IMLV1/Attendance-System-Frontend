@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/helper/color_picker_popup/hue_thumb_shape.dart';
 import 'package:attendance_system/shared/widgets/helper/color_picker_popup/input_box.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
+import 'package:flutter/material.dart';
 
 class ColorPickerPopup {
   final String title;

@@ -3,9 +3,7 @@ import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
-import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -215,6 +213,7 @@ class _LeaveApprovalDetail extends State<LeaveApprovalDetail> {
                                                             builder: (context) {
                                                               return LeaveApprovalDetailPopup(
                                                                 requestID: m.reqId,
+                                                                showProfile: false,
                                                                 onApproved: () {
                                                                   setState(() {
                                                                     pending.remove(m);

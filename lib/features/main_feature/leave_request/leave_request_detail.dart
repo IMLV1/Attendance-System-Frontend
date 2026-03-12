@@ -3,7 +3,6 @@ import 'package:attendance_system/features/main_feature/leave_request/leave_requ
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
-import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/downloader.dart';
@@ -697,7 +696,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                       )
                     ],
                   )
-                else if ((requestDetail!.approveDetail.status == .rejected || requestDetail!.approveDetail.status == .canceled) && requestDetail!.requestDetail.dateFrom.isAfter(DateTime.now()))
+                else if ((requestDetail!.approveDetail.status == .rejected || requestDetail!.approveDetail.status == .canceled) && (requestDetail!.requestDetail.leaveType.getSetting(context)!.allowRetroactive || requestDetail!.requestDetail.dateFrom.isAfter(DateTime.now())))
                   SeparatorCard(
                     children: [
                       IconTextButton(

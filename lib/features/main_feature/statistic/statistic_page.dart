@@ -11,7 +11,6 @@ import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.da
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
-import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:attendance_system/shared/widgets/utils/wheel_selector.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -109,6 +108,7 @@ class _StatisticPageState extends State<StatisticPage> {
 
   @override
   Widget build(BuildContext context) {
+
     return AppScaffold(
       hideNavigation: false,
       header: Header.mainHeader(
@@ -172,13 +172,14 @@ class _StatisticPageState extends State<StatisticPage> {
                                             fit: FlexFit.tight,
                                             maxHeight: 650,
                                             buttonAction: (context) {
-                                              Navigator.of(context).pop();
                                               setState(() {
+                                                Navigator.of(context).pop();
                                                 int year = getYears(
                                                     allowFilterStart,
                                                     allowFilterEnd)[selectedIndex];
                                                 yearFilter = DateTime(year);
                                               });
+                                              trigger(-1);
                                             },
                                             builder: (context) {
                                               bool opened = false;

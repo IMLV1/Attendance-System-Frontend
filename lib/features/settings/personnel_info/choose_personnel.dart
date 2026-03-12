@@ -6,7 +6,7 @@ import 'package:attendance_system/services/user_management/user_management_model
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
-import 'package:attendance_system/shared/widgets/utils/utils.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -113,6 +113,10 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
             setState(() {
               personnel = PersonnelInfoModel.getList(jsonData);
               filteredPersonnel = personnel;
+
+              filteredPersonnel.sort((a, b) {
+                return compareNatural(a.nameTH, b.nameTH);
+              });
             });
           },
           builder: () {

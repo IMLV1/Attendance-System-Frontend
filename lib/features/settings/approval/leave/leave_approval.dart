@@ -1,24 +1,17 @@
-import 'package:attendance_system/features/settings/personnel_info/personnel_leave_detail.dart';
 import 'package:attendance_system/services/approval/leave/leave_service.dart';
-import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 
-import '../../../../app/route_names.dart';
 import '../../../../services/approval/leave/leave_model.dart';
 import '../../../../services/leave/leave_model.dart';
-import '../../../../shared/widgets/app_scaffold.dart';
-import '../../../../shared/widgets/head_bar/header.dart';
 import '../../../../shared/widgets/utils/app_button.dart';
 import '../../../../shared/widgets/utils/popup/date_filter_popup.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
 import '../../../../shared/widgets/utils/services/service_updater_promax.dart';
-import '../../../../shared/widgets/utils/utils.dart';
 import '../../../main_feature/leave_request/leave_type.dart';
 import 'leave_approval_detail.dart';
 import 'leave_approval_detail_popup.dart';
@@ -50,59 +43,6 @@ class _LeaveApprovalState extends State<LeaveApproval> {
       children: [
         ServiceUpdaterProMax(
             requests: [
-              // ()=> Utils.mockResponse(
-              //     data: {
-              //       'pending': [
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟ',
-              //           'request-count': 4,
-              //           'avatar-url': '',
-              //         },
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟdsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-              //           'request-count': 5,
-              //           'avatar-url': '',
-              //         },
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟ',
-              //           'request-count': 6,
-              //           'avatar-url': '',
-              //         },
-              //       ]
-              //     }
-              //   ),
-              // ()=> Utils.mockResponse(
-              //     data: {
-              //       'recent': [
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟ',
-              //           'status': 'approved',
-              //           'request-id': 'LEV000000000030',
-              //           'type': 'sick',
-              //           'date-start': '2026-02-18T18:00:45.621Z',
-              //         },
-              //         {
-              //           'user-id': 'ATT',
-              //           'name': 'กหฟ ฟหกกหฟ',
-              //           'status': 'rejected',
-              //           'request-id': 'ATT213213',
-              //           'type': 'personal',
-              //           'date-start': '2026-02-18T18:00:45.621Z',
-              //         },
-              //       ]
-              //     }
-              //   ),
-              // ()=> Utils.mockResponse(
-              //     data: {
-              //       'start': '2025-04-01T00:00:00.000Z',
-              //       'end': '2027-06-30T00:00:00.000Z'
-              //     }
-              // )
-
               () => LeaveApprovalService().pending(),
               () => LeaveApprovalService().recent(filterStart, filterEnd),
               () => LeaveApprovalService().getFilterRange()
@@ -110,13 +50,11 @@ class _LeaveApprovalState extends State<LeaveApproval> {
             onSuccess: (idx, val) {
               setState(() {
                 switch (idx) {
-                  case 0: {
-
+                  case 0: pendingList = PendingLeaveApproval.getList(val['data']['pending']);
+                  case 1: {
                     print(val);
-
-                    pendingList = PendingLeaveApproval.getList(val['data']['pending']);
+                    recentList = RecentLeaveApproval.getList(val['data']['recent']);
                   }
-                  case 1: recentList = RecentLeaveApproval.getList(val['data']['recent']);
                   case 2: {
                     final start = DateTime.tryParse(val['start']);
                     final end = DateTime.tryParse(val['end']);
@@ -345,11 +283,11 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                       SeparatorCard(
                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
                         children: [
-                          ...recentList!.map((m) {
+                          ...recentList.map((m) {
                             return AppButton(
                               icon: m.status.icon,
                               iconColor: m.status.color,
-                              title: '${m.type.display} | ${DateFormat.MMMd('th_TH').format(m.dateStart)} ${DateFormat.y('th_TH').format(m.dateStart)}',
+                              title: '${m.type.display} | ${m.name}',
                               subTitle: 'หมายเลขคำขอ: ${m.requestId}',
                               weightTitle: FontWeight.w500,
                               onPressed: () async {

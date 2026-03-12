@@ -1,6 +1,5 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';
-import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 

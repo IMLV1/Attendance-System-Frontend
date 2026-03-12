@@ -188,6 +188,7 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
                                                           allowFilterEnd)[selectedIndex];
                                                       yearFilter = DateTime(year);
                                                     });
+                                                    trigger(-1);
                                                   },
                                                   builder: (context) {
                                                     bool opened = false;

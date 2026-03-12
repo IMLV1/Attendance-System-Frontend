@@ -21,7 +21,6 @@ import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.d
 import '../../../../shared/widgets/utils/popup/multi_page/service_signature_page.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
 import '../../../../shared/widgets/utils/services/service_loader.dart';
-import '../../../../shared/widgets/utils/services/service_updater.dart';
 
 class AttendanceDetailPopup extends StatefulWidget {
   final String reqId;

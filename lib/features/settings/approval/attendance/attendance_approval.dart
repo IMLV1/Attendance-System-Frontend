@@ -5,15 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../services/approval/attendance/attendance_model.dart';
-import '../../../../services/time_request/time_request_model.dart';
 import '../../../../shared/widgets/utils/app_button.dart';
 import '../../../../shared/widgets/utils/popup/date_filter_popup.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
-import '../../../../shared/widgets/utils/popup/push_popup.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
 import '../../../../shared/widgets/utils/services/service_updater_promax.dart';
-import '../../../../shared/widgets/utils/utils.dart';
 
 class AttendanceApproval extends StatefulWidget{
   const AttendanceApproval({super.key});
