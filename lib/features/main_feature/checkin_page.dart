@@ -17,6 +17,8 @@ import 'package:ntp/ntp.dart';
 
 import '../../services/check-in/check-in_model.dart';
 import '../../services/check-in/check-in_service.dart';
+import '../../services/check-in/check_in-leave-model.dart';
+import '../../services/check-in/check_in-leave-service.dart';
 import '../../services/check-in/holiday_service.dart';
 import '../../shared/widgets/utils/clock_realtime.dart';
 import '../../shared/widgets/utils/icon_text_button.dart';
@@ -33,6 +35,7 @@ class CheckinPage extends StatefulWidget {
 
 class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   DateTime? _currentNetworkTime;
+  AttendanceLeaveModel? currentLeave;
 
   bool _isLoadingState = true; // เริ่มต้นให้เป็น true เสมอ
 
@@ -225,30 +228,112 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     debugPrint("ระบบทำการ Reset ข้อมูลประจำวันเรียบร้อยแล้ว");
   }
 
+  // String _getButtonState() {
+  //   if (_currentNetworkTime == null) return "CHECK_IN_READY";
+  //
+  //   final now = _currentNetworkTime!;
+  //   final hour = now.hour;
+  //   final minute = now.minute;
+  //   final double currentTime = now.hour + (now.minute / 60);
+  //
+  //   final double checkInLeaveLimit = configSetting!.checkInLeaveTime.hour + (configSetting!.checkInLeaveTime.minute / 60);
+  //   final double checkOutLeaveLimit = configSetting!.checkOutLeaveTime.hour + (configSetting!.checkOutLeaveTime.minute / 60);
+  //   final double regularCheckOutTime = configSetting!.checkOutTime.hour + (configSetting!.checkOutTime.minute / 60);
+  //   if (isPublicHoliday) return "PUBLIC_HOLIDAY";
+  //
+  //   if (currentLeave != null && currentLeave!.isApproved) {
+  //
+  //     // กรณี: ลาเต็มวัน
+  //     if (currentLeave!.leaveType == "FULL_DAY") {
+  //       return "LEAVE_FULL_DAY";
+  //     }
+  //
+  //     // กรณี: ลาครึ่งวันเช้า (ต้องเข้างานตามเวลา checkInLeaveTime)
+  //     else if (currentLeave!.leaveType == "MORNING") {
+  //       if (currentTime < checkInLeaveLimit) {
+  //         return "LEAVE_MORNING"; // ยังอยู่ในช่วงลา
+  //       }
+  //       // ถ้าเลยเวลา checkInLeaveLimit แล้ว แต่ยังไม่เช็คอิน -> โชว์ปุ่มเช็คอิน
+  //     }
+  //
+  //     // กรณี: ลาครึ่งวันบ่าย (ต้องอยู่งานถึงเวลา checkOutLeaveLimit)
+  //     else if (currentLeave!.leaveType == "AFTERNOON") {
+  //       if (currentTime >= checkOutLeaveLimit) {
+  //         return "LEAVE_AFTERNOON"; // เข้าสู่ช่วงลาบ่ายแล้ว
+  //       }
+  //       // ถ้ายังไม่ถึงเวลาลาบ่าย -> ให้ทำงานตาม Logic ปกติ (เช็คอิน/เอาต์)
+  //     }
+  //   }
+  //
+  //   bool isAfterWork =
+  //       hour > configSetting!.checkOutTime.hour ||
+  //       (hour == configSetting!.checkOutTime.hour &&
+  //           minute >= configSetting!.checkOutTime.minute);
+  //
+  //   if (hasCheckedOut) return "FINISHED";
+  //
+  //   if (isAfterWork) {
+  //     if (_hasCheckedIn) {
+  //       return "CHECK_OUT_READY";
+  //     } else {
+  //       return "ABSENT";
+  //     }
+  //   }
+  //   if (!_hasCheckedIn) return "CHECK_IN_READY";
+  //
+  //   return "WORKING";
+  // }
+
   String _getButtonState() {
-    if (_currentNetworkTime == null) return "CHECK_IN_READY";
+    if (_currentNetworkTime == null || configSetting == null) return "CHECK_IN_READY";
 
     final now = _currentNetworkTime!;
-    final hour = now.hour;
-    final minute = now.minute;
+    final double currentTime = now.hour + (now.minute / 60);
 
-    bool isAfterWork =
-        hour > configSetting!.checkOutTime.hour ||
-        (hour == configSetting!.checkOutTime.hour &&
-            minute >= configSetting!.checkOutTime.minute);
+    // ดึงค่าเวลาจาก Config
+    final double checkInLeaveLimit = configSetting!.checkInLeaveTime.hour + (configSetting!.checkInLeaveTime.minute / 60);
+    final double checkOutLeaveLimit = configSetting!.checkOutLeaveTime.hour + (configSetting!.checkOutLeaveTime.minute / 60);
+    final double regularCheckOutTime = configSetting!.checkOutTime.hour + (configSetting!.checkOutTime.minute / 60);
 
-    if (hasCheckedOut) return "FINISHED";
+    // 1. ตรวจสอบวันหยุดราชการ
+    if (isPublicHoliday) return "PUBLIC_HOLIDAY";
 
-    if (isAfterWork) {
-      if (_hasCheckedIn) {
-        return "CHECK_OUT_READY";
-      } else {
-        return "ABSENT";
+    // 2. ตรวจสอบสถานะการลา
+    if (currentLeave != null && currentLeave!.isApproved) {
+      if (currentLeave!.leaveType == "FULL_DAY") return "LEAVE_FULL_DAY";
+
+      // ลาครึ่งวันเช้า: ถ้ายังไม่ถึงเวลาเข้างานช่วงบ่าย ให้โชว์ปุ่มลา
+      if (currentLeave!.leaveType == "MORNING" && currentTime < checkInLeaveLimit) {
+        return "LEAVE_MORNING";
+      }
+
+      // ลาครึ่งวันบ่าย: ถ้าถึงเวลาเริ่มลาบ่ายแล้ว ให้โชว์ปุ่มลา (ยกเว้นเช็คเอาต์ไปแล้ว)
+      if (currentLeave!.leaveType == "AFTERNOON" && currentTime >= checkOutLeaveLimit) {
+        if (hasCheckedOut) return "FINISHED";
+        return "LEAVE_AFTERNOON";
       }
     }
-    if (!_hasCheckedIn) return "CHECK_IN_READY";
 
-    return "WORKING";
+    // 3. ตรวจสอบวันหยุดสุดสัปดาห์ (เรียกฟังก์ชันเดิมของคุณ)
+    if (_checkIsWeekend()) return "WEEKEND";
+
+    // 4. ตรวจสอบว่าเช็คเอาต์ไปหรือยัง
+    if (hasCheckedOut) return "FINISHED";
+
+    // 5. คำนวณเวลาเลิกงานที่เหมาะสม (Effective Checkout Time)
+    // ถ้าลาบ่าย ให้ใช้ checkOutLeaveLimit เป็นเกณฑ์เลิกงาน เพื่อให้ปุ่มเช็คเอาต์ปรากฏ
+    double effectiveCheckOutTime = (currentLeave?.leaveType == "AFTERNOON" && currentLeave!.isApproved)
+        ? checkOutLeaveLimit
+        : regularCheckOutTime;
+
+    bool isAfterWork = currentTime >= effectiveCheckOutTime;
+
+    if (isAfterWork) {
+      return _hasCheckedIn ? "CHECK_OUT_READY" : "ABSENT";
+    }
+
+    // 6. สถานะการเข้างานปกติ
+    return _hasCheckedIn ? "WORKING" : "CHECK_IN_READY";
   }
 
   bool _checkIsWeekend() {
@@ -313,26 +398,56 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
                   try {
                     final holidayService = GetIt.I<HolidayService>();
+                    final leaveService = GetIt.I<Leaveservice>();
+
+
                     String today = DateFormat('yyyy-MM-dd').format(ntpNow);
-                    final response = await holidayService.getPublicHolidays(today);
+                    //final response = await holidayService.getPublicHolidays(today);
 
-                    if (response.statusCode == 200) {
-                      Map<String, dynamic> holidayData = response.data;
-                      // String today = DateFormat('yyyy-MM-dd').format(ntpNow);
+                    final results = await Future.wait([
+                      holidayService.getPublicHolidays(today), // ส่งวันที่ไปเช็ควันหยุด
+                      leaveService.getLeave(today),            // ส่งวันที่ไปเช็คการลา
+                    ]);
 
+                    final holidayRes = results[0];
+                    final leaveRes = results[1];
 
-                      if (holidayData['holiday_name'] != null &&
-                          holidayData['holiday_name']
-                              .toString()
-                              .isNotEmpty) {
-                        setState(() {
+                    // if (response.statusCode == 200) {
+                    //   Map<String, dynamic> holidayData = response.data;
+                    //   // String today = DateFormat('yyyy-MM-dd').format(ntpNow);
+                    //
+                    //
+                    //   if (holidayData['holiday_name'] != null &&
+                    //       holidayData['holiday_name']
+                    //           .toString()
+                    //           .isNotEmpty) {
+                    //     setState(() {
+                    //       isPublicHoliday = true;
+                    //       holiday = holidayData['holiday_name'];
+                    //     });
+                    //   } else {
+                    //     debugPrint("ไม่ใช้วันหยุด");
+                    //   }
+                    // }
+
+                    setState(() {
+                      // 1. จัดการข้อมูลวันหยุด
+                      if (holidayRes.statusCode == 200 && holidayRes.data != null) {
+                        var hData = holidayRes.data;
+                        if (hData['holiday_name'] != null &&
+                            hData['holiday_name'].toString().isNotEmpty) {
                           isPublicHoliday = true;
-                          holiday = holidayData['holiday_name'];
-                        });
-                      } else {
-                        debugPrint("ไม่ใช้วันหยุด");
+                          holiday = hData['holiday_name'];
+                        }
                       }
-                    }
+
+                      // 2. จัดการข้อมูลการลา (ใช้ Model ที่คุณสร้าง)
+                      if (leaveRes.statusCode == 200 &&
+                          leaveRes.data != null) {
+                        // Mapping ข้อมูลเข้า Model ที่คุณตั้งชื่อไว้
+                        currentLeave = AttendanceLeaveModel.fromJson(leaveRes.data);
+                      }
+                    });
                     }catch (e) {
                     debugPrint("ไม่สามารถดึงได้ :$e}");
                   }
@@ -474,6 +589,36 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       fontSize = 32;
     } else {
       switch (state) {
+
+        case "LEAVE_FULL_DAY":
+          buttonColor = AppColors.buttonDisable;
+          buttonText = currentLeave?.leaveName ?? "ลาเต็มวัน";
+          showtext = 'วันนี้คุณได้ลางานทั้งวัน';
+          iconPath = 'assets/images/leave.svg';
+          isDisabled = true;
+          fontSize = 27;
+          break;
+
+        case "LEAVE_MORNING":
+          buttonColor = AppColors.buttonDisable;
+          buttonText = "ลาช่วงเช้า";
+          // ดึงเวลาเข้างานจาก Config มาแสดง
+          String checkInTime = "${configSetting!.checkInLeaveTime.hour.toString().padLeft(2, '0')}:${configSetting!.checkInLeaveTime.minute.toString().padLeft(2, '0')}";
+          showtext = 'คุณลางานช่วงลาเช้า กรุณาเช็คอินหลัง $checkInTime น.';
+          iconPath = 'assets/images/leave.svg';
+          isDisabled = true;
+          fontSize = 27;
+          break;
+
+        case "LEAVE_AFTERNOON":
+          buttonColor = AppColors.buttonDisable;
+          buttonText = "ลาช่วงบ่าย";
+          showtext = 'คุณลางานช่วงบ่าย';
+          iconPath = 'assets/images/leave.svg';
+          isDisabled = true;
+          fontSize = 27;
+          break;
+
         case "ABSENT":
           buttonColor = AppColors.buttonDisable;
           buttonText = "ขาดงาน";
