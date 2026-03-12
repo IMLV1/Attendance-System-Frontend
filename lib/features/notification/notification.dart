@@ -7,10 +7,8 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});

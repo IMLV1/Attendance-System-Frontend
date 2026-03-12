@@ -1,24 +1,17 @@
-import 'package:attendance_system/features/settings/personnel_info/personnel_leave_detail.dart';
 import 'package:attendance_system/services/approval/leave/leave_service.dart';
-import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 
-import '../../../../app/route_names.dart';
 import '../../../../services/approval/leave/leave_model.dart';
 import '../../../../services/leave/leave_model.dart';
-import '../../../../shared/widgets/app_scaffold.dart';
-import '../../../../shared/widgets/head_bar/header.dart';
 import '../../../../shared/widgets/utils/app_button.dart';
 import '../../../../shared/widgets/utils/popup/date_filter_popup.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
 import '../../../../shared/widgets/utils/services/service_updater_promax.dart';
-import '../../../../shared/widgets/utils/utils.dart';
 import '../../../main_feature/leave_request/leave_type.dart';
 import 'leave_approval_detail.dart';
 import 'leave_approval_detail_popup.dart';

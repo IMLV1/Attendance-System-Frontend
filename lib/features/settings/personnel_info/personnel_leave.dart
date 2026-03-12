@@ -16,7 +16,6 @@ import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
-import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

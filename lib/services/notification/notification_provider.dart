@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../service_locator.dart';
 import '../notification/notification_model.dart';
 import '../notification/notification_service.dart';

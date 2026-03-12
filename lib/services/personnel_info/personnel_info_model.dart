@@ -1,4 +1,3 @@
-import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 
 class PersonnelInfoModel {

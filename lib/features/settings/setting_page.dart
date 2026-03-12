@@ -10,7 +10,6 @@ import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';

@@ -1,8 +1,8 @@
+import 'package:attendance_system/shared/theme/app_colors.dart'; // ใส่ path ของคุณ
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:attendance_system/shared/theme/app_colors.dart'; // ใส่ path ของคุณ
 // import 'dynamic_popup_config.dart'; // ระบุ path ไฟล์ config ที่เพิ่งสร้าง
 
 class DynamicPushPopup {

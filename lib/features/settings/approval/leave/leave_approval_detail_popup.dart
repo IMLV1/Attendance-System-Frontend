@@ -24,8 +24,6 @@ import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.d
 import '../../../../shared/widgets/utils/popup/multi_page/service_signature_page.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
 import '../../../../shared/widgets/utils/services/service_loader.dart';
-import '../../../../shared/widgets/utils/services/service_updater.dart';
-import '../../../main_feature/leave_request/leave_request_detail.dart';
 import '../../../main_feature/leave_request/leave_type.dart';
 
 class LeaveApprovalDetailPopup extends StatefulWidget {

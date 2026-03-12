@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:attendance_system/core/network/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+
 import 'notification_model.dart';
-import 'dart:async';
 
 class NotificationService {
   // Mock data to simulate the backend (kept as requested, not currently used)
