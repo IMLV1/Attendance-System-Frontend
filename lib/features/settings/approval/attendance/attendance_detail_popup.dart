@@ -635,7 +635,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                 ),
               ),
 
-              if (data!.approveDetail.status == 'pending' && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'approver'))
+              if (data!.approveDetail.status == 'pending' && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'main'))
                 Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
