@@ -98,7 +98,9 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
 
                           setState(() {
                             switch(index) {
-                              case 0: statistic = StatisticModel.fromJson(data);
+                              case 0: {
+                                statistic = StatisticModel.fromJson(data);
+                              }
                               case 1: workingHour = WorkingHourModel.fromJson(data);
                               case 2: {
                                 allowFilterStart = DateTime.tryParse(data['start']);

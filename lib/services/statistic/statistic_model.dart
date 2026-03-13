@@ -1,7 +1,7 @@
 class StatisticModel {
   // --- ส่วนสรุป (Workday Card) ---
-  final int totalWorkDays;    // วันทำงานทั้งหมด
-  final int actualWorkDays;   // วันที่ต้องทำงานจริง
+  final double totalWorkDays;    // วันทำงานทั้งหมด (แก้เป็น double)
+  final double actualWorkDays;   // วันที่ต้องทำงานจริง (แก้เป็น double)
 
   final AttendanceStatModel attendanceDetail;
 
@@ -18,10 +18,11 @@ class StatisticModel {
   // ฟังก์ชันแปลง JSON จาก Backend เป็น Object
   factory StatisticModel.fromJson(Map<String, dynamic> json) {
     return StatisticModel(
-      totalWorkDays: json['total_work_days'] ?? 0,
-      actualWorkDays: json['actual_work_days'] ?? 0,
-      attendanceDetail: AttendanceStatModel.fromJson(json['attendance_detail'] ?? {}),
-      leaveDetail: LeaveStatModel.fromJson(json['leave_detail'] ?? {})
+      // แปลงเป็น num ก่อนแล้วค่อย cast เป็น double เพื่อความปลอดภัย
+        totalWorkDays: (json['total_work_days'] as num?)?.toDouble() ?? 0.0,
+        actualWorkDays: (json['actual_work_days'] as num?)?.toDouble() ?? 0.0,
+        attendanceDetail: AttendanceStatModel.fromJson(json['attendance_detail'] ?? {}),
+        leaveDetail: LeaveStatModel.fromJson(json['leave_detail'] ?? {})
     );
   }
 }
@@ -39,16 +40,18 @@ class AttendanceStatModel {
 
   factory AttendanceStatModel.fromJson(Map<String, dynamic> json) {
     return AttendanceStatModel(
-      onTimeDays: json['on_time_days'] ?? 0,
-      lateDays: json['late_days'] ?? 0,
-      absentDays: json['absent_days'] ?? 0,
+      // สมมติว่าฟิลด์นี้มาเป็น int เสมอ ถ้ามีโอกาสเป็นทศนิยมให้แก้แบบด้านบนครับ
+      onTimeDays: (json['on_time_days'] as num?)?.toInt() ?? 0,
+      lateDays: (json['late_days'] as num?)?.toInt() ?? 0,
+      absentDays: (json['absent_days'] as num?)?.toInt() ?? 0,
     );
   }
 }
 
 class LeaveStatModel {
-  final int totalLeaveDays;   // ลางานทั้งหมด
-  final int overLeaveDays;    // ลางานเกิน
+  // ปรับเป็น double ตาม JSON ที่บางครั้งส่งมาเป็น 0.5
+  final double totalLeaveDays;   // ลางานทั้งหมด
+  final double overLeaveDays;    // ลางานเกิน
   final LeaveDetailModel leaveDetails;
 
   LeaveStatModel({
@@ -59,16 +62,16 @@ class LeaveStatModel {
 
   factory LeaveStatModel.fromJson(Map<String, dynamic> json) {
     return LeaveStatModel(
-      totalLeaveDays: json['total_leave_days'] ?? 0,
-      overLeaveDays: json['over_leave_days'] ?? 0,
+      totalLeaveDays: (json['total_leave_days'] as num?)?.toDouble() ?? 0.0,
+      overLeaveDays: (json['over_leave_days'] as num?)?.toDouble() ?? 0.0,
       leaveDetails: LeaveDetailModel.fromJson(json['leaves'] ?? {}),
     );
   }
 }
 
 class LeaveDetailModel {
-  final LeaveTypeDetailModel sick;      
-  final LeaveTypeDetailModel personal;  
+  final LeaveTypeDetailModel sick;
+  final LeaveTypeDetailModel personal;
   final LeaveTypeDetailModel vacation;
   final LeaveTypeDetailModel maternity;
   final LeaveTypeDetailModel paternity;

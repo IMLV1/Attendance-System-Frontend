@@ -60,7 +60,7 @@ class LeaveStatistic extends StatelessWidget {
                             style: TextStyle(fontSize: 14, color: Color(0xFF767676))
                         ),
                         Text(
-                          '${statistic?.leaveDetail.totalLeaveDays ?? '---'} วัน',
+                          '${statistic?.leaveDetail.totalLeaveDays != null ? Utils.numberFormat(statistic!.leaveDetail.totalLeaveDays) : '---'} วัน',
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -75,7 +75,7 @@ class LeaveStatistic extends StatelessWidget {
                             style: TextStyle(fontSize: 14, color: Color(0xFF767676))
                         ),
                         Text(
-                          '${statistic?.leaveDetail.overLeaveDays ?? '---'} วัน',
+                          '${statistic?.leaveDetail.overLeaveDays != null ? Utils.numberFormat(statistic!.leaveDetail.overLeaveDays) : '---'} วัน',
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

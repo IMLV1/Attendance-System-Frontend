@@ -1,6 +1,7 @@
 import 'package:attendance_system/services/statistic/statistic_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
+import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -65,7 +66,7 @@ class WorkingDay extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  '${statistic?.totalWorkDays ?? '---'} วัน',
+                                  '${statistic?.totalWorkDays != null ? Utils.numberFormat(statistic!.totalWorkDays) : '---'} วัน',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -123,7 +124,7 @@ class WorkingDay extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  '${statistic?.actualWorkDays ?? '---'} วัน',
+                                  '${statistic?.actualWorkDays != null ? Utils.numberFormat(statistic!.actualWorkDays) : '---'} วัน',
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
