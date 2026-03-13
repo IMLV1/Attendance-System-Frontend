@@ -1,6 +1,7 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/services/approval/attendance/attendance_service.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
+import 'package:attendance_system/services/personnel_info/personnel_attendance_request_service.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
@@ -120,9 +121,10 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
         child: ServiceLoader(
             request: () {
               // return mockData();
-              return TimeRequestService().getDetail(widget.id);
+              return PersonnelAttendanceRequestService().getDetail(widget.id);
             },
             onSuccess: (val) {
+              print(data);
               setState(() {
                 data = AttendanceDetail.fromJson(val);
               });
