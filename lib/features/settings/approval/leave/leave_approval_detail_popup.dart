@@ -513,7 +513,7 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                 ),
               ),
 
-              if (status == .pending && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'approver'))
+              if (status == .pending && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'main'))
                 Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
