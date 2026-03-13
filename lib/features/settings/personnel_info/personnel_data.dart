@@ -88,7 +88,6 @@ class _PersonnelDataState extends State<PersonnelData> {
                       },
                       fetchOnInit: true,
                       builder: (trigger, getState) {
-
                         return Column(
                           spacing: 13,
                           children: [
@@ -145,49 +144,49 @@ class _PersonnelDataState extends State<PersonnelData> {
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'รหัสบุคลากร',
-                                        value: profile!.staffId
+                                        value: profile?.staffId ?? '---'
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'เลขบัตรประจำตัวประชาชน',
-                                        value: profile!.citizenId
+                                        value: profile?.citizenId ?? '---'
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'ชื่อ-นามสกุล',
-                                        value: profile!.thName
+                                        value: profile?.thName ?? '---'
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'Full-name',
-                                        value: profile!.enName
+                                        value: profile?.enName ?? '---'
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'เพศ',
-                                        value: profile!.gender
+                                        value: profile?.gender ?? '---'
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'สัญชาติ',
-                                        value: profile!.nationality
+                                        value: profile?.nationality ?? '---'
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'เบอร์โทร',
-                                        value: profile!.phone
+                                        value: profile?.phone ?? '---'
                                     ),
                                     TextValueButton(
                                       // color: Color(0xFF949494),
                                         disable: true,
                                         label: 'อีเมล',
-                                        value: profile!.email
+                                        value: profile?.email ?? '---'
                                     ),
                                   ],
                                 ),
@@ -196,7 +195,7 @@ class _PersonnelDataState extends State<PersonnelData> {
                                     TextRoleButton(
                                       disable: true,
                                       label: 'ตำแหน่งปัจจุบัน',
-                                      roles: profile!.roles,
+                                      roles: profile?.roles ?? [],
                                       icon: SvgPicture.asset('assets/images/icon_role.svg'),
                                     ),
                                   ],
