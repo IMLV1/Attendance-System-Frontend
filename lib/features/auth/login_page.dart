@@ -1,4 +1,3 @@
-import 'package:attendance_system/core/utils/dimensions_ext.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
@@ -13,208 +12,217 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final role = context.watch<AuthState>().role;
     return AppScaffold(
-        hideNavigation: true,
-        // header: Header.mainHeader(context),
-        content: SafeArea(
+      hideNavigation: true,
+      content: SafeArea(
+        child: Container(
+          color: AppColors.backgroundColor,
+          width: double.infinity,
+          height: double.infinity,
+          child: Column(
+            children: [
+              /// 🔹 MAIN CONTENT (centered vertically)
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxWidth: Responsive.isDesktop(context) ? 450 : 400
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          /// 🔹 LOGO
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 200),
+                            child: Image.asset(
+                              'assets/images/app_logo.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          const SizedBox(height: 36),
 
-            child: Container(
-                color: AppColors.backgroundColor,
-                alignment: Alignment.center,
-
-                padding: EdgeInsets.symmetric(horizontal: 20),
-
-                child: Column(
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: _AppLogoLoginCard(),
-                    ),
-                    Spacer(),
-
-                    Text(
-                      'Copyright © 2026 CatIsPink Inc. All rights reserved. KU Time Attendance System',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.lightTextColor,
+                          /// 🔹 LOGIN CARD
+                          const _LoginCard(),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
+                ),
+              ),
 
-                )
-            )
-        )
+              /// 🔹 COPYRIGHT (pinned at bottom)
+              const _CopyrightText(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _AppLogoLoginCard extends StatefulWidget {
+// ─────────────────────────────────────────────
+// 🃏 LOGIN CARD
+// ─────────────────────────────────────────────
+
+class _LoginCard extends StatefulWidget {
+  const _LoginCard();
+
   @override
-  State<StatefulWidget> createState() => _AppLogoLoginCardState();
+  State<_LoginCard> createState() => _LoginCardState();
 }
 
-class _AppLogoLoginCardState extends State<_AppLogoLoginCard> {
-
+class _LoginCardState extends State<_LoginCard> {
   String error = '';
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, pageConstraints) {
-        return Column(
-          spacing: 13.r(context),
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            /// 🔹 LOGO
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final logoWidth = (constraints.maxWidth * 0.55).clamp(120.0, 260.0);
-
-                return Image.asset(
-                  'assets/images/app_logo.png',
-                  width: logoWidth,
-                  fit: BoxFit.contain,
-                );
-              },
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(28, 32, 28, 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          /// TITLE
+          Text(
+            "เข้าสู่ระบบ",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: AppColors.greyTextColor,
             ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "ใช้บัญชี Google ของคุณเพื่อเข้าใช้งาน",
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.lightTextColor,
+            ),
+          ),
+          const SizedBox(height: 28),
 
-            /// 🔹 CARD
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight:
-                !Responsive.isMobile(context) ? 350 : double.infinity,
-              ),
-              child: AspectRatio(
-                aspectRatio: 362 / 244,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final scale = Responsive.scaleFromWidth(
-                      currentWidth: constraints.maxWidth,
-                    );
-
-                    return Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 14 * scale,
-                            vertical: 20 * scale,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(22),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                spacing: 4 * scale,
-                                children: [
-                                  Text(
-                                    "เข้าสู่ระบบ",
-                                    style: TextStyle(
-                                      fontSize: 18 * scale,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.greyTextColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    "ใช้บัญชี Google ของคุณเพื่อเข้าใช้งาน",
-                                    style: TextStyle(
-                                      fontSize: 13 * scale,
-                                      color: AppColors.lightTextColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              /// 🔹 BUTTON
-                              Column(
-                                spacing: 6,
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () async {
-
-                                      String res = await context.read<AuthState>().loginWithGoogle();
-
-                                      setState(() {
-                                        error = res;
-                                      });
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      padding:
-                                      EdgeInsets.all(20 * scale),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                      spacing: 12 * scale,
-                                      children: [
-                                        SvgPicture.asset(
-                                          'assets/images/google_logo.svg',
-                                          width: 20 * scale,
-                                          height: 20 * scale,
-                                        ),
-                                        Text(
-                                          'Login with Google',
-                                          style: TextStyle(
-                                            fontSize: 15 * scale,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (error.isNotEmpty)
-                                    Text(
-                                      error,
-                                      style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 12
-                                      ),
-                                    ),
-                                ],
-                              ),
-
-                              /// 🔹 FOOTNOTE
-                              Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10 * scale,
-                                ),
-                                child: RichText(
-                                  textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: 11 * scale,
-                                      color: AppColors.greyTextColor,
-                                    ),
-                                    children: [
-                                      const TextSpan(
-                                        text:
-                                        "หากพบปัญหาในการเข้าสู่ระบบ กรุณาติดต่อ",
-                                      ),
-                                      TextSpan(
-                                        text: "นักทรัพยากรบุคคล",
-                                        style: TextStyle(
-                                          color: AppColors.primaryColor,
-                                        ),
-                                      ),
-                                      const TextSpan(
-                                        text: "ฝ่ายสำนักงานเลขานุการ",
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                  },
+          /// 🔹 GOOGLE BUTTON
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton(
+              onPressed: () async {
+                String res =
+                    await context.read<AuthState>().loginWithGoogle();
+                setState(() {
+                  error = res;
+                });
+              },
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: Colors.grey.shade300,
+                  width: 1,
                 ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: Colors.white,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 12,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/google_logo.svg',
+                    width: 20,
+                    height: 20,
+                  ),
+                  Text(
+                    'Login with Google',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.greyTextColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          /// ERROR MESSAGE
+          if (error.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 12,
               ),
             ),
           ],
-        );
-      },
+          const SizedBox(height: 24),
+
+          /// 🔹 FOOTNOTE
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.lightTextColor,
+                height: 1.5,
+              ),
+              children: [
+                const TextSpan(
+                  text: "หากพบปัญหาในการเข้าสู่ระบบ กรุณาติดต่อ",
+                ),
+                TextSpan(
+                  text: "นักทรัพยากรบุคคล",
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const TextSpan(
+                  text: "\nฝ่ายสำนักงานเลขานุการ",
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// 📝 COPYRIGHT TEXT
+// ─────────────────────────────────────────────
+
+class _CopyrightText extends StatelessWidget {
+  const _CopyrightText();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+      child: Text(
+        'Copyright © 2026 CatIsPink Inc. All rights reserved.\nKU Time Attendance System',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 11,
+          color: AppColors.lightTextColor,
+        ),
+      ),
     );
   }
 }
