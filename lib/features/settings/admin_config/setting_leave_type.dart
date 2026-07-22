@@ -88,6 +88,7 @@ class SettingLeaveType extends StatefulWidget {
 
 class _SettingLeaveTypeState extends State<SettingLeaveType> {
 
+  bool _forcePop = false;
   ConfigLeaveModel? initData;
   ConfigLeaveModel? data;
 
@@ -100,6 +101,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
       isDirty: isDirty,
       onSave: () => ConfigLeaveService().update(data!),
       onDiscard: () {
+        setState(() => _forcePop = true);
         context.read<NavigationGuard>().reset();
         Navigator.of(context).pop();
       },
@@ -113,7 +115,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
             }
         ),
         content: PopScope(
-          canPop: data == null || initData!.isSame(data!),
+          canPop: _forcePop || (data == null || initData!.isSame(data!)),
           onPopInvokedWithResult: (didPop, result) {
             if (didPop) return;
 
@@ -121,6 +123,11 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
               context: context,
               onSave: () => ConfigLeaveService().update(data!),
               onDiscard: () {
+                setState(() => _forcePop = true);
+                Navigator.of(context).pop();
+              },
+              onNavigateBack: () {
+                setState(() => _forcePop = true);
                 Navigator.of(context).pop();
               },
             );
@@ -286,6 +293,7 @@ class ConfigLeave extends StatefulWidget {
 
 class _ConfigLeaveState extends State<ConfigLeave> {
 
+  bool _forcePop = false;
   LeaveSetting? data;
 
   @override
@@ -302,11 +310,13 @@ class _ConfigLeaveState extends State<ConfigLeave> {
     context.read<NavigationGuard>().update(
       isDirty: isDirty,
       onSave: () async {
+        setState(() => _forcePop = true);
         context.read<NavigationGuard>().reset();
         if (context.mounted) Navigator.pop(context, data);
         return Response(requestOptions: RequestOptions(path: ''));
       },
       onDiscard: () {
+        setState(() => _forcePop = true);
         context.read<NavigationGuard>().reset();
         Navigator.pop(context, widget.data);
       },
@@ -320,18 +330,22 @@ class _ConfigLeaveState extends State<ConfigLeave> {
           }
         ),
         content: PopScope(
-          canPop: data == null || widget.data.isSame(data!),
+          canPop: _forcePop || (data == null || widget.data.isSame(data!)),
           onPopInvokedWithResult: (didPop, result) {
             if (didPop) return;
 
             AdminConfigUtils.showSaveConfirmation(
               context: context,
               onSave: () async {
-                if (context.mounted) Navigator.pop(context, data);
-                return Response(requestOptions: RequestOptions(path: ''));
+                return Response(requestOptions: RequestOptions(path: ''), statusCode: 200);
               },
               onDiscard: () {
+                setState(() => _forcePop = true);
                 Navigator.pop(context, widget.data);
+              },
+              onNavigateBack: () {
+                setState(() => _forcePop = true);
+                if (context.mounted) Navigator.pop(context, data);
               },
             );
           },

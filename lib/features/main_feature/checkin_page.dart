@@ -13,7 +13,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:ntp/ntp.dart';
 
 import '../../services/check-in/check-in_model.dart';
 import '../../services/check-in/check-in_service.dart';
@@ -24,7 +23,6 @@ import '../../shared/widgets/utils/clock_realtime.dart';
 import '../../shared/widgets/utils/icon_text_button.dart';
 import '../../shared/widgets/utils/radar_animation.dart';
 import '../../shared/widgets/utils/separator_card.dart';
-import '../../shared/widgets/utils/services/service_loader.dart';
 
 class CheckinPage extends StatefulWidget {
   const CheckinPage({super.key});
@@ -54,34 +52,119 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
   Timer? _timer;
   DateTime? _lastResetDate;
-  Duration? _timeOffset;
+  Duration? _timeOffset = Duration.zero;
+
+  // Bug 1.3: Inline feedback state
+  String _feedbackMessage = '';
+  bool _feedbackIsSuccess = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    initConfig();
+    _initPage();
   }
 
-  Future<DateTime> _getSafeNetworkTime() async {
+  /// Bug 1.1: Initialize with local time immediately, then upgrade to server time
+  Future<void> _initPage() async {
+    // Use local time immediately — no blocking
+    _currentNetworkTime = DateTime.now();
+    _timeOffset = Duration.zero;
+
+    // Load config
+    await initConfig();
+
+    // Load attendance state and supplementary data
+    await _loadSupplementaryData(_currentNetworkTime!);
+    await _loadInitialState(_currentNetworkTime!);
+
+    // Start the clock
+    _startTimerLogic();
+
+    // Try to fetch server time in background (non-blocking upgrade)
+    _tryFetchServerTime();
+  }
+
+  /// Bug 1.1: Attempt to fetch server time; if successful, update offset
+  Future<void> _tryFetchServerTime() async {
     try {
       final response = await Dio()
           .get(
             'https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Bangkok',
+            options: Options(
+              headers: {'Accept': 'application/json'},
+            ),
           )
           .timeout(const Duration(seconds: 5));
 
-      if (response.statusCode == 200) {
-        return DateTime.parse(response.data['dateTime']);
+      if (response.statusCode == 200 && mounted) {
+        final String dateTimeStr = response.data['dateTime'];
+        final DateTime serverTime = DateTime.parse(dateTimeStr);
+        setState(() {
+          _timeOffset = serverTime.difference(DateTime.now());
+          _currentNetworkTime = DateTime.now().add(_timeOffset!);
+        });
+        debugPrint("✅ Server time synced, offset: $_timeOffset");
       }
-      throw Exception("API Status Error");
     } catch (e) {
-      debugPrint("Network Time Error: $e");
-      rethrow;
+      debugPrint("ℹ️ Server time unavailable, using local clock: $e");
+      // Silently continue with local time — not a problem
     }
   }
 
-  // เพิ่มฟังก์ชันเหล่านี้ภายในคลาส _CheckinPageState
+  /// Load supplementary data (holidays, leave) for the given time
+  Future<void> _loadSupplementaryData(DateTime time) async {
+    try {
+      final holidayService = GetIt.I<HolidayService>();
+      final leaveService = GetIt.I<Leaveservice>();
+
+      String today = DateFormat('yyyy-MM-dd').format(time);
+
+      final results = await Future.wait([
+        holidayService.getPublicHolidays(today).catchError((e) {
+          debugPrint("❌ Holiday Service Error: $e");
+          return Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+        }),
+        leaveService.getLeave(today).catchError((e) {
+          debugPrint("❌ Leave Service Error: $e");
+          return Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+        }),
+      ]);
+
+      final holidayRes = results[0];
+      final leaveRes = results[1];
+
+      if (!mounted) return;
+
+      setState(() {
+        if (holidayRes.statusCode == 200 && holidayRes.data != null) {
+          var hData = holidayRes.data;
+          if (hData['holiday_name'] != null &&
+              hData['holiday_name'].toString().isNotEmpty) {
+            isPublicHoliday = true;
+            holiday = hData['holiday_name'];
+          }
+        }
+
+        if (leaveRes.statusCode == 200 && leaveRes.data != null) {
+          debugPrint("Leave Data จาก Backend: ${leaveRes.data}");
+          Map<String, dynamic> responseData = leaveRes.data;
+          String today = DateFormat('yyyy-MM-dd').format(time);
+
+          if (responseData['data'] != null && responseData['data'][today] != null) {
+            var todayLeaveData = responseData['data'][today];
+            currentLeave = AttendanceLeaveModel.fromJson(todayLeaveData);
+            debugPrint("✅ แกะข้อมูลลาสำเร็จ: ประเภท ${currentLeave?.leaveType}, อนุมัติ: ${currentLeave?.isApproved}");
+          } else {
+            debugPrint("ℹ️ วันนี้ไม่มีประวัติการลา");
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint("ไม่สามารถดึงได้ :$e}");
+    }
+  }
 
   Future<void> initConfig() async {
     try {
@@ -161,15 +244,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     await attendanceService.saveLocalState(attendanceData);
   }
 
-  Future<void> _syncInitialTime() async {
-    try {
-      _currentNetworkTime = await NTP.now(lookUpAddress: 'time.google.com');
-    } catch (e) {
-      _currentNetworkTime = DateTime.now();
-    }
 
-    _lastResetDate = _currentNetworkTime; // ✅ สำคัญมาก
-  }
 
   @override
   void dispose() {
@@ -352,159 +427,53 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         subTitle: 'Time Attendance',
         iconPath: 'checkin_title_logo.svg',
       ),
-      content: (configSetting == null)
-          ? Center(child: CupertinoActivityIndicator(color: Colors.black))
-          : ServiceLoader(
-              request: () async {
-                try {
-                  final response = await Dio()
-                      .get(
-                        'https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Bangkok',
-                        options: Options(
-                          headers: {'Accept': 'application/json'},
-                        ),
-                      )
-                      .timeout(const Duration(seconds: 5));
+      content: _buildContent(),
+    );
+  }
 
-                  if (response.statusCode == 200) {
-                    // โครงสร้าง JSON ของ timeapi.io คือ response.data['dateTime']
-                    final String dateTimeStr = response.data['dateTime'];
-                    final DateTime networkTime = DateTime.parse(dateTimeStr);
+  Widget _buildContent() {
+    // Show loading while config or initial state is loading
+    if (_isLoadingState || configSetting == null) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [CupertinoActivityIndicator(radius: 15)],
+        ),
+      );
+    }
 
-                    return Response(
-                      requestOptions: RequestOptions(path: ''),
-                      data: networkTime,
-                      statusCode: 200,
-                    );
-                  }
-                  throw Exception("API Status Error");
-                } catch (e) {
-                  debugPrint("❌ Network Time Error: $e");
-                  return Response(
-                    requestOptions: RequestOptions(path: ''),
-                    statusCode: 500,
-                    statusMessage:
-                        "ไม่สามารถเชื่อมต่อเวลามาตรฐานได้ (Network Error)",
-                  );
-                }
-              },
-              onSuccess: (data) async {
-                final DateTime ntpNow = (data is Response) ? data.data : data;
-
-                if (_currentNetworkTime == null) {
-                  // 💡 คำนวณความต่างเวลา
-                  _timeOffset = ntpNow.difference(DateTime.now());
-                  _currentNetworkTime = ntpNow;
-
-                  try {
-                    final holidayService = GetIt.I<HolidayService>();
-                    final leaveService = GetIt.I<Leaveservice>();
-
-
-                    String today = DateFormat('yyyy-MM-dd').format(ntpNow);
-                    //final response = await holidayService.getPublicHolidays(today);
-                    final results = await Future.wait([
-                      // จัดการ Holiday แยกต่างหาก
-                      holidayService.getPublicHolidays(today).catchError((e) {
-                        debugPrint("❌ Holiday Service Error: $e");
-                        return Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
-                      }),
-
-                      // จัดการ Leave แยกต่างหาก
-                      leaveService.getLeave(today).catchError((e) {
-                        debugPrint("❌ Leave Service Error: $e");
-                        return Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
-                      }),
-                    ]);
-
-                    final holidayRes = results[0];
-                    final leaveRes = results[1];
-
-                    setState(() {
-                      // 1. จัดการข้อมูลวันหยุด
-                      if (holidayRes.statusCode == 200 && holidayRes.data != null) {
-                        var hData = holidayRes.data;
-                        if (hData['holiday_name'] != null &&
-                            hData['holiday_name'].toString().isNotEmpty) {
-                          isPublicHoliday = true;
-                          holiday = hData['holiday_name'];
-                        }
-                      }
-
-                      // 2. จัดการข้อมูลการลา (ใช้ Model ที่คุณสร้าง)
-                      // 2. จัดการข้อมูลการลา
-                      if (leaveRes.statusCode == 200 && leaveRes.data != null) {
-                        debugPrint("Leave Data จาก Backend: ${leaveRes.data}");
-
-                        Map<String, dynamic> responseData = leaveRes.data;
-
-                        // เช็คว่ามีคีย์ 'data' และมีข้อมูลของ 'today' (วันที่ปัจจุบัน) หรือไม่
-                        if (responseData['data'] != null && responseData['data'][today] != null) {
-                          var todayLeaveData = responseData['data'][today];
-
-                          // โยนเฉพาะก้อนของวันนี้เข้าไปใน Model
-                          currentLeave = AttendanceLeaveModel.fromJson(todayLeaveData);
-                          debugPrint("✅ แกะข้อมูลลาสำเร็จ: ประเภท ${currentLeave?.leaveType}, อนุมัติ: ${currentLeave?.isApproved}");
-                        } else {
-                          debugPrint("ℹ️ วันนี้ไม่มีประวัติการลา");
-                        }
-                      }
-                    });
-                    }catch (e) {
-                    debugPrint("ไม่สามารถดึงได้ :$e}");
-                  }
-
-                  await _loadInitialState(ntpNow);
-                  _startTimerLogic();
-                }
-              },
-              builder: () {
-                // 💡 ถ้ายังโหลดไม่เสร็จ ให้โชว์หน้าจอขาว/เทา พร้อมตัวหมุนตรงกลางหน้าจอไปเลย
-                if (_isLoadingState || configSetting == null) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [CupertinoActivityIndicator(radius: 15)],
-                    ),
-                  );
-                }
-
-                // 💡 เมื่อโหลดเสร็จแล้วค่อยแสดง UI จริง
-                return SafeArea(
-                  child: SingleChildScrollView(
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 20,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _cardtime(),
-                        _buttonCheckin(), // ตรงนี้ปุ่มจะมาพร้อมสถานะที่ถูกต้องทันที
-                        const SizedBox(height: 10),
-                        _currentstate(),
-                        const SizedBox(height: 10),
-                        SeparatorCard(
-                          separatorPadding: const EdgeInsets.all(10),
-                          children: [
-                            IconTextButton(
-                              icon: 'icon_attendance_history.svg',
-                              label: 'ดูบันทึกการเข้า-ออกงาน',
-                              onPressed: () {
-                                context.push('/settings/attendance-history');
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+    // Bug 1.2: Use tighter padding and spacing for mobile layout
+    return SafeArea(
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 10,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _cardtime(),
+            _buttonCheckin(),
+            const SizedBox(height: 6),
+            _currentstate(),
+            const SizedBox(height: 6),
+            SeparatorCard(
+              separatorPadding: const EdgeInsets.all(10),
+              children: [
+                IconTextButton(
+                  icon: 'icon_attendance_history.svg',
+                  label: 'ดูบันทึกการเข้า-ออกงาน',
+                  onPressed: () {
+                    context.push('/settings/attendance-history');
+                  },
+                ),
+              ],
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -661,15 +630,16 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     return Column(
       children: [
+        // Bug 1.2: Reduced sizes for mobile layout
         Stack(
           alignment: Alignment.center,
           children: [
             RadarAnimation(color: buttonColor),
             Padding(
-              padding: EdgeInsets.only(top: 270),
+              padding: EdgeInsets.only(top: 240),
               child: Container(
-                width: 140,
-                height: 15,
+                width: 120,
+                height: 12,
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
@@ -685,67 +655,13 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: isDisabled
+                onTap: (isDisabled || _isSubmitting)
                     ? null
-                    : () async {
-                        try {
-                          HapticFeedback.mediumImpact();
-
-                          // 💡 ใช้เวลามาตรฐานที่ผ่านการบวก Offset แล้ว
-                          final DateTime exactTime = DateTime.now().add(
-                            _timeOffset ?? Duration.zero,
-                          );
-                          String nowTimeDisplay = DateFormat(
-                            'HH:mm',
-                          ).format(exactTime);
-
-                          setState(() {
-                            if (state == "CHECK_OUT_READY") {
-                              checkOutTimeRecorded = nowTimeDisplay;
-                              hasCheckedOut = true;
-                            } else {
-                              checkInTimeRecorded = nowTimeDisplay;
-                              _hasCheckedIn = true;
-                            }
-                          });
-
-                          // 💡 บันทึกลง Local Storage ของเครื่องนี้
-                          await _saveCurrentState();
-
-                          String requestType = (state == "CHECK_OUT_READY")
-                              ? "CHECK_OUT"
-                              : "CHECK_IN";
-                          final attendanceService =
-                              GetIt.I<AttendanceService>();
-
-                          // 💡 ส่งเวลาเข้า Backend (ถ้า Backend Error อย่างน้อย Local เราก็จำค่าไว้แล้ว)
-                          await attendanceService.postAttendance(
-                            exactTime,
-                            requestType,
-                          );
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'บันทึกเวลา $nowTimeDisplay น. เรียบร้อยแล้ว',
-                              ),
-                            ),
-                          );
-                        } catch (e) {
-                          debugPrint("เกิดข้อผิดพลาดในการบันทึก: $e");
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'บันทึกสำเร็จลงเครื่อง แต่ยังส่งไม่ถึง Server',
-                              ),
-                            ),
-                          );
-                        }
-                      },
+                    : () => _handleCheckin(state),
                 customBorder: CircleBorder(),
                 child: Container(
-                  width: 190,
-                  height: 190,
+                  width: 170,
+                  height: 170,
                   decoration: BoxDecoration(
                     color: buttonColor,
                     shape: BoxShape.circle,
@@ -754,19 +670,21 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        height: 40,
-                        width: 40,
+                        height: 36,
+                        width: 36,
                         child: SvgPicture.asset(iconPath),
                       ),
                       SizedBox(height: 1),
-                      Text(
-                        buttonText,
-                        style: TextStyle(
-                          fontSize: fontSize,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.titleColor,
-                        ),
-                      ),
+                      _isSubmitting
+                          ? const CupertinoActivityIndicator(color: Colors.white)
+                          : Text(
+                              buttonText,
+                              style: TextStyle(
+                                fontSize: fontSize,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.titleColor,
+                              ),
+                            ),
                     ],
                   ),
                 ),
@@ -775,7 +693,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           ],
         ),
 
-        const SizedBox(height: 15),
+        const SizedBox(height: 8),
         Text(
           showtext,
           style: TextStyle(
@@ -785,7 +703,21 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           ),
         ),
 
-        const SizedBox(height: 10),
+        // Bug 1.3: Inline feedback text
+        if (_feedbackMessage.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            _feedbackMessage,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: _feedbackIsSuccess ? Colors.green : Colors.red,
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 6),
 
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -813,6 +745,74 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         ),
       ],
     );
+  }
+
+  /// Bug 1.3 & 1.4: Handle check-in/check-out — only update UI on backend success
+  Future<void> _handleCheckin(String state) async {
+    try {
+      HapticFeedback.mediumImpact();
+
+      setState(() {
+        _isSubmitting = true;
+        _feedbackMessage = '';
+      });
+
+      final DateTime exactTime = DateTime.now().add(
+        _timeOffset ?? Duration.zero,
+      );
+      String nowTimeDisplay = DateFormat('HH:mm').format(exactTime);
+
+      String requestType = (state == "CHECK_OUT_READY")
+          ? "CHECK_OUT"
+          : "CHECK_IN";
+      final attendanceService = GetIt.I<AttendanceService>();
+
+      // Bug 1.4: Send to backend FIRST, only update UI on success
+      await attendanceService.postAttendance(exactTime, requestType);
+
+      // Backend succeeded — now update UI state
+      setState(() {
+        if (state == "CHECK_OUT_READY") {
+          checkOutTimeRecorded = nowTimeDisplay;
+          hasCheckedOut = true;
+        } else {
+          checkInTimeRecorded = nowTimeDisplay;
+          _hasCheckedIn = true;
+        }
+        _feedbackMessage = 'บันทึกเวลา $nowTimeDisplay น. เรียบร้อยแล้ว';
+        _feedbackIsSuccess = true;
+      });
+
+      await _saveCurrentState();
+    } on DioException catch (e) {
+      // Bug 1.4: Parse actual backend error message
+      String errorMsg = 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map<String, dynamic>) {
+          errorMsg = data['error'] ?? data['message'] ?? errorMsg;
+        } else if (data is String && data.isNotEmpty) {
+          errorMsg = data;
+        }
+      }
+      debugPrint("เกิดข้อผิดพลาดในการบันทึก: $e");
+      setState(() {
+        _feedbackMessage = errorMsg;
+        _feedbackIsSuccess = false;
+      });
+    } catch (e) {
+      debugPrint("เกิดข้อผิดพลาดในการบันทึก: $e");
+      setState(() {
+        _feedbackMessage = 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+        _feedbackIsSuccess = false;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   Widget _currentstate() {

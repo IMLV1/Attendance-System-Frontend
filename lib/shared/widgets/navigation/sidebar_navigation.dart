@@ -1,7 +1,10 @@
+import 'package:attendance_system/core/utils/navigation_guard.dart';
+import 'package:attendance_system/features/settings/admin_config/admin_config_utils.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class SideBarNavigation extends StatelessWidget {
 
@@ -129,13 +132,36 @@ class SideBarButton extends StatelessWidget {
 
   const SideBarButton({super.key, required this.currentPath, required this.path, required this.pageName, required this.pageIcon});
 
+  void _onNavigate(BuildContext context, String path) {
+    final guard = context.read<NavigationGuard>();
+    if (guard.isDirty) {
+      AdminConfigUtils.showSaveConfirmation(
+        context: context,
+        onSave: () async {
+          final res = await guard.onSave!();
+          guard.reset();
+          return res;
+        },
+        onDiscard: () {
+          guard.reset();
+          context.go(path);
+        },
+        onNavigateBack: () {
+          context.go(path);
+        },
+      );
+    } else {
+      context.go(path);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
     return ElevatedButton(
 
         onPressed: () {
-          context.go(path);
+          _onNavigate(context, path);
         },
 
         style: ElevatedButton.styleFrom(

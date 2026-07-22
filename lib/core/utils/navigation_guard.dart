@@ -27,10 +27,12 @@ class NavigationGuard extends ChangeNotifier {
     Future<Response<dynamic>> Function()? onSave,
     VoidCallback? onDiscard,
   }) {
+    final bool dirtyChanged = _isDirty != isDirty;
     _isDirty = isDirty;
     this.onSave = onSave;
     this.onDiscard = onDiscard;
-    // We don't necessarily want to notify on every build unless isDirty changed
-    // But pages will call this in builds to keep callbacks fresh
+    if (dirtyChanged) {
+      notifyListeners();
+    }
   }
 }
