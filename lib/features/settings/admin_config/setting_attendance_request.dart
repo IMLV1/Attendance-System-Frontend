@@ -40,6 +40,7 @@ class SettingAttendanceRequest extends StatefulWidget {
 
 class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
 
+  bool _forcePop = false;
   ConfigAttendanceRequestModel? initData;
   ConfigAttendanceRequestModel? data;
 
@@ -52,6 +53,7 @@ class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
       isDirty: isDirty,
       onSave: () => ConfigAttendanceRequestService().update(data!),
       onDiscard: () {
+        setState(() => _forcePop = true);
         context.read<NavigationGuard>().reset();
         Navigator.of(context).pop();
       },
@@ -65,7 +67,7 @@ class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
             }
         ),
         content: PopScope(
-          canPop: data == null || initData!.isSame(data!),
+          canPop: _forcePop || (data == null || initData!.isSame(data!)),
           onPopInvokedWithResult: (didPop, result) {
             if (didPop) return;
 
@@ -73,6 +75,11 @@ class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
               context: context,
               onSave: () => ConfigAttendanceRequestService().update(data!),
               onDiscard: () {
+                setState(() => _forcePop = true);
+                Navigator.of(context).pop();
+              },
+              onNavigateBack: () {
+                setState(() => _forcePop = true);
                 Navigator.of(context).pop();
               },
             );

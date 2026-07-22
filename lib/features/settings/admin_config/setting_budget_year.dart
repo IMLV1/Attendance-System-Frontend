@@ -27,6 +27,8 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ];
 
+  bool _forcePop = false;
+
   int initMonthIndex = 0;
   int initDayIndex = 0;
 
@@ -68,6 +70,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
       isDirty: isDirty,
       onSave: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
       onDiscard: () {
+        setState(() => _forcePop = true);
         context.read<NavigationGuard>().reset();
         Navigator.of(context).pop();
       },
@@ -81,7 +84,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
           }
         ),
         content: PopScope(
-          canPop: initDayIndex == selectedDayIndex && initMonthIndex == selectedMonthIndex,
+          canPop: _forcePop || (initDayIndex == selectedDayIndex && initMonthIndex == selectedMonthIndex),
           onPopInvokedWithResult: (didPop, result) {
             if (didPop) return;
 
@@ -89,6 +92,11 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
               context: context,
               onSave: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
               onDiscard: () {
+                setState(() => _forcePop = true);
+                Navigator.of(context).pop();
+              },
+              onNavigateBack: () {
+                setState(() => _forcePop = true);
                 Navigator.of(context).pop();
               },
             );

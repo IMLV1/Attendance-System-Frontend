@@ -8,6 +8,7 @@ class AdminConfigUtils {
     required BuildContext context,
     required Future<Response<dynamic>> Function() onSave,
     required VoidCallback onDiscard,
+    VoidCallback? onNavigateBack,
   }) {
     FloatingPopup(
       title: 'บันทึกการเปลี่ยนแปลง',
@@ -27,7 +28,10 @@ class AdminConfigUtils {
             foregroundColor: Colors.white,
             onSuccess: () {
               Navigator.of(context1).pop(); // Close popup
-              // The onPopInvokedWithResult callback will handle the final navigation
+              // Bug 2.1: Navigate back after successful save
+              if (onNavigateBack != null) {
+                onNavigateBack();
+              }
             },
             text: 'บันทึก',
             request: onSave,

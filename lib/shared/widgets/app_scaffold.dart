@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:flutter/material.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -25,9 +26,9 @@ class AppScaffold extends StatelessWidget {
 
           double scaleFactor;
 
-          if (width < 600) {
+          if (Responsive.isMobile(context)) {
             scaleFactor = 1.0; // mobile
-          } else if (width < 1200) {
+          } else if (Responsive.isTablet(context)) {
             scaleFactor = 1.2; // tablet
           } else {
             scaleFactor = 1.4; // desktop
@@ -42,18 +43,22 @@ class AppScaffold extends StatelessWidget {
                 appBar: header,
                 body: Align(
                   alignment: Alignment.topCenter,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      double width = constraints.maxWidth;
+                  child: content
 
-                      return ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: width > 1200 ? 1100 : width,
-                          ),
-                          child: content,
-                      );
-                    },
-                  ),
+
+                  // LayoutBuilder(
+                  //   builder: (context, constraints) {
+                  //     double width = constraints.maxWidth;
+                  //
+                  //     return ConstrainedBox(
+                  //         constraints: BoxConstraints(
+                  //           maxWidth: width > 1200 ? 1100 : width,
+                  //         ),
+                  //         child: content,
+                  //     );
+                  //   },
+                  // ),
+
                 )
             )
           );

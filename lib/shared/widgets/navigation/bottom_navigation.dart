@@ -53,13 +53,13 @@ class BottomNavigation extends StatelessWidget {
         onSave: () async {
           final res = await guard.onSave!();
           guard.reset();
-          if (context.mounted) {
-            context.goNamed(routeName);
-          }
           return res;
         },
         onDiscard: () {
           guard.reset();
+          context.goNamed(routeName);
+        },
+        onNavigateBack: () {
           context.goNamed(routeName);
         },
       );
