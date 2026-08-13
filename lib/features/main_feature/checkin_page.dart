@@ -100,9 +100,18 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
       if (response.statusCode == 200 && mounted) {
         final String dateTimeStr = response.data['dateTime'];
-        final DateTime serverTime = DateTime.parse(dateTimeStr);
+        // 🚩 แก้: timeapi.io ส่ง dateTime แบบไม่มี timezone suffix (เช่น "2026-08-13T10:21:01.xxx")
+        // ซึ่งเป็นเวลา "ตามนาฬิกา" ของ Bangkok ตรงๆ — แต่ DateTime.parse() บนสตริงที่ไม่มี offset
+        // จะตีความตัวเลขนั้นเป็นเวลา "local" ตาม timezone ของ "เครื่อง" แทน ถ้าเครื่องตั้ง timezone
+        // ไม่ตรงกับ Bangkok (เช่น UTC) offset ที่คำนวณได้จะเพี้ยนไปหลายชั่วโมงเต็มๆ (ไม่ใช่แค่ drift
+        // วินาที) ต้อง reinterpret ตัวเลขดิบเป็น Bangkok = UTC+7 ตรงๆ โดยไม่พึ่ง timezone ของเครื่อง
+        final naive = DateTime.parse(dateTimeStr);
+        final DateTime serverTimeUtc = DateTime.utc(
+          naive.year, naive.month, naive.day,
+          naive.hour, naive.minute, naive.second, naive.millisecond,
+        ).subtract(const Duration(hours: 7));
         setState(() {
-          _timeOffset = serverTime.difference(DateTime.now());
+          _timeOffset = serverTimeUtc.difference(DateTime.now().toUtc());
           _currentNetworkTime = DateTime.now().add(_timeOffset!);
         });
         debugPrint("✅ Server time synced, offset: $_timeOffset");
