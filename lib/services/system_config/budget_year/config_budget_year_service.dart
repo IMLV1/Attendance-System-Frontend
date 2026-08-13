@@ -9,12 +9,16 @@ class ConfigBudgetYearService {
     return dio.get('/system/config/budget_year/get');
   }
 
-  Future<Response<dynamic>> update(int day, int month) async {
+  /// [applyMode] เลือกว่าวันตัดรอบใหม่จะมีผลเมื่อไหร่ (ปีงบที่ผ่านไปแล้วไม่ถูกแตะทั้ง 2 กรณี)
+  ///  - 'next'    : ไม่แตะปีงบปัจจุบัน เริ่มใช้กับปีงบถัดไป
+  ///  - 'current' : ปิดปีงบปัจจุบันที่วันตัดรอบใหม่ทันที (ปีนั้นจะสั้น/ยาวกว่า 12 เดือน)
+  Future<Response<dynamic>> update(int day, int month, {String applyMode = 'next'}) async {
     return dio.put(
       '/system/config/budget_year/update',
       data: {
         'day': day,
-        'month': month
+        'month': month,
+        'apply-mode': applyMode,
       }
     );
   }

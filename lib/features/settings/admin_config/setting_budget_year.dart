@@ -5,6 +5,7 @@ import 'package:attendance_system/services/system_config/budget_year/config_budg
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
+import 'package:attendance_system/shared/widgets/utils/animation/animated_widget.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
@@ -35,6 +36,11 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
   int selectedMonthIndex = 0;
   int selectedDayIndex = 0;
 
+  // 🚩 เพิ่ม (2026-08-13): ให้ admin เลือกว่าวันตัดรอบใหม่จะเริ่มมีผลเมื่อไหร่
+  // ('next' = ปีงบถัดไป, 'current' = ปิดปีงบปัจจุบันทันที) — ปีงบที่ผ่านไปแล้ว
+  // ไม่ถูกแตะทั้ง 2 กรณี (backend แช่แข็งขอบเขตไว้ในตาราง budget_years)
+  String _applyMode = 'next';
+
   // 1. ประกาศตัวแปรเก็บ list วันที่ไว้ข้างนอก build
   late List<String> dayItems;
 
@@ -50,6 +56,53 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
     if (monthIndex == 1) return 28;
     if ([3, 5, 8, 10].contains(monthIndex)) return 30;
     return 31;
+  }
+
+  // ตัวเลือกว่าวันตัดรอบใหม่จะเริ่มมีผลเมื่อไหร่ (โผล่เฉพาะตอนมีการแก้ค่าจริง)
+  Widget _buildModeOption({
+    required String value,
+    required String title,
+    required String description,
+  }) {
+    final selected = _applyMode == value;
+    return InkWell(
+      onTap: () => setState(() => _applyMode = value),
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              size: 20,
+              color: selected ? AppColors.primaryColor : const Color(0xFFB0B0B0),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF7C7C7C)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // 3. แยกฟังก์ชันสร้าง List ออกมา
@@ -68,7 +121,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
     // Update global navigation guard
     context.read<NavigationGuard>().update(
       isDirty: isDirty,
-      onSave: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
+      onSave: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1, applyMode: _applyMode),
       onDiscard: () {
         setState(() => _forcePop = true);
         context.read<NavigationGuard>().reset();
@@ -90,7 +143,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
 
             AdminConfigUtils.showSaveConfirmation(
               context: context,
-              onSave: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1),
+              onSave: () => ConfigBudgetYearService().update(selectedDayIndex + 1, selectedMonthIndex + 1, applyMode: _applyMode),
               onDiscard: () {
                 setState(() => _forcePop = true);
                 Navigator.of(context).pop();
@@ -131,7 +184,10 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                                 return SingleChildScrollView(
                                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                     physics: AlwaysScrollableScrollPhysics(),
-                                    child: SeparatorCard(
+                                    child: Column(
+                                      spacing: 13,
+                                      children: [
+                                    SeparatorCard(
                                       separatorPadding: EdgeInsetsGeometry.symmetric(
                                           horizontal: 15),
                                       children: [
@@ -168,6 +224,45 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                                             },
                                           ),
                                         )
+                                      ],
+                                    ),
+
+                                    // โผล่เฉพาะตอนมีการแก้วันตัดรอบจริงๆ
+                                    AnimatedSizeWidget(
+                                      enable: isDirty,
+                                      child: SeparatorCard(
+                                        separatorPadding: EdgeInsetsGeometry.symmetric(horizontal: 15),
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.fromLTRB(15, 13, 15, 0),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'วันตัดรอบใหม่จะเริ่มมีผลเมื่อไหร่?',
+                                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                                                ),
+                                                SizedBox(height: 3),
+                                                Text(
+                                                  'ปีงบประมาณที่ผ่านไปแล้วจะไม่ถูกแก้ไขไม่ว่าเลือกแบบไหน',
+                                                  style: TextStyle(fontSize: 13, color: Color(0xFF7C7C7C)),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          _buildModeOption(
+                                            value: 'next',
+                                            title: 'เริ่มใช้ปีงบประมาณถัดไป',
+                                            description: 'ปีงบประมาณปัจจุบันคงขอบเขตเดิมจนจบรอบ',
+                                          ),
+                                          _buildModeOption(
+                                            value: 'current',
+                                            title: 'ปิดรอบปัจจุบันทันที',
+                                            description: 'ปีงบประมาณปัจจุบันจะสั้นหรือยาวกว่า 12 เดือน 1 ครั้ง',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                       ],
                                     )
                                 );
