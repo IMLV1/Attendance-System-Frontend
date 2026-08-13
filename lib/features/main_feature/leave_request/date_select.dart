@@ -14,7 +14,20 @@ class DateSelect extends StatefulWidget {
   final LeaveDate? dateData;
   final void Function(LeaveDate date) onChanged;
 
-  const DateSelect({super.key, required this.allowRetroactive, this.dateData, required this.onChanged});
+  // 🚩 เพิ่ม (2026-08-13): ขอบเขตปีงบประมาณปัจจุบัน — ยื่นลาได้เฉพาะในช่วงนี้เท่านั้น
+  // (backend บังคับด้วย ดู ValidateLeaveWithinCurrentBudgetYear) ถ้าเป็น null จะไม่จำกัด
+  // เพื่อไม่ให้หน้าพังตอนดึง config ไม่สำเร็จ — backend ยังเป็นด่านสุดท้ายอยู่ดี
+  final DateTime? budgetStart;
+  final DateTime? budgetEnd;
+
+  const DateSelect({
+    super.key,
+    required this.allowRetroactive,
+    this.dateData,
+    required this.onChanged,
+    this.budgetStart,
+    this.budgetEnd,
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -256,13 +269,18 @@ class _DateSelectState extends State<DateSelect> {
               final now = DateTime.now();
               final today = DateTime(now.year, now.month, now.day + 1);
 
+              // ต้องอยู่ในปีงบประมาณปัจจุบันเสมอ (ถ้ารู้ขอบเขต)
+              final d = DateTime(day.year, day.month, day.day);
+              if (widget.budgetStart != null && d.isBefore(widget.budgetStart!)) return false;
+              if (widget.budgetEnd != null && d.isAfter(widget.budgetEnd!)) return false;
+
               return (widget.allowRetroactive) ? true : day.isAfter(
                 DateTime(today.year, today.month, today.day),
               );
             },
             locale: 'th_TH',
-            firstDay: DateTime(2000),
-            lastDay: DateTime(2100),
+            firstDay: widget.budgetStart ?? DateTime(2000),
+            lastDay: widget.budgetEnd ?? DateTime(2100),
             focusedDay: _focusedDay,
             rangeStartDay: _rangeStart,
             rangeEndDay: _rangeEnd,

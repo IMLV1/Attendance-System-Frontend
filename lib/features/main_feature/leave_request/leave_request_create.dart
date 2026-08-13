@@ -1,3 +1,4 @@
+import 'package:attendance_system/services/system_config/budget_year/config_budget_year_service.dart';
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
@@ -43,6 +44,11 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
 
   LeaveDate? _selectedDate;
 
+  // 🚩 เพิ่ม (2026-08-13): ขอบเขตปีงบประมาณปัจจุบัน ใช้จำกัดปฏิทินเลือกวันลา
+  // (ยื่นลาได้เฉพาะในปีงบปัจจุบัน — backend บังคับซ้ำอีกชั้น)
+  DateTime? _budgetStart;
+  DateTime? _budgetEnd;
+
   LeaveInfoModel? leaveStatsInfo;
 
   List<PlatformFile> allFiles = [];
@@ -52,6 +58,30 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
 
   bool submitted = false;
   bool confirmed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBudgetPeriod();
+  }
+
+  // ดึงขอบเขตปีงบปัจจุบันมาจำกัดปฏิทิน — ถ้าล้มเหลวปล่อยเป็น null (ไม่จำกัดฝั่ง UI)
+  // แล้วให้ backend เป็นด่านบล็อกแทน จะได้ไม่ทำให้หน้าใช้ไม่ได้ทั้งหน้า
+  Future<void> _loadBudgetPeriod() async {
+    try {
+      final res = await ConfigBudgetYearService().getCurrentPeriod();
+      final start = res.data?['date-start'];
+      final end = res.data?['date-end'];
+      if (start != null && end != null && mounted) {
+        setState(() {
+          _budgetStart = DateTime.parse(start);
+          _budgetEnd = DateTime.parse(end);
+        });
+      }
+    } catch (_) {
+      // เงียบไว้ — backend ยังบล็อกให้อยู่ดี
+    }
+  }
 
   double getLeaveDays() {
     double leaveDays = leaveDate!.toDate!.difference(leaveDate!.fromDate!).inDays + 1;
@@ -228,6 +258,8 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                         return DateSelect(
                                                                           dateData: leaveDate,
                                                                           allowRetroactive: setting!.allowRetroactive,
+                                                                          budgetStart: _budgetStart,
+                                                                          budgetEnd: _budgetEnd,
                                                                           onChanged: (LeaveDate date) {
                                                                             _selectedDate = date;
                                                                           }

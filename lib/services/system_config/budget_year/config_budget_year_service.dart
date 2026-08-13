@@ -9,6 +9,12 @@ class ConfigBudgetYearService {
     return dio.get('/system/config/budget_year/get');
   }
 
+  /// ขอบเขตปีงบประมาณปัจจุบัน — ใช้จำกัดปฏิทินตอนเลือกวันลา
+  /// (ยื่นลาได้เฉพาะภายในปีงบประมาณปัจจุบันเท่านั้น)
+  Future<Response<dynamic>> getCurrentPeriod() async {
+    return dio.get('/system/config/budget_year/current');
+  }
+
   /// [applyMode] เลือกว่าวันตัดรอบใหม่จะมีผลเมื่อไหร่ (ปีงบที่ผ่านไปแล้วไม่ถูกแตะทั้ง 2 กรณี)
   ///  - 'next'    : ไม่แตะปีงบปัจจุบัน เริ่มใช้กับปีงบถัดไป
   ///  - 'current' : ปิดปีงบปัจจุบันที่วันตัดรอบใหม่ทันที (ปีนั้นจะสั้น/ยาวกว่า 12 เดือน)
