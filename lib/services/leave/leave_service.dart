@@ -133,6 +133,25 @@ class LeaveRequestService {
     );
   }
 
+  /// จำนวนวันลาจริงของช่วงวันที่ (ตัดเสาร์-อาทิตย์/วันหยุดออก) — ต้องถาม backend
+  /// แทนคำนวณเอง ไม่งั้นตัวเลขจะไม่ตรงกับที่หักจริงตอนอนุมัติ
+  Future<Response<dynamic>> calculateLeaveDays(
+    DateTime from,
+    DateTime to, {
+    required bool fromDateMorning,
+    required bool toDateMorning,
+  }) {
+    return dio.get(
+      '/api/leave_request/calculate_days',
+      queryParameters: {
+        'date-from': from.toUtc().toIso8601String(),
+        'date-to': to.toUtc().toIso8601String(),
+        'from-date-morning': fromDateMorning.toString(),
+        'to-date-morning': toDateMorning.toString(),
+      },
+    );
+  }
+
   Future<Response<dynamic>> getLeaveInfo(LeaveType leaveType) {
     return dio.get(
       '/api/leave_request/leave_info',
