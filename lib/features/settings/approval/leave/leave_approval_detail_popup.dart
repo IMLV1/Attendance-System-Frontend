@@ -514,7 +514,12 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
               ),
 
               if (status == .pending && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'main'))
-                Column(
+                // 🚩 แก้: เดิม popup ทั้งกล่องไม่ขยับตาม keyboard เลย ทำให้กล่อง "ระบุเหตุผล"
+                // ถูก keyboard ทับ — เลื่อนขึ้นเฉพาะแถบนี้ (กล่องเหตุผล+ปุ่มอนุมัติ/ปฏิเสธ)
+                // แทนที่จะเลื่อนทั้ง popup การ์ด
+                Padding(
+                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                  child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Container(
@@ -862,6 +867,7 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                         ))
                     ),
                   ],
+                  ),
                 )
             ],
           );

@@ -51,176 +51,168 @@ class DynamicPushPopup {
                 },
                 child: Align(
                   alignment: Alignment.bottomCenter,
-                  // 🚩 แก้: การ์ด popup สูงคงที่ (maxHeight) ไม่เคยขยับตาม keyboard เลย —
-                  // ตอน keyboard เด้งขึ้นมาทับ TextField ด้านล่างการ์ดโดยตรง (เช่นกล่อง
-                  // "ระบุเหตุผล" ในหน้าอนุมัติ) เพราะไม่มีใครฟัง MediaQuery.viewInsets.bottom
-                  // เลยในทรีนี้ — เติม padding ล่างเท่าความสูง keyboard ให้การ์ดขยับขึ้นตาม
-                  child: AnimatedPadding(
-                    duration: const Duration(milliseconds: 100),
-                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 350), // 👈 ตั้งความเร็วตอนเลื่อนความสูง
-                      curve: Curves.easeOutCubic,
-                      constraints: BoxConstraints(
-                        minHeight: currentConfig.minHeight,
-                        maxHeight: currentConfig.maxHeight == double.infinity
-                            ? MediaQuery.of(context).size.height * 0.9
-                            : currentConfig.maxHeight,
-                      ),
-                      child: Material(
-                        borderRadius: BorderRadius.circular(40),
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: AppColors.backgroundColor,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(40),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.10),
-                                blurRadius: 30,
-                                spreadRadius: 10,
-                                offset: const Offset(0, 0),
-                              ),
-                            ],
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 350), // 👈 ตั้งความเร็วตอนเลื่อนความสูง
+                    curve: Curves.easeOutCubic,
+                    constraints: BoxConstraints(
+                      minHeight: currentConfig.minHeight,
+                      maxHeight: currentConfig.maxHeight == double.infinity
+                          ? MediaQuery.of(context).size.height * 0.9
+                          : currentConfig.maxHeight,
+                    ),
+                    child: Material(
+                      borderRadius: BorderRadius.circular(40),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundColor,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(40),
                           ),
-                          child: SafeArea(
-                            top: false,
-                            bottom: currentConfig.safeArea,
-                            left: currentConfig.safeArea,
-                            right: currentConfig.safeArea,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxHeight: MediaQuery.of(context).size.height * 0.88,
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                spacing: 15,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-                                    child: Column(
-                                      spacing: 15,
-                                      children: [
-                                        Container(
-                                          color: const Color(0xFFA6A6A6),
-                                          width: 70,
-                                          height: 3,
-                                        ),
-                                        Column(
-                                          spacing: 1,
-                                          children: [
-                                            Stack(
-                                              children: [
-                                                // 1. ปุ่ม Back
-                                                if (currentConfig.backButton)
-                                                  Align(
-                                                    alignment: Alignment.bottomLeft,
-                                                    child: Transform.translate(
-                                                      offset: const Offset(-5, 0),
-                                                      child: ElevatedButton(
-                                                        style: ElevatedButton.styleFrom(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                                                          minimumSize: Size.zero,
-                                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                          backgroundColor: Colors.transparent,
-                                                          shadowColor: Colors.transparent,
-                                                          overlayColor: Colors.transparent,
-                                                        ),
-                                                        onPressed: () {
-                                                          // ถอยหน้าย่อยก่อน ถ้าหมดแล้วค่อยปิด Popup
-                                                          if (nestedNavKey.currentState?.canPop() ?? false) {
-                                                            nestedNavKey.currentState?.pop();
-                                                          } else {
-                                                            Navigator.of(bottomSheetContext).pop();
-                                                          }
-                                                        },
-                                                        child: SvgPicture.asset(
-                                                          'assets/images/back_button.svg',
-                                                          colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-
-                                                // 2. Title
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.10),
+                              blurRadius: 30,
+                              spreadRadius: 10,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                        ),
+                        child: SafeArea(
+                          top: false,
+                          bottom: currentConfig.safeArea,
+                          left: currentConfig.safeArea,
+                          right: currentConfig.safeArea,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight: MediaQuery.of(context).size.height * 0.88,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 15,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+                                  child: Column(
+                                    spacing: 15,
+                                    children: [
+                                      Container(
+                                        color: const Color(0xFFA6A6A6),
+                                        width: 70,
+                                        height: 3,
+                                      ),
+                                      Column(
+                                        spacing: 1,
+                                        children: [
+                                          Stack(
+                                            children: [
+                                              // 1. ปุ่ม Back
+                                              if (currentConfig.backButton)
                                                 Align(
-                                                  alignment: Alignment.bottomCenter,
-                                                  child: Text(
-                                                    currentConfig.title,
-                                                    style: const TextStyle(
-                                                      decoration: TextDecoration.none,
-                                                      fontSize: 20,
-                                                      color: Colors.black,
-                                                      fontFamily: 'Inter',
-                                                      fontWeight: FontWeight.normal,
+                                                  alignment: Alignment.bottomLeft,
+                                                  child: Transform.translate(
+                                                    offset: const Offset(-5, 0),
+                                                    child: ElevatedButton(
+                                                      style: ElevatedButton.styleFrom(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                                                        minimumSize: Size.zero,
+                                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                        backgroundColor: Colors.transparent,
+                                                        shadowColor: Colors.transparent,
+                                                        overlayColor: Colors.transparent,
+                                                      ),
+                                                      onPressed: () {
+                                                        // ถอยหน้าย่อยก่อน ถ้าหมดแล้วค่อยปิด Popup
+                                                        if (nestedNavKey.currentState?.canPop() ?? false) {
+                                                          nestedNavKey.currentState?.pop();
+                                                        } else {
+                                                          Navigator.of(bottomSheetContext).pop();
+                                                        }
+                                                      },
+                                                      child: SvgPicture.asset(
+                                                        'assets/images/back_button.svg',
+                                                        colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
 
-                                                // 3. ปุ่ม Action (ขวาบน) + สถานะ Loading
-                                                if (currentConfig.buttonLabel.isNotEmpty)
-                                                  Align(
-                                                    alignment: Alignment.bottomRight,
-                                                    child: currentConfig.isLoading
-                                                        ? const Padding(
-                                                      padding: EdgeInsets.only(right: 10),
-                                                      child: CupertinoActivityIndicator(),
-                                                    )
-                                                        : TextButton(
-                                                      style: TextButton.styleFrom(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                                                        minimumSize: Size.zero,
-                                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                      ),
-                                                      onPressed: () {
-                                                        if (currentConfig.buttonAction != null) {
-                                                          currentConfig.buttonAction!(context);
-                                                        }
-                                                      },
-                                                      child: Text(
-                                                        currentConfig.buttonLabel,
-                                                        style: TextStyle(
-                                                          fontSize: 17,
-                                                          color: currentConfig.buttonColor,
-                                                          fontFamily: 'Inter',
-                                                          fontWeight: FontWeight.normal,
-                                                        ),
+                                              // 2. Title
+                                              Align(
+                                                alignment: Alignment.bottomCenter,
+                                                child: Text(
+                                                  currentConfig.title,
+                                                  style: const TextStyle(
+                                                    decoration: TextDecoration.none,
+                                                    fontSize: 20,
+                                                    color: Colors.black,
+                                                    fontFamily: 'Inter',
+                                                    fontWeight: FontWeight.normal,
+                                                  ),
+                                                ),
+                                              ),
+
+                                              // 3. ปุ่ม Action (ขวาบน) + สถานะ Loading
+                                              if (currentConfig.buttonLabel.isNotEmpty)
+                                                Align(
+                                                  alignment: Alignment.bottomRight,
+                                                  child: currentConfig.isLoading
+                                                      ? const Padding(
+                                                    padding: EdgeInsets.only(right: 10),
+                                                    child: CupertinoActivityIndicator(),
+                                                  )
+                                                      : TextButton(
+                                                    style: TextButton.styleFrom(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                                                      minimumSize: Size.zero,
+                                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                    ),
+                                                    onPressed: () {
+                                                      if (currentConfig.buttonAction != null) {
+                                                        currentConfig.buttonAction!(context);
+                                                      }
+                                                    },
+                                                    child: Text(
+                                                      currentConfig.buttonLabel,
+                                                      style: TextStyle(
+                                                        fontSize: 17,
+                                                        color: currentConfig.buttonColor,
+                                                        fontFamily: 'Inter',
+                                                        fontWeight: FontWeight.normal,
                                                       ),
                                                     ),
                                                   ),
-                                              ],
-                                            ),
-                                            const Divider(height: 0)
-                                          ],
-                                        ),
-                                      ],
-                                    )
-                                  ),
-
-                                  // 4. พื้นที่เนื้อหาที่มี Navigator ฝังอยู่
-                                  Flexible(
-                                    fit: currentConfig.fit,
-                                    child: ClipRRect(
-                                      child: Navigator(
-                                        key: nestedNavKey,
-                                        onGenerateRoute: (settings) {
-                                          return MaterialPageRoute(
-                                            builder: (navContext) => currentConfig.scroll
-                                                ? SingleChildScrollView(
-                                              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                                              physics: const AlwaysScrollableScrollPhysics(),
-                                              child: builder(navContext),
-                                            )
-                                                : builder(navContext),
-                                          );
-                                        },
+                                                ),
+                                            ],
+                                          ),
+                                          const Divider(height: 0)
+                                        ],
                                       ),
-                                    ),
+                                    ],
                                   )
-                                ],
-                              ),
+                                ),
+
+                                // 4. พื้นที่เนื้อหาที่มี Navigator ฝังอยู่
+                                Flexible(
+                                  fit: currentConfig.fit,
+                                  child: ClipRRect(
+                                    child: Navigator(
+                                      key: nestedNavKey,
+                                      onGenerateRoute: (settings) {
+                                        return MaterialPageRoute(
+                                          builder: (navContext) => currentConfig.scroll
+                                              ? SingleChildScrollView(
+                                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                            physics: const AlwaysScrollableScrollPhysics(),
+                                            child: builder(navContext),
+                                          )
+                                              : builder(navContext),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                )
+                              ],
                             ),
                           ),
                         ),
