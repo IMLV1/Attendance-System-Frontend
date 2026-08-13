@@ -1,3 +1,4 @@
+import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/services/system_config/budget_year/config_budget_year_service.dart';
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
@@ -227,7 +228,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                               ),
                                                                               recognizer: TapGestureRecognizer()
                                                                                 ..onTap = () {
-                                                                                  // TODO: Navigate to statistic page
+                                                                                  context.goNamed(RouteNames.statistic);
                                                                                 },
                                                                             ),
                                                                           ],
