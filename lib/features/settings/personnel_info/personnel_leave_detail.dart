@@ -552,12 +552,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                 ),
 
                 if (status == .pending && widget.permissionLevel >= 1)
-                  // 🚩 แก้: เดิม popup ทั้งกล่องไม่ขยับตาม keyboard เลย ทำให้กล่อง "ระบุเหตุผล"
-                  // ถูก keyboard ทับ — เลื่อนขึ้นเฉพาะแถบนี้ (กล่องเหตุผล+ปุ่มอนุมัติ/ปฏิเสธ)
-                  // แทนที่จะเลื่อนทั้ง popup การ์ด
-                  Padding(
-                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                    child: Column(
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Container(
@@ -904,7 +899,6 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                           ))
                       ),
                     ],
-                    ),
                   )
               ],
             );
