@@ -14,6 +14,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/network/api_client.dart';
 import '../../services/check-in/check-in_model.dart';
 import '../../services/check-in/check-in_service.dart';
 import '../../services/check-in/check_in-leave-model.dart';
@@ -87,29 +88,19 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   }
 
   /// Bug 1.1: Attempt to fetch server time; if successful, update offset
+  /// 🚩 แก้ (2026-08-13): เดิมพึ่ง timeapi.io (third-party) ซึ่งพบว่าเวลาเพี้ยนไปเกือบ 30 นาที
+  /// จากเวลาจริง (verify แล้วผ่าน NTP) เปลี่ยนมาใช้ backend เราเอง (GET /api/server-time) แทน
+  /// เพราะควบคุม/เชื่อถือได้กว่า — backend คืนเวลาเครื่อง server เป็น UTC (มี 'Z' ชัดเจน
+  /// DateTime.parse ถึง parse เป็น UTC ตรงๆ ได้เลย ไม่ต้อง reinterpret เอง)
   Future<void> _tryFetchServerTime() async {
     try {
-      final response = await Dio()
-          .get(
-            'https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Bangkok',
-            options: Options(
-              headers: {'Accept': 'application/json'},
-            ),
-          )
+      final response = await GetIt.I<ApiClient>()
+          .dio
+          .get('/api/server-time')
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200 && mounted) {
-        final String dateTimeStr = response.data['dateTime'];
-        // 🚩 แก้: timeapi.io ส่ง dateTime แบบไม่มี timezone suffix (เช่น "2026-08-13T10:21:01.xxx")
-        // ซึ่งเป็นเวลา "ตามนาฬิกา" ของ Bangkok ตรงๆ — แต่ DateTime.parse() บนสตริงที่ไม่มี offset
-        // จะตีความตัวเลขนั้นเป็นเวลา "local" ตาม timezone ของ "เครื่อง" แทน ถ้าเครื่องตั้ง timezone
-        // ไม่ตรงกับ Bangkok (เช่น UTC) offset ที่คำนวณได้จะเพี้ยนไปหลายชั่วโมงเต็มๆ (ไม่ใช่แค่ drift
-        // วินาที) ต้อง reinterpret ตัวเลขดิบเป็น Bangkok = UTC+7 ตรงๆ โดยไม่พึ่ง timezone ของเครื่อง
-        final naive = DateTime.parse(dateTimeStr);
-        final DateTime serverTimeUtc = DateTime.utc(
-          naive.year, naive.month, naive.day,
-          naive.hour, naive.minute, naive.second, naive.millisecond,
-        ).subtract(const Duration(hours: 7));
+        final DateTime serverTimeUtc = DateTime.parse(response.data['utc']).toUtc();
         setState(() {
           _timeOffset = serverTimeUtc.difference(DateTime.now().toUtc());
           _currentNetworkTime = DateTime.now().add(_timeOffset!);
