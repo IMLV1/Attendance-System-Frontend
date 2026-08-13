@@ -54,6 +54,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   Timer? _timer;
   DateTime? _lastResetDate;
   Duration? _timeOffset = Duration.zero;
+  // 🚩 แก้ (2026-08-13): กันไม่ให้นาฬิกาโชว์เวลา local ก่อนแล้วค่อยกระโดดไปเวลา server
+  // (เห็นเป็นจังหวะ "กระตุก" ตอนเข้าหน้า) — ไม่โชว์เวลาจนกว่าจะ sync เสร็จ (สำเร็จหรือ fail ก็ได้)
+  bool _timeSynced = false;
 
   // Bug 1.3: Inline feedback state
   String _feedbackMessage = '';
@@ -67,11 +70,15 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     _initPage();
   }
 
-  /// Bug 1.1: Initialize with local time immediately, then upgrade to server time
+  /// Bug 1.1: Initialize with local time immediately (used internally for data loading,
+  /// ไม่ได้ใช้โชว์ในนาฬิกา — ดู _timeSynced), แล้วอัปเกรดเป็น server time
   Future<void> _initPage() async {
-    // Use local time immediately — no blocking
     _currentNetworkTime = DateTime.now();
     _timeOffset = Duration.zero;
+
+    // 🚩 ยิง sync ตั้งแต่ต้นแบบขนาน (ไม่ await) จะได้ทำงานพร้อมกับ config/data load ด้านล่าง
+    // แทนที่จะรอโหลดอย่างอื่นเสร็จก่อนค่อยเริ่ม sync — ลดเวลาที่นาฬิกาค้างสถานะ "กำลังซิงค์"
+    _tryFetchServerTime();
 
     // Load config
     await initConfig();
@@ -82,9 +89,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     // Start the clock
     _startTimerLogic();
-
-    // Try to fetch server time in background (non-blocking upgrade)
-    _tryFetchServerTime();
   }
 
   /// Bug 1.1: Attempt to fetch server time; if successful, update offset
@@ -104,12 +108,19 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         setState(() {
           _timeOffset = serverTimeUtc.difference(DateTime.now().toUtc());
           _currentNetworkTime = DateTime.now().add(_timeOffset!);
+          _timeSynced = true;
         });
         debugPrint("✅ Server time synced, offset: $_timeOffset");
       }
     } catch (e) {
       debugPrint("ℹ️ Server time unavailable, using local clock: $e");
-      // Silently continue with local time — not a problem
+      // Silently continue with local time — not a problem, but still mark "synced" so the
+      // clock doesn't hang on the loading state forever if the request fails/times out
+      if (mounted) {
+        setState(() {
+          _timeSynced = true;
+        });
+      }
     }
   }
 
@@ -520,7 +531,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             color: AppColors.cardColor,
             borderRadius: BorderRadius.circular(22),
           ),
-          child: Column(children: [ClockWidget(time: _currentNetworkTime)]),
+          child: Column(children: [ClockWidget(time: _timeSynced ? _currentNetworkTime : null)]),
         ),
       ],
     );
