@@ -313,7 +313,10 @@ class _ConfigLeaveState extends State<ConfigLeave> {
         setState(() => _forcePop = true);
         context.read<NavigationGuard>().reset();
         if (context.mounted) Navigator.pop(context, data);
-        return Response(requestOptions: RequestOptions(path: ''));
+        // 🚩 แก้: ต้องใส่ statusCode ให้ Response ด้วย — ServiceUpdater เช็ค res.statusCode!
+        // (force-unwrap) ถ้าเป็น null จะ throw ทันที ทำให้กด "บันทึก" จากป็อปอัพยืนยัน
+        // (ที่ trigger จาก bottom nav ผ่าน NavigationGuard.onSave) ขึ้น error เสมอ
+        return Response(requestOptions: RequestOptions(path: ''), statusCode: 200);
       },
       onDiscard: () {
         setState(() => _forcePop = true);
