@@ -158,6 +158,11 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                                   });
                                                 },
                                               ),
+                                            ],
+                                          ),
+                                          SeparatorCard(
+                                            separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                                            children: [
                                               _buildTimePickerItem(
                                                 index: 1,
                                                 icon: 'check-in-time.svg',
