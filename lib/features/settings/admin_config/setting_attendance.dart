@@ -34,6 +34,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
 
   Widget _buildTimePickerItem({
     required int index,
+    required String icon,
     required String label,
     required TimeOfDay time,
     required void Function(int h, int? m) onChanged,
@@ -42,9 +43,10 @@ class _SettingAttendanceState extends State<SettingAttendance> {
     return Column(
       children: [
         IconTextValueButton(
-          icon: 'icon_attendance_time.svg',
+          icon: icon,
           label: label,
           value: time.format(context),
+          arrow: false,
           onPressed: () {
             setState(() {
               _expandedIndex = isOpened ? null : index;
@@ -91,7 +93,7 @@ class _SettingAttendanceState extends State<SettingAttendance> {
 
     return AppScaffold(
         header: Header.subHeader(
-            context, title: 'ตั้งค่าเวลาเข้างาน-ออกงาน',
+            context, title: 'ตั้งค่าการลงชื่อเข้า-ออกงาน',
             onBack: () {
               Navigator.of(context).maybePop();
             }
@@ -147,7 +149,19 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                             children: [
                                               _buildTimePickerItem(
                                                 index: 0,
-                                                label: 'เวลาเข้างานปกติ',
+                                                icon: 'sunraise.svg',
+                                                label: 'เวลาการตัดรอบวัน',
+                                                time: data!.cutoffTime,
+                                                onChanged: (h, m) {
+                                                  setState(() {
+                                                    data = data!.copyWith(cutoffTime: TimeOfDay(hour: h, minute: m ?? 0));
+                                                  });
+                                                },
+                                              ),
+                                              _buildTimePickerItem(
+                                                index: 1,
+                                                icon: 'check-in-time.svg',
+                                                label: 'เวลาเข้างาน',
                                                 time: data!.checkInTime,
                                                 onChanged: (h, m) {
                                                   setState(() {
@@ -156,42 +170,13 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                                 },
                                               ),
                                               _buildTimePickerItem(
-                                                index: 1,
-                                                label: 'เวลาออกงานปกติ',
+                                                index: 2,
+                                                icon: 'check-out-time.svg',
+                                                label: 'เวลาออกงาน',
                                                 time: data!.checkOutTime,
                                                 onChanged: (h, m) {
                                                   setState(() {
                                                     data = data!.copyWith(checkOutTime: TimeOfDay(hour: h, minute: m ?? 0));
-                                                  });
-                                                },
-                                              ),
-                                              _buildTimePickerItem(
-                                                index: 2,
-                                                label: 'เวลาสาย (เริ่มนับสาย)',
-                                                time: data!.checkInLeaveTime,
-                                                onChanged: (h, m) {
-                                                  setState(() {
-                                                    data = data!.copyWith(checkInLeaveTime: TimeOfDay(hour: h, minute: m ?? 0));
-                                                  });
-                                                },
-                                              ),
-                                              _buildTimePickerItem(
-                                                index: 3,
-                                                label: 'เวลาออกก่อน',
-                                                time: data!.checkOutLeaveTime,
-                                                onChanged: (h, m) {
-                                                  setState(() {
-                                                    data = data!.copyWith(checkOutLeaveTime: TimeOfDay(hour: h, minute: m ?? 0));
-                                                  });
-                                                },
-                                              ),
-                                              _buildTimePickerItem(
-                                                index: 4,
-                                                label: 'เวลาตัดรอบวัน',
-                                                time: data!.cutoffTime,
-                                                onChanged: (h, m) {
-                                                  setState(() {
-                                                    data = data!.copyWith(cutoffTime: TimeOfDay(hour: h, minute: m ?? 0));
                                                   });
                                                 },
                                               ),
@@ -201,12 +186,34 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                             separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
                                             children: [
                                               ToggleSwitch(
-                                                icon: 'icon_attendance_time.svg',
-                                                label: 'บันทึกออกงานอัตโนมัติ',
+                                                icon: 'auto_checkout.svg',
+                                                label: 'เช็คเอ้าท์อัตโนมัติเมื่อถึงกำหนดลาครึ่งวันเย็น',
                                                 value: data!.autoCheckout,
                                                 onChanged: (value) {
                                                   setState(() {
                                                     data = data!.copyWith(autoCheckout: value);
+                                                  });
+                                                },
+                                              ),
+                                              _buildTimePickerItem(
+                                                index: 3,
+                                                icon: 'check-in-time.svg',
+                                                label: 'เวลาเข้างานเมื่อลาครึ่งวันเช้า',
+                                                time: data!.checkInLeaveTime,
+                                                onChanged: (h, m) {
+                                                  setState(() {
+                                                    data = data!.copyWith(checkInLeaveTime: TimeOfDay(hour: h, minute: m ?? 0));
+                                                  });
+                                                },
+                                              ),
+                                              _buildTimePickerItem(
+                                                index: 4,
+                                                icon: 'check-out-time.svg',
+                                                label: 'เวลาออกงานเมื่อลาครึ่งวันเย็น',
+                                                time: data!.checkOutLeaveTime,
+                                                onChanged: (h, m) {
+                                                  setState(() {
+                                                    data = data!.copyWith(checkOutLeaveTime: TimeOfDay(hour: h, minute: m ?? 0));
                                                   });
                                                 },
                                               ),
