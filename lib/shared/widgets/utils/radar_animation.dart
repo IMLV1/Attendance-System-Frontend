@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 class RadarAnimation extends StatefulWidget {
   final Color color; // รับสีมาจากปุ่มหลักเพื่อให้สีเรดาร์เหมือนสีปุ่ม
 
-  const RadarAnimation({super.key, required this.color});
+  /// 🚩 (2026-08-22) ขนาดตั้งต้นของวงคลื่น — เดิม hardcode 180
+  /// ตอนนี้ปุ่มเช็คอินยืด-หดตามความสูงจอ เรดาร์เลยต้องยืดตามด้วย
+  final double size;
+
+  const RadarAnimation({super.key, required this.color, this.size = 180});
 
   @override
   State<RadarAnimation> createState() => _RadarAnimationState();
@@ -56,8 +60,9 @@ class _RadarAnimationState extends State<RadarAnimation>
       scale: 0.9 + (progress * 0.7),
 
       child: Container(
-        width: 180, // ขนาดตั้งต้น (ให้เล็กกว่าปุ่มจริงนิดหน่อยจะดูฟุ้งสวยกว่า)
-        height: 180,
+        // ขนาดตั้งต้น (ให้เล็กกว่าปุ่มจริงนิดหน่อยจะดูฟุ้งสวยกว่า)
+        width: widget.size,
+        height: widget.size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           // ความจาง (Opacity) จะค่อยๆ ลดลงตามการขยายตัว

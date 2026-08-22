@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
@@ -453,37 +454,59 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       );
     }
 
-    // Bug 1.2: Use tighter padding and spacing for mobile layout
+    // 🚩 (2026-08-22) เดิมเป็น SingleChildScrollView -> เนื้อหาสูงเกินจอนิดหน่อย
+    // ทำให้ต้องเลื่อนถึงจะเห็นครบ ตอนนี้ให้ทุกอย่างอยู่ในหน้าเดียวโดยไม่ต้องเลื่อน:
+    // ส่วนอื่นความสูงคงที่ตามเนื้อหา ส่วนบล็อกปุ่มเช็คอิน (เรดาร์ + ปุ่มกลม)
+    // ยืด-หดกินพื้นที่ที่เหลือแทน -> จอเล็กปุ่มเล็กลง จอใหญ่ปุ่มใหญ่ขึ้น
     return SafeArea(
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 10,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _cardtime(),
-            _buttonCheckin(),
-            const SizedBox(height: 6),
-            _currentstate(),
-            const SizedBox(height: 6),
-            SeparatorCard(
-              separatorPadding: const EdgeInsets.all(10),
-              children: [
-                IconTextButton(
-                  icon: 'icon_attendance_history.svg',
-                  label: 'ดูบันทึกการเข้า-ออกงาน',
-                  onPressed: () {
-                    context.push('/settings/attendance-history');
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+      child: LayoutBuilder(
+        builder: (context, c) {
+          // ความสูงโดยประมาณของส่วนที่ "คงที่" ทั้งหมด (นาฬิกา + ข้อความใต้ปุ่ม +
+          // การ์ดสถานะ + ปุ่มดูประวัติ + ระยะห่าง) ใช้ตัดสินว่าจอนี้ใส่ครบได้ไหม
+          const double fixedContentHeight = 415;
+          // ปุ่มเล็กสุด (90) + ที่ว่างสำหรับเงา (44)
+          const double minButtonBlock = 134;
+
+          final bool fits = c.maxHeight >= fixedContentHeight + minButtonBlock;
+
+          final column = Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _cardtime(),
+              fits
+                  ? Expanded(child: _buttonCheckin())
+                  // จอเตี้ยเกินกว่าจะใส่ครบ -> ตรึงปุ่มไว้ขนาดเล็กสุดแล้วยอมให้เลื่อน
+                  // (ดีกว่าปล่อยให้เนื้อหาล้นจนขึ้นแถบ overflow สีเหลือง-ดำ)
+                  : SizedBox(height: minButtonBlock + 76, child: _buttonCheckin()),
+              const SizedBox(height: 6),
+              _currentstate(),
+              const SizedBox(height: 6),
+              SeparatorCard(
+                separatorPadding: const EdgeInsets.all(10),
+                children: [
+                  IconTextButton(
+                    icon: 'icon_attendance_history.svg',
+                    label: 'ดูบันทึกการเข้า-ออกงาน',
+                    onPressed: () {
+                      context.push('/settings/attendance-history');
+                    },
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          const padding = EdgeInsets.symmetric(horizontal: 16, vertical: 10);
+
+          if (fits) return Padding(padding: padding, child: column);
+
+          return SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: padding,
+            child: column,
+          );
+        },
       ),
     );
   }
@@ -641,67 +664,91 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     return Column(
       children: [
-        // Bug 1.2: Reduced sizes for mobile layout
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            RadarAnimation(color: buttonColor),
-            Padding(
-              padding: EdgeInsets.only(top: 240),
-              child: Container(
-                width: 120,
-                height: 12,
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.lightTextColor.withValues(alpha: 0.2),
-                      blurRadius: 1,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                  borderRadius: BorderRadius.all(Radius.elliptical(150, 15)),
-                ),
-              ),
-            ),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: (isDisabled || _isSubmitting)
-                    ? null
-                    : () => _handleCheckin(state),
-                customBorder: CircleBorder(),
-                child: Container(
-                  width: 170,
-                  height: 170,
-                  decoration: BoxDecoration(
-                    color: buttonColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 36,
-                        width: 36,
-                        child: SvgPicture.asset(iconPath),
+        // 🚩 (2026-08-22) ปุ่มยืด-หดตามพื้นที่แนวตั้งที่เหลือ เพื่อให้ทั้งหน้าอยู่ในจอเดียว
+        //
+        // เดิมทุกอย่าง fix ค่าตายตัว: ปุ่ม 170 แต่ Padding(top: 240) ของเงาดัน
+        // ความสูง Stack ไปเป็น 252 (เงาลอยห่างใต้ปุ่มไป ~29px) เสียที่ไปเปล่าๆ ~80px
+        // ตอนนี้คำนวณเส้นผ่านศูนย์กลางจาก constraints ที่ได้จริง แล้วให้ไอคอน/
+        // ตัวหนังสือ/เรดาร์/เงา สเกลตามสัดส่วนเดิม (ไอคอน 36/170, เงา 120/170)
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, c) {
+              // 44 = ช่องว่างใต้ปุ่ม (32) + ความสูงเงา (12)
+              final double diameter = math
+                  .min(c.maxHeight - 44, math.min(c.maxWidth, 170.0))
+                  .clamp(90.0, 170.0);
+
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  RadarAnimation(color: buttonColor, size: diameter * 1.06),
+                  Padding(
+                    // ดันเงาลงไปอยู่ใต้ปุ่มพอดี (ห่างจากขอบล่างปุ่ม ~10px)
+                    padding: EdgeInsets.only(top: diameter + 32),
+                    child: Container(
+                      width: diameter * 0.71,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.lightTextColor.withValues(alpha: 0.2),
+                            blurRadius: 1,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                        borderRadius: BorderRadius.all(Radius.elliptical(150, 15)),
                       ),
-                      SizedBox(height: 1),
-                      _isSubmitting
-                          ? const CupertinoActivityIndicator(color: Colors.white)
-                          : Text(
-                              buttonText,
-                              style: TextStyle(
-                                fontSize: fontSize,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.titleColor,
-                              ),
-                            ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            ),
-          ],
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: (isDisabled || _isSubmitting)
+                          ? null
+                          : () => _handleCheckin(state),
+                      customBorder: CircleBorder(),
+                      child: Container(
+                        width: diameter,
+                        height: diameter,
+                        decoration: BoxDecoration(
+                          color: buttonColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: diameter * 0.21,
+                              width: diameter * 0.21,
+                              child: SvgPicture.asset(iconPath),
+                            ),
+                            SizedBox(height: 1),
+                            _isSubmitting
+                                ? const CupertinoActivityIndicator(color: Colors.white)
+                                : SizedBox(
+                                    width: diameter * 0.82,
+                                    child: FittedBox(
+                                      // กันข้อความยาวๆ ("วันหยุดราชการ") ล้นตอนปุ่มหด
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        buttonText,
+                                        style: TextStyle(
+                                          fontSize: fontSize,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.titleColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
 
         const SizedBox(height: 8),
