@@ -5,10 +5,20 @@ import 'package:google_sign_in/google_sign_in.dart';
 abstract class GoogleLoginService {
   Future<String?> login();
   Future<void> logout();
+
+  /// 🚩 (2026-08-23) อีเมลของบัญชี Google ที่เพิ่งเลือกล่าสุด
+  /// ใช้บอกผู้ใช้ตอน login ไม่ผ่านว่าเลือกบัญชีไหนไป — เคสที่เจอบ่อยคือ
+  /// Google เลือกบัญชีส่วนตัวให้อัตโนมัติ ทั้งที่ระบบรู้จักแค่บัญชีที่ HR ลงทะเบียนไว้
+  String? get lastEmail;
 }
 
 class GoogleLoginServiceImpl implements GoogleLoginService {
   late final GoogleSignIn _googleSignIn;
+
+  String? _lastEmail;
+
+  @override
+  String? get lastEmail => _lastEmail;
 
   GoogleLoginServiceImpl() {
     _googleSignIn = GoogleSignIn(
@@ -22,6 +32,8 @@ class GoogleLoginServiceImpl implements GoogleLoginService {
     try {
       final account = await _googleSignIn.signIn();
       if (account == null) return null;
+
+      _lastEmail = account.email;
 
       final auth = await account.authentication;
 
