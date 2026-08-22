@@ -415,6 +415,54 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                   ),
                                                                 ),
                                                               ) : SizedBox(),
+                                                            ),
+
+                                                            // 🚩 (2026-08-22) สรุปว่าคำขอนี้จะใช้โควตากี่วัน
+                                                            // ตัวเลขมาจาก backend (ตัดเสาร์-อาทิตย์/วันหยุดแล้ว) ผู้ใช้จะได้
+                                                            // เห็นก่อนกดส่งว่าโดนหักจริงเท่าไร ไม่ใช่เดาจากจำนวนวันปฏิทิน
+                                                            AnimatedSwitcher(
+                                                              duration: const Duration(milliseconds: 200),
+                                                              child: (leaveDate != null && _calculatedLeaveDays != null)
+                                                                  ? Padding(
+                                                                      padding: const EdgeInsets.only(left: 13, right: 13, top: 8),
+                                                                      child: Row(
+                                                                        spacing: 6,
+                                                                        children: [
+                                                                          SvgPicture.asset(
+                                                                            'assets/images/iicon.svg',
+                                                                            width: 14,
+                                                                            height: 14,
+                                                                          ),
+                                                                          Expanded(
+                                                                            child: Text.rich(
+                                                                              TextSpan(
+                                                                                text: 'คำขอนี้จะใช้สิทธิ์',
+                                                                                style: const TextStyle(fontSize: 13, color: AppColors.lightTextColor),
+                                                                                children: [
+                                                                                  TextSpan(
+                                                                                    text: ' ${Utils.formatDays(_calculatedLeaveDays!)} วัน',
+                                                                                    style: TextStyle(
+                                                                                      fontSize: 13,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      color: _calculatedLeaveDays! > getRemainLeaveDays()
+                                                                                          ? Colors.red
+                                                                                          : Colors.black,
+                                                                                    ),
+                                                                                  ),
+                                                                                  if (_calculatedLeaveDays! == 0)
+                                                                                    const TextSpan(text: ' (ช่วงที่เลือกเป็นวันหยุดทั้งหมด)')
+                                                                                  else
+                                                                                    TextSpan(
+                                                                                      text: ' จากที่เหลือ ${Utils.formatDays(getRemainLeaveDays())} วัน',
+                                                                                    ),
+                                                                                ],
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    )
+                                                                  : const SizedBox(),
                                                             )
                                                           ],
                                                         ),
