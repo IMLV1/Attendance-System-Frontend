@@ -126,7 +126,7 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
                                           icon: Image.network(
                                             personnel!.avatarUrl,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, _, _) => Image.asset('assets/images/profile.svg'),
+                                            errorBuilder: (_, _, _) => Image.asset('assets/images/profile.png'),
                                           ),
                                           title: personnel!.nameTH,
                                           subTitle: personnel!.nameEN,

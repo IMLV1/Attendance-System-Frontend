@@ -21,6 +21,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../shared/widgets/utils/sliver_separator_list.dart';
+
 class PersonnelAttendanceRequest extends StatefulWidget {
 
   final PersonnelInfoModel personnel;
@@ -73,10 +75,14 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
             child: Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
+                  // 🚩 (2026-08-22) เดิม SingleChildScrollView -> ทุกแถวของ "รายการล่าสุด"
+                  // ถูก build พร้อมกันตอนเปิดหน้า
+                  // ⚠️ ห้ามเอา SingleChildScrollView กลับมาครอบ ไม่งั้น sliver ข้างในจะ
+                  // ถูก shrink-wrap แล้ว build ครบทุกแถวเหมือนเดิม
+                  child: CustomScrollView(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     physics: AlwaysScrollableScrollPhysics(),
-                    child: ServiceUpdaterProMax(
+                    slivers: [ ServiceUpdaterProMax(
                       requests: [
                           () => PersonnelAttendanceRequestService().getPending(personnel!.id),
                           () => PersonnelAttendanceRequestService().getRecent(personnel!.id, filterStart, filterEnd),
@@ -106,10 +112,10 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                       },
                       fetchOnInit: true,
                       builder: (trigger, getState) {
-                        return Column(
-                          spacing: 13,
-                          children: [
-                            Container(
+                        return SliverMainAxisGroup(
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Container(
                                 decoration: BoxDecoration(
                                   color: Color(0xFFE3E3E3),
                                   borderRadius: BorderRadius.circular(22),
@@ -121,7 +127,7 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                                       icon: Image.network(
                                         personnel!.avatarUrl,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) => Image.asset('assets/images/profile.svg'),
+                                        errorBuilder: (_, _, _) => Image.asset('assets/images/profile.png'),
                                       ),
                                       title: personnel!.nameTH,
                                       subTitle: personnel!.nameEN,
@@ -151,12 +157,18 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                                   ],
                                 )
                             ),
-                            (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ?
-                            Center(child: CupertinoActivityIndicator()) :
-                            Column(
-                              spacing: 13,
-                              children: [
-                                Container(
+                            ),
+                            SliverToBoxAdapter(child: SizedBox(height: 13)),
+
+                            if (getState(0) == ServiceUpdaterProMaxState.loading &&
+                                getState(1) == ServiceUpdaterProMaxState.loading)
+                              SliverToBoxAdapter(
+                                child: Center(child: CupertinoActivityIndicator()),
+                              )
+                            else ...[
+                                // "รอดำเนินการ" มีไม่กี่รายการ -> ปล่อยเป็นก้อนเดียว
+                                SliverToBoxAdapter(
+                                  child: Container(
                                     padding: EdgeInsetsGeometry.all(10),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(22),
@@ -256,10 +268,14 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                                       ],
                                     )
                                 ),
-                                Column(
-                                  spacing: 6,
-                                  children: [
-                                    Row(
+                                ),
+
+                                SliverToBoxAdapter(child: SizedBox(height: 13)),
+
+                                SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(bottom: 6),
+                                    child: Row(
                                       spacing: 6,
                                       children: [
                                         SizedBox(
@@ -309,8 +325,12 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
 
                                       ],
                                     ),
-                                    (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading) ?
-                                    SeparatorCard(
+                                  ),
+                                ),
+
+                                if (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading)
+                                  SliverToBoxAdapter(
+                                    child: SeparatorCard(
                                       children: [
                                         Container(
                                           color: Colors.white,
@@ -326,11 +346,14 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                                           ),
                                         )
                                       ],
-                                    ) :
-                                    SeparatorCard(
+                                    ),
+                                  )
+                                else
+                                  SliverSeparatorList(
                                       separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                                      children: [
-                                        ...recentList!.map((m) {
+                                      itemCount: recentList.length,
+                                      itemBuilder: (context, index) {
+                                          final m = recentList[index];
                                           return AppButton(
                                             icon: switch(m?.status) {
                                               'approved' => 'icon_success.svg',
@@ -395,17 +418,14 @@ class _PersonnelAttendanceRequestState extends State<PersonnelAttendanceRequest>
                                               ).showPopup(context);
                                             },
                                           );
-                                        })
-                                      ],
-                                    )
-                                  ],
-                                )
-                              ],
-                            )
+                                      },
+                                  ),
+                            ],
+                            SliverToBoxAdapter(child: SizedBox(height: 20)),
                           ]
                         );
                       }
-                    )
+                    ) ],
                   )
                 )
               ]
