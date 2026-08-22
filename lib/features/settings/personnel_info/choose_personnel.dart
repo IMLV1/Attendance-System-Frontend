@@ -1,3 +1,4 @@
+import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'dart:async';
 
 import 'package:attendance_system/services/personnel_info/personnel_info_model.dart';
@@ -120,35 +121,60 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
             });
           },
           builder: () {
+            // 🚩 (2026-08-22) ListView.builder — เดิมสร้างปุ่มของบุคลากรทุกคนพร้อมกัน
+            // (แต่ละปุ่มมี Image.network ด้วย) องค์กรใหญ่ๆ เป็นร้อยคนจะกระตุกตอนเปิด
+            // ตอนนี้สร้างเฉพาะที่อยู่ในจอ
+            //
+            // SeparatorCard ใช้กับ builder ไม่ได้ (ต้องรู้จำนวนลูกทั้งหมดเพื่อวาดเส้นคั่น
+            // + มุมโค้ง) เลยจัดเองรายตัวให้หน้าตาเหมือนเดิม
             return Expanded(
-              child: SingleChildScrollView(
+              child: ListView.builder(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                physics: AlwaysScrollableScrollPhysics(),
-                child: SeparatorCard(
-                  separatorPadding: EdgeInsetsGeometry.only(left: 65, right: 15),
-                  children: [
-                    ...filteredPersonnel.map((m) {
-                      return UserInfoButton(
-                        icon: Image.network(
-                          m.avatarUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Image.asset('assets/images/profile.png'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: filteredPersonnel.length,
+                itemBuilder: (context, index) {
+                  final m = filteredPersonnel[index];
+                  final isFirst = index == 0;
+                  final isLast = index == filteredPersonnel.length - 1;
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.cardColor,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(isFirst ? 25 : 0),
+                        bottom: Radius.circular(isLast ? 25 : 0),
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      children: [
+                        UserInfoButton(
+                          icon: Image.network(
+                            m.avatarUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Image.asset('assets/images/profile.png'),
+                          ),
+                          title: m.nameTH,
+                          subTitle: m.nameEN,
+                          roles: [
+                            ...m.roles,
+                            Role(id: '0000000000', name: m.initRole, color: const Color(0xFF535353)),
+                          ],
+                          onPressed: () {
+                            Navigator.pop(context);
+                            widget.onChoose(m);
+                          },
                         ),
-                        title: m.nameTH,
-                        subTitle: m.nameEN,
-                        roles: [
-                          ...m.roles,
-                          Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353)),
-                        ],
-                        onPressed: () {
-                          Navigator.pop(context);
-                          widget.onChoose(m);
-                        },
-                      );
-                    })
-                  ],
-                ),
-              )
+                        if (!isLast)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 65, right: 15),
+                            child: Divider(height: 0),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             );
           },
         )
