@@ -444,7 +444,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                                     style: const TextStyle(
                                                                                       fontSize: 13,
                                                                                       fontWeight: FontWeight.w600,
-                                                                                      color: Colors.blue,
+                                                                                      color: Colors.black,
                                                                                     ),
                                                                                   ),
                                                                                   if (_calculatedLeaveDays! == 0)
