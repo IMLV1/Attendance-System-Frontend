@@ -77,6 +77,7 @@ Future<void> setupServiceLocator() async {
     dio,
     authRepository: getIt<AuthRepository>(),
     tokenStorage: getIt<TokenStorage>(),
+    authApi: getIt<AuthApiService>(),
   );
 
 

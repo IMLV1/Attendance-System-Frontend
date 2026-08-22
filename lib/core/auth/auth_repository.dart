@@ -44,7 +44,7 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     // Save access token securely
-    await storage.save(res.accessToken);
+    await storage.save(res.accessToken, refreshToken: res.refreshToken);
 
     // Attach token to API client for next requests
     apiClient.setToken(res.accessToken);
@@ -85,7 +85,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       try {
-        await api.logout(); // best effort
+        await api.logout(await storage.refreshToken); // best effort — เพิกถอน refresh token ฝั่ง server
       } catch (_) {}
 
       await storage.clear();
