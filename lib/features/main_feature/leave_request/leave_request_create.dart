@@ -437,16 +437,14 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                             child: Text.rich(
                                                                               TextSpan(
                                                                                 text: 'คำขอนี้จะใช้สิทธิ์',
-                                                                                style: const TextStyle(fontSize: 13, color: AppColors.lightTextColor),
+                                                                                style: const TextStyle(fontSize: 13, color: Colors.black),
                                                                                 children: [
                                                                                   TextSpan(
                                                                                     text: ' ${Utils.formatDays(_calculatedLeaveDays!)} วัน',
-                                                                                    style: TextStyle(
+                                                                                    style: const TextStyle(
                                                                                       fontSize: 13,
                                                                                       fontWeight: FontWeight.w600,
-                                                                                      color: _calculatedLeaveDays! > getRemainLeaveDays()
-                                                                                          ? Colors.red
-                                                                                          : Colors.black,
+                                                                                      color: Colors.blue,
                                                                                     ),
                                                                                   ),
                                                                                   if (_calculatedLeaveDays! == 0)
