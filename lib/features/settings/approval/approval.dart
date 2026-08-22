@@ -118,24 +118,24 @@ class ApprovalState extends State<Approval> {
             child: SafeArea(
               child: Container(
                 color: AppColors.backgroundColor,
-                alignment: Alignment.topCenter,
-                child: Padding(
-                    padding: EdgeInsets.only(
-                        left: 10, right: 10, top: 20
+                // 🚩 (2026-08-22) เดิมเป็น SingleChildScrollView ครอบ Column ทั้งก้อน
+                // -> ทุกแถวของลิสต์ถูก build พร้อมกันตอนเปิดหน้า (กระตุก)
+                // เปลี่ยนเป็น CustomScrollView แล้วให้ลูกทั้งสองคืน sliver มาแทน
+                // ⚠️ ห้ามเอา SingleChildScrollView กลับมาครอบ ไม่งั้น sliver ข้างในจะ
+                // ถูก shrink-wrap แล้วกลับไป build ครบทุกแถวเหมือนเดิม
+                child: CustomScrollView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  physics: AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverPadding(
+                      padding: EdgeInsets.only(
+                          left: 10, right: 10, top: 20, bottom: 20
+                      ),
+                      sliver: select == 0
+                          ? AttendanceApproval()
+                          : LeaveApproval(),
                     ),
-                    child: Column(
-                        children: [
-                          Expanded(
-                              child: SingleChildScrollView(
-                                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                                  physics: AlwaysScrollableScrollPhysics(),
-                                  child: select == 0
-                                      ? AttendanceApproval()
-                                      : LeaveApproval(),
-                              )
-                          )
-                        ]
-                    )
+                  ],
                 )
               )
             ),
