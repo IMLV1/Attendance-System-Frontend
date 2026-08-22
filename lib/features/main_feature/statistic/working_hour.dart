@@ -25,6 +25,10 @@ class _WorkingHourState extends State<WorkingHour> {
 
   int touchedIndex = -1;
 
+  /// จำนวนแท่งของรอบวาดก่อนหน้า — ใช้ตัดสินใจว่าจะเปิด animation ไหม
+  /// (ดูเหตุผลใน [_barChart])
+  int? _prevBarCount;
+
   @override
   Widget build(BuildContext context) {
 
@@ -317,7 +321,29 @@ class _WorkingHourState extends State<WorkingHour> {
         extraPadding: 6
     );
 
+    // 🚩 (2026-08-22) ปิด animation เมื่อ "จำนวนแท่ง" เปลี่ยน
+    //
+    // BarChart เป็น ImplicitlyAnimatedWidget — มันจะ lerp ระหว่างข้อมูลเก่ากับใหม่
+    // แต่ lerpList ของ fl_chart (utils/lerp.dart) เขียนไว้แบบนี้:
+    //     return List.generate(b.length, (i) {
+    //       return lerp(i >= a.length ? b[i] : a[i], b[i], t);   // ← b[i] -> b[i]
+    //     });
+    // แท่งที่ index เกินความยาวของลิสต์เก่า จะได้ค่า b[i] เต็มตั้งแต่ t = 0
+    // คือ "สูงเต็มที่ทันที" ในขณะที่ maxY (ความสูงแกน Y) เป็น double ธรรมดา
+    // ที่ยัง lerp ไต่ขึ้นมาจากค่าเก่าอยู่ -> แท่งเลยถูกวาดทะลุขึ้นไปเหนือกรอบกราฟ
+    //
+    // เจอ 2 จังหวะ:
+    //   1. เปิดหน้าครั้งแรก — workingHour ยังเป็น null อยู่เฟรมแรก (0 แท่ง)
+    //      พอข้อมูลมาถึงกลายเป็น N แท่ง maxY เก่า ≈ 0 เลยพุ่งแรงสุด
+    //   2. สลับ ทั้งหมด/สัปดาห์/เดือน/ปี ที่จำนวนแท่งไม่เท่ากัน (7 -> 31)
+    //
+    // ถ้าจำนวนแท่งเท่าเดิม lerp ทำงานถูกต้อง ปล่อยให้ animate ตามปกติ
+    final barCount = data.length;
+    final animate = _prevBarCount == barCount;
+    _prevBarCount = barCount;
+
     return BarChart(
+      duration: animate ? const Duration(milliseconds: 150) : Duration.zero,
       BarChartData(
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
