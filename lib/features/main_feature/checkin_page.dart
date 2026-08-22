@@ -452,10 +452,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     }
 
     // Bug 1.2: Use tighter padding and spacing for mobile layout
+    // 🚩 (2026-08-22) ไม่มี scroll แล้ว — ทุก component ต้องพอดีหน้าเดียว
     return SafeArea(
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 10,
@@ -632,7 +631,12 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           children: [
             RadarAnimation(color: buttonColor),
             Padding(
-              padding: EdgeInsets.only(top: 240),
+              // 🚩 (2026-08-22) เดิม 240 -> ดันความสูง Stack เป็น 252 ทั้งที่ปุ่มมีแค่ 170
+              // (เงาลอยห่างใต้ปุ่ม 29px) กินที่เกินจำเป็นจนหน้าไม่พอดีต้องเลื่อน
+              // สูตร: ระยะห่างเงาจากขอบล่างปุ่ม = (ค่านี้ - 182) / 2
+              // 202 -> เงาห่างปุ่ม 10px, Stack สูง 214 (ประหยัดไป 38px)
+              // ขนาดปุ่ม/เรดาร์/ระยะห่างระหว่าง component อื่นๆ เท่าเดิมทุกอย่าง
+              padding: EdgeInsets.only(top: 202),
               child: Container(
                 width: 120,
                 height: 12,
