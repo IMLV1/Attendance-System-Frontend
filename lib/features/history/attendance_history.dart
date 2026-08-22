@@ -139,15 +139,9 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
             child: Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    // ให้เลื่อนแล้วคีย์บอร์ดหายเอง
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                    // ให้ scroll ได้แม้ข้อมูลน้อย (ใช้กับ pull/UX)
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      spacing: 13,
-                      children: [
+                  // 🚩 (2026-08-22) ตัว scroll ย้ายไปอยู่ใน builder (CustomScrollView) แล้ว
+                  // ห้ามมี SingleChildScrollView ครอบอีกชั้น ไม่งั้น sliver จะไม่ lazy
+                  child:
 
                         // ============================================================
                         // ServiceUpdaterProMax = ตัวช่วยเรียก request แบบมี state + trigger ได้
@@ -237,9 +231,21 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                 //ก็คือแบบว่า เอา item เข้าเดือนนั้น ถ้าเป็นเดือนใหม่ที่ยังไม่เคยมีใน groupedItems มันจะสร้าง key ใหม่ให้ใน groupedItems
                               }
 
-                              return Column(
-                                spacing: 13,
-                                children: [
+                              // 🚩 (2026-08-22) CustomScrollView + SliverList.builder
+                              // เดิมเป็น Column ใน SingleChildScrollView -> สร้าง widget ของทุก
+                              // รายการที่โหลดมาแล้วพร้อมกัน พอเลื่อนสะสมหลายร้อยรายการก็กลับมาหนัก
+                              // ตอนนี้สร้างเฉพาะกลุ่มเดือนที่อยู่ในจอ
+                              final groupEntries = groupedItems.entries.toList();
+
+                              return CustomScrollView(
+                                controller: _scrollController,
+                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                slivers: [
+                                  SliverToBoxAdapter(
+                                    child: Column(
+                                      spacing: 13,
+                                      children: [
 
                                   // ================= UI ส่วนที่ 1: กล่องตัวกรอง (Filter) =================
                                   InkWell(
@@ -361,10 +367,17 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                     ),
                                   ),
 
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SliverToBoxAdapter(child: SizedBox(height: 13)),
+
                                   // ================= UI ส่วนที่ 2: รายการประวัติ (History List) =================
                                   // ถ้าไม่มีข้อมูล และไม่ได้กำลังโหลดอยู่ -> แสดง "ไม่มีข้อมูล"
                                   if (_items.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading)
-                                    SeparatorCard(
+                                    SliverToBoxAdapter(
+                                      child: SeparatorCard(
                                       children: [
                                         Container(
                                           color: Colors.white,
@@ -380,15 +393,17 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                           ),
                                         )
                                       ],
+                                    ),
                                     )
                                   else
-                                    // ถ้ามีข้อมูล -> วนตามเดือน/ปี
-                                    Column(
-                                      spacing: 15,
-                                      //สร้าง children หลายตัว โดย วนตามแต่ละกลุ่ม (แต่ละเดือน/ปี) แล้วเอา widget ที่สร้างได้ทั้งหมดมาเป็น list ใส่ใน children
-                                      children: [
-                                      ...groupedItems.entries.map((entry) {
-                                        return Column(
+                                    // ถ้ามีข้อมูล -> สร้างเฉพาะกลุ่มเดือนที่อยู่ในจอ
+                                    SliverList.builder(
+                                      itemCount: groupEntries.length,
+                                      itemBuilder: (context, groupIndex) {
+                                        final entry = groupEntries[groupIndex];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(bottom: 15),
+                                          child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           spacing: 8,
                                           children: [
@@ -519,34 +534,34 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                               }).toList(),
                                             )
                                           ],
-                                        );
-                                      }),
-
-                                      // 🚩 ตัวบอกสถานะท้ายลิสต์ตอนโหลดหน้าถัดไป
-                                      if (_loadingMore)
-                                        const Padding(
-                                          padding: EdgeInsets.symmetric(vertical: 16),
-                                          child: Center(child: CupertinoActivityIndicator()),
-                                        )
-                                      else if (!_hasMore && _items.isNotEmpty)
-                                        const Padding(
-                                          padding: EdgeInsets.symmetric(vertical: 16),
-                                          child: Center(
-                                            child: Text(
-                                              'แสดงครบทุกรายการแล้ว',
-                                              style: TextStyle(fontSize: 13, color: Color(0xFF7C7C7C)),
-                                            ),
-                                          ),
                                         ),
-                                      ],
-                                    )
+                                        );
+                                      },
+                                    ),
+
+                                  // 🚩 ตัวบอกสถานะท้ายลิสต์ตอนโหลดหน้าถัดไป
+                                  SliverToBoxAdapter(
+                                    child: _loadingMore
+                                        ? const Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 16),
+                                            child: Center(child: CupertinoActivityIndicator()),
+                                          )
+                                        : (!_hasMore && _items.isNotEmpty)
+                                            ? const Padding(
+                                                padding: EdgeInsets.symmetric(vertical: 16),
+                                                child: Center(
+                                                  child: Text(
+                                                    'แสดงครบทุกรายการแล้ว',
+                                                    style: TextStyle(fontSize: 13, color: Color(0xFF7C7C7C)),
+                                                  ),
+                                                ),
+                                              )
+                                            : const SizedBox(height: 20),
+                                  ),
                                 ],
                               );
                             }
-                        )
-                      ],
-                    ),
-                  ),
+                        ),
                 )
               ],
             ),
