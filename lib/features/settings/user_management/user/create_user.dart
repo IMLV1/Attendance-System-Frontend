@@ -363,7 +363,7 @@ class _CreateUserState extends State<CreateUser> {
                                 )
                                 : (state == ServiceUpdatorState.error) ?
                                 Text(
-                                    'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+                                    errorMessage,
                                     style: TextStyle(
                                         color: Colors.red
                                     )

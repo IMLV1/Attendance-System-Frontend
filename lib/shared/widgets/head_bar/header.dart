@@ -38,26 +38,30 @@ class Header {
 
       automaticallyImplyLeading: false,
 
-      leading: Navigator.of(context).canPop() ?
-      IconButton(
-        onPressed: onBack ?? () {
-          Navigator.of(context).pop();
-        },
-        icon: SvgPicture.asset(
-          'assets/images/back_button.svg',
-          width: 24 * scaleFactor,
-          height: 24 * scaleFactor,
-        ),
-      ) : context.canPop() ? IconButton(
-        onPressed: () {
-          context.pop();
-        },
-        icon: SvgPicture.asset(
-          'assets/images/back_button.svg',
-          width: 24 * scaleFactor,
-          height: 24 * scaleFactor,
-        ),
-      ) : null,
+      // 🚩 (2026-08-24) เดิมถาม Navigator.of(context).canPop() ก่อน แล้วค่อย
+      // fallback ไป context.canPop() ของ go_router — ถามคนละระบบกัน
+      //
+      // ปัญหา: หน้าอย่าง /settings/config-attendance บนมือถือถูก "push" มาจาก
+      // หน้าตั้งค่า (มี back ถูกต้อง) แต่บน iPad/desktop กดจาก sidebar ซึ่งใช้
+      // context.go() = แทนที่สแตกทั้งหมด -> หน้านั้นกลายเป็น "ปลายทาง" ไม่ใช่
+      // sub-page แต่ Navigator ยังตอบว่า canPop ได้ ปุ่ม back เลยโผล่มาทั้งที่
+      // ไม่ควรมี และกดแล้วพัง (assert currentConfiguration.isNotEmpty)
+      //
+      // ตอนนี้ยึด go_router เป็นแหล่งความจริงเดียว:
+      //   ถอยได้  -> โชว์ปุ่ม back (เคส push จริง)
+      //   ถอยไม่ได้ -> ไม่โชว์ (เคสมาจาก sidebar)
+      leading: context.canPop()
+          ? IconButton(
+              // onBack ของหน้าที่ส่งมาเองส่วนใหญ่เรียก maybePop() เพื่อให้
+              // PopScope (เตือน "ยังไม่ได้บันทึก") ทำงาน — ต้องคงไว้
+              onPressed: onBack ?? () => context.pop(),
+              icon: SvgPicture.asset(
+                'assets/images/back_button.svg',
+                width: 24 * scaleFactor,
+                height: 24 * scaleFactor,
+              ),
+            )
+          : null,
 
       title: Text(
         title,
