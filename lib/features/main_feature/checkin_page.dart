@@ -457,13 +457,23 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 10,
+          vertical: 20,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _cardtime(),
-            _buttonCheckin(),
+            // 🚩 (2026-08-24) Flexible + FittedBox ข้างใน (ดู _buttonCheckin)
+            // ทำให้บล็อกปุ่ม "ยอมหด" เมื่อที่ไม่พอ แทนที่จะดันจนล้น
+            //
+            // เจอตอนกดเช็คอินสำเร็จ: ข้อความ "บันทึกเวลา ... เรียบร้อยแล้ว"
+            // โผล่เพิ่มมา 1 บรรทัด -> overflow 4px (console: RenderFlex overflowed
+            // by 4.0 pixels, constraints h<=593)
+            //
+            // แก้แบบเบียดพอดี 4px ไม่ปลอดภัย เพราะยังมีเคสอื่นที่ข้อความยาวกว่านี้
+            // (error message ยาวๆ / ชื่อวันหยุดยาว) แล้วตกบรรทัดเพิ่มอีก
+            Flexible(child: _buttonCheckin()),
             const SizedBox(height: 6),
             _currentstate(),
           ],
@@ -623,127 +633,137 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       }
     }
 
-    return Column(
-      children: [
-        // Bug 1.2: Reduced sizes for mobile layout
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            RadarAnimation(color: buttonColor),
-            Padding(
-              // 🚩 (2026-08-22) เดิม 240 -> ดันความสูง Stack เป็น 252 ทั้งที่ปุ่มมีแค่ 170
-              // (เงาลอยห่างใต้ปุ่ม 29px) กินที่เกินจำเป็นจนหน้าไม่พอดีต้องเลื่อน
-              // สูตร: ระยะห่างเงาจากขอบล่างปุ่ม = (ค่านี้ - 182) / 2
-              // 202 -> เงาห่างปุ่ม 10px, Stack สูง 214 (ประหยัดไป 38px)
-              // ขนาดปุ่ม/เรดาร์/ระยะห่างระหว่าง component อื่นๆ เท่าเดิมทุกอย่าง
-              padding: EdgeInsets.only(top: 202),
-              child: Container(
-                width: 120,
-                height: 12,
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.lightTextColor.withValues(alpha: 0.2),
-                      blurRadius: 1,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                  borderRadius: BorderRadius.all(Radius.elliptical(150, 15)),
-                ),
-              ),
-            ),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: (isDisabled || _isSubmitting)
-                    ? null
-                    : () => _handleCheckin(state),
-                customBorder: CircleBorder(),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Bug 1.2: Reduced sizes for mobile layout
+          // 🚩 (2026-08-24) ที่ไม่พอเมื่อไหร่ ให้ปุ่มหดลงตามสัดส่วน (เรดาร์/ไอคอน/
+          // ตัวหนังสือ/เงา หดตามกันหมด) แทนที่จะล้นออกนอกจอ
+          // ถ้าที่พอ FittedBox จะไม่ทำอะไรเลย -> หน้าตาเหมือนเดิมเป๊ะ
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Stack(
+            alignment: Alignment.center,
+            children: [
+              RadarAnimation(color: buttonColor),
+              Padding(
+                // 🚩 (2026-08-22) เดิม 240 -> ดันความสูง Stack เป็น 252 ทั้งที่ปุ่มมีแค่ 170
+                // (เงาลอยห่างใต้ปุ่ม 29px) กินที่เกินจำเป็นจนหน้าไม่พอดีต้องเลื่อน
+                // สูตร: ระยะห่างเงาจากขอบล่างปุ่ม = (ค่านี้ - 182) / 2
+                // 202 -> เงาห่างปุ่ม 10px, Stack สูง 214 (ประหยัดไป 38px)
+                // ขนาดปุ่ม/เรดาร์/ระยะห่างระหว่าง component อื่นๆ เท่าเดิมทุกอย่าง
+                padding: EdgeInsets.only(top: 220),
                 child: Container(
-                  width: 170,
-                  height: 170,
+                  width: 120,
+                  height: 12,
                   decoration: BoxDecoration(
-                    color: buttonColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 36,
-                        width: 36,
-                        child: SvgPicture.asset(iconPath),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.lightTextColor.withValues(alpha: 0.2),
+                        blurRadius: 1,
+                        spreadRadius: 2,
                       ),
-                      SizedBox(height: 1),
-                      _isSubmitting
-                          ? const CupertinoActivityIndicator(color: Colors.white)
-                          : Text(
-                              buttonText,
-                              style: TextStyle(
-                                fontSize: fontSize,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.titleColor,
-                              ),
-                            ),
                     ],
+                    borderRadius: BorderRadius.all(Radius.elliptical(150, 15)),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-        Text(
-          showtext,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w200,
-            color: AppColors.greyTextColor,
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: (isDisabled || _isSubmitting)
+                      ? null
+                      : () => _handleCheckin(state),
+                  customBorder: CircleBorder(),
+                  child: Container(
+                    width: 170,
+                    height: 170,
+                    decoration: BoxDecoration(
+                      color: buttonColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 36,
+                          width: 36,
+                          child: SvgPicture.asset(iconPath),
+                        ),
+                        SizedBox(height: 1),
+                        _isSubmitting
+                            ? const CupertinoActivityIndicator(color: Colors.white)
+                            : Text(
+                          buttonText,
+                          style: TextStyle(
+                            fontSize: fontSize,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.titleColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
+            ),
+          ),
 
-        // Bug 1.3: Inline feedback text
-        if (_feedbackMessage.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
-            _feedbackMessage,
-            textAlign: TextAlign.center,
+            showtext,
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: _feedbackIsSuccess ? Colors.green : Colors.red,
+              fontWeight: FontWeight.w200,
+              color: AppColors.greyTextColor,
             ),
           ),
-        ],
 
-        const SizedBox(height: 6),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 15,
-              width: 15,
-              child: SvgPicture.asset('assets/images/iicon.svg'),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                softWrap: true,
-                textAlign: TextAlign.start,
-                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
-                ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.normal,
-                  color: AppColors.lightTextColor,
-                ),
+          // Bug 1.3: Inline feedback text
+          if (_feedbackMessage.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              _feedbackMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: _feedbackIsSuccess ? Colors.green : Colors.red,
               ),
             ),
           ],
-        ),
-      ],
+
+          const SizedBox(height: 6),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 15,
+                width: 15,
+                child: SvgPicture.asset('assets/images/iicon.svg'),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  softWrap: true,
+                  textAlign: TextAlign.start,
+                  'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
+                      ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.normal,
+                    color: AppColors.lightTextColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
