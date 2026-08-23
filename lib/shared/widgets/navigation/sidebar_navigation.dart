@@ -52,8 +52,10 @@ class SideBarNavigation extends StatelessWidget {
           children: [
             const SizedBox(height: 15),
             SideBarButton(currentPath: currentPath, path: '/check-in', pageName: 'ลงชื่อเข้า-ออกงาน', pageIcon: 'icon_checkin.svg'),
-            SideBarButton(currentPath: currentPath, path: '/time-request', pageName: 'ขออนุมัติเวลาเข้า-ออกงาน', pageIcon: 'icon_time_request.svg'),
-            SideBarButton(currentPath: currentPath, path: '/leave', pageName: 'การลางาน', pageIcon: 'icon_leave.svg'),
+            // 🚩 (2026-08-24) path พวกนี้เดิมชี้ไปหน้าที่ไม่มีจริงใน routes.dart
+            // ('/time-request', '/leave') กดแล้วไม่ไปไหน — แก้ให้ตรงของจริงแล้ว
+            SideBarButton(currentPath: currentPath, path: '/attendance-request', pageName: 'ขออนุมัติเวลาเข้า-ออกงาน', pageIcon: 'icon_time_request.svg'),
+            SideBarButton(currentPath: currentPath, path: '/leave-request', pageName: 'การลางาน', pageIcon: 'icon_leave.svg'),
             SideBarButton(currentPath: currentPath, path: '/statistic', pageName: 'สถิติ', pageIcon: 'icon_statistic.svg'),
             const SizedBox(height: 10),
             Divider(
@@ -62,9 +64,10 @@ class SideBarNavigation extends StatelessWidget {
               color: AppColors.lightTextColor,
             ),
             const SizedBox(height: 10),
-            SideBarButton(currentPath: currentPath, path: '/attendance-history', pageName: 'บันทึกการเข้างาน', pageIcon: 'icon_attendance_history.svg'),
-            SideBarButton(currentPath: currentPath, path: '/leave-history', pageName: 'บันทึกการลางาน', pageIcon: 'icon_leave_history.svg'),
-            SideBarButton(currentPath: currentPath, path: '/time-request-history', pageName: 'บันทึกคำขออนุมัติเวลางาน', pageIcon: 'icon_attendance_request_history.svg'),
+            SideBarButton(currentPath: currentPath, path: '/settings/attendance-history', pageName: 'บันทึกการเข้างาน', pageIcon: 'icon_attendance_history.svg'),
+            // 🚩 ตัด 'บันทึกการลางาน' (/leave-history) และ 'บันทึกคำขออนุมัติเวลางาน'
+            // (/time-request-history) ออก — ไม่มีหน้าพวกนี้ใน routes.dart และไม่จำเป็น
+            // เพราะประวัติอยู่ในหน้า 'การลางาน' / 'ขออนุมัติเวลา' อยู่แล้ว (ส่วน "รายการล่าสุด")
             if (permissionLevel >= 1) const SizedBox(height: 10),
             if (permissionLevel >= 1) Divider(
               height: 1,        // space the divider takes vertically
@@ -72,9 +75,10 @@ class SideBarNavigation extends StatelessWidget {
               color: AppColors.lightTextColor,
             ),
             if (permissionLevel >= 1) const SizedBox(height: 10),
-            if (permissionLevel >= 1) SideBarButton(currentPath: currentPath, path: '/approval', pageName: 'อนุมัติคำขอ', pageIcon: 'icon_approval.svg'),
-            if (permissionLevel >= 1) SideBarButton(currentPath: currentPath, path: '/approval-history', pageName: 'บันทึกการอนุมัติคำขอ', pageIcon: 'icon_attendance_history.svg'),
-            if (permissionLevel >= 1) SideBarButton(currentPath: currentPath, path: '/personnel-info', pageName: 'ข้อมูลบุคลากรในองค์กร', pageIcon: 'icon_personnel_info.svg'),
+            if (permissionLevel >= 1) SideBarButton(currentPath: currentPath, path: '/settings/approval', pageName: 'อนุมัติคำขอ', pageIcon: 'icon_approval.svg'),
+            // 🚩 ตัด 'บันทึกการอนุมัติคำขอ' (/approval-history) ออก — ไม่มีหน้านี้จริง
+            // ประวัติการอนุมัติอยู่ในหน้า 'อนุมัติคำขอ' อยู่แล้ว (ส่วน "รายการล่าสุด")
+            if (permissionLevel >= 1) SideBarButton(currentPath: currentPath, path: '/settings/personnel-info', pageName: 'ข้อมูลบุคลากรในองค์กร', pageIcon: 'icon_personnel_info.svg'),
             if (permissionLevel >= 2) const SizedBox(height: 10),
             if (permissionLevel >= 2) Divider(
               height: 1,        // space the divider takes vertically
@@ -82,8 +86,8 @@ class SideBarNavigation extends StatelessWidget {
               color: AppColors.lightTextColor,
             ),
             if (permissionLevel >= 2) const SizedBox(height: 10),
-            if (permissionLevel >= 2) SideBarButton(currentPath: currentPath, path: '/user-management', pageName: 'จัดการผู้ใช้งานระบบ', pageIcon: 'icon_user_management.svg'),
-            if (permissionLevel >= 2) SideBarButton(currentPath: currentPath, path: '/role-management', pageName: 'จัดการตำแหน่ง', pageIcon: 'icon_role_management.svg'),
+            if (permissionLevel >= 2) SideBarButton(currentPath: currentPath, path: '/settings/user-management', pageName: 'จัดการผู้ใช้งานระบบ', pageIcon: 'icon_user_management.svg'),
+            if (permissionLevel >= 2) SideBarButton(currentPath: currentPath, path: '/settings/role-management', pageName: 'จัดการตำแหน่ง', pageIcon: 'icon_role_management.svg'),
             if (permissionLevel >= 3) const SizedBox(height: 10),
             if (permissionLevel >= 3) Divider(
               height: 1,        // space the divider takes vertically
@@ -182,7 +186,10 @@ class SideBarButton extends StatelessWidget {
               width: 20,
               height: 20,
               child: SvgPicture.asset(
-                'assets/images/',
+                // 🚩 (2026-08-24) เดิมเป็น 'assets/images/' เฉยๆ ไม่ได้ต่อชื่อไฟล์
+                // pageIcon ที่ส่งเข้ามาทุกปุ่มเลยไม่เคยถูกใช้ -> โหลด asset ไม่ได้
+                // ยิง "Unable to load asset" รัวทุกเฟรมบน iPad/desktop
+                'assets/images/$pageIcon',
                 colorFilter: ColorFilter.mode(currentPath == path ? AppColors.titleColor : AppColors.subTitleColor, BlendMode.srcIn),
               ),
             ),
