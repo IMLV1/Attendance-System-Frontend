@@ -9,14 +9,42 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-class SideBarNavigation extends StatelessWidget {
+/// ความกว้าง sidebar ตอนกางและตอนหด
+const double _sideBarWidth = 300;
+const double _sideBarCollapsedWidth = 76;
+
+/// สถานะ "หด/กาง" ของ sidebar — ประกาศเป็น InheritedWidget เพื่อให้ปุ่มเมนู
+/// และแถบโปรไฟล์ที่อยู่ลึกลงไปอ่านได้เอง โดยไม่ต้องส่งผ่าน constructor ทุกชั้น
+class _SideBarCollapsed extends InheritedWidget {
+  final bool collapsed;
+
+  const _SideBarCollapsed({required this.collapsed, required super.child});
+
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_SideBarCollapsed>()?.collapsed ?? false;
+
+  @override
+  bool updateShouldNotify(_SideBarCollapsed oldWidget) => collapsed != oldWidget.collapsed;
+}
+
+class SideBarNavigation extends StatefulWidget {
 
   final String currentPath;
 
   const SideBarNavigation({super.key, required this.currentPath});
 
   @override
+  State<SideBarNavigation> createState() => _SideBarNavigationState();
+}
+
+class _SideBarNavigationState extends State<SideBarNavigation> {
+
+  bool _collapsed = false;
+
+  @override
   Widget build(BuildContext context) {
+
+    final currentPath = widget.currentPath;
 
     // 🚩 (2026-08-24) เดิม hardcode `int permissionLevel = 3` = ทุกคนเห็นเมนู
     // admin ครบบน desktop ตอนนี้ดึงสิทธิ์จริงจาก AuthState ผ่าน MenuAccess
@@ -30,13 +58,22 @@ class SideBarNavigation extends StatelessWidget {
     //
     // ตอนนี้จัดเป็น Column ตรงๆ: โลโก้ / รายการเมนูที่ Expanded / แถบโปรไฟล์
     // ซึ่งกำหนดความสูงได้ชัดเจนโดยไม่ต้องพึ่งพฤติกรรมของช่องใน Scaffold
-    return SizedBox(
-      width: 300,
-      child: Material(
+    return _SideBarCollapsed(
+      collapsed: _collapsed,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        width: _collapsed ? _sideBarCollapsedWidth : _sideBarWidth,
+        child: Material(
         color: AppColors.sideBarColor,
+        // กันเนื้อหาล้นออกนอกกรอบระหว่างที่ความกว้างกำลังไล่ย่อ
+        clipBehavior: Clip.hardEdge,
         child: Column(
           children: [
-            const _SideBarLogo(),
+            _SideBarLogo(
+              collapsed: _collapsed,
+              onToggle: () => setState(() => _collapsed = !_collapsed),
+            ),
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
@@ -84,13 +121,18 @@ class SideBarNavigation extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }
 
-/// โลโก้หัว sidebar — เดิมเป็น AppBar ของ Scaffold ซ้อน (toolbarHeight 90 + เส้นคั่น)
+/// โลโก้หัว sidebar + ปุ่มพับ/กาง
+/// เดิมเป็น AppBar ของ Scaffold ซ้อน (toolbarHeight 90 + เส้นคั่น)
 class _SideBarLogo extends StatelessWidget {
-  const _SideBarLogo();
+  final bool collapsed;
+  final VoidCallback onToggle;
+
+  const _SideBarLogo({required this.collapsed, required this.onToggle});
 
   @override
   Widget build(BuildContext context) {
@@ -99,13 +141,30 @@ class _SideBarLogo extends StatelessWidget {
       child: Container(
         height: 90,
         alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 16),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: AppColors.lightTextColor)),
         ),
-        child: SvgPicture.asset(
-          'assets/images/engineering_logo.svg',
-          height: 50,
+        child: Row(
+          children: [
+            if (!collapsed)
+              Expanded(
+                child: SvgPicture.asset(
+                  'assets/images/engineering_logo.svg',
+                  height: 50,
+                  alignment: Alignment.centerLeft,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            IconButton(
+              tooltip: collapsed ? 'กางเมนู' : 'พับเมนู',
+              onPressed: onToggle,
+              icon: Icon(
+                collapsed ? Icons.menu : Icons.menu_open,
+                color: AppColors.subTitleColor,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -158,6 +217,14 @@ class _SideBarProfile extends StatelessWidget {
         ? profile!.avatarUrl
         : (authState.user?.avatarUrl ?? '');
     final role = profile?.roles.isNotEmpty == true ? profile!.roles.first : null;
+    final collapsed = _SideBarCollapsed.of(context);
+
+    final avatar = CircleAvatar(
+      radius: 22,
+      backgroundColor: AppColors.barHighlightColor,
+      backgroundImage: avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
+      child: avatarUrl.isEmpty ? Icon(Icons.person, color: AppColors.subTitleColor) : null,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -166,7 +233,33 @@ class _SideBarProfile extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Row(
+        // ตอนหดไม่มีที่พอให้เรียงแนวนอน จึงซ้อนแนวตั้งแทนและตัดชื่อ/ตำแหน่งออก
+        child: collapsed
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 10),
+                  Tooltip(
+                    message: name,
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => context.go('/profile'),
+                      child: avatar,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'การตั้งค่าและการจัดการ',
+                    onPressed: () => context.go('/settings'),
+                    icon: Icon(Icons.settings_outlined, color: AppColors.subTitleColor),
+                  ),
+                  IconButton(
+                    tooltip: 'ออกจากระบบ',
+                    onPressed: () => _confirmLogout(context),
+                    icon: const Icon(Icons.logout, color: Colors.red),
+                  ),
+                ],
+              )
+            : Row(
           children: [
             Expanded(
               child: InkWell(
@@ -175,14 +268,7 @@ class _SideBarProfile extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: AppColors.barHighlightColor,
-                        backgroundImage: avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
-                        child: avatarUrl.isEmpty
-                            ? Icon(Icons.person, color: AppColors.subTitleColor)
-                            : null,
-                      ),
+                      avatar,
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -287,48 +373,67 @@ class SideBarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    return ElevatedButton(
+    final selected = currentPath == path;
+    final collapsed = _SideBarCollapsed.of(context);
+    final foreground = selected ? AppColors.titleColor : AppColors.subTitleColor;
+
+    final icon = SizedBox(
+      width: 20,
+      height: 20,
+      child: SvgPicture.asset(
+        // 🚩 (2026-08-24) เดิมเป็น 'assets/images/' เฉยๆ ไม่ได้ต่อชื่อไฟล์
+        // pageIcon ที่ส่งเข้ามาทุกปุ่มเลยไม่เคยถูกใช้ -> โหลด asset ไม่ได้
+        // ยิง "Unable to load asset" รัวทุกเฟรมบน iPad/desktop
+        'assets/images/$pageIcon',
+        colorFilter: ColorFilter.mode(foreground, BlendMode.srcIn),
+      ),
+    );
+
+    final button = ElevatedButton(
 
         onPressed: () {
           _onNavigate(context, path);
         },
 
         style: ElevatedButton.styleFrom(
-          backgroundColor: currentPath == path ? AppColors.barColor : AppColors.sideBarColor,
-          foregroundColor: currentPath == path ? AppColors.titleColor : AppColors.subTitleColor,
-          padding: EdgeInsets.all(20),
+          backgroundColor: selected ? AppColors.barColor : AppColors.sideBarColor,
+          foregroundColor: foreground,
+          padding: collapsed
+              ? const EdgeInsets.symmetric(vertical: 20)
+              : const EdgeInsets.all(20),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.zero,
           ),
           elevation: 0,
         ),
-        // width: double.infinity,
-        // height: 60,
-        child: Row(
+        // ตอนหด เหลือแค่ไอคอนกลางปุ่ม ชื่อเมนูย้ายไปอยู่ใน tooltip แทน
+        child: collapsed
+            ? Center(child: icon)
+            : Row(
           children: [
             SizedBox(width: 5),
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: SvgPicture.asset(
-                // 🚩 (2026-08-24) เดิมเป็น 'assets/images/' เฉยๆ ไม่ได้ต่อชื่อไฟล์
-                // pageIcon ที่ส่งเข้ามาทุกปุ่มเลยไม่เคยถูกใช้ -> โหลด asset ไม่ได้
-                // ยิง "Unable to load asset" รัวทุกเฟรมบน iPad/desktop
-                'assets/images/$pageIcon',
-                colorFilter: ColorFilter.mode(currentPath == path ? AppColors.titleColor : AppColors.subTitleColor, BlendMode.srcIn),
-              ),
-            ),
+            icon,
             SizedBox(width: 10),
-            Text(
-                pageName,
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.normal
-                )
+            // กันชื่อเมนูยาวล้นตอนความกว้างกำลังไล่ย่อ
+            Expanded(
+              child: Text(
+                  pageName,
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  softWrap: false,
+                  // 🚩 (2026-08-24) เดิม 20 ซึ่งใหญ่กว่าตัวหนังสือที่ใช้ทั้งแอป
+                  // (หัวข้อ 17 / เนื้อหา 15) ทำให้เมนูดูโตผิดที่ผิดทาง
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500
+                  )
+              ),
             )
           ],
         )
     );
+
+    return collapsed ? Tooltip(message: pageName, child: button) : button;
   }
 
 }
