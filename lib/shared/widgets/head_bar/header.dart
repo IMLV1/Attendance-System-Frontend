@@ -9,22 +9,11 @@ import 'package:provider/provider.dart';
 
 class Header {
 
+  // 🚩 (2026-08-24) เดิมทั้งสอง header คูณ scaleFactor (1.0 / 1.2 / 1.4) กับความสูง
+  // แถบและขนาดไอคอนตามความกว้างจอ ทำให้แถบบน iPad/desktop ใหญ่เกินจริงและไม่ตรงกับ
+  // ขนาดตัวหนังสือที่ไม่ได้ถูกคูณตาม — ตกลงกันแล้วว่าใช้ขนาดเดียวทุกจอ
+
   static AppBar subHeader(BuildContext context, {title = 'Default Title', VoidCallback? onBack}) {
-
-    final width = MediaQuery
-        .of(context)
-        .size
-        .width;
-
-    double scaleFactor;
-
-    if (width < 600) {
-      scaleFactor = 1.0; // mobile
-    } else if (width < 1200) {
-      scaleFactor = 1.2; // tablet
-    } else {
-      scaleFactor = 1.4; // desktop
-    }
 
     return AppBar(
       backgroundColor: AppColors.barColor,
@@ -32,7 +21,7 @@ class Header {
 
       leadingWidth: 56,
 
-      toolbarHeight: 40 * scaleFactor,
+      toolbarHeight: 48,
 
       centerTitle: true,
 
@@ -57,8 +46,8 @@ class Header {
               onPressed: onBack ?? () => context.pop(),
               icon: SvgPicture.asset(
                 'assets/images/back_button.svg',
-                width: 24 * scaleFactor,
-                height: 24 * scaleFactor,
+                width: 24,
+                height: 24,
               ),
             )
           : null,
@@ -76,27 +65,12 @@ class Header {
 
   static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath = 'google_logo.svg', iconColor = Colors.white}) {
 
-    final width = MediaQuery
-        .of(context)
-        .size
-        .width;
-
-    double scaleFactor;
-
-    if (width < 600) {
-      scaleFactor = 1.0; // mobile
-    } else if (width < 1200) {
-      scaleFactor = 1.2; // tablet
-    } else {
-      scaleFactor = 1.4; // desktop
-    }
-
     return AppBar(
       backgroundColor: AppColors.barColor,
       elevation: 0,
 
       /// ความสูง header
-      toolbarHeight: 65 * scaleFactor,
+      toolbarHeight: 72,
 
       automaticallyImplyLeading: false,
 
@@ -106,8 +80,8 @@ class Header {
         child: Row(
           children: [
             Container(
-              width: 40 * scaleFactor,
-              height: 40 * scaleFactor,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
                 color: AppColors.barHighlightColor,
@@ -115,8 +89,8 @@ class Header {
               child: Center(
                 child: SvgPicture.asset(
                   'assets/images/$iconPath',
-                  width: 28 * scaleFactor,
-                  height: 28 * scaleFactor,
+                  width: 30,
+                  height: 30,
                   colorFilter: ColorFilter.mode(
                     iconColor,
                     BlendMode.srcIn,
@@ -202,7 +176,11 @@ class Header {
                   );
                 },
               ),
-              if (Responsive.isMobile(context)) IconButton(
+              // 🚩 (2026-08-24) เดิมเช็ค isMobile (<600) -> iPad แนวตั้ง (834) ไม่ได้
+              // ทั้งปุ่มนี้และ sidebar = เข้าหน้า 'การตั้งค่าและการจัดการ' ไม่ได้เลย
+              // ตอนนี้ผูกกับ showSidebar: ถ้าไม่มี sidebar ต้องมีปุ่มนี้เสมอ
+              // (sidebar มีทางเข้าหน้าตั้งค่าอยู่ที่แถบโปรไฟล์ด้านล่างแล้ว)
+              if (!Responsive.showSidebar(context)) IconButton(
                 onPressed: () {
                   context.pushNamed(RouteNames.setting);
                 },

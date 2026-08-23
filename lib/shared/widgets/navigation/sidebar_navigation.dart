@@ -23,39 +23,24 @@ class SideBarNavigation extends StatelessWidget {
     // ซึ่งใช้กติกาชุดเดียวกับหน้า 'การตั้งค่าและการจัดการ' บนมือถือ
     final access = MenuAccess.of(context);
 
+    // 🚩 (2026-08-24) เดิมโครงตรงนี้เป็น Scaffold ซ้อน โดยเอาแถบโปรไฟล์ไปใส่ช่อง
+    // `bottomNavigationBar` ผลคือช่องนั้นกินความสูงทั้งคอลัมน์ (เห็นได้จากแถบ
+    // โปรไฟล์ไปอยู่กึ่งกลางแนวตั้ง) แล้ว body ที่เป็นรายการเมนูเหลือความสูง 0
+    // = sidebar โล่ง เห็นแต่โปรไฟล์
+    //
+    // ตอนนี้จัดเป็น Column ตรงๆ: โลโก้ / รายการเมนูที่ Expanded / แถบโปรไฟล์
+    // ซึ่งกำหนดความสูงได้ชัดเจนโดยไม่ต้องพึ่งพฤติกรรมของช่องใน Scaffold
     return SizedBox(
-
       width: 300,
-      child: Scaffold(
-        backgroundColor: AppColors.sideBarColor,
-        appBar: AppBar(
-          elevation: 0,
-          toolbarHeight: 90,
-          automaticallyImplyLeading: false,
-          backgroundColor: AppColors.sideBarColor,
-
-
-          // 🔹 HEADER LOGO
-          title: Align(
-            alignment: Alignment.centerLeft,
-            child: SvgPicture.asset(
-              'assets/images/engineering_logo.svg',
-              height: 50,
-            ),
-          ),
-
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Container(
-              height: 1,
-              color: AppColors.lightTextColor,
-            ),
-          ),
-        ),
-        body: ListView(
-          scrollDirection: Axis.vertical,
-
+      child: Material(
+        color: AppColors.sideBarColor,
+        child: Column(
           children: [
+            const _SideBarLogo(),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
             const SizedBox(height: 15),
             SideBarButton(currentPath: currentPath, path: '/check-in', pageName: 'ลงชื่อเข้า-ออกงาน', pageIcon: 'icon_checkin.svg'),
             // 🚩 (2026-08-24) path พวกนี้เดิมชี้ไปหน้าที่ไม่มีจริงใน routes.dart
@@ -92,9 +77,36 @@ class SideBarNavigation extends StatelessWidget {
               SideBarButton(currentPath: currentPath, path: '/settings/config-attendance-request', pageName: 'คำขออนุมัติเวลางาน', pageIcon: 'icon_setting.svg'),
               SideBarButton(currentPath: currentPath, path: '/settings/config-leave-type', pageName: 'ประเภทการลางาน', pageIcon: 'icon_setting.svg'),
             ]),
+                ],
+              ),
+            ),
+            const _SideBarProfile(),
           ],
         ),
-        bottomNavigationBar: const _SideBarProfile(),
+      ),
+    );
+  }
+}
+
+/// โลโก้หัว sidebar — เดิมเป็น AppBar ของ Scaffold ซ้อน (toolbarHeight 90 + เส้นคั่น)
+class _SideBarLogo extends StatelessWidget {
+  const _SideBarLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        height: 90,
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.lightTextColor)),
+        ),
+        child: SvgPicture.asset(
+          'assets/images/engineering_logo.svg',
+          height: 50,
+        ),
       ),
     );
   }

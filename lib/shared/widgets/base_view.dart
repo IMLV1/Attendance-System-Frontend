@@ -20,7 +20,7 @@ class BaseView extends StatelessWidget {
       body: Row(
         children: [
 
-          if (Responsive.isDesktop(context)) SideBarNavigation(currentPath: location ?? ''),
+          if (Responsive.showSidebar(context)) SideBarNavigation(currentPath: location ?? ''),
 
           Expanded(
             flex: 3,
@@ -30,9 +30,8 @@ class BaseView extends StatelessWidget {
               // 🚩 (2026-08-23) เดิมเช็ค isMobile (< 600) -> ช่วง "tablet" (600–1200)
               // ไม่ได้ทั้ง sidebar (ขึ้นเฉพาะ >= 1200) และไม่ได้ทั้ง bottom nav
               // = ไม่มีเมนูให้กดเลย ซึ่งครอบคลุม iPad แทบทุกรุ่น
-              // (portrait ~810–1024, iPad Pro 11" landscape 1194)
-              // ตอนนี้อะไรที่ไม่ใช่ desktop ให้ใช้ bottom nav ไปก่อน
-              bottomNavigationBar: (!Responsive.isDesktop(context)) ? BottomNavigation(currentPath: location ?? '') : null,
+              // (2026-08-24) ตอนนี้ผูกกับตัวเดียวกับ sidebar: มีอย่างใดอย่างหนึ่งเสมอ
+              bottomNavigationBar: Responsive.showSidebar(context) ? null : BottomNavigation(currentPath: location ?? ''),
             )
           ),
         ],
