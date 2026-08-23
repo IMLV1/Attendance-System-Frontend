@@ -1,5 +1,5 @@
-import 'package:attendance_system/shared/theme/app_colors.dart'; // ใส่ path ของคุณ
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/popup_surface.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -15,42 +15,28 @@ class DynamicPushPopup {
   });
 
   void showPopup(BuildContext context) {
-    final theme = Theme.of(context);
     final GlobalKey<NavigatorState> nestedNavKey = GlobalKey<NavigatorState>();
-
-    final controller = AnimationController(
-      vsync: Navigator.of(context),
-      duration: const Duration(milliseconds: 400),
-      reverseDuration: const Duration(milliseconds: 200),
-    );
 
     // เก็บสถานะ Config ปัจจุบัน
     PopupConfig currentConfig = initialConfig;
 
-    showModalBottomSheet(
+    // 🚩 (2026-08-24) ย้ายเปลือกไปให้ PopupSurface ตัดสินตามขนาดจอ
+    // (ดูเหตุผลใน popup_surface.dart) — แต่ความสูงยังคุมจากในนี้เหมือนเดิม
+    // เพราะ wizard เปลี่ยนความสูงรายหน้าผ่าน currentConfig และต้องอาศัย
+    // AnimatedContainer ไล่ความสูงตาม ซึ่งเป็นค่าที่เปลี่ยนหลัง show() ไปแล้ว
+    // จึงส่ง maxHeight: infinity ให้ surface คุมแค่เพดานเทียบสัดส่วนจอ
+    PopupSurface.show(
       context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      enableDrag: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.15),
-      transitionAnimationController: controller,
       builder: (bottomSheetContext) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Theme(
-              data: theme,
-              // หุ้มด้วย Provider เพื่อให้หน้าย่อยสั่งงานได้
-              child: PopupProvider(
+            return PopupProvider(
                 config: currentConfig,
                 setConfig: (PopupConfig newConfig) {
                   setState(() {
                     currentConfig = newConfig; // รีเฟรชกรอบ Popup ใหม่
                   });
                 },
-                child: Align(
-                  alignment: Alignment.bottomCenter,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 350), // 👈 ตั้งความเร็วตอนเลื่อนความสูง
                     curve: Curves.easeOutCubic,
@@ -60,47 +46,13 @@ class DynamicPushPopup {
                           ? MediaQuery.of(context).size.height * 0.9
                           : currentConfig.maxHeight,
                     ),
-                    child: Material(
-                      borderRadius: BorderRadius.circular(40),
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.backgroundColor,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(40),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.10),
-                              blurRadius: 30,
-                              spreadRadius: 10,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                        ),
-                        child: SafeArea(
-                          top: false,
-                          bottom: currentConfig.safeArea,
-                          left: currentConfig.safeArea,
-                          right: currentConfig.safeArea,
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxHeight: MediaQuery.of(context).size.height * 0.88,
-                            ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               spacing: 15,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-                                  child: Column(
+                                Column(
                                     spacing: 15,
                                     children: [
-                                      Container(
-                                        color: const Color(0xFFA6A6A6),
-                                        width: 70,
-                                        height: 3,
-                                      ),
                                       Column(
                                         spacing: 1,
                                         children: [
@@ -189,7 +141,6 @@ class DynamicPushPopup {
                                         ],
                                       ),
                                     ],
-                                  )
                                 ),
 
                                 // 4. พื้นที่เนื้อหาที่มี Navigator ฝังอยู่
@@ -214,13 +165,7 @@ class DynamicPushPopup {
                                 )
                               ],
                             ),
-                          ),
-                        ),
-                      ),
-                    ),
                   ),
-                ),
-              ),
             );
           },
         );
