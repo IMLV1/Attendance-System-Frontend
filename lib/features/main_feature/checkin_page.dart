@@ -464,8 +464,8 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _cardtime(),
-            // 🚩 (2026-08-24) Flexible + FittedBox ข้างใน (ดู _buttonCheckin)
-            // ทำให้บล็อกปุ่ม "ยอมหด" เมื่อที่ไม่พอ แทนที่จะดันจนล้น
+            // 🚩 (2026-08-24) Flexible จำกัดความสูงของบล็อกปุ่มไว้เท่าที่เหลือจริง
+            // แล้ว SingleChildScrollView ข้างใน _buttonCheckin จะเลื่อนเอาเองถ้าไม่พอ
             //
             // เจอตอนกดเช็คอินสำเร็จ: ข้อความ "บันทึกเวลา ... เรียบร้อยแล้ว"
             // โผล่เพิ่มมา 1 บรรทัด -> overflow 4px (console: RenderFlex overflowed
@@ -637,13 +637,10 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       child: Column(
         children: [
           // Bug 1.2: Reduced sizes for mobile layout
-          // 🚩 (2026-08-24) ที่ไม่พอเมื่อไหร่ ให้ปุ่มหดลงตามสัดส่วน (เรดาร์/ไอคอน/
-          // ตัวหนังสือ/เงา หดตามกันหมด) แทนที่จะล้นออกนอกจอ
-          // ถ้าที่พอ FittedBox จะไม่ทำอะไรเลย -> หน้าตาเหมือนเดิมเป๊ะ
-          Flexible(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Stack(
+          // ⚠️ ห้ามใส่ Flexible/Expanded ตรงนี้ — Column นี้อยู่ใน
+          // SingleChildScrollView ซึ่งให้ความสูงแบบ "ไม่จำกัด" ลูกที่เป็น flex
+          // เลยคำนวณสัดส่วนไม่ได้ -> "RenderBox was not laid out" ยิงรัวทุกเฟรม
+          Stack(
             alignment: Alignment.center,
             children: [
               RadarAnimation(color: buttonColor),
@@ -708,8 +705,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                 ),
               ),
             ],
-          ),
-            ),
           ),
 
           const SizedBox(height: 8),
