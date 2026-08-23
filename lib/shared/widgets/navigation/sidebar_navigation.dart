@@ -58,17 +58,26 @@ class _SideBarNavigationState extends State<SideBarNavigation> {
     //
     // ตอนนี้จัดเป็น Column ตรงๆ: โลโก้ / รายการเมนูที่ Expanded / แถบโปรไฟล์
     // ซึ่งกำหนดความสูงได้ชัดเจนโดยไม่ต้องพึ่งพฤติกรรมของช่องใน Scaffold
+    final targetWidth = _collapsed ? _sideBarCollapsedWidth : _sideBarWidth;
+
     return _SideBarCollapsed(
       collapsed: _collapsed,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
-        width: _collapsed ? _sideBarCollapsedWidth : _sideBarWidth,
+        width: targetWidth,
         child: Material(
         color: AppColors.sideBarColor,
-        // กันเนื้อหาล้นออกนอกกรอบระหว่างที่ความกว้างกำลังไล่ย่อ
         clipBehavior: Clip.hardEdge,
-        child: Column(
+        // 🚩 ระหว่างที่ความกว้างไล่จาก 300 ลง 76 ลูกๆ จะถูกบีบตามทุกเฟรม
+        // ทำให้ Row ทั้งหัวโลโก้และปุ่มเมนู overflow รัวๆ (เจอบน iPad จริง)
+        // OverflowBox บังคับให้เนื้อหาวางที่ "ความกว้างปลายทาง" เสมอ
+        // แล้วปล่อยให้ clipBehavior ข้างบนตัดส่วนเกินระหว่างทางแทน
+        child: OverflowBox(
+          alignment: Alignment.centerLeft,
+          minWidth: targetWidth,
+          maxWidth: targetWidth,
+          child: Column(
           children: [
             _SideBarLogo(
               collapsed: _collapsed,
@@ -119,6 +128,7 @@ class _SideBarNavigationState extends State<SideBarNavigation> {
             ),
             const _SideBarProfile(),
           ],
+        ),
         ),
       ),
     ),
