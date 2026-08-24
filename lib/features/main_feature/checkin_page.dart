@@ -569,7 +569,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          // stretch = ลูกทั้งสองได้ความสูงเต็มเท่ากัน ฝั่งซ้ายค่อยจัดวงกลม
+          // กึ่งกลางเอง ฝั่งขวาเรียงจากบนลงมา — ทั้งสองฝั่งจึงนิ่ง ไม่ขยับตามกัน
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 32,
           children: [
             // ฝั่งลงมือ — กว้างกว่าอีกฝั่งเล็กน้อยเพราะวงกลม+เรดาร์กินที่รอบตัว
@@ -581,63 +583,61 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
               // ดูเล็กจนไม่เหมือนเป็นของหลักของหน้า
               child: Center(child: _buttonCheckin(circleSize: 280, large: true)),
             ),
-            Expanded(flex: 5, child: _todayPanel()),
+            Expanded(
+              flex: 5,
+              child: Column(
+                // ชิดบน ไม่ใช่กึ่งกลาง — กล่องจะได้อยู่ที่เดิมเสมอ ไม่ขยับตาม
+                // จำนวนแถวประวัติที่ดึงมาได้
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _sideBox(child: _cardtime(large: true)),
+                  const SizedBox(height: 16),
+                  _sideBox(child: _currentstate(bare: true)),
+                  const SizedBox(height: 16),
+                  _sideBox(child: _recentBox()),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// แผง "วันนี้" — นาฬิกากับสถานะรวมเป็นก้อนเดียว (ใช้เฉพาะ layout จอกว้าง)
+  /// กล่องมาตรฐานของคอลัมน์ขวา — เทาห่อขาว เป็นภาษาเดียวกับหน้า /statistic
   ///
-  /// เดิมเป็นการ์ดสองใบลอยแยกกัน ซึ่งบนจอกว้างดูเหมือนของสองชิ้นที่บังเอิญมา
-  /// อยู่ใกล้กัน ทั้งที่มันตอบคำถามเดียวกันคือ "ตอนนี้กี่โมง แล้ววันนี้ลงเวลา
-  /// ไปยังไงบ้าง" — รวมเป็นแผงเดียวแล้วอ่านเป็นเรื่องเดียวกัน และได้ก้อนที่
-  /// มีน้ำหนักพอจะถ่วงกับวงกลมฝั่งซ้าย
-  ///
-  /// เทาห่อขาวเป็นภาษาเดียวกับที่ใช้ในหน้า /statistic อยู่แล้ว
-  Widget _todayPanel() {
+  /// แยกเป็นกล่องละเรื่องแทนที่จะรวมเป็นแผงเดียว: นาฬิกา / สถานะวันนี้ /
+  /// ประวัติล่าสุด เป็นคนละเรื่องกัน ขอบกล่องช่วยบอกว่าอ่านจบเรื่องนึงแล้ว
+  Widget _sideBox({required Widget child}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: const Color(0xFFEAEAEA),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _cardtime(large: true),
-          const SizedBox(height: 22),
-          _currentstate(bare: true),
-          _recentSection(),
-        ],
-      ),
+      child: child,
     );
   }
 
-  /// ประวัติ 5 วันล่าสุด — ต่อท้ายแผง "วันนี้"
+  /// ความสูงที่จองไว้ให้การ์ดประวัติ — 5 แถว × 40
+  ///
+  /// 🚩 จองตายตัวไว้เลย ไม่ปล่อยให้สูงตามจำนวนแถวจริง เพราะจำนวนแถวมาทีหลัง
+  /// (โหลดแยก) และเปลี่ยนไปตามข้อมูลของแต่ละคน ถ้าปล่อยให้ยืดหด กล่องด้านบน
+  /// จะกระโดดตอนข้อมูลมาถึง และคนละบัญชีจะเห็น layout คนละแบบ
+  static const double _recentRowHeight = 40;
+  static const int _recentRowCount = 5;
+
+  /// ประวัติ 5 วันล่าสุด
   ///
   /// ตอบคำถามที่คนถามจริงบนหน้านี้: "เมื่อวานลืมเช็คเอาท์รึเปล่า" โดยไม่ต้อง
   /// ออกจากหน้า ส่วนคนที่อยากดูละเอียดมีปุ่มไป /attendance-history ให้
   ///
-  /// ยังไม่รู้ผล -> โชว์ตัวหมุนเล็กๆ · ไม่มีข้อมูล/ดึงไม่สำเร็จ -> ซ่อนทั้งก้อน
-  /// (ไม่ขึ้น error ให้รก เพราะไม่ใช่ของหลักของหน้า และหน้ายังใช้เช็คอินได้ปกติ)
-  Widget _recentSection() {
-    final items = _recentHistory;
-
-    if (items == null) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 22),
-        child: Center(child: CupertinoActivityIndicator()),
-      );
-    }
-    if (items.isEmpty) return const SizedBox.shrink();
-
+  /// กล่องสูงคงที่เสมอ ไม่ว่าจะกำลังโหลด / ว่าง / มีกี่แถว
+  Widget _recentBox() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 22),
         Row(
           children: [
             SizedBox(
@@ -678,10 +678,45 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           ],
         ),
         const SizedBox(height: 5),
-        SeparatorCard(
-          separatorPadding: const EdgeInsets.symmetric(horizontal: 15),
-          children: [for (final m in items) _recentRow(m)],
+        Container(
+          height: _recentRowHeight * _recentRowCount,
+          decoration: BoxDecoration(
+            color: AppColors.cardColor,
+            borderRadius: BorderRadius.circular(22),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: _recentBody(),
         ),
+      ],
+    );
+  }
+
+  Widget _recentBody() {
+    final items = _recentHistory;
+
+    if (items == null) {
+      return const Center(child: CupertinoActivityIndicator());
+    }
+    if (items.isEmpty) {
+      return Center(
+        child: Text(
+          'ยังไม่มีประวัติ',
+          style: TextStyle(fontSize: 14, color: AppColors.lightTextColor),
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < items.length; i++) ...[
+          if (i > 0)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              child: Divider(height: 0),
+            ),
+          _recentRow(items[i]),
+        ],
       ],
     );
   }
@@ -691,8 +726,10 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     final checkIn = m.checkIn?.trim();
     final checkOut = m.checkOut?.trim();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 11),
+    return SizedBox(
+      height: _recentRowHeight,
+      child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Row(
         children: [
           Expanded(
@@ -721,15 +758,19 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             Text(
               (checkOut == null || checkOut.isEmpty) ? '--:--' : checkOut,
               // ลืมเช็คเอาท์เป็นเคสที่คนเปิดหน้านี้มาหา — ทำให้เห็นชัดกว่าเวลาปกติ
+              //
+              // 🚩 ห้ามใช้ AppColors.titleColor ตรงนี้ — ชื่อมันชวนเข้าใจผิดว่าเป็น
+              // "สีตัวหนังสือหัวข้อ" แต่ค่าจริงคือ 0xFFFFFFFF (ขาว) ซึ่งมีไว้ใช้บน
+              // พื้นสีเข้ม (เช่นตัวหนังสือในวงกลมเช็คอิน) เอามาใช้บนการ์ดขาวแล้ว
+              // เวลาเช็คเอาท์หายไปเลย — `color: null` = ใช้สีปกติเท่าช่องเช็คอิน
               style: TextStyle(
                 fontSize: 14,
-                color: (checkOut == null || checkOut.isEmpty)
-                    ? Colors.red
-                    : AppColors.titleColor,
+                color: (checkOut == null || checkOut.isEmpty) ? Colors.red : null,
               ),
             ),
           ],
         ],
+      ),
       ),
     );
   }
