@@ -4,6 +4,7 @@ import 'package:attendance_system/features/main_feature/leave_request/leave_type
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
@@ -123,6 +124,7 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
     recentLeaves.sort((a, b) => b.dateStart.toLocal().millisecondsSinceEpoch.compareTo(a.dateStart.toLocal().millisecondsSinceEpoch));
 
     return AppScaffold(
+      maxWidth: Responsive.widthFor(ContentShape.list),
       header: Header.mainHeader(
         context,
         title: 'ส่งคำขอลางาน',

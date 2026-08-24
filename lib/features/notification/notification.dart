@@ -2,6 +2,7 @@ import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/services/notification/notification_model.dart';
 import 'package:attendance_system/services/notification/notification_provider.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
@@ -29,6 +30,7 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      maxWidth: Responsive.widthFor(ContentShape.list),
       hideNavigation: true, // Hide bottom navigation when viewing notifications
       header: Header.subHeader(
         context,

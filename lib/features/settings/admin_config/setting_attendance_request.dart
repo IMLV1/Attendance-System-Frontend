@@ -2,6 +2,7 @@ import 'package:attendance_system/core/utils/navigation_guard.dart';
 import 'package:attendance_system/features/settings/admin_config/admin_config_utils.dart';
 import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_model.dart';
 import 'package:attendance_system/services/system_config/attendance_request/config_attendance_request_service.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
@@ -60,6 +61,7 @@ class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
     );
 
     return AppScaffold(
+      maxWidth: Responsive.widthFor(ContentShape.form),
         header: Header.subHeader(
             context, title: 'ตั้งค่าการขออนุมัติเวลา',
             onBack: () {

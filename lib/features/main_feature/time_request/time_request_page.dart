@@ -2,6 +2,7 @@ import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/features/main_feature/time_request/time_request_popup_detail.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
@@ -44,6 +45,7 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
   Widget build(BuildContext context) {
 
     return AppScaffold(
+      maxWidth: Responsive.widthFor(ContentShape.list),
       header: Header.mainHeader(
         context,
         title: 'ขออนุมัติเวลาเข้า-ออกงาน',

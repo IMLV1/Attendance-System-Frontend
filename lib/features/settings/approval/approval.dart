@@ -28,6 +28,7 @@ class ApprovalState extends State<Approval> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      maxWidth: Responsive.widthFor(ContentShape.list),
       header: Header.subHeader(
         context,
         title: 'อนุมัติคำขอ',
@@ -44,7 +45,7 @@ class ApprovalState extends State<Approval> {
               // ไม่งั้นแท็บกางยาวจนไม่ตรงกับการ์ดที่อยู่ใต้มัน
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: Responsive.contentMaxWidth),
+                  constraints: BoxConstraints(maxWidth: Responsive.widthFor(ContentShape.list)),
                   child: Row(
                 children: [
                   // Attendance Tab

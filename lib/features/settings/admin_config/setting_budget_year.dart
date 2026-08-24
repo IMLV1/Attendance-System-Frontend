@@ -130,6 +130,10 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
     );
 
     return AppScaffold(
+        // 🚩 (Phase 3) เดิม 1100 ทำให้ label/value ของ IconTextValueButton
+        // (เช่น "วันที่เริ่มต้นปีงบประมาณ" / "1 มกราคม") ห่างกันเกือบทั้งจอ ทั้งที่
+        // ทั้งหน้ามีฟิลด์เดียว (ดู PHASE3_PAGE_DESIGN.md หัวข้อ /settings/budget-year)
+        maxWidth: 480,
         header: Header.subHeader(context,
           title: 'ตั้งค่าปีงบประมาณ',
           onBack: () {

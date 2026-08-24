@@ -3,6 +3,7 @@ import 'package:attendance_system/services/history/attendance_history_model.dart
 import 'package:attendance_system/services/history/attendance_history_service.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/date_filter_popup.dart';
@@ -128,6 +129,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
     _checkInLeaveMin = setting?.checkInLeaveTime.minute?? 0;
 
     return AppScaffold(
+      maxWidth: Responsive.widthFor(ContentShape.list),
       header: Header.subHeader(context, title: "บันทึกการเข้างาน"),
       content: SafeArea(
         child: Container(

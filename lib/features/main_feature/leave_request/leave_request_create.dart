@@ -8,6 +8,7 @@ import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
@@ -129,6 +130,9 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
   Widget build(BuildContext context) {
 
     return AppScaffold(
+        // 🚩 (Phase 3) เดิม 1100 ทำให้ป้าย/ช่องกรอกอยู่ห่างกันเกินสายตากวาดถึง
+        // (ดู PHASE3_PAGE_DESIGN.md ข้อ 1 + หัวข้อ /leave-request/create)
+        maxWidth: Responsive.widthFor(ContentShape.form),
         header: Header.subHeader(
             context,
             title: 'สร้างคำขอ',
