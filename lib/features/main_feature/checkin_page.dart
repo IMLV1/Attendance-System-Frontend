@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
+import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
+import 'package:attendance_system/services/history/attendance_history_model.dart';
+import 'package:attendance_system/services/history/attendance_history_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -12,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/network/api_client.dart';
@@ -56,6 +60,13 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   // 🚩 แก้ (2026-08-13): กันไม่ให้นาฬิกาโชว์เวลา local ก่อนแล้วค่อยกระโดดไปเวลา server
   // (เห็นเป็นจังหวะ "กระตุก" ตอนเข้าหน้า) — ไม่โชว์เวลาจนกว่าจะ sync เสร็จ (สำเร็จหรือ fail ก็ได้)
   bool _timeSynced = false;
+
+  /// ประวัติ 5 วันล่าสุด — ใช้เฉพาะ layout จอกว้าง
+  ///
+  /// `null` = ยังไม่รู้ผล (กำลังโหลด) · `[]` = ไม่มีข้อมูลหรือดึงไม่สำเร็จ -> ซ่อนไปเลย
+  /// **ห้ามให้ก้อนนี้บล็อกการเช็คอินเด็ดขาด** — ยิงแยกไม่ await และพังเงียบๆ ได้
+  List<AttendanceHistoryModel>? _recentHistory;
+  bool _recentRequested = false;
 
   // Bug 1.3: Inline feedback state
   String _feedbackMessage = '';
@@ -120,6 +131,37 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           _timeSynced = true;
         });
       }
+    }
+  }
+
+  /// ดึงประวัติล่าสุดสำหรับแผงฝั่งขวาของ layout จอกว้าง
+  ///
+  /// ยิงตอนเข้าโหมด expanded ครั้งแรกเท่านั้น — มือถือไม่ต้องเสีย request ทิ้ง
+  /// เพราะไม่มีที่จะโชว์อยู่แล้ว
+  Future<void> _loadRecentHistory() async {
+    try {
+      // ขอเกิน 5 มา 1 เผื่อแถวของ "วันนี้" ที่จะถูกตัดออก (สถานะวันนี้มีอยู่
+      // ในแผงด้านบนแล้ว โชว์ซ้ำในประวัติจะกลายเป็นข้อมูลเดียวกันสองที่)
+      final res = await AttendanceHistoryService().fetchHistory(limit: 6);
+      if (!mounted) return;
+
+      final body = res.data;
+      // ส่ง limit ไป backend ตอบ {data, total, has-more} · ไม่ส่งจะตอบ array ดิบ
+      final rawList = body is Map ? (body['data'] as List? ?? const []) : (body as List? ?? const []);
+
+      final now = DateTime.now();
+      bool isToday(DateTime d) =>
+          d.year == now.year && d.month == now.month && d.day == now.day;
+
+      setState(() {
+        _recentHistory = AttendanceHistoryModel.getList(rawList)
+            .where((m) => !isToday(m.date))
+            .take(5)
+            .toList();
+      });
+    } catch (e) {
+      debugPrint('ℹ️ ดึงประวัติล่าสุดไม่ได้ (ไม่กระทบการเช็คอิน): $e');
+      if (mounted) setState(() => _recentHistory = const []);
     }
   }
 
@@ -517,6 +559,12 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   ///
   /// สองฝั่งจัดกึ่งกลางแนวตั้งแยกกัน ความสูงไม่เท่ากันจึงไม่เป็นไร
   Widget _wideContent() {
+    if (!_recentRequested) {
+      _recentRequested = true;
+      // ยิงหลังเฟรมนี้ กัน setState ระหว่าง build
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadRecentHistory());
+    }
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -562,10 +610,150 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           _cardtime(large: true),
           const SizedBox(height: 22),
           _currentstate(bare: true),
+          _recentSection(),
         ],
       ),
     );
   }
+
+  /// ประวัติ 5 วันล่าสุด — ต่อท้ายแผง "วันนี้"
+  ///
+  /// ตอบคำถามที่คนถามจริงบนหน้านี้: "เมื่อวานลืมเช็คเอาท์รึเปล่า" โดยไม่ต้อง
+  /// ออกจากหน้า ส่วนคนที่อยากดูละเอียดมีปุ่มไป /attendance-history ให้
+  ///
+  /// ยังไม่รู้ผล -> โชว์ตัวหมุนเล็กๆ · ไม่มีข้อมูล/ดึงไม่สำเร็จ -> ซ่อนทั้งก้อน
+  /// (ไม่ขึ้น error ให้รก เพราะไม่ใช่ของหลักของหน้า และหน้ายังใช้เช็คอินได้ปกติ)
+  Widget _recentSection() {
+    final items = _recentHistory;
+
+    if (items == null) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 22),
+        child: Center(child: CupertinoActivityIndicator()),
+      );
+    }
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 22),
+        Row(
+          children: [
+            SizedBox(
+              height: 15,
+              width: 15,
+              child: SvgPicture.asset('assets/images/icon_attendance_history.svg'),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              'ล่าสุด',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w300),
+            ),
+            const Spacer(),
+            InkWell(
+              onTap: () => context.pushNamed(RouteNames.attendanceHistory),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                child: Row(
+                  children: [
+                    Text(
+                      'ดูทั้งหมด',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.greyTextColor,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    SizedBox(
+                      height: 9,
+                      width: 9,
+                      child: SvgPicture.asset('assets/images/icon_next.svg'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        SeparatorCard(
+          separatorPadding: const EdgeInsets.symmetric(horizontal: 15),
+          children: [for (final m in items) _recentRow(m)],
+        ),
+      ],
+    );
+  }
+
+  Widget _recentRow(AttendanceHistoryModel m) {
+    final onLeave = (m.leavePeriod ?? 'NONE') != 'NONE';
+    final checkIn = m.checkIn?.trim();
+    final checkOut = m.checkOut?.trim();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 11),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '${_shortDow(m)} ${m.date.day} ${_shortThaiMonth(m.date.month)}',
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+          if (onLeave)
+            Text(
+              'ลางาน',
+              style: TextStyle(fontSize: 14, color: AppColors.greyTextColor),
+            )
+          else ...[
+            Text(
+              (checkIn == null || checkIn.isEmpty) ? '--:--' : checkIn,
+              style: const TextStyle(fontSize: 14),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                '–',
+                style: TextStyle(fontSize: 14, color: AppColors.lightTextColor),
+              ),
+            ),
+            Text(
+              (checkOut == null || checkOut.isEmpty) ? '--:--' : checkOut,
+              // ลืมเช็คเอาท์เป็นเคสที่คนเปิดหน้านี้มาหา — ทำให้เห็นชัดกว่าเวลาปกติ
+              style: TextStyle(
+                fontSize: 14,
+                color: (checkOut == null || checkOut.isEmpty)
+                    ? Colors.red
+                    : AppColors.titleColor,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// backend ส่ง `dow` เป็นชื่อเต็มภาษาไทย — ในแถวแคบๆ ใช้ตัวย่อพอ
+  String _shortDow(AttendanceHistoryModel m) {
+    const short = {
+      'จันทร์': 'จ',
+      'อังคาร': 'อ',
+      'พุธ': 'พ',
+      'พฤหัสบดี': 'พฤ',
+      'ศุกร์': 'ศ',
+      'เสาร์': 'ส',
+      'อาทิตย์': 'อา',
+    };
+    final full = m.dow?.trim();
+    if (full != null && short.containsKey(full)) return short[full]!;
+    return const ['', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'][m.date.weekday];
+  }
+
+  String _shortThaiMonth(int month) => const [
+        '', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
+      ][month];
 
   void _startTimerLogic() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
