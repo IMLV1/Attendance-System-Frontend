@@ -25,7 +25,23 @@ class Header {
   ///
   /// ทางแก้จริงคือย้ายหน้าพวกนี้เข้า go_router (Phase 2) ตรงนี้แค่ทำให้ header
   /// ไม่ล้มเมื่อไม่มี route state ให้ถาม
+  /// 🚩 ห้ามเรียก `GoRouterState.of()` ถ้าหน้านี้ไม่ได้มาจาก route ของ go_router
+  ///
+  /// ข้างใน `GoRouterState.of()` ถ้าหา state จาก route ปัจจุบันไม่เจอ มันจะ**ไล่ขึ้น
+  /// ไปตาม Navigator ทีละชั้น** แล้วเรียก `dependOnInheritedWidgetOfExactType` บน
+  /// `context` **ของ Navigator** ซึ่งไม่ใช่ context ของ widget ที่กำลัง build อยู่
+  /// = จับ Navigator ไปเป็น dependent ของ registry
+  ///
+  /// พอ registry แจ้งเปลี่ยน Navigator ก็ rebuild ทั้งสาย -> หน้าเราถูก build ใหม่
+  /// -> ลงทะเบียนซ้ำ -> วนไม่จบ กิน CPU 100% แอปค้างสนิท (hot restart ก็ไม่ลง)
+  /// จับได้จาก CPU profile ของเครื่องจริง: 14,975 จาก 22,875 samples อยู่ที่
+  /// `_PersonnelLeaveState.build -> Header.subHeader -> Header._matchedLocation`
+  ///
+  /// เช็ค `settings is Page` ก่อนจึงตัดปัญหาที่ต้นทาง — route ของ go_router
+  /// ใช้ `Page` เสมอ ส่วนหน้าที่ push เองด้วย `MaterialPageRoute` ไม่ใช่
+  /// จึงคืน `null` ทันทีโดยไม่ต้องไล่ขึ้นไปไหน
   static String? _matchedLocation(BuildContext context) {
+    if (ModalRoute.of(context)?.settings is! Page) return null;
     try {
       return GoRouterState.of(context).matchedLocation;
     } on GoError {
