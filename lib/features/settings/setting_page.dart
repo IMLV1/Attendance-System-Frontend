@@ -35,12 +35,26 @@ class SettingPage extends StatelessWidget {
     // ตอนนี้ย้ายไป MenuAccess เพื่อให้ทั้งสองเมนูอ้างของชุดเดียวกัน
     final access = MenuAccess.of(context);
 
-    // 🚩 (Phase 3) บนจอที่มี sidebar ทุกรายการในหน้านี้อยู่ใน sidebar อยู่แล้ว
-    // ยกเว้น "เพิ่มลายเซ็น" กับ "ออกจากระบบ" — โชว์ซ้ำอีกหน้าเต็มๆ ไม่ได้ช่วยอะไร
-    // แถมทำให้ผู้ใช้สงสัยว่าสองเมนูนี้ต่างกันตรงไหน (PHASE3_PAGE_DESIGN.md
-    // หัวข้อ /settings) จอที่ใช้ bottom nav ยังต้องมีครบเหมือนเดิม เพราะที่นั่น
-    // หน้านี้คือทางเดียวที่จะเข้าถึงรายการพวกนี้ได้
-    final onlyUniqueItems = Responsive.showSidebar(context);
+    // 🚩 (Phase 3) บนจอที่มี sidebar รายการที่ซ้ำกับ sidebar ไม่ต้องโชว์ซ้ำ
+    // อีกหน้าเต็มๆ เพราะไม่ได้ช่วยอะไร แถมทำให้ผู้ใช้สงสัยว่าสองเมนูนี้ต่างกัน
+    // ตรงไหน (PHASE3_PAGE_DESIGN.md หัวข้อ /settings) จอที่ใช้ bottom nav
+    // ยังต้องมีครบเหมือนเดิม เพราะที่นั่นหน้านี้คือทางเดียวที่จะเข้าถึงได้
+    //
+    // 🚩 (2026-08-25) รอบแรกเขียนเป็น `onlyUniqueItems = showSidebar(context)`
+    // แล้วเอาไปซ่อน "ยกชุด" ทุกกลุ่ม โดยเข้าใจผิดว่าทุกรายการในหน้านี้อยู่ใน
+    // sidebar หมด — ความจริง sidebar มีแค่ 9 ปลายทางและไม่มีหน้า admin เลย
+    // ผลคือบน iPad แนวนอน/desktop แอดมินเข้า "จัดการผู้ใช้งานระบบ",
+    // "จัดการตำแหน่ง" และหน้าตั้งค่าระบบทั้ง 4 หน้าไม่ได้เลยสักทาง
+    // ต้องเทียบราย path กับ sidebar จริง ไม่ใช่เหมาว่ามี sidebar แล้วซ่อนหมด
+    bool duplicatesSidebar(String path) =>
+        Responsive.showSidebar(context) &&
+        sidebarDestinationByPath.containsKey(path);
+
+    // สองรายการนี้อยู่ใน sidebar ทั้งคู่ ต้องเช็คแยกทีละอัน แล้วค่อยตัดสินว่า
+    // ทั้งการ์ดยังต้องมีอยู่ไหม ไม่งั้นเหลือการ์ดเปล่าคาหน้าจอ
+    final showApproval = access.canApprove && !duplicatesSidebar('/approval');
+    final showPersonnel =
+        access.canViewPersonnel && !duplicatesSidebar('/personnel-info');
 
     return AppScaffold(
       header: Header.subHeader(context,
@@ -60,7 +74,7 @@ class SettingPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 spacing: 13,
                 children: [
-                  if (!onlyUniqueItems)
+                  if (!duplicatesSidebar('/attendance-history'))
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
@@ -69,21 +83,21 @@ class SettingPage extends StatelessWidget {
                         }, icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
                       ]
                     ),
-                  if (!onlyUniqueItems && access.hasApprovalGroup)
+                  if (showApproval || showPersonnel)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
-                        if (access.canApprove)
+                        if (showApproval)
                           IconTextButton(onPressed: () {
                             context.pushNamed(RouteNames.approval);
                           }, icon: 'icon_approval.svg', label: 'อนุมัติคำขอ'),
-                        if (access.canViewPersonnel)
+                        if (showPersonnel)
                           IconTextButton(onPressed: () {
                             context.pushNamed(RouteNames.personnelInfo);
                           }, icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
                       ]
                     ),
-                  if (!onlyUniqueItems && access.canManageUsers)
+                  if (access.canManageUsers)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
@@ -95,7 +109,7 @@ class SettingPage extends StatelessWidget {
                         },icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
                       ]
                   ),
-                  if (!onlyUniqueItems && access.canConfigSystem)
+                  if (access.canConfigSystem)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [

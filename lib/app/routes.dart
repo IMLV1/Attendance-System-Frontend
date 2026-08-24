@@ -25,6 +25,16 @@ import '../features/settings/approval/approval.dart';
 import '../features/settings/role_management/role_management.dart';
 import '../service_locator.dart';
 
+/// ปลายทางที่ผู้ใช้ขอมาตอนเปิดแอป ก่อนโดนพักไว้ที่ /splash เพื่อรอ auth
+///
+/// 🚩 (2026-08-25) เดิมไม่ได้จำไว้ พอ auth เช็คเสร็จก็โยนเข้า /check-in ทุกครั้ง
+/// บน web แปลว่ากด F5 ค้างอยู่หน้าไหนก็เด้งกลับหน้าเช็คอินหมด และลิงก์ตรงไป
+/// หน้าใดหน้าหนึ่งใช้ไม่ได้เลย
+String? _pendingLocation;
+
+/// หน้าที่เป็นแค่ทางผ่าน ไม่ควรถูกจำเป็นปลายทาง
+const _transientLocations = {'/splash', '/login'};
+
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
   initialLocation: '/login',
@@ -33,17 +43,27 @@ final appRouter = GoRouter(
     final location = state.matchedLocation;
 
     if (auth.status == AuthStatus.unknown) {
-      return location == '/splash' ? null : '/splash';
+      if (location == '/splash') return null;
+      // ใช้ uri ไม่ใช่ matchedLocation จะได้เก็บ query string ติดไปด้วย
+      if (!_transientLocations.contains(location)) {
+        _pendingLocation = state.uri.toString();
+      }
+      return '/splash';
     }
-
-    final isLogin = location == '/login';
 
     if (auth.status == AuthStatus.unauthenticated) {
-      return isLogin ? null : '/login';
+      if (location == '/login') return null;
+      if (!_transientLocations.contains(location)) {
+        _pendingLocation = state.uri.toString();
+      }
+      return '/login';
     }
 
-    if (auth.status == AuthStatus.authenticated && isLogin) {
-      return '/check-in';
+    // authenticated — ถ้ายังค้างอยู่ที่หน้าทางผ่าน ให้พากลับไปที่ที่ขอไว้
+    if (_transientLocations.contains(location)) {
+      final pending = _pendingLocation;
+      _pendingLocation = null;
+      return pending ?? '/check-in';
     }
 
     return null;

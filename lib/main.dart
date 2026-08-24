@@ -51,19 +51,16 @@ void main() async {
           create: (_) => NavigationGuard(),
         ),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        builder: (context, child) {
-          return GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
-            },
-            child: child!,
-          );
-        },
-        home: App(),
-      )
+      // 🚩 (2026-08-25) เดิมมี `MaterialApp` ครอบ `App()` อีกชั้น ทั้งที่ `App`
+      // เองก็เป็น `MaterialApp.router` อยู่แล้ว — MaterialApp ซ้อนกันแปลว่ามี
+      // Navigator สองตัว และตัวนอกเป็นคนรับ initial route จาก engine
+      // บน web จึงกิน path ที่ผู้ใช้เปิดมาทิ้ง (คอนโซลขึ้น "Could not navigate
+      // to initial route") go_router ไม่เคยเห็น URL จริง ตกไปใช้
+      // `initialLocation` ทุกครั้ง = เปิดลิงก์ตรงหรือกด F5 ก็เด้งกลับ /check-in
+      //
+      // ชั้นนอกมีไว้แค่ครอบ GestureDetector ปิดคีย์บอร์ด ย้ายไปเป็น `builder`
+      // ของ MaterialApp.router ใน app.dart แทน ได้ผลเหมือนกันแต่ไม่ซ้อน
+      child: const App(),
     ),
   );
 

@@ -13,6 +13,12 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: appRouter,
+      // แตะที่ว่างแล้วปิดคีย์บอร์ด — ย้ายมาจาก MaterialApp ชั้นนอกใน main.dart
+      builder: (context, child) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: child!,
+      ),
     );
   }
 }
