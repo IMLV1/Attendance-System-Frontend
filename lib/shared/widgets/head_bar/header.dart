@@ -1,4 +1,5 @@
 import 'package:attendance_system/app/route_names.dart';
+import 'package:attendance_system/core/utils/menu_access.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/notification/notification_provider.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -8,6 +9,17 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class Header {
+
+  /// ควรมีปุ่ม back มั้ย
+  ///
+  /// ถ้าจอนี้มี sidebar และหน้าปัจจุบันเป็นปลายทางของ sidebar แปลว่าผู้ใช้กดมา
+  /// ในคลิกเดียว ไม่ได้ถูก push มาจากไหน จึงไม่ควรมีปุ่ม back
+  /// (บนมือถือหน้าเดียวกันนี้ถูก push มาจากหน้าตั้งค่าจริงๆ จึงยังต้องมี)
+  static bool _showBackButton(BuildContext context) {
+    if (!context.canPop()) return false;
+    if (!Responsive.showSidebar(context)) return true;
+    return !sidebarDestinations.contains(GoRouterState.of(context).matchedLocation);
+  }
 
   // 🚩 (2026-08-24) เดิมทั้งสอง header คูณ scaleFactor (1.0 / 1.2 / 1.4) กับความสูง
   // แถบและขนาดไอคอนตามความกว้างจอ ทำให้แถบบน iPad/desktop ใหญ่เกินจริงและไม่ตรงกับ
@@ -39,7 +51,12 @@ class Header {
       // ตอนนี้ยึด go_router เป็นแหล่งความจริงเดียว:
       //   ถอยได้  -> โชว์ปุ่ม back (เคส push จริง)
       //   ถอยไม่ได้ -> ไม่โชว์ (เคสมาจาก sidebar)
-      leading: context.canPop()
+      //
+      // 🚩 เพิ่มเงื่อนไขที่สอง (24 ส.ค. หลังเห็นภาพหน้าจอ iPad):
+      // หน้าใต้ `/settings` เป็น route ลูก พอ context.go() ไปหา go_router จะสร้าง
+      // สแตกทั้งสายให้ (มีหน้าแม่คาอยู่) canPop() เลยตอบ true ทั้งที่กดมาจาก
+      // sidebar ตรงๆ — จึงต้องเช็คด้วยว่า path ปัจจุบันเป็น "ปลายทาง" รึเปล่า
+      leading: _showBackButton(context)
           ? IconButton(
               // onBack ของหน้าที่ส่งมาเองส่วนใหญ่เรียก maybePop() เพื่อให้
               // PopScope (เตือน "ยังไม่ได้บันทึก") ทำงาน — ต้องคงไว้
