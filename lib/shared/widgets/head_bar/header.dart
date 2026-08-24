@@ -25,7 +25,12 @@ class Header {
   // แถบและขนาดไอคอนตามความกว้างจอ ทำให้แถบบน iPad/desktop ใหญ่เกินจริงและไม่ตรงกับ
   // ขนาดตัวหนังสือที่ไม่ได้ถูกคูณตาม — ตกลงกันแล้วว่าใช้ขนาดเดียวทุกจอ
 
-  static AppBar subHeader(BuildContext context, {title = 'Default Title', VoidCallback? onBack}) {
+  /// `bottom` — แถบที่ต่อท้ายหัวข้อ เช่นแท็บของหน้าอนุมัติคำขอ
+  ///
+  /// 🚩 (2026-08-24) ต้องอยู่ใน AppBar ไม่ใช่ในเนื้อหา เพราะ `AppScaffold` จำกัด
+  /// ความกว้างเนื้อหาไว้ 1100 แถบที่มีพื้นหลังสีเดียวกับหัวจึงถูกบีบให้แคบกว่าหัว
+  /// เกิดเป็นรอยขั้นบันไดบนจอกว้าง (เห็นชัดที่หน้าอนุมัติคำขอ)
+  static AppBar subHeader(BuildContext context, {title = 'Default Title', VoidCallback? onBack, PreferredSizeWidget? bottom}) {
 
     // 🚩 (2026-08-24) บนจอที่มี sidebar หน้าใต้ `/settings` ไม่ใช่ "หน้าลูก" อีกต่อไป
     // มันคือปลายทางที่กดถึงในคลิกเดียว แต่ยังใช้ subHeader ซึ่งมีแค่ชื่อไทยจัดกลาง
@@ -35,12 +40,13 @@ class Header {
     // ทั้ง 28 จุด และไม่มีข้อมูลซ้ำให้หลุดกัน
     final dest = sidebarDestinationByPath[GoRouterState.of(context).matchedLocation];
     if (dest != null && Responsive.showSidebar(context)) {
-      return mainHeader(context, title: dest.name, subTitle: dest.nameEn, iconPath: dest.icon);
+      return mainHeader(context, title: dest.name, subTitle: dest.nameEn, iconPath: dest.icon, bottom: bottom);
     }
 
     return AppBar(
       backgroundColor: AppColors.barColor,
       elevation: 0,
+      bottom: bottom,
 
       leadingWidth: 56,
 
@@ -91,11 +97,12 @@ class Header {
     );
   }
 
-  static AppBar mainHeader(BuildContext context, {title = 'Default Title', String? subTitle, iconPath = 'google_logo.svg', iconColor = Colors.white}) {
+  static AppBar mainHeader(BuildContext context, {title = 'Default Title', String? subTitle, iconPath = 'google_logo.svg', iconColor = Colors.white, PreferredSizeWidget? bottom}) {
 
     return AppBar(
       backgroundColor: AppColors.barColor,
       elevation: 0,
+      bottom: bottom,
 
       /// ความสูง header
       toolbarHeight: 72,
