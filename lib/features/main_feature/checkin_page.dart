@@ -529,7 +529,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
               flex: 6,
               // Center กันเคสที่เนื้อหาสั้นกว่าความสูงที่ได้รับ ส่วน
               // SingleChildScrollView ข้างใน _buttonCheckin จะเลื่อนเองถ้าไม่พอ
-              child: Center(child: _buttonCheckin()),
+              // วงกลมใหญ่ขึ้นเฉพาะที่นี่ — บนจอกว้างขนาด 170 ที่จูนมาสำหรับมือถือ
+              // ดูเล็กจนไม่เหมือนเป็นของหลักของหน้า
+              child: Center(child: _buttonCheckin(circleSize: 240)),
             ),
             Expanded(
               flex: 5,
@@ -597,7 +599,20 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buttonCheckin() {
+  /// [circleSize] — เส้นผ่านศูนย์กลางวงกลมเช็คอิน
+  ///
+  /// 🚩 ทุกตัวเลขรอบวงกลมผูกกับค่านี้หมด อย่า hardcode เพิ่ม:
+  ///   เรดาร์      = วง + 10   (ให้ฟุ้งออกมานอกปุ่มนิดหน่อย)
+  ///   เงา         กว้าง 70% ของวง, ห่างจากขอบล่างปุ่ม = วง × 0.112
+  ///   padding เงา = 12 + วง + ระยะห่าง × 2  ← ได้มาจากการแก้สมการ
+  ///                 (ความสูง Stack = padding + 12 ซึ่งดันขอบล่างปุ่มลงมาครึ่งนึง)
+  ///   ไอคอน/ตัวอักษรในปุ่ม คูณตามสัดส่วน วง/170
+  ///
+  /// เช็คค่าเดิม: วง 170 -> padding = 12 + 170 + 19×2 = 220 ✓ ตรงกับที่จูนไว้เดิม
+  Widget _buttonCheckin({double circleSize = 170}) {
+    final scale = circleSize / 170;
+    final shadowGap = circleSize * 0.112;
+    final shadowTop = 12 + circleSize + shadowGap * 2;
     String state = _getButtonState(); // ดึงสถานะปัจจุบันตามเวลาจริง
     bool isWeekend = _checkIsWeekend();
 
@@ -709,16 +724,16 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           Stack(
             alignment: Alignment.center,
             children: [
-              RadarAnimation(color: buttonColor),
+              RadarAnimation(color: buttonColor, size: circleSize + 10),
               Padding(
                 // 🚩 (2026-08-22) เดิม 240 -> ดันความสูง Stack เป็น 252 ทั้งที่ปุ่มมีแค่ 170
                 // (เงาลอยห่างใต้ปุ่ม 29px) กินที่เกินจำเป็นจนหน้าไม่พอดีต้องเลื่อน
                 // สูตร: ระยะห่างเงาจากขอบล่างปุ่ม = (ค่านี้ - 182) / 2
                 // 202 -> เงาห่างปุ่ม 10px, Stack สูง 214 (ประหยัดไป 38px)
                 // ขนาดปุ่ม/เรดาร์/ระยะห่างระหว่าง component อื่นๆ เท่าเดิมทุกอย่าง
-                padding: EdgeInsets.only(top: 220),
+                padding: EdgeInsets.only(top: shadowTop),
                 child: Container(
-                  width: 120,
+                  width: circleSize * 0.7,
                   height: 12,
                   decoration: BoxDecoration(
                     boxShadow: [
@@ -740,8 +755,8 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                       : () => _handleCheckin(state),
                   customBorder: CircleBorder(),
                   child: Container(
-                    width: 170,
-                    height: 170,
+                    width: circleSize,
+                    height: circleSize,
                     decoration: BoxDecoration(
                       color: buttonColor,
                       shape: BoxShape.circle,
@@ -750,8 +765,8 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          height: 36,
-                          width: 36,
+                          height: 36 * scale,
+                          width: 36 * scale,
                           child: SvgPicture.asset(iconPath),
                         ),
                         SizedBox(height: 1),
@@ -760,7 +775,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                             : Text(
                           buttonText,
                           style: TextStyle(
-                            fontSize: fontSize,
+                            fontSize: fontSize * scale,
                             fontWeight: FontWeight.w700,
                             color: AppColors.titleColor,
                           ),
