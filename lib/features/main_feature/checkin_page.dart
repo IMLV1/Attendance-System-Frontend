@@ -476,7 +476,10 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       // 🚩 (Phase 3) จอที่วางคอลัมน์เดียว (มือถือ / iPad แนวตั้ง) กว้าง 1100 เกิน
       // จำเป็นมาก — 560 คือความกว้างที่วงกลมเช็คอินยังเป็นพระเอกอยู่
       // ส่วนโหมด expanded วางสองคอลัมน์จึงต้องการที่กว้างกว่านั้น
-      maxWidth: Responsive.mode(context) == LayoutMode.expanded ? 1000 : 560,
+      // จอกว้างไม่จำกัดความกว้าง — ตัวจัตุรัสถูกจำกัดด้วยความสูงอยู่แล้ว
+      maxWidth: Responsive.mode(context) == LayoutMode.expanded
+          ? double.infinity
+          : 560,
       header: Header.mainHeader(
         context,
         title: 'ลงเวลาปฏิบัติงาน',
@@ -498,49 +501,40 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       );
     }
 
-    // Bug 1.2: Use tighter padding and spacing for mobile layout
-    // 🚩 (2026-08-22) ไม่มี scroll แล้ว — ทุก component ต้องพอดีหน้าเดียว
-    //
-    // 🚩 (Phase 3, 2026-08-24) `spaceBetween` ถูกออกแบบมาสำหรับจอสูง ~830 ที่ทุก
-    // ก้อนเบียดกันพอดีอยู่แล้ว พอมาอยู่บนจอที่สูงกว่านั้นมันดันการ์ดนาฬิกาไปติด
-    // ขอบบน การ์ดสถานะไปติดขอบล่าง เหลือช่องว่าง ~300px กลางจอที่วงกลมเช็คอิน
-    // ลอยอยู่เฉยๆ (ดู PHASE3_PAGE_DESIGN.md หัวข้อ /check-in)
-    //
-    // จอ compact ยังใช้ spaceBetween เหมือนเดิมทุกประการ เพราะนั่นคือสิ่งที่ทำให้
-    // ทุก component พอดีหน้าเดียวโดยไม่ต้องเลื่อน — เปลี่ยนเฉพาะจอที่มีที่เหลือ
+    // ยิงโหลดประวัติครั้งเดียวพอ ไม่ว่าจะ layout ไหน
+    if (!_recentRequested) {
+      _recentRequested = true;
+      // ยิงหลังเฟรมนี้ กัน setState ระหว่าง build
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadRecentHistory());
+    }
+
     // โหมด expanded (iPad แนวนอน / desktop) มีที่ทางแนวนอนเหลือเฟือแต่ความสูง
     // จำกัด — ย่อ layout ของมือถือมาใส่จึงได้คอลัมน์ผอมๆ กลางจอที่เหลือที่ว่าง
     // สองข้างเปล่าๆ ตรงนี้จึงแยกเป็น layout ของตัวเองไปเลย
     if (Responsive.mode(context) == LayoutMode.expanded) return _wideContent();
 
-    final stackVertically = Responsive.mode(context) != LayoutMode.compact;
-
+    // 🚩 (2026-08-24, รอบสอง) เดิมจอแคบ "ห้ามเลื่อน" — ทุกก้อนต้องพอดีหน้าเดียว
+    // ซึ่งบังคับให้ใช้ spaceBetween + Flexible คุมความสูงบล็อกปุ่มแบบเบียดๆ
+    //
+    // พอเพิ่มประวัติล่าสุดเข้ามา (ให้มีเหมือนจอใหญ่) กติกานั้นใช้ไม่ได้อีกแล้ว
+    // เลยเปลี่ยนเป็นเรียงลงมาตรงๆ แล้วเลื่อนเอา ซึ่งได้ของแถมคือไม่ต้องกลัว
+    // overflow ตอนข้อความยาวขึ้น (เคสที่เคยทำให้ overflow 4px)
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 20,
-        ),
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: stackVertically
-              ? MainAxisAlignment.center
-              : MainAxisAlignment.spaceBetween,
           children: [
             _cardtime(),
-            if (stackVertically) const SizedBox(height: 32),
-            // 🚩 (2026-08-24) Flexible จำกัดความสูงของบล็อกปุ่มไว้เท่าที่เหลือจริง
-            // แล้ว SingleChildScrollView ข้างใน _buttonCheckin จะเลื่อนเอาเองถ้าไม่พอ
-            //
-            // เจอตอนกดเช็คอินสำเร็จ: ข้อความ "บันทึกเวลา ... เรียบร้อยแล้ว"
-            // โผล่เพิ่มมา 1 บรรทัด -> overflow 4px (console: RenderFlex overflowed
-            // by 4.0 pixels, constraints h<=593)
-            //
-            // แก้แบบเบียดพอดี 4px ไม่ปลอดภัย เพราะยังมีเคสอื่นที่ข้อความยาวกว่านี้
-            // (error message ยาวๆ / ชื่อวันหยุดยาว) แล้วตกบรรทัดเพิ่มอีก
-            Flexible(child: _buttonCheckin()),
-            SizedBox(height: stackVertically ? 32 : 6),
+            const SizedBox(height: 20),
+            // ตัวหน้ามี scroll ให้แล้ว บล็อกปุ่มจึงไม่ต้องมีของตัวเองซ้อนอีก
+            _buttonCheckin(scrollable: false),
+            const SizedBox(height: 20),
             _currentstate(),
+            const SizedBox(height: 13),
+            _sideBox(child: _recentBox()),
           ],
         ),
       ),
@@ -549,68 +543,60 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
   /// layout เฉพาะของ iPad แนวนอน / desktop — ไม่ใช่ layout มือถือที่ย่อมา
   ///
-  /// แบ่งตามหน้าที่ ไม่ใช่ตามลำดับที่เคยเรียงบนมือถือ:
-  ///   ซ้าย  = ฝั่ง "ลงมือ"  วงกลมเช็คอิน + ข้อความสถานะ + กติกาเวลา
-  ///   ขวา   = ฝั่ง "ข้อมูล" นาฬิกา + สรุปเช็คอิน/เช็คเอาท์ของวันนี้
+  /// ทั้งหน้าเป็น "กล่องสี่เหลี่ยมจัตุรัส" กลางจอ (ตามแบบที่ตกลงกัน) แล้วแบ่ง
+  /// ข้างในเป็นสองฝั่ง:
+  ///   ซ้าย 2 ส่วน = กล่องเช็คอิน  วงกลม + กติกาเวลา
+  ///   ขวา  1 ส่วน = เวลา / สถานะ / ประวัติ เรียงลงมา
   ///
-  /// วงกลมได้อยู่กลางครึ่งซ้ายทั้งครึ่ง จึงยังเป็นพระเอกโดยไม่ต้องขยายขนาด
-  /// (ขนาด 170 กับระยะเงาถูกจูนไว้สัมพันธ์กับเรดาร์ 180 — ดูคอมเมนต์ใน
-  /// `_buttonCheckin` ก่อนคิดจะแตะ)
-  ///
-  /// สองฝั่งจัดกึ่งกลางแนวตั้งแยกกัน ความสูงไม่เท่ากันจึงไม่เป็นไร
+  /// จัตุรัสทำให้สัดส่วนคงที่ไม่ว่าจอจะกว้างแค่ไหน — จอกว้างมากๆ ก็ไม่ยืดจน
+  /// วงกลมกับกล่องขวาห่างกันคนละมุม (ด้านที่สั้นกว่าเป็นตัวกำหนดขนาด)
   Widget _wideContent() {
-    if (!_recentRequested) {
-      _recentRequested = true;
-      // ยิงหลังเฟรมนี้ กัน setState ระหว่าง build
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadRecentHistory());
-    }
-
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // เวลาเป็นของกลางที่ทั้งสองฝั่งใช้ร่วมกัน (จะกดเช็คอินก็ดู จะอ่าน
-            // สถานะก็ดู) วางไว้ข้างใดข้างหนึ่งจึงผิด — ยกขึ้นเป็นแถบบนสุดเต็ม
-            // ความกว้าง แล้วค่อยแบ่งซ้าย/ขวาใต้มัน
-            _sideBox(child: _cardtime(large: true)),
-            const SizedBox(height: 24),
-            Expanded(
-              child: Row(
-                // stretch = ลูกทั้งสองได้ความสูงเต็มเท่ากัน ฝั่งซ้ายค่อยจัดวงกลม
-                // กึ่งกลางเอง ฝั่งขวาเรียงจากบนลงมา — ทั้งสองฝั่งจึงนิ่ง ไม่ขยับตามกัน
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 32,
-                children: [
-                  // ฝั่งลงมือ — กว้างกว่าอีกฝั่งเพราะวงกลม+เรดาร์กินที่รอบตัว
-                  Expanded(
-                    flex: 6,
-                    // Center กันเคสที่เนื้อหาสั้นกว่าความสูงที่ได้รับ ส่วน
-                    // SingleChildScrollView ข้างใน _buttonCheckin เลื่อนเองถ้าไม่พอ
-                    child: Center(
-                      child: _buttonCheckin(circleSize: 280, large: true),
-                    ),
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 16,
+              children: [
+                Expanded(flex: 2, child: _checkInBox()),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ไม่ห่อพื้นเทา — ใช้หน้าตาเดียวกับมือถือ (ป้ายจัดกลาง
+                      // ด้านบน แล้วการ์ดขาวข้างใต้)
+                      _cardtime(large: true),
+                      const SizedBox(height: 16),
+                      _sideBox(child: _currentstate(bare: true)),
+                      const SizedBox(height: 16),
+                      // ประวัติกินที่ที่เหลือทั้งหมด -> ขอบล่างของคอลัมน์ขวาชน
+                      // ขอบล่างของกล่องเช็คอินพอดี ได้จัตุรัสเต็มจริงๆ
+                      // ความสูงมาจาก layout ไม่ใช่จำนวนแถว จึงยังนิ่งเหมือนเดิม
+                      Expanded(child: _sideBox(child: _recentBox(fill: true))),
+                    ],
                   ),
-                  Expanded(
-                    flex: 5,
-                    child: Column(
-                      // ชิดบน ไม่ใช่กึ่งกลาง — กล่องอยู่ที่เดิมเสมอ ไม่ขยับตาม
-                      // จำนวนแถวประวัติที่ดึงมาได้
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _sideBox(child: _currentstate(bare: true)),
-                        const SizedBox(height: 16),
-                        _sideBox(child: _recentBox()),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  /// กล่องเช็คอิน — ไม่มีพื้นหลัง วงกลมกับกติกาเวลาเป็นก้อนเดียวกันจัดกึ่งกลาง
+  ///
+  /// ไม่ปักกติกาไว้ขอบล่าง เพราะมันเป็นคำอธิบายของปุ่ม ควรอยู่ติดปุ่ม
+  Widget _checkInBox() {
+    return Center(
+      child: _buttonCheckin(
+        circleSize: 280,
+        large: true,
+        scrollable: false,
       ),
     );
   }
@@ -644,7 +630,18 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   /// ออกจากหน้า ส่วนคนที่อยากดูละเอียดมีปุ่มไป /attendance-history ให้
   ///
   /// กล่องสูงคงที่เสมอ ไม่ว่าจะกำลังโหลด / ว่าง / มีกี่แถว
-  Widget _recentBox() {
+  /// [fill] — ให้การ์ดกินความสูงที่เหลือแทนความสูงคงที่ 5 แถว
+  ///   (ใช้ใน layout จัตุรัส ซึ่งความสูงมาจาก layout ไม่ใช่จำนวนแถว จึงยังนิ่ง)
+  Widget _recentBox({bool fill = false}) {
+    final card = Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardColor,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: _recentBody(),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -688,15 +685,10 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           ],
         ),
         const SizedBox(height: 5),
-        Container(
-          height: _recentRowHeight * _recentRowCount,
-          decoration: BoxDecoration(
-            color: AppColors.cardColor,
-            borderRadius: BorderRadius.circular(22),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: _recentBody(),
-        ),
+        if (fill)
+          Expanded(child: card)
+        else
+          SizedBox(height: _recentRowHeight * _recentRowCount, child: card),
       ],
     );
   }
@@ -718,6 +710,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         for (int i = 0; i < items.length; i++) ...[
           if (i > 0)
@@ -824,10 +817,8 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     return Column(
       children: [
         Row(
-          // ในแผง "วันนี้" ป้ายนี้อยู่เหนือป้าย "สถานะปัจจุบัน" ซึ่งชิดซ้าย
-          // ถ้าตัวนี้จัดกลางจะเห็นเป็นสองแนวในก้อนเดียวกันทันที
-          mainAxisAlignment:
-              large ? MainAxisAlignment.start : MainAxisAlignment.center,
+          // จัดกลางทุกจอ — กล่องเวลาบนจอกว้างใช้หน้าตาเดียวกับมือถือ
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
               height: 15,
@@ -879,7 +870,16 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   ///   ไอคอน/ตัวอักษรในปุ่ม คูณตามสัดส่วน วง/170
   ///
   /// เช็คค่าเดิม: วง 170 -> padding = 12 + 170 + 19×2 = 220 ✓ ตรงกับที่จูนไว้เดิม
-  Widget _buttonCheckin({double circleSize = 170, bool large = false}) {
+  /// [scrollable] — ห่อด้วย SingleChildScrollView ให้เองมั้ย
+  ///   ใส่ false เมื่อหน้าที่เรียกมี scroll ของตัวเองอยู่แล้ว (ไม่งั้นซ้อนกัน)
+  /// [showNote] — รวมกล่องกติกาเวลา (ⓘ) มาด้วยมั้ย
+  ///   ใส่ false เมื่ออยากวางกล่องนั้นเองคนละที่ (ดู `_checkInBox`)
+  Widget _buttonCheckin({
+    double circleSize = 170,
+    bool large = false,
+    bool scrollable = true,
+    bool showNote = true,
+  }) {
     final scale = circleSize / 170;
     final shadowGap = circleSize * 0.112;
     final shadowTop = 12 + circleSize + shadowGap * 2;
@@ -984,11 +984,11 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       }
     }
 
-    return SingleChildScrollView(
-      child: Column(
+    final body = Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Bug 1.2: Reduced sizes for mobile layout
-          // ⚠️ ห้ามใส่ Flexible/Expanded ตรงนี้ — Column นี้อยู่ใน
+          // ⚠️ ห้ามใส่ Flexible/Expanded ตรงนี้ — Column นี้อาจอยู่ใน
           // SingleChildScrollView ซึ่งให้ความสูงแบบ "ไม่จำกัด" ลูกที่เป็น flex
           // เลยคำนวณสัดส่วนไม่ได้ -> "RenderBox was not laid out" ยิงรัวทุกเฟรม
           Stack(
@@ -1083,11 +1083,28 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             ),
           ],
 
-          SizedBox(height: large ? 24 : 6),
+          if (showNote) ...[
+            SizedBox(height: large ? 24 : 6),
+            _infoNote(large: large),
+          ],
+        ],
+      );
 
-          // 🚩 บนจอกว้างข้อความกติกาเป็นบรรทัดจางๆ ลอยใต้ปุ่มดูเหมือนของหลุด
-          // ใส่การ์ดนุ่มๆ ให้มันเป็น "ก้อน" หนึ่งของหน้าแทน
-          Container(
+      return scrollable
+          ? SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: body,
+            )
+          : body;
+  }
+
+  /// กล่องกติกาเวลาเช็คอิน (ⓘ)
+  ///
+  /// 🚩 บนจอกว้างข้อความนี้เคยเป็นบรรทัดจางๆ ลอยใต้ปุ่มดูเหมือนของหลุด
+  /// ใส่การ์ดนุ่มๆ ให้มันเป็น "ก้อน" หนึ่งของหน้าแทน
+  Widget _infoNote({required bool large}) {
+    return Container(
             padding: large
                 ? const EdgeInsets.symmetric(horizontal: 18, vertical: 14)
                 : EdgeInsets.zero,
@@ -1122,9 +1139,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
               ),
             ],
           ),
-          ),
-        ],
-      ),
     );
   }
 
