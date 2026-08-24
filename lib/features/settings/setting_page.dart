@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:attendance_system/app/route_names.dart';
+import 'package:attendance_system/core/utils/menu_access.dart';
 import 'package:attendance_system/services/signature/signature_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
@@ -28,7 +29,10 @@ class SettingPage extends StatelessWidget {
     Uint8List? signature;
 
     AuthState authState = context.read<AuthState>();
-    List<String> userType = authState.user?.roleType ?? [];
+    // 🚩 (2026-08-24) เดิมเช็ค role เป็น list inline ตรงนี้ทีละจุด ซึ่งเป็น
+    // ที่เดียวในโปรเจกต์ที่มีกติกาถูกต้อง — sidebar ของ desktop ไม่ได้ใช้ตามนี้
+    // ตอนนี้ย้ายไป MenuAccess เพื่อให้ทั้งสองเมนูอ้างของชุดเดียวกัน
+    final access = MenuAccess.of(context);
 
     return AppScaffold(
       header: Header.subHeader(context,
@@ -56,21 +60,21 @@ class SettingPage extends StatelessWidget {
                       }, icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
                     ]
                   ),
-                  if (['admin', 'hr', 'main', 'special'].any((test) => userType.contains(test)))
+                  if (access.hasApprovalGroup)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
-                        if (['admin', 'main'].any((test) => userType.contains(test)))
+                        if (access.canApprove)
                           IconTextButton(onPressed: () {
                             context.pushNamed(RouteNames.approval);
                           }, icon: 'icon_approval.svg', label: 'อนุมัติคำขอ'),
-                        if (['admin', 'hr', 'main', 'special'].any((test) => userType.contains(test)))
+                        if (access.canViewPersonnel)
                           IconTextButton(onPressed: () {
                             context.pushNamed(RouteNames.personnelInfo);
                           }, icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
                       ]
                     ),
-                  if (['admin', 'hr'].any((test) => userType.contains(test)))
+                  if (access.canManageUsers)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
@@ -82,7 +86,7 @@ class SettingPage extends StatelessWidget {
                         },icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
                       ]
                   ),
-                  if (userType.contains('admin'))
+                  if (access.canConfigSystem)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [

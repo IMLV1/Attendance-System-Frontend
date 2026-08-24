@@ -11,6 +11,7 @@ import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.d
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
 import '../../../../shared/widgets/utils/services/service_updater_promax.dart';
+import '../../../../shared/widgets/utils/sliver_separator_list.dart';
 
 class AttendanceApproval extends StatefulWidget{
   const AttendanceApproval({super.key});
@@ -31,12 +32,11 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
   DateTime? filterStartAllow;
   DateTime? filterEndAllow;
 
+  /// ⚠️ build ตัวนี้คืน **sliver** ไม่ใช่ widget ปกติ — ต้องถูกวางใน CustomScrollView
+  /// ของ approval.dart เท่านั้น (ดูคอมเมนต์ในไฟล์นั้น)
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 13,
-      children: [
-        ServiceUpdaterProMax(
+    return ServiceUpdaterProMax(
             requests: [
               // ()=> Utils.mockResponse(
               //   data: {
@@ -110,14 +110,20 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
             },
             fetchOnInit: true,
             builder: (trigger, getState) {
-              return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ? Center(child: CupertinoActivityIndicator()) :
-              Column(
-                spacing: 13,
-                children: [
-                  Column(
-                    spacing: 6,
-                    children: [
-                      Row(
+              if (getState(0) == ServiceUpdaterProMaxState.loading &&
+                  getState(1) == ServiceUpdaterProMaxState.loading) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CupertinoActivityIndicator()),
+                );
+              }
+
+              return SliverMainAxisGroup(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 6),
+                      child: Row(
                         spacing: 6,
                         children: [
                           SizedBox(
@@ -134,7 +140,12 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                             CupertinoActivityIndicator(radius: 7)
                         ],
                       ),
-                      (pendingList.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading) ? SeparatorCard(
+                    ),
+                  ),
+
+                  if (pendingList.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading)
+                    SliverToBoxAdapter(
+                      child: SeparatorCard(
                         children: [
                           Container(
                             color: Colors.white,
@@ -150,12 +161,15 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                             ),
                           )
                         ],
-                      ) :
-                      SeparatorCard(
-                        separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                        children: [
-                          ...pendingList!.map((m) {
-                            return AppButton(
+                      ),
+                    )
+                  else
+                    SliverSeparatorList(
+                      separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                      itemCount: pendingList.length,
+                      itemBuilder: (context, index) {
+                          final m = pendingList[index];
+                          return AppButton(
                               icon: 'icon_pending.svg',
                               iconColor: Color(0xFFE79E00),
                               title: m.name,
@@ -207,15 +221,15 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                                 ).showPopup(context);
                               },
                             );
-                          })
-                        ],
-                      )
-                    ],
-                  ),
-                  Column(
-                    spacing: 6,
-                    children: [
-                      Row(
+                      },
+                    ),
+
+                  SliverToBoxAdapter(child: SizedBox(height: 13)),
+
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 6),
+                      child: Row(
                         spacing: 6,
                         children: [
                           SizedBox(
@@ -265,8 +279,12 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
 
                         ],
                       ),
-                      (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading) ?
-                      SeparatorCard(
+                    ),
+                  ),
+
+                  if (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading)
+                    SliverToBoxAdapter(
+                      child: SeparatorCard(
                         children: [
                           Container(
                             color: Colors.white,
@@ -282,12 +300,15 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                             ),
                           )
                         ],
-                      ) :
-                      SeparatorCard(
-                        separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                        children: [
-                          ...recentList!.map((m) {
-                            return AppButton(
+                      ),
+                    )
+                  else
+                    SliverSeparatorList(
+                      separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                      itemCount: recentList.length,
+                      itemBuilder: (context, index) {
+                          final m = recentList[index];
+                          return AppButton(
                               icon: switch(m?.status) {
                                 'approved' => 'icon_success.svg',
                                 'rejected' => 'icon_cancel.svg',
@@ -358,16 +379,11 @@ class _AttendanceApprovalState extends State<AttendanceApproval> {
                                 ).showPopup(context);
                               },
                             );
-                          })
-                        ],
-                      )
-                    ],
-                  )
+                      },
+                    ),
                 ],
               );
             }
-        )
-      ],
-    );
+        );
   }
 }

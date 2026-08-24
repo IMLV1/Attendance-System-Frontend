@@ -12,6 +12,7 @@ import '../../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.d
 import '../../../../shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
 import '../../../../shared/widgets/utils/separator_card.dart';
 import '../../../../shared/widgets/utils/services/service_updater_promax.dart';
+import '../../../../shared/widgets/utils/sliver_separator_list.dart';
 import '../../../main_feature/leave_request/leave_type.dart';
 import 'leave_approval_detail.dart';
 import 'leave_approval_detail_popup.dart';
@@ -36,12 +37,11 @@ class _LeaveApprovalState extends State<LeaveApproval> {
   DateTime? filterStartAllow;
   DateTime? filterEndAllow;
 
+  /// ⚠️ build ตัวนี้คืน **sliver** ไม่ใช่ widget ปกติ — ต้องถูกวางใน CustomScrollView
+  /// ของ approval.dart เท่านั้น (ดูคอมเมนต์ในไฟล์นั้น)
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 13,
-      children: [
-        ServiceUpdaterProMax(
+    return ServiceUpdaterProMax(
             requests: [
               () => LeaveApprovalService().pending(),
               () => LeaveApprovalService().recent(filterStart, filterEnd),
@@ -71,14 +71,20 @@ class _LeaveApprovalState extends State<LeaveApproval> {
             },
             fetchOnInit: true,
             builder: (trigger, getState) {
-              return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ? Center(child: CupertinoActivityIndicator()) :
-              Column(
-                spacing: 13,
-                children: [
-                  Column(
-                    spacing: 6,
-                    children: [
-                      Row(
+              if (getState(0) == ServiceUpdaterProMaxState.loading &&
+                  getState(1) == ServiceUpdaterProMaxState.loading) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CupertinoActivityIndicator()),
+                );
+              }
+
+              return SliverMainAxisGroup(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 6),
+                      child: Row(
                         spacing: 6,
                         children: [
                           SizedBox(
@@ -95,7 +101,12 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                             CupertinoActivityIndicator(radius: 7)
                         ],
                       ),
-                      (pendingList.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading) ? SeparatorCard(
+                    ),
+                  ),
+
+                  if (pendingList.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading)
+                    SliverToBoxAdapter(
+                      child: SeparatorCard(
                         children: [
                           Container(
                             color: Colors.white,
@@ -111,12 +122,15 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                             ),
                           )
                         ],
-                      ) :
-                      SeparatorCard(
-                        separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                        children: [
-                          ...pendingList.map((m) {
-                            return UserInfoButton(
+                      ),
+                    )
+                  else
+                    SliverSeparatorList(
+                      separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                      itemCount: pendingList.length,
+                      itemBuilder: (context, index) {
+                          final m = pendingList[index];
+                          return UserInfoButton(
                               icon: Image.network(
                                 m.avatarUrl,
                                 errorBuilder: (_, _, _) {
@@ -204,15 +218,15 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                                 });
                               },
                             );
-                          })
-                        ],
-                      )
-                    ],
-                  ),
-                  Column(
-                    spacing: 6,
-                    children: [
-                      Row(
+                      },
+                    ),
+
+                  SliverToBoxAdapter(child: SizedBox(height: 13)),
+
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 6),
+                      child: Row(
                         spacing: 6,
                         children: [
                           SizedBox(
@@ -262,8 +276,12 @@ class _LeaveApprovalState extends State<LeaveApproval> {
 
                         ],
                       ),
-                      (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading) ?
-                      SeparatorCard(
+                    ),
+                  ),
+
+                  if (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading)
+                    SliverToBoxAdapter(
+                      child: SeparatorCard(
                         children: [
                           Container(
                             color: Colors.white,
@@ -279,12 +297,15 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                             ),
                           )
                         ],
-                      ) :
-                      SeparatorCard(
-                        separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                        children: [
-                          ...recentList.map((m) {
-                            return AppButton(
+                      ),
+                    )
+                  else
+                    SliverSeparatorList(
+                      separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
+                      itemCount: recentList.length,
+                      itemBuilder: (context, index) {
+                          final m = recentList[index];
+                          return AppButton(
                               icon: m.status.icon,
                               iconColor: m.status.color,
                               title: '${m.type.display} | ${m.name}',
@@ -343,16 +364,11 @@ class _LeaveApprovalState extends State<LeaveApproval> {
                                 ).showPopup(context);
                               },
                             );
-                          })
-                        ],
-                      )
-                    ],
-                  )
+                      },
+                    ),
                 ],
               );
             }
-        )
-      ],
-    );
+        );
   }
 }

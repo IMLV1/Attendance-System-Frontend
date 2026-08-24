@@ -55,13 +55,20 @@ class IconTextValueButton extends StatelessWidget {
                     color: lebelColor,
                 )
             ),
-            Spacer(),
-            Text(
-                value,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: lebelValue,
-                )
+            // 🚩 แก้ overflow: เดิม Text(value) ไม่มีขอบเขต ถ้า value ยาวมาก (เช่น email ยาวๆ)
+            // จะดันความกว้างเกิน Row จนล้น — ห่อ Expanded ให้กินพื้นที่ที่เหลือแทน Spacer()
+            // แล้วตัดด้วย ellipsis ถ้ายาวเกิน แทนที่จะล้นจอ
+            Expanded(
+              child: Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: lebelValue,
+                  )
+              ),
             ),
             if (arrow) SizedBox(
                 height: 10,

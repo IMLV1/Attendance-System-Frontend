@@ -93,10 +93,14 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
             child: Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
+                  // 🚩 (2026-08-22) เดิม SingleChildScrollView -> ทุกแถวของทุกเดือน
+                  // ถูก build พร้อมกันตอนเปิดหน้า (บุคลากรที่ทำงานมานานมีเป็นร้อยแถว)
+                  // ⚠️ ห้ามเอา SingleChildScrollView กลับมาครอบ ไม่งั้น sliver ข้างในจะ
+                  // ถูก shrink-wrap แล้ว build ครบทุกแถวเหมือนเดิม
+                  child: CustomScrollView(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     physics: AlwaysScrollableScrollPhysics(),
-                    child: ServiceUpdaterProMax(
+                    slivers: [ ServiceUpdaterProMax(
                       requests: [
                         () => PersonnelAttendanceService().fetchHistory(
                           //ถ้า ว่าง null ถ้าไม่  return เช่น "2026-03-02"
@@ -155,10 +159,12 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
                           //ก็คือแบบว่า เอา item เข้าเดือนนั้น ถ้าเป็นเดือนใหม่ที่ยังไม่เคยมีใน groupedItems มันจะสร้าง key ใหม่ให้ใน groupedItems
                         }
 
-                        return Column(
-                          spacing: 13,
-                          children: [
-                            Container(
+                        final groups = groupedItems.entries.toList();
+
+                        return SliverMainAxisGroup(
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Container(
                               decoration: BoxDecoration(
                                 color: Color(0xFFE3E3E3),
                                 borderRadius: BorderRadius.circular(22),
@@ -170,7 +176,7 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
                                     icon: Image.network(
                                       personnel!.avatarUrl,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) => Image.asset('assets/images/profile.svg'),
+                                      errorBuilder: (_, _, _) => Image.asset('assets/images/profile.png'),
                                     ),
                                     title: personnel!.nameTH,
                                     subTitle: personnel!.nameEN,
@@ -200,11 +206,12 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
                                 ],
                               )
                             ),
+                            ),
 
-                            Column(
-                              spacing: 6,
-                              children: [
-                                Padding(
+                            SliverToBoxAdapter(child: SizedBox(height: 13)),
+
+                            SliverToBoxAdapter(
+                                child: Padding(
                                   padding: EdgeInsetsGeometry.symmetric(horizontal: 6),
                                   child: InkWell(
                                     // กดแล้วเปิด DateFilterPopup
@@ -250,15 +257,15 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
                                     ),
                                   ),
                                 ),
+                            ),
 
-                                Column(
-                                  spacing: 13,
-                                  children: [
+                            SliverToBoxAdapter(child: SizedBox(height: 6)),
 
                                     // ================= UI ส่วนที่ 2: รายการประวัติ (History List) =================
                                     // ถ้าไม่มีข้อมูล และไม่ได้กำลังโหลดอยู่ -> แสดง "ไม่มีข้อมูล"
                                     if (_items.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading)
-                                      SeparatorCard(
+                                      SliverToBoxAdapter(
+                                        child: SeparatorCard(
                                         children: [
                                           Container(
                                             color: Colors.white,
@@ -274,14 +281,18 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
                                             ),
                                           )
                                         ],
+                                      ),
                                       )
                                     else
                                     // ถ้ามีข้อมูล -> วนตามเดือน/ปี
-                                      Column(
-                                        spacing: 15,
-                                        //สร้าง children หลายตัว โดย วนตามแต่ละกลุ่ม (แต่ละเดือน/ปี) แล้วเอา widget ที่สร้างได้ทั้งหมดมาเป็น list ใส่ใน children
-                                        children: groupedItems.entries.map((entry) {
-                                          return Column(
+                                    // build ทีละเดือนตอนเลื่อนถึง (เดือนนึงมีไม่เกิน 31 แถว)
+                                      SliverList.builder(
+                                        itemCount: groups.length,
+                                        itemBuilder: (context, gi) {
+                                          final entry = groups[gi];
+                                          return Padding(
+                                            padding: EdgeInsets.only(bottom: gi == groups.length - 1 ? 0 : 15),
+                                            child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             spacing: 8,
                                             children: [
@@ -412,17 +423,16 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
                                                 }).toList(),
                                               )
                                             ],
+                                          ),
                                           );
-                                        }).toList(),
-                                      )
-                                  ],
-                                ),
-                              ],
-                            )
+                                        },
+                                      ),
+
+                            SliverToBoxAdapter(child: SizedBox(height: 20)),
                           ]
                         );
                       }
-                    )
+                    ) ],
                   )
                 )
               ]

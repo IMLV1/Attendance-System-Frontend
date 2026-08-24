@@ -258,12 +258,20 @@ class LeaveInfoModel {
   final double used;
   final double max;
 
-  const LeaveInfoModel({required this.used, required this.max});
+  // 🚩 เพิ่ม (2026-08-13): จำนวนวันของคำขอที่ยังรออนุมัติ — ยังไม่ถูกหักออกจาก used
+  // (used เพิ่มตอนอนุมัติเท่านั้น) ต้องเอามาหักด้วยถึงจะได้ "สิทธิ์คงเหลือ" ที่จริง
+  final double pending;
+
+  const LeaveInfoModel({required this.used, required this.max, this.pending = 0.0});
+
+  /// สิทธิ์คงเหลือจริง = โควตา - ที่อนุมัติแล้ว - ที่ค้างรออนุมัติ
+  double get remain => max - used - pending;
 
   factory LeaveInfoModel.fromJson(Map<String, dynamic> json) {
     return LeaveInfoModel(
       used: (json['used'] as num?)?.toDouble() ?? 0.0,
       max: (json['max'] as num?)?.toDouble() ?? 0.0,
+      pending: (json['pending'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

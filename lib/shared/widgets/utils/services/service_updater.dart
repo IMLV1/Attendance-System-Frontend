@@ -37,6 +37,15 @@ class _ServiceUpdaterState extends State<ServiceUpdater> {
   ServiceUpdatorState _state = ServiceUpdatorState.idle;
   String? _errorMessage;
 
+  // 🚩 ดึงข้อความ error จาก field "error" ใน JSON body ที่ backend ส่งกลับมาก่อน
+  // (เดิมใช้ statusMessage ซึ่งเป็นแค่ reason phrase ของ HTTP เช่น "Conflict" ไม่ใช่ข้อความจริง)
+  String _extractErrorMessage(dynamic data, String? fallbackStatusMessage) {
+    if (data is Map && data['error'] != null) {
+      return data['error'].toString();
+    }
+    return fallbackStatusMessage ?? 'Unknown error';
+  }
+
   Future<void> _load() async {
 
     setState(() {
@@ -57,7 +66,7 @@ class _ServiceUpdaterState extends State<ServiceUpdater> {
       } else {
         setState(() {
           _state = ServiceUpdatorState.error;
-          _errorMessage = res.statusMessage;
+          _errorMessage = _extractErrorMessage(res.data, res.statusMessage);
         });
         widget.onError?.call({'error': {'type': 1, 'status': res.statusCode, 'info': res.data}});
       }
@@ -66,7 +75,7 @@ class _ServiceUpdaterState extends State<ServiceUpdater> {
       if (e is DioException && e.response != null) {
         setState(() {
           _state = ServiceUpdatorState.error;
-          _errorMessage = e.response?.statusMessage ?? 'Unknown error';
+          _errorMessage = _extractErrorMessage(e.response?.data, e.response?.statusMessage);
         });
         widget.onError?.call({'error': {'type': 2, 'status': e.response?.statusCode ?? 0, 'info': _errorMessage}});
       } else {

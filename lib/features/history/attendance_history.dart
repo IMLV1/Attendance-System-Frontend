@@ -42,6 +42,62 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
   // รายการประวัติที่ดึงมาจาก API (แปลงเป็น Model แล้วเก็บไว้แสดงผล)
   List<AttendanceHistoryModel> _items = [];
 
+  // 🚩 (2026-08-22) โหลดทีละหน้า — เดิมดึงประวัติทั้งหมดทีเดียว (200+ รายการ)
+  // แล้วสร้าง widget ทุกตัวพร้อมกันใน Column ทำให้เปิดหน้าแล้วกระตุกหนัก
+  // ตอนนี้โหลด _pageSize แรกก่อน แล้วค่อยโหลดเพิ่มตอนเลื่อนใกล้ล่างสุด
+  static const int _pageSize = 20;
+  final ScrollController _scrollController = ScrollController();
+  bool _hasMore = true;
+  bool _loadingMore = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    // เริ่มโหลดก่อนถึงล่างสุด 300px จะได้ไม่รู้สึกสะดุด
+    if (pos.pixels >= pos.maxScrollExtent - 300) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasMore) return;
+    setState(() => _loadingMore = true);
+
+    try {
+      final res = await AttendanceHistoryService().fetchHistory(
+        startDate: filterStart == null ? null : _toYmd(filterStart!),
+        endDate: filterEnd == null ? null : _toYmd(filterEnd!),
+        limit: _pageSize,
+        offset: _items.length,
+      );
+
+      final more = AttendanceHistoryModel.getList(res.data['data']);
+      if (!mounted) return;
+      setState(() {
+        _items.addAll(more);
+        _items.sort((a, b) => b.date.compareTo(a.date));
+        _hasMore = res.data['has-more'] == true;
+      });
+    } catch (_) {
+      // โหลดเพิ่มไม่ได้ ปล่อยให้ลองใหม่ตอนเลื่อนอีกครั้ง (ไม่ทำให้หน้าพัง)
+    } finally {
+      if (mounted) setState(() => _loadingMore = false);
+    }
+  }
+
   // -----------------------------
   // 3) เวลาเข้างานมาตรฐาน (เอาไว้เทียบว่าสายไหม)
   // -----------------------------
@@ -83,14 +139,9 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
             child: Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
-                    // ให้เลื่อนแล้วคีย์บอร์ดหายเอง
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                    // ให้ scroll ได้แม้ข้อมูลน้อย (ใช้กับ pull/UX)
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      spacing: 13,
-                      children: [
+                  // 🚩 (2026-08-22) ตัว scroll ย้ายไปอยู่ใน builder (CustomScrollView) แล้ว
+                  // ห้ามมี SingleChildScrollView ครอบอีกชั้น ไม่งั้น sliver จะไม่ lazy
+                  child:
 
                         // ============================================================
                         // ServiceUpdaterProMax = ตัวช่วยเรียก request แบบมี state + trigger ได้
@@ -107,6 +158,8 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                 //ถ้า ว่าง null ถ้าไม่  return เช่น "2026-03-02"
                                 startDate: filterStart == null ? null : _toYmd(filterStart!),//เช่น "2026-03-02"
                                 endDate: filterEnd == null ? null : _toYmd(filterEnd!),
+                                limit: _pageSize,
+                                offset: 0,
                               ),
 
                               () => AttendanceHistoryService().getFilterRange(),
@@ -119,10 +172,14 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                 switch(index) {
                                   case 0: {
                                     // แปลง response (data) เป็น list ของ AttendanceHistoryModel (from database)
-                                    _items = AttendanceHistoryModel.getList(data);
+                                    // ตอนนี้ backend ตอบเป็น {data, total, has-more} เพราะส่ง limit ไป
+                                    _items = AttendanceHistoryModel.getList(data['data']);
 
                                     // เรียงจาก "ใหม่ -> เก่า"
                                     _items.sort((a, b) => b.date.compareTo(a.date));
+
+                                    // เปลี่ยนตัวกรอง = เริ่มนับหน้าใหม่
+                                    _hasMore = data['has-more'] == true;
                                   }
                                   case 1: {
                                     final start = DateTime.tryParse(data['start']);
@@ -174,9 +231,21 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                 //ก็คือแบบว่า เอา item เข้าเดือนนั้น ถ้าเป็นเดือนใหม่ที่ยังไม่เคยมีใน groupedItems มันจะสร้าง key ใหม่ให้ใน groupedItems
                               }
 
-                              return Column(
-                                spacing: 13,
-                                children: [
+                              // 🚩 (2026-08-22) CustomScrollView + SliverList.builder
+                              // เดิมเป็น Column ใน SingleChildScrollView -> สร้าง widget ของทุก
+                              // รายการที่โหลดมาแล้วพร้อมกัน พอเลื่อนสะสมหลายร้อยรายการก็กลับมาหนัก
+                              // ตอนนี้สร้างเฉพาะกลุ่มเดือนที่อยู่ในจอ
+                              final groupEntries = groupedItems.entries.toList();
+
+                              return CustomScrollView(
+                                controller: _scrollController,
+                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                slivers: [
+                                  SliverToBoxAdapter(
+                                    child: Column(
+                                      spacing: 13,
+                                      children: [
 
                                   // ================= UI ส่วนที่ 1: กล่องตัวกรอง (Filter) =================
                                   InkWell(
@@ -298,10 +367,17 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                     ),
                                   ),
 
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SliverToBoxAdapter(child: SizedBox(height: 13)),
+
                                   // ================= UI ส่วนที่ 2: รายการประวัติ (History List) =================
                                   // ถ้าไม่มีข้อมูล และไม่ได้กำลังโหลดอยู่ -> แสดง "ไม่มีข้อมูล"
                                   if (_items.isEmpty && getState(0) != ServiceUpdaterProMaxState.loading)
-                                    SeparatorCard(
+                                    SliverToBoxAdapter(
+                                      child: SeparatorCard(
                                       children: [
                                         Container(
                                           color: Colors.white,
@@ -317,14 +393,17 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                           ),
                                         )
                                       ],
+                                    ),
                                     )
                                   else
-                                    // ถ้ามีข้อมูล -> วนตามเดือน/ปี
-                                    Column(
-                                      spacing: 15,
-                                      //สร้าง children หลายตัว โดย วนตามแต่ละกลุ่ม (แต่ละเดือน/ปี) แล้วเอา widget ที่สร้างได้ทั้งหมดมาเป็น list ใส่ใน children
-                                      children: groupedItems.entries.map((entry) {
-                                        return Column(
+                                    // ถ้ามีข้อมูล -> สร้างเฉพาะกลุ่มเดือนที่อยู่ในจอ
+                                    SliverList.builder(
+                                      itemCount: groupEntries.length,
+                                      itemBuilder: (context, groupIndex) {
+                                        final entry = groupEntries[groupIndex];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(bottom: 15),
+                                          child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           spacing: 8,
                                           children: [
@@ -455,16 +534,34 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                               }).toList(),
                                             )
                                           ],
+                                        ),
                                         );
-                                      }).toList(),
-                                    )
+                                      },
+                                    ),
+
+                                  // 🚩 ตัวบอกสถานะท้ายลิสต์ตอนโหลดหน้าถัดไป
+                                  SliverToBoxAdapter(
+                                    child: _loadingMore
+                                        ? const Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 16),
+                                            child: Center(child: CupertinoActivityIndicator()),
+                                          )
+                                        : (!_hasMore && _items.isNotEmpty)
+                                            ? const Padding(
+                                                padding: EdgeInsets.symmetric(vertical: 16),
+                                                child: Center(
+                                                  child: Text(
+                                                    'แสดงครบทุกรายการแล้ว',
+                                                    style: TextStyle(fontSize: 13, color: Color(0xFF7C7C7C)),
+                                                  ),
+                                                ),
+                                              )
+                                            : const SizedBox(height: 20),
+                                  ),
                                 ],
                               );
                             }
-                        )
-                      ],
-                    ),
-                  ),
+                        ),
                 )
               ],
             ),

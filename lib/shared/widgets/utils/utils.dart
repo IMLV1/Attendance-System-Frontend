@@ -49,4 +49,9 @@ class Utils {
   static String numberFormat(num number) {
     return NumberFormat('#,##0.#').format(number);
   }
+
+  /// จำนวนวันลา — ตัด .0 ทิ้ง แต่คงครึ่งวันไว้ (9.0 -> "9", 9.5 -> "9.5")
+  static String formatDays(num days) {
+    return NumberFormat('0.#').format(days);
+  }
 }

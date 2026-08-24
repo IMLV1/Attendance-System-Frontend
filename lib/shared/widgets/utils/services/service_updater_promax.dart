@@ -36,6 +36,15 @@ class _ServiceUpdaterProMaxState extends State<ServiceUpdaterProMax> {
     return _states[reqIndex];
   }
 
+  // 🚩 ดึงข้อความ error จาก field "error" ใน JSON body ก่อน (เดิมใช้ statusMessage ซึ่งเป็นแค่
+  // reason phrase ของ HTTP เช่น "Internal Server Error" ไม่ใช่ข้อความจริงจาก backend)
+  String _extractErrorMessage(dynamic data, String? fallbackStatusMessage) {
+    if (data is Map && data['error'] != null) {
+      return data['error'].toString();
+    }
+    return fallbackStatusMessage ?? 'Unknown error';
+  }
+
   Future<void> _load(int reqIndex) async {
 
     setState(() {
@@ -55,7 +64,7 @@ class _ServiceUpdaterProMaxState extends State<ServiceUpdaterProMax> {
         });
       } else {
         setState(() {
-          widget.onError?.call(reqIndex, {'error': {'type': 1, 'info': res.data}});
+          widget.onError?.call(reqIndex, {'error': {'type': 1, 'info': _extractErrorMessage(res.data, res.statusMessage)}});
           _states[reqIndex] = ServiceUpdaterProMaxState.error;
         });
       }
@@ -64,7 +73,7 @@ class _ServiceUpdaterProMaxState extends State<ServiceUpdaterProMax> {
 
       if (e is DioException && e.response != null) {
         setState(() {
-          widget.onError?.call(reqIndex, {'error': {'type': 2, 'info': e.response?.statusMessage ?? 'Unknown error'}});
+          widget.onError?.call(reqIndex, {'error': {'type': 2, 'info': _extractErrorMessage(e.response?.data, e.response?.statusMessage)}});
           _states[reqIndex] = ServiceUpdaterProMaxState.error;
         });
       } else {

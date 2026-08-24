@@ -1,4 +1,5 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/popup_surface.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -41,68 +42,24 @@ class ServicePopup {
 
   void showPopup(BuildContext context) {
 
-    final theme = Theme.of(context);
-
-    final controller = AnimationController(
-      vsync: Navigator.of(context),
-      duration: const Duration(milliseconds: 400),
-      reverseDuration: const Duration(milliseconds: 200),
-    );
-
-    showModalBottomSheet(
+    // 🚩 (2026-08-24) ย้ายเปลือก (แผ่นเลื่อน/มุมโค้ง/เงา/ขีดจับ/เพดานความสูง)
+    // ไปให้ PopupSurface ตัดสินตามขนาดจอ — ดูคำอธิบายเหตุผลใน popup_surface.dart
+    PopupSurface.show(
       context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      enableDrag: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.15),
-      transitionAnimationController: controller,
+      maxHeight: maxHeight,
+      minHeight: minHeight,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Theme(
-                data: theme,
-                child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: ConstrainedBox(constraints: BoxConstraints(minHeight: minHeight, maxHeight: maxHeight),
-                      child: Material(borderRadius: BorderRadius.circular(40), child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-                          decoration: BoxDecoration(
-                            color: AppColors.backgroundColor,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(40),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.10),
-                                blurRadius: 30,
-                                spreadRadius: 10,
-                                offset: const Offset(0, 0), // 👈 360° shadow
-                              ),
-                            ],
-                          ),
-                          child: ServiceUpdater(
+            return ServiceUpdater(
                               request: request,
                               onSuccess: () => onSuccess?.call(context),
                               onSuccessResponse: (jsonData) => onSuccessResponse?.call(context, jsonData),
                               builder: (trigger, state, errorMessage) {
-                                return SafeArea(
-                                    top: false,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                          maxHeight: MediaQuery.of(context).size.height * 0.88
-                                      ),
-                                      child: Column(
+                                return Column(
                                         mainAxisSize: MainAxisSize.min,
                                         spacing: 15,
                                         children: [
-                                          Container(
-                                            color: Color(0xFFA6A6A6),
-                                            width: 70,
-                                            height: 3,
-                                          ),
                                           Column(
                                             spacing: 1,
                                             children: [
@@ -178,7 +135,10 @@ class ServicePopup {
                                           ),
 
                                           Flexible(
-                                              fit: fit,
+                                              // ดูคำอธิบายเดียวกันใน push_popup.dart
+                                              fit: PopupSurface.presentationOf(context) == PopupPresentation.dialog
+                                                  ? FlexFit.loose
+                                                  : fit,
                                               child: SingleChildScrollView(
   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                                 physics: const AlwaysScrollableScrollPhysics(),
@@ -186,14 +146,8 @@ class ServicePopup {
                                               )
                                           )
                                         ],
-                                      ),
-                                    )
                                 );
                               }
-                          )
-                      )),
-                    )
-                )
             );
           }
         );

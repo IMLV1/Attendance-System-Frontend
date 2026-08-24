@@ -92,6 +92,32 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
   ConfigLeaveModel? initData;
   ConfigLeaveModel? data;
 
+  // 🚩 แก้: ให้หน้า sub-config (ConfigLeave) ยิง PUT ทั้งก้อนจริงตอนกด "บันทึก" เอง
+  // (endpoint /system/config/leave/update ต้องส่งครบทุกประเภทลาทีเดียว ไม่มี partial
+  // update) แทนที่จะแค่ pop ค่ากลับมาเก็บใน memory เฉยๆ แล้วหวังให้หน้านี้ (list) เป็นคน
+  // เซฟทีหลัง ซึ่งจะไม่เกิดขึ้นเลยถ้าออกจาก sub-page ผ่าน bottom nav ตรงๆ
+  Future<Response<dynamic>> Function(LeaveSetting) _saveHandler(String type) {
+    return (LeaveSetting updated) async {
+      final merged = switch (type) {
+        'sick' => data!.copyWith(sick: updated),
+        'personal' => data!.copyWith(personal: updated),
+        'vacation' => data!.copyWith(vacation: updated),
+        'maternity' => data!.copyWith(maternity: updated),
+        'paternity' => data!.copyWith(paternity: updated),
+        'parental' => data!.copyWith(parental: updated),
+        _ => data!,
+      };
+      final res = await ConfigLeaveService().update(merged);
+      if (res.statusCode != null && res.statusCode! >= 200 && res.statusCode! < 300) {
+        setState(() {
+          data = merged;
+          initData = merged;
+        });
+      }
+      return res;
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDirty = data != null && !initData!.isSame(data!);
@@ -168,15 +194,11 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                                 title: 'ลาป่วย',
                                                 weightTitle: FontWeight.normal,
                                                 onPressed: () async {
-                                                  LeaveSetting? setting = await Navigator.of(context).push(
+                                                  await Navigator.of(context).push(
                                                     MaterialPageRoute<LeaveSetting>(
-                                                      builder: (_) => ConfigLeave(type: 'sick', name: 'ลาป่วย', data: data!.sick)
+                                                      builder: (_) => ConfigLeave(type: 'sick', name: 'ลาป่วย', data: data!.sick, onSaveRequest: _saveHandler('sick'))
                                                     )
                                                   );
-
-                                                  if (setting != null) {
-                                                    data = data!.copyWith(sick: setting);
-                                                  }
                                                 },
                                               ),
                                               AppButton(
@@ -184,14 +206,11 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                                 title: 'ลากิจส่วนตัว',
                                                 weightTitle: FontWeight.normal,
                                                 onPressed: () async {
-                                                  LeaveSetting? setting = await Navigator.of(context).push(
+                                                  await Navigator.of(context).push(
                                                       MaterialPageRoute<LeaveSetting>(
-                                                          builder: (_) => ConfigLeave(type: 'personal', name: 'ลากิจส่วนตัว', data: data!.personal)
+                                                          builder: (_) => ConfigLeave(type: 'personal', name: 'ลากิจส่วนตัว', data: data!.personal, onSaveRequest: _saveHandler('personal'))
                                                       )
                                                   );
-                                                  if (setting != null) {
-                                                    data = data!.copyWith(personal: setting);
-                                                  }
                                                 },
                                               ),
                                               AppButton(
@@ -199,15 +218,11 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                                 title: 'ลาพักผ่อน',
                                                 weightTitle: FontWeight.normal,
                                                 onPressed: () async {
-                                                  LeaveSetting? setting = await Navigator.of(context).push(
+                                                  await Navigator.of(context).push(
                                                       MaterialPageRoute<LeaveSetting>(
-                                                          builder: (_) => ConfigLeave(type: 'vacation', name: 'ลาพักผ่อน', data: data!.vacation)
+                                                          builder: (_) => ConfigLeave(type: 'vacation', name: 'ลาพักผ่อน', data: data!.vacation, onSaveRequest: _saveHandler('vacation'))
                                                       )
                                                   );
-
-                                                  if (setting != null) {
-                                                    data = data!.copyWith(vacation: setting);
-                                                  }
                                                 },
                                               ),
                                               AppButton(
@@ -215,14 +230,11 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                                 title: 'ลาคลอดบุตร',
                                                 weightTitle: FontWeight.normal,
                                                 onPressed: () async {
-                                                  LeaveSetting? setting = await Navigator.of(context).push(
+                                                  await Navigator.of(context).push(
                                                       MaterialPageRoute<LeaveSetting>(
-                                                          builder: (_) => ConfigLeave(type: 'maternity', name: 'ลาคลอดบุตร', data: data!.maternity)
+                                                          builder: (_) => ConfigLeave(type: 'maternity', name: 'ลาคลอดบุตร', data: data!.maternity, onSaveRequest: _saveHandler('maternity'))
                                                       )
                                                   );
-                                                  if (setting != null) {
-                                                    data = data!.copyWith(maternity: setting);
-                                                  }
                                                 },
                                               ),
                                               AppButton(
@@ -230,14 +242,11 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                                 title: 'ลาช่วยเหลือภริยาคลอดบุตร',
                                                 weightTitle: FontWeight.normal,
                                                 onPressed: () async {
-                                                  LeaveSetting? setting = await Navigator.of(context).push(
+                                                  await Navigator.of(context).push(
                                                       MaterialPageRoute<LeaveSetting>(
-                                                          builder: (_) => ConfigLeave(type: 'paternity', name: 'ลาช่วยเหลือภริยาคลอดบุตร', data: data!.paternity)
+                                                          builder: (_) => ConfigLeave(type: 'paternity', name: 'ลาช่วยเหลือภริยาคลอดบุตร', data: data!.paternity, onSaveRequest: _saveHandler('paternity'))
                                                       )
                                                   );
-                                                  if (setting != null) {
-                                                    data = data!.copyWith(paternity: setting);
-                                                  }
                                                 },
                                               ),
                                               AppButton(
@@ -245,14 +254,11 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                                 title: 'ลากิจเพื่อเลี้ยงดูบุตร',
                                                 weightTitle: FontWeight.normal,
                                                 onPressed: () async {
-                                                  LeaveSetting? setting = await Navigator.of(context).push(
+                                                  await Navigator.of(context).push(
                                                       MaterialPageRoute<LeaveSetting>(
-                                                          builder: (_) => ConfigLeave(type: 'parental', name: 'ลากิจเพื่อเลี้ยงดูบุตร', data: data!.parental)
+                                                          builder: (_) => ConfigLeave(type: 'parental', name: 'ลากิจเพื่อเลี้ยงดูบุตร', data: data!.parental, onSaveRequest: _saveHandler('parental'))
                                                       )
                                                   );
-                                                  if (setting != null) {
-                                                    data = data!.copyWith(parental: setting);
-                                                  }
                                                 },
                                               ),
                                             ],
@@ -278,12 +284,19 @@ class ConfigLeave extends StatefulWidget {
   final String type;
   final String name;
   final LeaveSetting data;
+  // 🚩 แก้: เดิม "บันทึก" ในหน้านี้แค่ Navigator.pop(data) ส่งค่ากลับไปให้หน้า list
+  // ไม่เคยยิง API จริง — ถ้าออกจากหน้านี้ผ่าน bottom nav (ไป route อื่นตรงๆ ไม่ผ่านหน้า
+  // list) หน้า list ก็ไม่มีโอกาสเรียก ConfigLeaveService().update() เลย ข้อมูลเลยไม่ถูก
+  // บันทึกลง backend ทั้งที่ dialog บอกว่า "บันทึก" สำเร็จ ⇒ ให้หน้า list ส่ง callback ที่
+  // ยิง API จริงเข้ามา แล้วเรียกตอนกด "บันทึก" ตรงนี้เลย ไม่ว่าจะออกทางไหน
+  final Future<Response<dynamic>> Function(LeaveSetting data) onSaveRequest;
 
   const ConfigLeave({
     super.key,
     required this.type,
     required this.name,
-    required this.data
+    required this.data,
+    required this.onSaveRequest,
   });
 
   @override
@@ -302,6 +315,9 @@ class _ConfigLeaveState extends State<ConfigLeave> {
     data = widget.data;
   }
 
+  bool _resSuccess(Response<dynamic> res) =>
+      res.statusCode != null && res.statusCode! >= 200 && res.statusCode! < 300;
+
   @override
   Widget build(BuildContext context) {
     final isDirty = data != null && !widget.data.isSame(data!);
@@ -310,10 +326,12 @@ class _ConfigLeaveState extends State<ConfigLeave> {
     context.read<NavigationGuard>().update(
       isDirty: isDirty,
       onSave: () async {
+        final res = await widget.onSaveRequest(data!);
+        if (!_resSuccess(res) || !context.mounted) return res; // เซฟไม่สำเร็จ อย่า pop ทิ้งข้อมูลที่แก้ไว้
         setState(() => _forcePop = true);
         context.read<NavigationGuard>().reset();
-        if (context.mounted) Navigator.pop(context, data);
-        return Response(requestOptions: RequestOptions(path: ''));
+        Navigator.pop(context, data);
+        return res;
       },
       onDiscard: () {
         setState(() => _forcePop = true);
@@ -336,9 +354,7 @@ class _ConfigLeaveState extends State<ConfigLeave> {
 
             AdminConfigUtils.showSaveConfirmation(
               context: context,
-              onSave: () async {
-                return Response(requestOptions: RequestOptions(path: ''), statusCode: 200);
-              },
+              onSave: () => widget.onSaveRequest(data!),
               onDiscard: () {
                 setState(() => _forcePop = true);
                 Navigator.pop(context, widget.data);

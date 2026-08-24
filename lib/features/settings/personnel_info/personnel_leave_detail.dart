@@ -124,10 +124,12 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
           builder: () {
             final status = requestDetail?.approveDetail.status ?? .pending;
 
-            return Column(
-              mainAxisSize: MainAxisSize.min, // ✅ แก้ไขที่ 3: จำกัดความสูง Column ภายใน
+            // 🚩 แก้: ใช้ Stack แทน Column — เนื้อหารายละเอียด (scroll) คงขนาด/ตำแหน่งเดิมเสมอ
+            // ไม่ยุบ/ขยับตาม keyboard เลย ส่วนกล่อง "ระบุเหตุผล" + ปุ่มอนุมัติ/ปฏิเสธ ลอยทับ
+            // ด้านบนด้วย Positioned(bottom: viewInsets.bottom) แทน
+            return Stack(
               children: [
-                Expanded( // ✅ แก้ไขที่ 4: ใช้ Flexible ชั้นเดียว แทนการซ้อน Expanded -> Column -> Expanded
+                Positioned.fill(
                   child: SingleChildScrollView(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -552,7 +554,11 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                 ),
 
                 if (status == .pending && widget.permissionLevel >= 1)
-                  Column(
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                    child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Container(
@@ -899,6 +905,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                           ))
                       ),
                     ],
+                    ),
                   )
               ],
             );

@@ -61,10 +61,12 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
           });
         },
         builder: () {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
+          // 🚩 แก้: ใช้ Stack แทน Column — เนื้อหารายละเอียด (scroll) คงขนาด/ตำแหน่งเดิมเสมอ
+          // ไม่ยุบ/ขยับตาม keyboard เลย ส่วนกล่อง "ระบุเหตุผล" + ปุ่มอนุมัติ/ปฏิเสธ ลอยทับ
+          // ด้านบนด้วย Positioned(bottom: viewInsets.bottom) แทน
+          return Stack(
             children: [
-              Expanded(
+              Positioned.fill(
                 child: SingleChildScrollView(
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -636,7 +638,11 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
               ),
 
               if (data!.approveDetail.status == 'pending' && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'main'))
-                Column(
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Container(
@@ -988,6 +994,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                         ))
                     ),
                   ],
+                  ),
                 )
             ],
           );
