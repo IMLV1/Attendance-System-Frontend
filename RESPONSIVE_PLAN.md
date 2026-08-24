@@ -52,6 +52,26 @@
 Simulator แทน Terminal ทำให้ตรวจงานผิดอยู่หลายรอบ (นึกว่าโค้ดไม่ทำงาน
 ทั้งที่แค่ยังไม่ได้ restart) → เปลี่ยนไปใช้ `do script ... in selected tab`
 
+**3. จอค้าง กดอะไรไม่ได้เลย ที่หน้าย่อยของ `/personnel-info`** (24 ส.ค., แก้แล้ว)
+เจอทั้ง iPhone / iPad / web — เลือกบุคลากรแล้วกดเมนูย่อย (ข้อมูลส่วนตัว ฯลฯ)
+แล้วทั้งจอไม่ตอบสนอง
+
+ต้นเหตุ: `bf05e66` ทำให้ `Header.subHeader` เรียก `GoRouterState.of(context)`
+**ตรงๆ ไม่มีตัวกัน** ซึ่ง go_router จะ **throw** (ไม่ใช่คืน null) เมื่อหน้านั้น
+ไม่ได้มาจาก route ของ go_router — และมีหน้าที่ push ด้วย `MaterialPageRoute`
+ตรงๆ อยู่ราวสิบหน้า (หน้าย่อย 5 ตัวของ personnel-info, `UserInfo`, `CreateUser`,
+`AssignRole`, `EditRole`, `ConfigLeave`, `MaxLeave`, `SetMaxLeave`,
+`LeaveApprovalDetail`, `OverallInfo`)
+
+header สร้างไม่ขึ้น → ทั้งหน้าสร้างไม่ขึ้น → เหลือหน้าที่พังทับหน้าเดิมอยู่
+โดยไม่มีปุ่ม back = ดูเหมือนจอค้าง
+
+แก้ที่ `Header._matchedLocation()` — ห่อ `GoRouterState.of` ด้วย try/catch
+คืน `null` แทนการ throw และหน้าที่ไม่มี matchedLocation ถือเป็นหน้าลูกเสมอ
+(ต้องมีปุ่ม back) มี test กันไว้ที่ `test/header_imperative_route_test.dart`
+
+> ทางแก้จริงคือย้ายหน้าพวกนี้เข้า go_router — ไปรวมกับ Phase 2
+
 ---
 
 ## 🔬 หลักฐานจากเครื่องจริง (24 ส.ค.)

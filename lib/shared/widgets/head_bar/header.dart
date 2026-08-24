@@ -10,6 +10,29 @@ import 'package:provider/provider.dart';
 
 class Header {
 
+  /// `matchedLocation` ของหน้าปัจจุบัน — คืน `null` ถ้าหน้านี้ไม่ได้มาจาก route
+  /// ของ go_router
+  ///
+  /// 🚩 (2026-08-24) หน้าจำนวนหนึ่งไม่ได้ถูกประกาศไว้ใน `routes.dart` แต่ถูก push
+  /// ด้วย `MaterialPageRoute` ตรงๆ (หน้าย่อยทั้ง 5 ของ /personnel-info, UserInfo,
+  /// CreateUser, AssignRole, EditRole, ConfigLeave, MaxLeave, SetMaxLeave,
+  /// LeaveApprovalDetail, OverallInfo) หน้าพวกนี้ไม่มี `GoRouterState` อยู่เหนือ
+  /// context — `GoRouterState.of()` จึง **throw** ไม่ใช่คืน null
+  ///
+  /// ผลคือ header สร้างไม่ขึ้น -> ทั้งหน้าสร้างไม่ขึ้น -> หน้าเปล่าที่ไม่มีปุ่ม back
+  /// ทับหน้าเดิมอยู่ กลายเป็นอาการ "จอค้าง กดอะไรไม่ได้เลย" (เจอที่ /personnel-info
+  /// ตอนเลือกบุคลากรแล้วกดเมนูย่อย — เป็นทั้ง iPhone/iPad/web)
+  ///
+  /// ทางแก้จริงคือย้ายหน้าพวกนี้เข้า go_router (Phase 2) ตรงนี้แค่ทำให้ header
+  /// ไม่ล้มเมื่อไม่มี route state ให้ถาม
+  static String? _matchedLocation(BuildContext context) {
+    try {
+      return GoRouterState.of(context).matchedLocation;
+    } on GoError {
+      return null;
+    }
+  }
+
   /// ควรมีปุ่ม back มั้ย
   ///
   /// ถ้าจอนี้มี sidebar และหน้าปัจจุบันเป็นปลายทางของ sidebar แปลว่าผู้ใช้กดมา
@@ -18,7 +41,11 @@ class Header {
   static bool _showBackButton(BuildContext context) {
     if (!context.canPop()) return false;
     if (!Responsive.showSidebar(context)) return true;
-    return !sidebarDestinationByPath.containsKey(GoRouterState.of(context).matchedLocation);
+    // ไม่มี matchedLocation = ถูก push มาด้วย MaterialPageRoute เอง จึงเป็นหน้าลูก
+    // เสมอ (ไม่มีทางเป็นปลายทางของ sidebar ได้) -> ต้องมีปุ่ม back
+    final location = _matchedLocation(context);
+    if (location == null) return true;
+    return !sidebarDestinationByPath.containsKey(location);
   }
 
   // 🚩 (2026-08-24) เดิมทั้งสอง header คูณ scaleFactor (1.0 / 1.2 / 1.4) กับความสูง
@@ -38,7 +65,8 @@ class Header {
     //
     // ชื่อ/ไอคอนหยิบจากตารางกลางเดียวกับที่ sidebar ใช้ จึงไม่ต้องแก้ call site
     // ทั้ง 28 จุด และไม่มีข้อมูลซ้ำให้หลุดกัน
-    final dest = sidebarDestinationByPath[GoRouterState.of(context).matchedLocation];
+    final location = _matchedLocation(context);
+    final dest = location == null ? null : sidebarDestinationByPath[location];
     if (dest != null && Responsive.showSidebar(context)) {
       return mainHeader(context, title: dest.name, subTitle: dest.nameEn, iconPath: dest.icon, bottom: bottom);
     }
