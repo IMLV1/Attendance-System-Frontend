@@ -543,46 +543,37 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
   /// layout เฉพาะของ iPad แนวนอน / desktop — ไม่ใช่ layout มือถือที่ย่อมา
   ///
-  /// ทั้งหน้าเป็น "กล่องสี่เหลี่ยมจัตุรัส" กลางจอ (ตามแบบที่ตกลงกัน) แล้วแบ่ง
-  /// ข้างในเป็นสองฝั่ง:
+  /// เต็มพื้นที่ที่มี (ผืนผ้า) ไม่จำกัดความกว้าง แบ่งเป็นสองฝั่ง:
   ///   ซ้าย 2 ส่วน = กล่องเช็คอิน  วงกลม + กติกาเวลา
   ///   ขวา  1 ส่วน = เวลา / สถานะ / ประวัติ เรียงลงมา
-  ///
-  /// จัตุรัสทำให้สัดส่วนคงที่ไม่ว่าจอจะกว้างแค่ไหน — จอกว้างมากๆ ก็ไม่ยืดจน
-  /// วงกลมกับกล่องขวาห่างกันคนละมุม (ด้านที่สั้นกว่าเป็นตัวกำหนดขนาด)
   Widget _wideContent() {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Center(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 16,
-              children: [
-                Expanded(flex: 2, child: _checkInBox()),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ไม่ห่อพื้นเทา — ใช้หน้าตาเดียวกับมือถือ (ป้ายจัดกลาง
-                      // ด้านบน แล้วการ์ดขาวข้างใต้)
-                      _cardtime(large: true),
-                      const SizedBox(height: 16),
-                      _sideBox(child: _currentstate(bare: true)),
-                      const SizedBox(height: 16),
-                      // ประวัติกินที่ที่เหลือทั้งหมด -> ขอบล่างของคอลัมน์ขวาชน
-                      // ขอบล่างของกล่องเช็คอินพอดี ได้จัตุรัสเต็มจริงๆ
-                      // ความสูงมาจาก layout ไม่ใช่จำนวนแถว จึงยังนิ่งเหมือนเดิม
-                      Expanded(child: _sideBox(child: _recentBox(fill: true))),
-                    ],
-                  ),
-                ),
-              ],
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 16,
+          children: [
+            Expanded(flex: 2, child: _checkInBox()),
+            Expanded(
+              flex: 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ไม่ห่อพื้นเทา — ใช้หน้าตาเดียวกับมือถือ (ป้ายจัดกลาง
+                  // ด้านบน แล้วการ์ดขาวข้างใต้)
+                  _cardtime(large: true),
+                  const SizedBox(height: 16),
+                  _sideBox(child: _currentstate(bare: true)),
+                  const SizedBox(height: 16),
+                  // ประวัติกินที่ที่เหลือทั้งหมด -> ขอบล่างของคอลัมน์ขวาชน
+                  // ขอบล่างของกล่องเช็คอินพอดี
+                  // ความสูงมาจาก layout ไม่ใช่จำนวนแถว จึงยังนิ่งเหมือนเดิม
+                  Expanded(child: _sideBox(child: _recentBox(fill: true))),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
