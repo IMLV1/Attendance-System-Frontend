@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_model.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -430,17 +431,21 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return AppScaffold(
       hideNavigation: false,
+      // 🚩 (Phase 3) หน้านี้มีก้อนเดียวเรียงลงมา ไม่ใช่ dashboard ที่มีการ์ดหลายใบ
+      // วางเรียงกัน กว้าง 1100 จึงกว้างเกินจำเป็น (ดู PHASE3_PAGE_DESIGN.md
+      // หัวข้อ /check-in) — 560 คือความกว้างที่วงกลมเช็คอินยังเป็นพระเอกอยู่
+      maxWidth: 560,
       header: Header.mainHeader(
         context,
         title: 'ลงเวลาปฏิบัติงาน',
         subTitle: 'Time Attendance',
         iconPath: 'checkin_title_logo.svg',
       ),
-      content: _buildContent(),
+      content: _buildContent(context),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     // Show loading while config or initial state is loading
     if (_isLoadingState || configSetting == null) {
       return const Center(
@@ -453,6 +458,16 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     // Bug 1.2: Use tighter padding and spacing for mobile layout
     // 🚩 (2026-08-22) ไม่มี scroll แล้ว — ทุก component ต้องพอดีหน้าเดียว
+    //
+    // 🚩 (Phase 3, 2026-08-24) `spaceBetween` ถูกออกแบบมาสำหรับจอสูง ~830 ที่ทุก
+    // ก้อนเบียดกันพอดีอยู่แล้ว พอมาอยู่บนจอที่สูงกว่านั้นมันดันการ์ดนาฬิกาไปติด
+    // ขอบบน การ์ดสถานะไปติดขอบล่าง เหลือช่องว่าง ~300px กลางจอที่วงกลมเช็คอิน
+    // ลอยอยู่เฉยๆ (ดู PHASE3_PAGE_DESIGN.md หัวข้อ /check-in)
+    //
+    // จอ compact ยังใช้ spaceBetween เหมือนเดิมทุกประการ เพราะนั่นคือสิ่งที่ทำให้
+    // ทุก component พอดีหน้าเดียวโดยไม่ต้องเลื่อน — เปลี่ยนเฉพาะจอที่มีที่เหลือ
+    final stackVertically = Responsive.mode(context) != LayoutMode.compact;
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -461,9 +476,12 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: stackVertically
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.spaceBetween,
           children: [
             _cardtime(),
+            if (stackVertically) const SizedBox(height: 32),
             // 🚩 (2026-08-24) Flexible จำกัดความสูงของบล็อกปุ่มไว้เท่าที่เหลือจริง
             // แล้ว SingleChildScrollView ข้างใน _buttonCheckin จะเลื่อนเอาเองถ้าไม่พอ
             //
@@ -474,7 +492,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             // แก้แบบเบียดพอดี 4px ไม่ปลอดภัย เพราะยังมีเคสอื่นที่ข้อความยาวกว่านี้
             // (error message ยาวๆ / ชื่อวันหยุดยาว) แล้วตกบรรทัดเพิ่มอีก
             Flexible(child: _buttonCheckin()),
-            const SizedBox(height: 6),
+            SizedBox(height: stackVertically ? 32 : 6),
             _currentstate(),
           ],
         ),
