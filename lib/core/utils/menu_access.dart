@@ -10,31 +10,50 @@ import 'package:provider/provider.dart';
 /// ของ desktop hardcode `permissionLevel = 3` = โชว์ทุกเมนูให้ทุกคน
 /// ผลคือคนที่ไม่มีสิทธิ์เห็นเมนู admin ครบบน iPad/desktop (กดเข้าไปแล้ว API
 /// ตอบ 403 แต่ก็ไม่ควรเห็นตั้งแต่แรก)
-/// path ทั้งหมดที่เป็น "ปลายทาง" — กดจาก sidebar ถึงได้ในคลิกเดียว
+/// ปลายทางของ sidebar — หน้าที่กดถึงได้ในคลิกเดียวจากเมนูข้าง
 ///
-/// 🚩 (2026-08-24) ใช้ตัดสินว่าหน้านั้นควรมีปุ่ม back มั้ย
+/// 🚩 (2026-08-24) นี่คือ **แหล่งความจริงเดียว** ของ path/ชื่อ/ไอคอน
+/// เดิมข้อมูลชุดนี้กระจายอยู่ 2 ที่ (ปุ่มใน `sidebar_navigation.dart` กับเซ็ต path
+/// ที่ header ใช้) ซึ่งเป็นรูปแบบเดียวกับที่เคยทำให้ลิงก์ตาย 10 จุด — พอแก้ที่นึง
+/// อีกที่ไม่ตาม
 ///
-/// เดิมถาม `context.canPop()` ของ go_router อย่างเดียว ซึ่งไม่พอ เพราะหน้าอย่าง
-/// `/settings/attendance-history` เป็น **route ลูกของ `/settings`** พอ `context.go()`
-/// ไปที่นั่น go_router จะสร้างสแตกให้ทั้งสาย (มี `/settings` เป็นหน้าแม่คาอยู่)
-/// `canPop()` จึงตอบ true ทั้งที่ผู้ใช้กดมาจาก sidebar ตรงๆ ไม่เคยผ่านหน้าแม่เลย
-/// → ปุ่ม back ยังโผล่บนหน้าที่เป็นปลายทาง (ยืนยันจากภาพหน้าจอ iPad แนวนอน)
-const sidebarDestinations = <String>{
-  '/check-in',
-  '/attendance-request',
-  '/leave-request',
-  '/statistic',
-  '/settings',
-  '/settings/attendance-history',
-  '/settings/approval',
-  '/settings/personnel-info',
-  '/settings/user-management',
-  '/settings/role-management',
-  '/settings/budget-year',
-  '/settings/config-attendance',
-  '/settings/config-attendance-request',
-  '/settings/config-leave-type',
-  '/profile',
+/// ใช้ 3 ที่:
+///   1. `sidebar_navigation.dart` สร้างปุ่มเมนู
+///   2. `Header._showBackButton` ตัดสินว่าหน้านี้ควรมีปุ่ม back มั้ย
+///      (หน้าใต้ `/settings` เป็น route ลูก พอ `context.go()` ไป go_router จะสร้าง
+///      สแตกทั้งสายให้ `canPop()` เลยตอบ true ทั้งที่กดมาจาก sidebar ตรงๆ)
+///   3. `Header.subHeader` หยิบชื่อ/ไอคอนมาโชว์เวลาหน้านั้นเป็นปลายทาง
+class SidebarDestination {
+  final String path;
+  final String name;
+  final String icon;
+
+  const SidebarDestination(this.path, this.name, this.icon);
+}
+
+const sidebarDestinationList = <SidebarDestination>[
+  SidebarDestination('/check-in', 'ลงชื่อเข้า-ออกงาน', 'icon_checkin.svg'),
+  SidebarDestination('/attendance-request', 'ขออนุมัติเวลาเข้า-ออกงาน', 'icon_time_request.svg'),
+  SidebarDestination('/leave-request', 'การลางาน', 'icon_leave.svg'),
+  SidebarDestination('/statistic', 'สถิติ', 'icon_statistic.svg'),
+  SidebarDestination('/settings/attendance-history', 'บันทึกการเข้างาน', 'icon_attendance_history.svg'),
+  SidebarDestination('/settings/approval', 'อนุมัติคำขอ', 'icon_approval.svg'),
+  SidebarDestination('/settings/personnel-info', 'ข้อมูลบุคลากรในองค์กร', 'icon_personnel_info.svg'),
+  SidebarDestination('/settings/user-management', 'จัดการผู้ใช้งานระบบ', 'icon_user_management.svg'),
+  SidebarDestination('/settings/role-management', 'จัดการตำแหน่ง', 'icon_role_management.svg'),
+  SidebarDestination('/settings/budget-year', 'ตั้งค่าปีงบประมาณ', 'icon_setting.svg'),
+  SidebarDestination('/settings/config-attendance', 'การลงชื่อเข้า-ออกงาน', 'icon_setting.svg'),
+  SidebarDestination('/settings/config-attendance-request', 'คำขออนุมัติเวลางาน', 'icon_setting.svg'),
+  SidebarDestination('/settings/config-leave-type', 'ประเภทการลางาน', 'icon_setting.svg'),
+
+  // สองตัวนี้ไม่ได้เป็นปุ่มในรายการเมนู แต่ก็ถึงได้ในคลิกเดียวจากแถบโปรไฟล์ด้านล่าง
+  // จึงนับเป็นปลายทางเหมือนกัน (ไม่ควรมีปุ่ม back)
+  SidebarDestination('/settings', 'ตั้งค่า', 'icon_setting.svg'),
+  SidebarDestination('/profile', 'โปรไฟล์', 'icon_personnel_info.svg'),
+];
+
+final Map<String, SidebarDestination> sidebarDestinationByPath = {
+  for (final d in sidebarDestinationList) d.path: d,
 };
 
 class MenuAccess {

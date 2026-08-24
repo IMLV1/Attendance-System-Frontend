@@ -18,7 +18,7 @@ class Header {
   static bool _showBackButton(BuildContext context) {
     if (!context.canPop()) return false;
     if (!Responsive.showSidebar(context)) return true;
-    return !sidebarDestinations.contains(GoRouterState.of(context).matchedLocation);
+    return !sidebarDestinationByPath.containsKey(GoRouterState.of(context).matchedLocation);
   }
 
   // 🚩 (2026-08-24) เดิมทั้งสอง header คูณ scaleFactor (1.0 / 1.2 / 1.4) กับความสูง
@@ -26,6 +26,17 @@ class Header {
   // ขนาดตัวหนังสือที่ไม่ได้ถูกคูณตาม — ตกลงกันแล้วว่าใช้ขนาดเดียวทุกจอ
 
   static AppBar subHeader(BuildContext context, {title = 'Default Title', VoidCallback? onBack}) {
+
+    // 🚩 (2026-08-24) บนจอที่มี sidebar หน้าใต้ `/settings` ไม่ใช่ "หน้าลูก" อีกต่อไป
+    // มันคือปลายทางที่กดถึงในคลิกเดียว แต่ยังใช้ subHeader ซึ่งมีแค่ชื่อไทยจัดกลาง
+    // ไม่มีไอคอน ไม่มีกระดิ่ง — วางข้างหน้าหลักแล้วเหมือนคนละแอป (เจอตอนไล่ดู 0.4)
+    //
+    // ชื่อ/ไอคอนหยิบจากตารางกลางเดียวกับที่ sidebar ใช้ จึงไม่ต้องแก้ call site
+    // ทั้ง 28 จุด และไม่มีข้อมูลซ้ำให้หลุดกัน
+    final dest = sidebarDestinationByPath[GoRouterState.of(context).matchedLocation];
+    if (dest != null && Responsive.showSidebar(context)) {
+      return mainHeader(context, title: dest.name, iconPath: dest.icon);
+    }
 
     return AppBar(
       backgroundColor: AppColors.barColor,
@@ -80,7 +91,7 @@ class Header {
     );
   }
 
-  static AppBar mainHeader(BuildContext context, {title = 'Default Title', subTitle = 'Default SubTitle', iconPath = 'google_logo.svg', iconColor = Colors.white}) {
+  static AppBar mainHeader(BuildContext context, {title = 'Default Title', String? subTitle, iconPath = 'google_logo.svg', iconColor = Colors.white}) {
 
     return AppBar(
       backgroundColor: AppColors.barColor,
@@ -128,14 +139,16 @@ class Header {
                     color: AppColors.titleColor,
                   ),
                 ),
-                Text(
-                  subTitle,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.subTitleColor,
+                // หน้าใต้ `/settings` ไม่มีชื่ออังกฤษกำกับ — เว้นไว้ ไม่ต้องแต่งขึ้นมาเอง
+                if (subTitle != null)
+                  Text(
+                    subTitle,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.subTitleColor,
+                    ),
                   ),
-                ),
               ],
             ),
           ],

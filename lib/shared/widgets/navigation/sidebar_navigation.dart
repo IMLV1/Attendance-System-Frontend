@@ -88,12 +88,12 @@ class _SideBarNavigationState extends State<SideBarNavigation> {
                 padding: EdgeInsets.zero,
                 children: [
             const SizedBox(height: 15),
-            SideBarButton(currentPath: currentPath, path: '/check-in', pageName: 'ลงชื่อเข้า-ออกงาน', pageIcon: 'icon_checkin.svg'),
+            SideBarButton(currentPath: currentPath, path: '/check-in'),
             // 🚩 (2026-08-24) path พวกนี้เดิมชี้ไปหน้าที่ไม่มีจริงใน routes.dart
             // ('/time-request', '/leave') กดแล้วไม่ไปไหน — แก้ให้ตรงของจริงแล้ว
-            SideBarButton(currentPath: currentPath, path: '/attendance-request', pageName: 'ขออนุมัติเวลาเข้า-ออกงาน', pageIcon: 'icon_time_request.svg'),
-            SideBarButton(currentPath: currentPath, path: '/leave-request', pageName: 'การลางาน', pageIcon: 'icon_leave.svg'),
-            SideBarButton(currentPath: currentPath, path: '/statistic', pageName: 'สถิติ', pageIcon: 'icon_statistic.svg'),
+            SideBarButton(currentPath: currentPath, path: '/attendance-request'),
+            SideBarButton(currentPath: currentPath, path: '/leave-request'),
+            SideBarButton(currentPath: currentPath, path: '/statistic'),
             const SizedBox(height: 10),
             Divider(
               height: 1,        // space the divider takes vertically
@@ -101,27 +101,27 @@ class _SideBarNavigationState extends State<SideBarNavigation> {
               color: AppColors.lightTextColor,
             ),
             const SizedBox(height: 10),
-            SideBarButton(currentPath: currentPath, path: '/settings/attendance-history', pageName: 'บันทึกการเข้างาน', pageIcon: 'icon_attendance_history.svg'),
+            SideBarButton(currentPath: currentPath, path: '/settings/attendance-history'),
             // 🚩 ตัด 'บันทึกการลางาน' (/leave-history) และ 'บันทึกคำขออนุมัติเวลางาน'
             // (/time-request-history) ออก — ไม่มีหน้าพวกนี้ใน routes.dart และไม่จำเป็น
             // เพราะประวัติอยู่ในหน้า 'การลางาน' / 'ขออนุมัติเวลา' อยู่แล้ว (ส่วน "รายการล่าสุด")
             if (access.hasApprovalGroup) ..._group([
               if (access.canApprove)
-                SideBarButton(currentPath: currentPath, path: '/settings/approval', pageName: 'อนุมัติคำขอ', pageIcon: 'icon_approval.svg'),
+                SideBarButton(currentPath: currentPath, path: '/settings/approval'),
               // 🚩 ตัด 'บันทึกการอนุมัติคำขอ' (/approval-history) ออก — ไม่มีหน้านี้จริง
               // ประวัติการอนุมัติอยู่ในหน้า 'อนุมัติคำขอ' อยู่แล้ว (ส่วน "รายการล่าสุด")
               if (access.canViewPersonnel)
-                SideBarButton(currentPath: currentPath, path: '/settings/personnel-info', pageName: 'ข้อมูลบุคลากรในองค์กร', pageIcon: 'icon_personnel_info.svg'),
+                SideBarButton(currentPath: currentPath, path: '/settings/personnel-info'),
             ]),
             if (access.canManageUsers) ..._group([
-              SideBarButton(currentPath: currentPath, path: '/settings/user-management', pageName: 'จัดการผู้ใช้งานระบบ', pageIcon: 'icon_user_management.svg'),
-              SideBarButton(currentPath: currentPath, path: '/settings/role-management', pageName: 'จัดการตำแหน่ง', pageIcon: 'icon_role_management.svg'),
+              SideBarButton(currentPath: currentPath, path: '/settings/user-management'),
+              SideBarButton(currentPath: currentPath, path: '/settings/role-management'),
             ]),
             if (access.canConfigSystem) ..._group([
-              SideBarButton(currentPath: currentPath, path: '/settings/budget-year', pageName: 'ตั้งค่าปีงบประมาณ', pageIcon: 'icon_setting.svg'),
-              SideBarButton(currentPath: currentPath, path: '/settings/config-attendance', pageName: 'การลงชื่อเข้า-ออกงาน', pageIcon: 'icon_setting.svg'),
-              SideBarButton(currentPath: currentPath, path: '/settings/config-attendance-request', pageName: 'คำขออนุมัติเวลางาน', pageIcon: 'icon_setting.svg'),
-              SideBarButton(currentPath: currentPath, path: '/settings/config-leave-type', pageName: 'ประเภทการลางาน', pageIcon: 'icon_setting.svg'),
+              SideBarButton(currentPath: currentPath, path: '/settings/budget-year'),
+              SideBarButton(currentPath: currentPath, path: '/settings/config-attendance'),
+              SideBarButton(currentPath: currentPath, path: '/settings/config-attendance-request'),
+              SideBarButton(currentPath: currentPath, path: '/settings/config-leave-type'),
             ]),
                 ],
               ),
@@ -351,11 +351,17 @@ List<Widget> _group(List<Widget> items) {
 class SideBarButton extends StatelessWidget {
 
   final String path;
-  final String pageName;
-  final String pageIcon;
   final String currentPath;
 
-  const SideBarButton({super.key, required this.currentPath, required this.path, required this.pageName, required this.pageIcon});
+  const SideBarButton({super.key, required this.currentPath, required this.path});
+
+  /// ชื่อกับไอคอนมาจากตารางกลางใน `menu_access.dart` — ไม่เก็บซ้ำในนี้
+  /// เพื่อไม่ให้เกิดเคส "แก้ที่นึง อีกที่ไม่ตาม" แบบลิงก์ตาย 10 จุด (ข้อ 1.2)
+  SidebarDestination get _dest => sidebarDestinationByPath[path]!;
+
+  String get pageName => _dest.name;
+
+  String get pageIcon => _dest.icon;
 
   void _onNavigate(BuildContext context, String path) {
     final guard = context.read<NavigationGuard>();
