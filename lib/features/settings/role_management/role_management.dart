@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:attendance_system/features/settings/role_management/create_role.dart';
 import 'package:attendance_system/features/settings/role_management/edit_role.dart';
 import 'package:attendance_system/services/role_management/role_management_service.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:dio/dio.dart';
@@ -330,6 +331,7 @@ class _RoleManagementState extends State<RoleManagement> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      maxWidth: Responsive.widthFor(ContentShape.list),
       header: Header.subHeader(
         context,
         title: 'จัดการตำแหน่ง'

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/core/utils/menu_access.dart';
 import 'package:attendance_system/services/signature/signature_service.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -34,6 +35,13 @@ class SettingPage extends StatelessWidget {
     // ตอนนี้ย้ายไป MenuAccess เพื่อให้ทั้งสองเมนูอ้างของชุดเดียวกัน
     final access = MenuAccess.of(context);
 
+    // 🚩 (Phase 3) บนจอที่มี sidebar ทุกรายการในหน้านี้อยู่ใน sidebar อยู่แล้ว
+    // ยกเว้น "เพิ่มลายเซ็น" กับ "ออกจากระบบ" — โชว์ซ้ำอีกหน้าเต็มๆ ไม่ได้ช่วยอะไร
+    // แถมทำให้ผู้ใช้สงสัยว่าสองเมนูนี้ต่างกันตรงไหน (PHASE3_PAGE_DESIGN.md
+    // หัวข้อ /settings) จอที่ใช้ bottom nav ยังต้องมีครบเหมือนเดิม เพราะที่นั่น
+    // หน้านี้คือทางเดียวที่จะเข้าถึงรายการพวกนี้ได้
+    final onlyUniqueItems = Responsive.showSidebar(context);
+
     return AppScaffold(
       header: Header.subHeader(context,
         title: 'การตั้งค่าและการจัดการ'
@@ -52,15 +60,16 @@ class SettingPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 spacing: 13,
                 children: [
-                  SeparatorCard(
-                    separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                    children: [
-                      IconTextButton(onPressed: () {
-                        context.pushNamed(RouteNames.attendanceHistory);
-                      }, icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
-                    ]
-                  ),
-                  if (access.hasApprovalGroup)
+                  if (!onlyUniqueItems)
+                    SeparatorCard(
+                      separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                      children: [
+                        IconTextButton(onPressed: () {
+                          context.pushNamed(RouteNames.attendanceHistory);
+                        }, icon: 'icon_attendance_history.svg', label: 'บันทึกการเข้างาน'),
+                      ]
+                    ),
+                  if (!onlyUniqueItems && access.hasApprovalGroup)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
@@ -74,7 +83,7 @@ class SettingPage extends StatelessWidget {
                           }, icon: 'icon_personnel_info.svg', label: 'ข้อมูลบุคลากรในองค์กร'),
                       ]
                     ),
-                  if (access.canManageUsers)
+                  if (!onlyUniqueItems && access.canManageUsers)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [
@@ -86,7 +95,7 @@ class SettingPage extends StatelessWidget {
                         },icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
                       ]
                   ),
-                  if (access.canConfigSystem)
+                  if (!onlyUniqueItems && access.canConfigSystem)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
                       children: [

@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 
 /// วิธีแสดง popup
 enum PopupPresentation {
-  /// แผ่นเลื่อนขึ้นจากขอบล่าง — มือถือและแท็บเล็ตแนวตั้ง
+  /// แผ่นเลื่อนขึ้นจากขอบล่าง — มือถือเท่านั้น (ทุกแนวจอ)
   sheet,
 
-  /// กล่องกลางจอ — แท็บเล็ตแนวนอนและ desktop
+  /// กล่องกลางจอ — แท็บเล็ตขึ้นไป ทั้งแนวตั้งและแนวนอน
   dialog,
 }
 
@@ -24,9 +24,9 @@ enum PopupPresentation {
 /// ไกลจากสายตา ตัวเลข maxHeight ที่ call site ใส่ไว้ (700 / 750 / 400 / 650)
 /// ถูกตั้งมาจากสายตาบนมือถือทั้งหมด
 ///
-/// ตรงนี้จึงแยก "การนำเสนอ" ออกจาก "เนื้อหา": จอเล็กยังเป็นแผ่นเลื่อนเหมือนเดิม
-/// จอใหญ่กลายเป็นกล่องกลางจอที่กว้างพอดีอ่าน ส่วน maxHeight ที่ส่งเข้ามาถือเป็น
-/// "เพดาน" ไม่ใช่ความสูงตายตัว — เนื้อหาสั้นก็หดตาม
+/// ตรงนี้จึงแยก "การนำเสนอ" ออกจาก "เนื้อหา": มือถือยังเป็นแผ่นเลื่อนเหมือนเดิม
+/// แท็บเล็ตขึ้นไปกลายเป็นกล่องกลางจอที่กว้างพอดีอ่าน ส่วน maxHeight ที่ส่งเข้ามา
+/// ถือเป็น "เพดาน" ไม่ใช่ความสูงตายตัว — เนื้อหาสั้นก็หดตาม
 class PopupSurface {
   /// ความกว้างกล่องกลางจอ — กว้างกว่านี้บรรทัดข้อความจะยาวจนอ่านยาก
   static const double dialogMaxWidth = 560;
@@ -35,10 +35,17 @@ class PopupSurface {
   static const double _sheetMaxHeightFactor = 0.88;
   static const double _dialogMaxHeightFactor = 0.82;
 
+  /// 🚩 (2026-08-24, รอบสอง) เดิมผูกกับ `showSidebar` ซึ่งเป็นจริงเฉพาะโหมด
+  /// `expanded` -> iPad **แนวตั้ง** (โหมด `medium`) จึงยังได้แผ่นเลื่อนกว้างเต็มจอ
+  /// 834px ซึ่งเป็นอาการเดียวกับที่ย้ายมา PopupSurface เพื่อแก้ตั้งแต่แรก
+  ///
+  /// เกณฑ์ที่ถูกคือ "จอเล็กแค่ไหน" ไม่ใช่ "มี sidebar รึเปล่า" — แผ่นเลื่อนเหมาะ
+  /// กับมือถือเพราะนิ้วโป้งเอื้อมถึงขอบล่างพอดี พอจอกว้างเกินนั้นกล่องกลางจอ
+  /// อ่านง่ายกว่าเสมอ ไม่เกี่ยวกับแนวจอ
   static PopupPresentation presentationOf(BuildContext context) =>
-      Responsive.showSidebar(context)
-          ? PopupPresentation.dialog
-          : PopupPresentation.sheet;
+      Responsive.isCompact(context)
+          ? PopupPresentation.sheet
+          : PopupPresentation.dialog;
 
   /// `builder` ต้องคืน widget ที่ยอมหดได้ (เช่น `Column(mainAxisSize: min)`)
   /// เพราะจะถูกวางไว้ใน `Flexible` ให้อีกที

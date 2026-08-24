@@ -3,6 +3,7 @@ import 'package:attendance_system/features/settings/admin_config/admin_config_ut
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
@@ -134,6 +135,7 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
     );
 
     return AppScaffold(
+        maxWidth: Responsive.widthFor(ContentShape.form),
         header: Header.subHeader(
             context, title: 'ตั้งค่าประเภทการลา',
             onBack: () {
@@ -341,6 +343,7 @@ class _ConfigLeaveState extends State<ConfigLeave> {
     );
 
     return AppScaffold(
+        maxWidth: Responsive.widthFor(ContentShape.form),
         header: Header.subHeader(
           context, title: 'ตั้งค่า: ${widget.name}',
           onBack: () {

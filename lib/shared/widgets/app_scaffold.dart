@@ -11,10 +11,17 @@ class AppScaffold extends StatelessWidget {
   /// เช่นหน้าที่แบ่งเป็นสองคอลัมน์)
   final bool fullWidth;
 
+  /// ความกว้างสูงสุดของเนื้อหาบนจอกว้าง — ไม่มีผลถ้า [fullWidth] เป็น true
+  ///
+  /// (Phase 3) เลือกด้วย `Responsive.widthFor(ContentShape.form/list/dashboard)`
+  /// ตามรูปทรงของหน้า ค่า default คงพฤติกรรมเดิม (dashboard = 1100)
+  final double maxWidth;
+
   const AppScaffold({
     super.key,
     this.hideNavigation = false,
     this.fullWidth = false,
+    this.maxWidth = Responsive.contentMaxWidth,
     required this.content,
     this.header
   });
@@ -39,7 +46,7 @@ class AppScaffold extends StatelessWidget {
             ? content
             // จำกัดความกว้างเนื้อหาบนจอกว้าง ไม่งั้นบรรทัดข้อความยาวข้ามจอจนอ่านยาก
             : ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: Responsive.contentMaxWidth),
+                constraints: BoxConstraints(maxWidth: maxWidth),
                 child: content,
               ),
       ),

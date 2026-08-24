@@ -10,6 +10,19 @@ import 'package:flutter/widgets.dart';
 ///
 /// ตอนนี้ใช้ "แนวการวาง" ร่วมด้วยตามที่ตกลงกันไว้:
 /// แนวนอนบนจอใหญ่ = sidebar, นอกนั้น = bottom navigation
+/// รูปทรงของเนื้อหาหน้า — ใช้เลือกความกว้างสูงสุดผ่าน [Responsive.widthFor]
+/// (Phase 3, ดู PHASE3_PAGE_DESIGN.md ข้อ 1)
+enum ContentShape {
+  /// หน้ากรอกฟอร์ม, หน้าตั้งค่าที่มีไม่กี่ช่อง
+  form,
+
+  /// รายการที่มีบรรทัดเดียวต่อแถว
+  list,
+
+  /// หน้าที่มีการ์ด/กราฟหลายก้อนวางเรียงกันจริงๆ
+  dashboard,
+}
+
 enum LayoutMode {
   /// มือถือทุกแนว — bottom navigation
   compact,
@@ -33,7 +46,29 @@ class Responsive {
   static const double _sidebarMinHeight = 600;
 
   /// ความกว้างสูงสุดของเนื้อหาบนจอกว้าง — เกินกว่านี้ข้อความจะยาวจนอ่านยาก
-  static const double contentMaxWidth = 1100;
+  ///
+  /// 🚩 (Phase 3, 2026-08-24) เดิมค่าเดียว 1100 ใช้กับทุกหน้าเหมือนกันหมด ทำให้
+  /// หน้าที่มีของแค่ซ้ายสุด/ขวาสุด (ฟอร์ม, รายการบรรทัดเดียว) ยืดจนป้ายกับค่า
+  /// ห่างกันเกินสายตากวาดถึง (ดู PHASE3_PAGE_DESIGN.md ข้อ 1) ตอนนี้แยกตาม
+  /// "รูปทรง" ของหน้าแทน — เลือกด้วย [ContentShape] หรือใช้ค่าคงที่ตรงๆ ก็ได้
+  static const double contentWidthForm = 600;
+  static const double contentWidthList = 800;
+  static const double contentWidthDashboard = 1100;
+
+  /// ชื่อเดิมของ [contentWidthDashboard] — คงไว้เป็น alias กันโค้ดที่ยังไม่ได้
+  /// migrate มาใช้ [ContentShape] พัง (ค่า default ของ `AppScaffold` ก็ยังอิงตัวนี้)
+  static const double contentMaxWidth = contentWidthDashboard;
+
+  static double widthFor(ContentShape shape) {
+    switch (shape) {
+      case ContentShape.form:
+        return contentWidthForm;
+      case ContentShape.list:
+        return contentWidthList;
+      case ContentShape.dashboard:
+        return contentWidthDashboard;
+    }
+  }
 
   static LayoutMode mode(BuildContext context) {
     final size = MediaQuery.sizeOf(context);

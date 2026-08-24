@@ -5,6 +5,7 @@ import 'package:attendance_system/services/notification/notification_service.dar
 import 'package:attendance_system/services/time_request/time_request_model.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
@@ -116,6 +117,9 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
     final setting = authState.attendanceConfig;
 
     return AppScaffold(
+        // 🚩 (Phase 3) เดิม 1100 ทำให้ป้าย/ช่องกรอกอยู่ห่างกันเกินสายตากวาดถึง
+        // (ดู PHASE3_PAGE_DESIGN.md ข้อ 1 + หัวข้อ /attendance-request/create)
+        maxWidth: Responsive.widthFor(ContentShape.form),
         header: Header.subHeader(
             context,
             title: 'สร้างคำขอ',

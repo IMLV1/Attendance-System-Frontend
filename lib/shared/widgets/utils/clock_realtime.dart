@@ -6,7 +6,18 @@ import '../../theme/app_colors.dart';
 class ClockWidget extends StatelessWidget {
   final DateTime? time; // 💡 รับค่าจากหน้า CheckinPage
 
-  const ClockWidget({super.key, this.time});
+  /// ขนาดตัวเลขเวลา — จอกว้างใช้ใหญ่กว่านี้ได้ (ดู `checkin_page.dart`)
+  final double timeFontSize;
+
+  /// ขนาดบรรทัดวันที่ใต้เวลา
+  final double dateFontSize;
+
+  const ClockWidget({
+    super.key,
+    this.time,
+    this.timeFontSize = 40,
+    this.dateFontSize = 15,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,12 +27,12 @@ class ClockWidget extends StatelessWidget {
       children: [
         Text(
           time == null ? '--:--' : DateFormat('HH:mm').format(time!),
-          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: timeFontSize, fontWeight: FontWeight.bold),
         ),
         Text(
           // เพิ่มการเช็ค locale ให้เป็นภาษาไทยตามเดิม
           time == null ? '--' : DateFormat('EEEE d MMMM yyyy', 'th').format(time!),
-          style: const TextStyle(fontSize: 15, color: AppColors.lightTextColor),
+          style: TextStyle(fontSize: dateFontSize, color: AppColors.lightTextColor),
         ),
       ],
     );
