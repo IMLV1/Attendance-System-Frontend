@@ -113,16 +113,13 @@ class _SideBarNavigationState extends State<SideBarNavigation> {
               if (access.canViewPersonnel)
                 SideBarButton(currentPath: currentPath, path: '/settings/personnel-info'),
             ]),
-            if (access.canManageUsers) ..._group([
-              SideBarButton(currentPath: currentPath, path: '/settings/user-management'),
-              SideBarButton(currentPath: currentPath, path: '/settings/role-management'),
-            ]),
-            if (access.canConfigSystem) ..._group([
-              SideBarButton(currentPath: currentPath, path: '/settings/budget-year'),
-              SideBarButton(currentPath: currentPath, path: '/settings/config-attendance'),
-              SideBarButton(currentPath: currentPath, path: '/settings/config-attendance-request'),
-              SideBarButton(currentPath: currentPath, path: '/settings/config-leave-type'),
-            ]),
+            // 🚩 (2026-08-24) ตัด 6 รายการออกจาก sidebar: จัดการผู้ใช้งานระบบ,
+            // จัดการตำแหน่ง และ config อีก 4 ตัว — ไปอยู่หลังไอคอนเฟือง (/settings)
+            // แทน เพราะเป็นของที่ตั้งครั้งเดียวแล้วแทบไม่แตะอีก ไม่ใช่งานประจำวัน
+            // เมนูข้างจึงเหลือแต่สิ่งที่ใช้จริงทุกวัน (จาก 13 เหลือ 7)
+            //
+            // สิทธิ์ไม่หายไปไหน — `setting_page.dart` กัน canManageUsers /
+            // canConfigSystem ด้วย MenuAccess ชุดเดียวกันอยู่แล้ว
                 ],
               ),
             ),

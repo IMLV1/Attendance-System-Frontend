@@ -39,12 +39,12 @@ const sidebarDestinationList = <SidebarDestination>[
   SidebarDestination('/settings/attendance-history', 'บันทึกการเข้างาน', 'icon_attendance_history.svg'),
   SidebarDestination('/settings/approval', 'อนุมัติคำขอ', 'icon_approval.svg'),
   SidebarDestination('/settings/personnel-info', 'ข้อมูลบุคลากรในองค์กร', 'icon_personnel_info.svg'),
-  SidebarDestination('/settings/user-management', 'จัดการผู้ใช้งานระบบ', 'icon_user_management.svg'),
-  SidebarDestination('/settings/role-management', 'จัดการตำแหน่ง', 'icon_role_management.svg'),
-  SidebarDestination('/settings/budget-year', 'ตั้งค่าปีงบประมาณ', 'icon_setting.svg'),
-  SidebarDestination('/settings/config-attendance', 'การลงชื่อเข้า-ออกงาน', 'icon_setting.svg'),
-  SidebarDestination('/settings/config-attendance-request', 'คำขออนุมัติเวลางาน', 'icon_setting.svg'),
-  SidebarDestination('/settings/config-leave-type', 'ประเภทการลางาน', 'icon_setting.svg'),
+
+  // 🚩 (2026-08-24) จัดการผู้ใช้งานระบบ / จัดการตำแหน่ง / config อีก 4 ตัว ถูกย้าย
+  // ออกจาก sidebar ไปอยู่หลังไอคอนเฟือง จึงไม่ใช่ "ปลายทาง" อีกต่อไป — ตอนนี้ถูก
+  // push มาจากหน้า `/settings` จริงๆ ทั้งบนมือถือและ desktop
+  // ผลที่ตามมาโดยตั้งใจ: หน้าพวกนั้นกลับไปมีปุ่ม back และใช้ subHeader ซึ่งถูกต้อง
+  // ตามบริบทใหม่ (เป็นหน้าลูกของ /settings เหมือนกันหมดทุกจอ)
 
   // สองตัวนี้ไม่ได้เป็นปุ่มในรายการเมนู แต่ก็ถึงได้ในคลิกเดียวจากแถบโปรไฟล์ด้านล่าง
   // จึงนับเป็นปลายทางเหมือนกัน (ไม่ควรมีปุ่ม back)
