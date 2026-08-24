@@ -3,6 +3,7 @@ import 'package:attendance_system/features/main_feature/statistic/leave_statisti
 import 'package:attendance_system/features/main_feature/statistic/working_day.dart';
 import 'package:attendance_system/features/main_feature/statistic/working_hour.dart';
 import 'package:attendance_system/services/statistic/statistic_service.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
@@ -288,16 +289,38 @@ class _StatisticPageState extends State<StatisticPage> {
                                           color: Color(0xFFEAEAEA),
                                           borderRadius: BorderRadius.circular(22),
                                         ),
-                                        child: Column(
-                                          spacing: 13,
-                                          children: [
-                                            /// Attendance Statistic
-                                            AttendanceStatistic(statistic),
+                                        // 🚩 (Phase 3) สองการ์ดนี้เป็นโรคเดียวกับหน้าอื่น:
+                                        // การ์ด "การลางาน" ชื่อประเภทลาอยู่ x≈600 ตัวเลข
+                                        // อยู่ x≈1360 ห่างกัน 660px หนักสุดในหน้า
+                                        // (ดู PHASE3_PAGE_DESIGN.md หัวข้อ /statistic)
+                                        //
+                                        // วางคู่กันบนจอกว้าง คอลัมน์เหลือข้างละ ~540
+                                        // ระยะจากชื่อถึงตัวเลขลดเหลือราว 180px ใกล้เคียง
+                                        // กับบนมือถือที่อ่านรู้เรื่องอยู่แล้ว — ไม่ต้อง
+                                        // ออกแบบการ์ดใหม่เลย แค่เปลี่ยนที่วาง
+                                        child: Responsive.mode(context) == LayoutMode.expanded
+                                            ? Row(
+                                                // ไม่ยืดสองการ์ดให้สูงเท่ากัน — ปล่อยให้
+                                                // แต่ละใบสูงตามเนื้อหาจริง (IntrinsicHeight
+                                                // ที่ห่อ Row จะบังคับให้วัดความสูงล่วงหน้า
+                                                // ซึ่งแพงและไม่ได้อะไรเพิ่มตรงนี้)
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                spacing: 13,
+                                                children: [
+                                                  Expanded(child: AttendanceStatistic(statistic)),
+                                                  Expanded(child: LeaveStatistic(statistic)),
+                                                ],
+                                              )
+                                            : Column(
+                                                spacing: 13,
+                                                children: [
+                                                  /// Attendance Statistic
+                                                  AttendanceStatistic(statistic),
 
-                                            /// Leave Statistic
-                                            LeaveStatistic(statistic),
-                                          ],
-                                        ),
+                                                  /// Leave Statistic
+                                                  LeaveStatistic(statistic),
+                                                ],
+                                              ),
                                       )
                                     ],
                                   )

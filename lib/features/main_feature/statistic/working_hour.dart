@@ -122,14 +122,33 @@ class _WorkingHourState extends State<WorkingHour> {
                       child: LayoutBuilder(
                           builder: (context, constraints) {
                             // final random = Random();
-                            return _barChart(
-                              data: switch (selection) {
-                                StatisticMode.total => widget.workingHour?.total ?? {},
-                                StatisticMode.week => widget.workingHour?.week ?? {},
-                                StatisticMode.month => widget.workingHour?.month ?? {},
-                                StatisticMode.year => widget.workingHour?.year ?? {},
-                              }, // { for (var item in List.generate((random.nextDouble() * 31.0).toInt(), (i) => i)) '${item+1}' : random.nextDouble() * 50.0 },
-                              width: constraints.maxWidth,
+                            final data = switch (selection) {
+                              StatisticMode.total => widget.workingHour?.total ?? {},
+                              StatisticMode.week => widget.workingHour?.week ?? {},
+                              StatisticMode.month => widget.workingHour?.month ?? {},
+                              StatisticMode.year => widget.workingHour?.year ?? {},
+                            }; // { for (var item in List.generate((random.nextDouble() * 31.0).toInt(), (i) => i)) '${item+1}' : random.nextDouble() * 50.0 },
+
+                            // 🚩 (Phase 3) แท่งกว้างสุด 40 อยู่แล้ว แต่ fl_chart กระจาย
+                            // แท่งให้เต็มความกว้างที่ได้รับเสมอ พอแท็บ "ทั้งหมด" มีแค่
+                            // 2 แท่งบนจอกว้าง ~920 จึงได้แท่งเล็กจ้อยสองอันลอยห่างกัน
+                            // คนละมุม (ดู PHASE3_PAGE_DESIGN.md หัวข้อ /statistic)
+                            //
+                            // จำกัดความกว้าง "กราฟ" ตามจำนวนแท่งแล้วจัดกลุ่มไว้กลาง
+                            // — แท็บที่มีแท่งเยอะ (เดือน = 31 แท่ง) ยังได้เต็มความกว้าง
+                            // เหมือนเดิมเพราะ min() เลือกค่าที่เล็กกว่า
+                            const slotPerBar = 80.0;
+                            const axisSpace = 60.0;
+                            final chartWidth = min(
+                              constraints.maxWidth,
+                              max(320.0, data.length * slotPerBar + axisSpace),
+                            );
+
+                            return Center(
+                              child: SizedBox(
+                                width: chartWidth,
+                                child: _barChart(data: data, width: chartWidth),
+                              ),
                             );
                           }
                       )
