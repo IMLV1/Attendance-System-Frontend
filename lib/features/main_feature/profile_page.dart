@@ -1,4 +1,5 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
@@ -55,7 +56,67 @@ class _ProfilePageState extends State<ProfilePage> {
 
     profile = context.watch<AuthState>().profile;
 
+    final fieldsCard = SeparatorCard(
+      separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 15),
+      children: [
+        TextValueButton(
+            disable: true,
+            label: 'รหัสบุคลากร',
+            value: profile!.staffId
+        ),
+        TextValueButton(
+            disable: true,
+            label: 'เลขบัตรประจำตัวประชาชน',
+            value: profile!.citizenId
+        ),
+        TextValueButton(
+            disable: true,
+            label: 'ชื่อ-นามสกุล',
+            value: profile!.thName
+        ),
+        TextValueButton(
+            disable: true,
+            label: 'Full-name',
+            value: profile!.enName
+        ),
+        TextValueButton(
+            disable: true,
+            label: 'เพศ',
+            value: profile!.gender
+        ),
+        TextValueButton(
+            disable: true,
+            label: 'สัญชาติ',
+            value: profile!.nationality
+        ),
+        TextValueButton(
+            disable: true,
+            label: 'เบอร์โทร',
+            value: profile!.phone
+        ),
+        TextValueButton(
+            disable: true,
+            label: 'อีเมล',
+            value: profile!.email
+        ),
+      ],
+    );
+
+    final roleCard = SeparatorCard(
+      children: [
+        TextRoleButton(
+          disable: true,
+          label: 'ตำแหน่งปัจจุบัน',
+          roles: profile!.roles,
+          icon: SvgPicture.asset('assets/images/icon_role.svg'),
+        ),
+      ],
+    );
+
     return AppScaffold(
+      // (Phase 3) หน้านี้เป็นรูปทรงเฉพาะตัว ไม่เข้าพวก form/list/dashboard —
+      // 2 คอลัมน์กว้างรวม ~900 ตาม PHASE3_PAGE_DESIGN.md หัวข้อ /profile
+      maxWidth: 900,
       header: Header.mainHeader(
         context,
           title: 'ข้อมูลผู้ใช้งาน',
@@ -73,101 +134,145 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: SingleChildScrollView(
   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                             physics: AlwaysScrollableScrollPhysics(),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 13,
-                              children: [
-                                SeparatorCard(
-                                    separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                                    children: [
-                                      ProfileButton(
-                                        disable: true,
-                                        icon: Image.network(
-                                          profile!.avatarUrl,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Image.asset(
-                                              'assets/images/profile.png',
+                            child: Builder(builder: (context) {
+                              // 🚩 (Phase 3) เดิม: การ์ดรูปกว้างเต็ม 1100 สูงแค่ ~70
+                              // มีแค่วงกลมอักษรย่อเล็กๆ ชิดซ้าย ที่เหลือขาวโล่งทั้งการ์ด
+                              // (ดู PHASE3_PAGE_DESIGN.md หัวข้อ /profile) บนจอกว้าง
+                              // (มี sidebar) เปลี่ยนเป็น 2 คอลัมน์: ซ้ายการ์ดรูป+ชื่อ+
+                              // ตำแหน่งแนวตั้ง ขวาฟิลด์/role เดิม — มือถือ/แท็บเล็ตแนวตั้ง
+                              // คงพฤติกรรมเดิมทุกอย่าง
+                              final wide = Responsive.showSidebar(context);
+
+                              if (!wide) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  spacing: 13,
+                                  children: [
+                                    SeparatorCard(
+                                        separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                                        children: [
+                                          ProfileButton(
+                                            disable: true,
+                                            icon: Image.network(
+                                              profile!.avatarUrl,
                                               fit: BoxFit.cover,
-                                            );
-                                          },
-                                        ),
-                                        title: profile!.thName,
-                                        subTitle: profile!.enName,
-                                      ),
-                                    ]
-                                ),
-                                SeparatorCard(
-                                  separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 15),
-                                  children: [
-                                    TextValueButton(
-                                      // color: Color(0xFF949494),
-                                        disable: true,
-                                        label: 'รหัสบุคลากร',
-                                        value: profile!.staffId
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Image.asset(
+                                                  'assets/images/profile.png',
+                                                  fit: BoxFit.cover,
+                                                );
+                                              },
+                                            ),
+                                            title: profile!.thName,
+                                            subTitle: profile!.enName,
+                                          ),
+                                        ]
                                     ),
-                                    TextValueButton(
-                                      // color: Color(0xFF949494),
-                                        disable: true,
-                                        label: 'เลขบัตรประจำตัวประชาชน',
-                                        value: profile!.citizenId
-                                    ),
-                                    TextValueButton(
-                                      // color: Color(0xFF949494),
-                                        disable: true,
-                                        label: 'ชื่อ-นามสกุล',
-                                        value: profile!.thName
-                                    ),
-                                    TextValueButton(
-                                      // color: Color(0xFF949494),
-                                        disable: true,
-                                        label: 'Full-name',
-                                        value: profile!.enName
-                                    ),
-                                    TextValueButton(
-                                      // color: Color(0xFF949494),
-                                        disable: true,
-                                        label: 'เพศ',
-                                        value: profile!.gender
-                                    ),
-                                    TextValueButton(
-                                      // color: Color(0xFF949494),
-                                        disable: true,
-                                        label: 'สัญชาติ',
-                                        value: profile!.nationality
-                                    ),
-                                    TextValueButton(
-                                      // color: Color(0xFF949494),
-                                        disable: true,
-                                        label: 'เบอร์โทร',
-                                        value: profile!.phone
-                                    ),
-                                    TextValueButton(
-                                      // color: Color(0xFF949494),
-                                        disable: true,
-                                        label: 'อีเมล',
-                                        value: profile!.email
-                                    ),
+                                    fieldsCard,
+                                    roleCard,
                                   ],
-                                ),
-                                SeparatorCard(
-                                  children: [
-                                    TextRoleButton(
-                                      disable: true,
-                                      label: 'ตำแหน่งปัจจุบัน',
-                                      roles: profile!.roles,
-                                      icon: SvgPicture.asset('assets/images/icon_role.svg'),
+                                );
+                              }
+
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 16,
+                                children: [
+                                  SizedBox(
+                                    width: 280,
+                                    child: _WidePhotoCard(profile: profile!),
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      spacing: 13,
+                                      children: [fieldsCard, roleCard],
                                     ),
-                                  ],
-                                )
-                              ],
-                            ),
+                                  ),
+                                ],
+                              );
+                            }),
                           )
                       )
                     ]
                 )
             )
       )
+    );
+  }
+}
+
+/// การ์ดรูป+ชื่อ+ตำแหน่งแนวตั้ง — เฉพาะจอกว้างที่มี sidebar (ดู [_ProfilePageState])
+class _WidePhotoCard extends StatelessWidget {
+  final ProfileModel profile;
+
+  const _WidePhotoCard({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      decoration: BoxDecoration(
+        color: AppColors.cardColor,
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 110,
+            height: 110,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.shadowColor),
+            child: Image.network(
+              profile.avatarUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Image.asset(
+                  'assets/images/profile.png',
+                  fit: BoxFit.cover,
+                );
+              },
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            profile.thName,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: AppColors.blackTextColor,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            profile.enName,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: AppColors.lightTextColor),
+          ),
+          if (profile.roles.isNotEmpty) ...[
+            SizedBox(height: 14),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 6,
+              runSpacing: 6,
+              children: profile.roles.map((r) {
+                return Container(
+                  padding: EdgeInsets.symmetric(vertical: 3, horizontal: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: r.color.withAlpha((20 * 255 / 100).toInt()),
+                  ),
+                  child: Text(
+                    r.name as String,
+                    style: TextStyle(color: r.color, fontSize: 11),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
