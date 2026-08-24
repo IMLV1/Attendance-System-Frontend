@@ -37,18 +37,28 @@ class AppScaffold extends StatelessWidget {
     // textScaler ของระบบที่ผู้ใช้ตั้งเองด้วย
     // ตกลงกันแล้วว่าใช้ขนาดเดียวทุกจอ จึงถอดออกทั้งหมด
 
+    // 🚩 (2026-08-25) เดิม `Align` ส่ง constraint แบบหลวมให้เนื้อหา (minHeight: 0)
+    // วิดเจ็ตส่วนใหญ่ยืดเต็มความสูงเองอยู่แล้วเลยไม่มีใครสังเกต แต่
+    // `SingleChildScrollView` หดตามเนื้อหาแทนที่จะเต็ม viewport หน้าที่เอา
+    // scroll view เป็นชั้นนอกสุดจึงเพี้ยนบนจอสูงๆ (พื้นหลังไม่เต็มจอ /
+    // เลื่อนแล้วเหมือนโดนตัด) — บังคับ minHeight เท่าความสูง viewport
+    // เนื้อหาสั้นก็เต็มจอ เนื้อหายาวก็ยัง scroll ได้เหมือนเดิม
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: header,
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: fullWidth
-            ? content
-            // จำกัดความกว้างเนื้อหาบนจอกว้าง ไม่งั้นบรรทัดข้อความยาวข้ามจอจนอ่านยาก
-            : ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                child: content,
-              ),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              // จำกัดความกว้างเนื้อหาบนจอกว้าง ไม่งั้นบรรทัดข้อความยาวข้ามจอจนอ่านยาก
+              maxWidth: fullWidth ? double.infinity : maxWidth,
+              minHeight:
+                  constraints.maxHeight.isFinite ? constraints.maxHeight : 0,
+            ),
+            child: content,
+          ),
+        ),
       ),
     );
   }
