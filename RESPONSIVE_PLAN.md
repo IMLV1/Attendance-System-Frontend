@@ -66,9 +66,29 @@ Simulator แทน Terminal ทำให้ตรวจงานผิดอย
 header สร้างไม่ขึ้น → ทั้งหน้าสร้างไม่ขึ้น → เหลือหน้าที่พังทับหน้าเดิมอยู่
 โดยไม่มีปุ่ม back = ดูเหมือนจอค้าง
 
-แก้ที่ `Header._matchedLocation()` — ห่อ `GoRouterState.of` ด้วย try/catch
-คืน `null` แทนการ throw และหน้าที่ไม่มี matchedLocation ถือเป็นหน้าลูกเสมอ
-(ต้องมีปุ่ม back) มี test กันไว้ที่ `test/header_imperative_route_test.dart`
+**แต่นั่นเป็นแค่ครึ่งเดียว** — แก้ให้ไม่ throw แล้ว (`e389fb2`) ยังค้างเหมือนเดิม
+เพราะมีลูปซ้อนอยู่อีกชั้น: ข้างใน `GoRouterState.of()` ถ้าหา state จาก route
+ปัจจุบันไม่เจอ มันจะ**ไล่ขึ้นไปตาม Navigator ทีละชั้น** แล้วเรียก
+`dependOnInheritedWidgetOfExactType` บน `context` **ของ Navigator** ซึ่งไม่ใช่
+context ของ widget ที่กำลัง build อยู่ = จับ Navigator ไปเป็น dependent ของ
+registry → registry แจ้งเปลี่ยนทีนึง Navigator rebuild ทั้งสาย → หน้าเรา build
+ใหม่ → ลงทะเบียนซ้ำ → **วนไม่จบ กิน CPU 100%** จน hot restart ก็ไม่ลง
+
+แก้จริงที่ `Header._matchedLocation()` (`6b8d9a0`) — เช็ค
+`ModalRoute.of(context)?.settings is Page` ก่อน route ของ go_router ใช้ `Page`
+เสมอ ส่วนหน้าที่ push เองไม่ใช่ จึงคืน `null` ทันทีโดยไม่ต้องไล่ขึ้นไปไหน
+(try/catch ยังคงไว้เป็นตาข่ายชั้นสอง) และหน้าที่ไม่มี matchedLocation ถือเป็น
+หน้าลูกเสมอ (ต้องมีปุ่ม back) มี test กันไว้ที่
+`test/header_imperative_route_test.dart` — ก่อนแก้ค้างเกิน 7 นาที หลังแก้ 4 วิ
+
+### วิธีจับ (จดไว้ใช้ซ้ำ)
+1. console บอกก่อนเลย: `Performing hot restart...` ค้างหมุนไม่จบ = isolate ตาย
+2. `ps aux | grep Runner` → CPU 100% ค้าง = ลูป ไม่ใช่ปัญหา layout
+3. `sample <pid>` ได้แต่ address ของ JIT ไม่มีชื่อ — **ใช้ไม่ได้กับ Dart**
+4. ที่ใช้ได้คือ **Dart CPU profile ผ่าน VM service** (`getCpuSamples`) แล้วกรอง
+   เฉพาะเฟรมที่ script เป็น `package:attendance_system` → ชี้บรรทัดได้ทันที
+   (สคริปต์อยู่ที่ scratchpad ของ session นี้ ถ้าจะใช้อีกต้องเขียนใหม่)
+   ⚠️ ต้องดึงตอน **ไม่มี hot restart ค้างคา** ไม่งั้น DDS ไม่ตอบ
 
 > ทางแก้จริงคือย้ายหน้าพวกนี้เข้า go_router — ไปรวมกับ Phase 2
 
