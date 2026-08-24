@@ -8,7 +8,6 @@ import 'package:attendance_system/services/user_management/user_management_servi
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
-import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:dio/dio.dart';
@@ -321,14 +320,29 @@ class _UserManagementState extends State<UserManagement> {
                             _onSearchChanged(_controller.text);
                           });
                         },
-                        builder: () => SingleChildScrollView(
+                        // 🚩 (2026-08-22) ListView.builder — เดิมสร้างปุ่มผู้ใช้ทุกคนพร้อมกัน
+                        // (แต่ละปุ่มมี Image.network) หน่วยงานที่มีคนเป็นร้อยจะกระตุกตอนเปิดหน้า
+                        // SeparatorCard ใช้กับ builder ไม่ได้ เลยจัดเส้นคั่น/มุมโค้งเองรายตัว
+                        builder: () => ListView.builder(
                           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                           physics: const AlwaysScrollableScrollPhysics(),
-                          child: SeparatorCard(
-                            separatorPadding: const EdgeInsets.only(left: 70, right: 15),
-                            children: [
-                              ...filteredUsers.map((m) {
-                                return UserInfoButton(
+                          itemCount: filteredUsers.length,
+                          itemBuilder: (context, index) {
+                              final m = filteredUsers[index];
+                              final isFirst = index == 0;
+                              final isLast = index == filteredUsers.length - 1;
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.cardColor,
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(isFirst ? 25 : 0),
+                                    bottom: Radius.circular(isLast ? 25 : 0),
+                                  ),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Column(
+                                  children: [
+                                UserInfoButton(
                                   onPressed: () async {
                                     final ({int status, UserManagementModel? updatedUser})? res = await Navigator.of(context).push<({int status, UserManagementModel? updatedUser})>(
                                       MaterialPageRoute(
@@ -365,10 +379,16 @@ class _UserManagementState extends State<UserManagement> {
                                   title: m.nameTH,
                                   subTitle: m.nameEN,
                                   roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
-                                );
-                              }),
-                            ],
-                          ),
+                                ),
+                                    if (!isLast)
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 70, right: 15),
+                                        child: Divider(height: 0),
+                                      ),
+                                  ],
+                                ),
+                              );
+                          },
                         ),
                       )
 

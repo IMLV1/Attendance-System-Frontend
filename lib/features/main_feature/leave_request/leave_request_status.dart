@@ -13,6 +13,7 @@ import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
+import 'package:attendance_system/shared/widgets/utils/sliver_separator_list.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -139,13 +140,16 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
             child: Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
+                  // 🚩 (2026-08-22) เดิม SingleChildScrollView + Column -> ทุกแถวของ
+                  // "รายการล่าสุด" ถูก build พร้อมกันตอนเปิดหน้า (คำขอสะสมไปเรื่อยๆ)
+                  // ⚠️ ห้ามเอา SingleChildScrollView กลับมาครอบ ไม่งั้น sliver ข้างในจะ
+                  // ถูก shrink-wrap แล้ว build ครบทุกแถวเหมือนเดิม
+                  child: CustomScrollView(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     physics: AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      spacing: 13,
-                      children: [
-                        SeparatorCard(
+                    slivers: [
+                        SliverToBoxAdapter(
+                          child: SeparatorCard(
                           children: [
                             IconTextButton(
                               icon: 'icon_create_role.svg',
@@ -163,6 +167,8 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                             )
                           ],
                         ),
+                        ),
+                        SliverToBoxAdapter(child: SizedBox(height: 13)),
 
                         ServiceUpdaterProMax(
                             requests: [
@@ -196,11 +202,21 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                             },
                             fetchOnInit: true,
                             builder: (trigger, getState) {
-                              return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ? Center(child: CupertinoActivityIndicator()) :
-                              Column(
-                                spacing: 13,
-                                children: [
-                                  Container(
+                              if (getState(0) == ServiceUpdaterProMaxState.loading &&
+                                  getState(1) == ServiceUpdaterProMaxState.loading) {
+                                return const SliverFillRemaining(
+                                  hasScrollBody: false,
+                                  child: Center(child: CupertinoActivityIndicator()),
+                                );
+                              }
+
+                              return SliverMainAxisGroup(
+                                slivers: [
+                                  // "รอดำเนินการ" ของตัวเองมีไม่กี่รายการ (คำขอที่ยังไม่ถูก
+                                  // ตัดสิน) -> ปล่อยเป็นก้อนเดียวไว้ ตัวที่โตไม่จำกัดคือ
+                                  // "รายการล่าสุด" ข้างล่าง
+                                  SliverToBoxAdapter(
+                                    child: Container(
                                       padding: EdgeInsetsGeometry.all(10),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(22),
@@ -293,10 +309,14 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                         ],
                                       )
                                   ),
-                                  Column(
-                                    spacing: 6,
-                                    children: [
-                                      Row(
+                                  ),
+
+                                  SliverToBoxAdapter(child: SizedBox(height: 13)),
+
+                                  SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(bottom: 6),
+                                      child: Row(
                                         spacing: 6,
                                         children: [
                                           SizedBox(
@@ -347,8 +367,12 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
 
                                         ],
                                       ),
-                                      (recentLeaves.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading) ?
-                                      SeparatorCard(
+                                    ),
+                                  ),
+
+                                  if (recentLeaves.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading)
+                                    SliverToBoxAdapter(
+                                      child: SeparatorCard(
                                         children: [
                                           Container(
                                             color: Colors.white,
@@ -364,11 +388,14 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                             ),
                                           )
                                         ],
-                                      ) :
-                                      SeparatorCard(
+                                      ),
+                                    )
+                                  else
+                                    SliverSeparatorList(
                                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                                        children: [
-                                          ...recentLeaves.map((m) {
+                                        itemCount: recentLeaves.length,
+                                        itemBuilder: (context, index) {
+                                            final m = recentLeaves[index];
                                             return AppButton(
                                               icon: m.status.icon,
                                               iconColor: m.status.color,
@@ -397,17 +424,14 @@ class _LeaveRequestPage extends State<LeaveRequestStatus> {
                                                 ).showPopup(context);
                                               },
                                             );
-                                          })
-                                        ],
-                                      )
-                                    ],
-                                  )
+                                        },
+                                    ),
                                 ],
                               );
                             }
-                        )
+                        ),
+                        SliverToBoxAdapter(child: SizedBox(height: 20)),
                       ],
-                    )
                   )
                 )
               ]

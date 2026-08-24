@@ -11,16 +11,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_it/get_it.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/network/api_client.dart';
 import '../../services/check-in/check-in_model.dart';
 import '../../services/check-in/check-in_service.dart';
 import '../../services/check-in/check_in-leave-model.dart';
 import '../../services/check-in/check_in-leave-service.dart';
 import '../../services/check-in/holiday_service.dart';
 import '../../shared/widgets/utils/clock_realtime.dart';
-import '../../shared/widgets/utils/icon_text_button.dart';
 import '../../shared/widgets/utils/radar_animation.dart';
 import '../../shared/widgets/utils/separator_card.dart';
 
@@ -53,6 +52,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   Timer? _timer;
   DateTime? _lastResetDate;
   Duration? _timeOffset = Duration.zero;
+  // 🚩 แก้ (2026-08-13): กันไม่ให้นาฬิกาโชว์เวลา local ก่อนแล้วค่อยกระโดดไปเวลา server
+  // (เห็นเป็นจังหวะ "กระตุก" ตอนเข้าหน้า) — ไม่โชว์เวลาจนกว่าจะ sync เสร็จ (สำเร็จหรือ fail ก็ได้)
+  bool _timeSynced = false;
 
   // Bug 1.3: Inline feedback state
   String _feedbackMessage = '';
@@ -66,11 +68,15 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     _initPage();
   }
 
-  /// Bug 1.1: Initialize with local time immediately, then upgrade to server time
+  /// Bug 1.1: Initialize with local time immediately (used internally for data loading,
+  /// ไม่ได้ใช้โชว์ในนาฬิกา — ดู _timeSynced), แล้วอัปเกรดเป็น server time
   Future<void> _initPage() async {
-    // Use local time immediately — no blocking
     _currentNetworkTime = DateTime.now();
     _timeOffset = Duration.zero;
+
+    // 🚩 ยิง sync ตั้งแต่ต้นแบบขนาน (ไม่ await) จะได้ทำงานพร้อมกับ config/data load ด้านล่าง
+    // แทนที่จะรอโหลดอย่างอื่นเสร็จก่อนค่อยเริ่ม sync — ลดเวลาที่นาฬิกาค้างสถานะ "กำลังซิงค์"
+    _tryFetchServerTime();
 
     // Load config
     await initConfig();
@@ -81,35 +87,38 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     // Start the clock
     _startTimerLogic();
-
-    // Try to fetch server time in background (non-blocking upgrade)
-    _tryFetchServerTime();
   }
 
   /// Bug 1.1: Attempt to fetch server time; if successful, update offset
+  /// 🚩 แก้ (2026-08-13): เดิมพึ่ง timeapi.io (third-party) ซึ่งพบว่าเวลาเพี้ยนไปเกือบ 30 นาที
+  /// จากเวลาจริง (verify แล้วผ่าน NTP) เปลี่ยนมาใช้ backend เราเอง (GET /api/server-time) แทน
+  /// เพราะควบคุม/เชื่อถือได้กว่า — backend คืนเวลาเครื่อง server เป็น UTC (มี 'Z' ชัดเจน
+  /// DateTime.parse ถึง parse เป็น UTC ตรงๆ ได้เลย ไม่ต้อง reinterpret เอง)
   Future<void> _tryFetchServerTime() async {
     try {
-      final response = await Dio()
-          .get(
-            'https://www.timeapi.io/api/Time/current/zone?timeZone=Asia/Bangkok',
-            options: Options(
-              headers: {'Accept': 'application/json'},
-            ),
-          )
+      final response = await GetIt.I<ApiClient>()
+          .dio
+          .get('/api/server-time')
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200 && mounted) {
-        final String dateTimeStr = response.data['dateTime'];
-        final DateTime serverTime = DateTime.parse(dateTimeStr);
+        final DateTime serverTimeUtc = DateTime.parse(response.data['utc']).toUtc();
         setState(() {
-          _timeOffset = serverTime.difference(DateTime.now());
+          _timeOffset = serverTimeUtc.difference(DateTime.now().toUtc());
           _currentNetworkTime = DateTime.now().add(_timeOffset!);
+          _timeSynced = true;
         });
         debugPrint("✅ Server time synced, offset: $_timeOffset");
       }
     } catch (e) {
       debugPrint("ℹ️ Server time unavailable, using local clock: $e");
-      // Silently continue with local time — not a problem
+      // Silently continue with local time — not a problem, but still mark "synced" so the
+      // clock doesn't hang on the loading state forever if the request fails/times out
+      if (mounted) {
+        setState(() {
+          _timeSynced = true;
+        });
+      }
     }
   }
 
@@ -443,34 +452,30 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     }
 
     // Bug 1.2: Use tighter padding and spacing for mobile layout
+    // 🚩 (2026-08-22) ไม่มี scroll แล้ว — ทุก component ต้องพอดีหน้าเดียว
     return SafeArea(
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 10,
+          vertical: 20,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _cardtime(),
-            _buttonCheckin(),
+            // 🚩 (2026-08-24) Flexible จำกัดความสูงของบล็อกปุ่มไว้เท่าที่เหลือจริง
+            // แล้ว SingleChildScrollView ข้างใน _buttonCheckin จะเลื่อนเอาเองถ้าไม่พอ
+            //
+            // เจอตอนกดเช็คอินสำเร็จ: ข้อความ "บันทึกเวลา ... เรียบร้อยแล้ว"
+            // โผล่เพิ่มมา 1 บรรทัด -> overflow 4px (console: RenderFlex overflowed
+            // by 4.0 pixels, constraints h<=593)
+            //
+            // แก้แบบเบียดพอดี 4px ไม่ปลอดภัย เพราะยังมีเคสอื่นที่ข้อความยาวกว่านี้
+            // (error message ยาวๆ / ชื่อวันหยุดยาว) แล้วตกบรรทัดเพิ่มอีก
+            Flexible(child: _buttonCheckin()),
             const SizedBox(height: 6),
             _currentstate(),
-            const SizedBox(height: 6),
-            SeparatorCard(
-              separatorPadding: const EdgeInsets.all(10),
-              children: [
-                IconTextButton(
-                  icon: 'icon_attendance_history.svg',
-                  label: 'ดูบันทึกการเข้า-ออกงาน',
-                  onPressed: () {
-                    context.push('/settings/attendance-history');
-                  },
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -520,7 +525,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             color: AppColors.cardColor,
             borderRadius: BorderRadius.circular(22),
           ),
-          child: Column(children: [ClockWidget(time: _currentNetworkTime)]),
+          child: Column(children: [ClockWidget(time: _timeSynced ? _currentNetworkTime : null)]),
         ),
       ],
     );
@@ -628,122 +633,132 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       }
     }
 
-    return Column(
-      children: [
-        // Bug 1.2: Reduced sizes for mobile layout
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            RadarAnimation(color: buttonColor),
-            Padding(
-              padding: EdgeInsets.only(top: 240),
-              child: Container(
-                width: 120,
-                height: 12,
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.lightTextColor.withValues(alpha: 0.2),
-                      blurRadius: 1,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                  borderRadius: BorderRadius.all(Radius.elliptical(150, 15)),
-                ),
-              ),
-            ),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: (isDisabled || _isSubmitting)
-                    ? null
-                    : () => _handleCheckin(state),
-                customBorder: CircleBorder(),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Bug 1.2: Reduced sizes for mobile layout
+          // ⚠️ ห้ามใส่ Flexible/Expanded ตรงนี้ — Column นี้อยู่ใน
+          // SingleChildScrollView ซึ่งให้ความสูงแบบ "ไม่จำกัด" ลูกที่เป็น flex
+          // เลยคำนวณสัดส่วนไม่ได้ -> "RenderBox was not laid out" ยิงรัวทุกเฟรม
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              RadarAnimation(color: buttonColor),
+              Padding(
+                // 🚩 (2026-08-22) เดิม 240 -> ดันความสูง Stack เป็น 252 ทั้งที่ปุ่มมีแค่ 170
+                // (เงาลอยห่างใต้ปุ่ม 29px) กินที่เกินจำเป็นจนหน้าไม่พอดีต้องเลื่อน
+                // สูตร: ระยะห่างเงาจากขอบล่างปุ่ม = (ค่านี้ - 182) / 2
+                // 202 -> เงาห่างปุ่ม 10px, Stack สูง 214 (ประหยัดไป 38px)
+                // ขนาดปุ่ม/เรดาร์/ระยะห่างระหว่าง component อื่นๆ เท่าเดิมทุกอย่าง
+                padding: EdgeInsets.only(top: 220),
                 child: Container(
-                  width: 170,
-                  height: 170,
+                  width: 120,
+                  height: 12,
                   decoration: BoxDecoration(
-                    color: buttonColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 36,
-                        width: 36,
-                        child: SvgPicture.asset(iconPath),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.lightTextColor.withValues(alpha: 0.2),
+                        blurRadius: 1,
+                        spreadRadius: 2,
                       ),
-                      SizedBox(height: 1),
-                      _isSubmitting
-                          ? const CupertinoActivityIndicator(color: Colors.white)
-                          : Text(
-                              buttonText,
-                              style: TextStyle(
-                                fontSize: fontSize,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.titleColor,
-                              ),
-                            ),
                     ],
+                    borderRadius: BorderRadius.all(Radius.elliptical(150, 15)),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-        Text(
-          showtext,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w200,
-            color: AppColors.greyTextColor,
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: (isDisabled || _isSubmitting)
+                      ? null
+                      : () => _handleCheckin(state),
+                  customBorder: CircleBorder(),
+                  child: Container(
+                    width: 170,
+                    height: 170,
+                    decoration: BoxDecoration(
+                      color: buttonColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 36,
+                          width: 36,
+                          child: SvgPicture.asset(iconPath),
+                        ),
+                        SizedBox(height: 1),
+                        _isSubmitting
+                            ? const CupertinoActivityIndicator(color: Colors.white)
+                            : Text(
+                          buttonText,
+                          style: TextStyle(
+                            fontSize: fontSize,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.titleColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
 
-        // Bug 1.3: Inline feedback text
-        if (_feedbackMessage.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
-            _feedbackMessage,
-            textAlign: TextAlign.center,
+            showtext,
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: _feedbackIsSuccess ? Colors.green : Colors.red,
+              fontWeight: FontWeight.w200,
+              color: AppColors.greyTextColor,
             ),
           ),
-        ],
 
-        const SizedBox(height: 6),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 15,
-              width: 15,
-              child: SvgPicture.asset('assets/images/iicon.svg'),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                softWrap: true,
-                textAlign: TextAlign.start,
-                'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
-                ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.normal,
-                  color: AppColors.lightTextColor,
-                ),
+          // Bug 1.3: Inline feedback text
+          if (_feedbackMessage.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              _feedbackMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: _feedbackIsSuccess ? Colors.green : Colors.red,
               ),
             ),
           ],
-        ),
-      ],
+
+          const SizedBox(height: 6),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 15,
+                width: 15,
+                child: SvgPicture.asset('assets/images/iicon.svg'),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  softWrap: true,
+                  textAlign: TextAlign.start,
+                  'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
+                      ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.normal,
+                    color: AppColors.lightTextColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

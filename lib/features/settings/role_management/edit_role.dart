@@ -18,6 +18,7 @@ import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 import '../../../shared/widgets/utils/services/service_updater.dart';
+import '../../../shared/widgets/utils/sliver_separator_list.dart';
 
 Future<Response> getMemberAll() async {
   await Future.delayed(const Duration(milliseconds: 500));
@@ -265,14 +266,18 @@ class _EditRoleState extends State<EditRole> {
                 Column(
                   children: [
                     Expanded(
-                      child: SingleChildScrollView(
+                      // 🚩 (2026-08-22) เดิม SingleChildScrollView -> สมาชิกในสังกัดทุกคน
+                      // ถูก build พร้อมกัน (พร้อม Image.network ต่อคน) ตำแหน่งใหญ่ๆ
+                      // อย่าง "อาจารย์" มีเป็นร้อยคน
+                      // ⚠️ ห้ามเอา SingleChildScrollView กลับมาครอบ ไม่งั้น sliver ข้างในจะ
+                      // ถูก shrink-wrap แล้ว build ครบทุกแถวเหมือนเดิม
+                      child: CustomScrollView(
                         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                         physics: AlwaysScrollableScrollPhysics(),
-                        child: Column(
-                          spacing: 17,
-                          children: [
+                        slivers: [
                             /// ===== Role name =====
-                            Container(
+                            SliverToBoxAdapter(
+                              child: Container(
                               width: double.infinity,
                               padding:
                               const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
@@ -376,9 +381,13 @@ class _EditRoleState extends State<EditRole> {
                                 ],
                               ),
                             ),
+                            ),
+
+                            SliverToBoxAdapter(child: SizedBox(height: 17)),
 
                             /// ===== Delete role =====
-                            SeparatorCard(
+                            SliverToBoxAdapter(
+                              child: SeparatorCard(
                               separatorPadding: EdgeInsets.only(left: 45, right: 15),
                               children: [
                                 IconTextButton(onPressed: () {
@@ -412,6 +421,10 @@ class _EditRoleState extends State<EditRole> {
                                 }, arrow: false, color: Colors.red, icon: 'icon_delete.svg', label: 'ลบตำแหน่ง')
                               ]
                             ),
+                            ),
+
+                            SliverToBoxAdapter(child: SizedBox(height: 17)),
+
                             /// กำหนดสิทธิ์การเข้าถึง
                             // SeparatorCard(
                             //   separatorPadding:
@@ -446,7 +459,8 @@ class _EditRoleState extends State<EditRole> {
                             // ),
 
                             /// ===== Search & Add =====
-                            Column(
+                            SliverToBoxAdapter(
+                              child: Column(
                               spacing: 6,
                               children: [
                                 Row(
@@ -636,14 +650,28 @@ class _EditRoleState extends State<EditRole> {
                                                         builder: () => Expanded(
                                                           child: ClipRRect(
                                                             borderRadius: BorderRadius.circular(20),
-                                                            child: SingleChildScrollView(
+                                                            // 🚩 (2026-08-22) เดิม SingleChildScrollView + SeparatorCard
+                                                            // -> build ทุกคนในระบบพร้อมกัน พร้อม Image.network ต่อคน
+                                                            // (ยิงโหลดรูปทุกใบทันทีที่เปิด popup) หนักสุดในบรรดาลิสต์ทั้งหมด
+                                                            child: CustomScrollView(
                                                               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                                                              child: SeparatorCard(
+                                                              slivers: [
+                                                                SliverSeparatorList(
                                                                 separatorPadding: EdgeInsetsGeometry.only(left: 68, right: 15),
-                                                                children: [
-                                                                  ...popupFilteredMembers.map((m) {
+                                                                itemCount: popupFilteredMembers.length,
+                                                                itemBuilder: (context, index) {
+                                                                    final m = popupFilteredMembers[index];
                                                                     return UserCancelCheckbox(
-                                                                      icon: Image.network(m.avatarUrl),
+                                                                      icon: Image.network(
+                                                                        m.avatarUrl,
+                                                                        fit: BoxFit.cover,
+                                                                        errorBuilder: (context, error, stackTrace) {
+                                                                          return Image.asset(
+                                                                            'assets/images/profile.png',
+                                                                            fit: BoxFit.cover,
+                                                                          );
+                                                                        },
+                                                                      ),
                                                                       title: m.thName,
                                                                       subTitle: m.enName,
                                                                       checkBox: true,
@@ -660,9 +688,9 @@ class _EditRoleState extends State<EditRole> {
                                                                         });
                                                                       },
                                                                     );
-                                                                  }),
-                                                                ],
-                                                              ),
+                                                                  },
+                                                                ),
+                                                              ],
                                                             )
                                                           ),
                                                         )
@@ -680,17 +708,28 @@ class _EditRoleState extends State<EditRole> {
                                 )
                               ],
                             ),
+                            ),
+
+                            SliverToBoxAdapter(child: SizedBox(height: 17)),
 
                             /// ===== Member list =====
-                            if (_filteredMembers.isNotEmpty)
-                              Column(
-                                children: [
-                                  SeparatorCard(
+                            if (_filteredMembers.isNotEmpty) ...[
+                                  SliverSeparatorList(
                                     separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 68),
-                                    children: [
-                                      ..._filteredMembers.map((m) {
+                                    itemCount: _filteredMembers.length,
+                                    itemBuilder: (context, index) {
+                                        final m = _filteredMembers[index];
                                         return UserCancelCheckbox(
-                                            icon: Image.network(m.avatarUrl, fit: BoxFit.cover,),
+                                            icon: Image.network(
+                                              m.avatarUrl,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Image.asset(
+                                                  'assets/images/profile.png',
+                                                  fit: BoxFit.cover,
+                                                );
+                                              },
+                                            ),
                                             title: m.thName,
                                             subTitle: m.enName,
                                             checkBox: false,
@@ -705,14 +744,11 @@ class _EditRoleState extends State<EditRole> {
                                               });
                                             }
                                         );
-                                      }),
-                                    ],
+                                    },
                                   ),
-                                  SizedBox(height: 60),
-                                ],
-                              )
-                          ],
-                        ),
+                                  SliverToBoxAdapter(child: SizedBox(height: 60)),
+                            ],
+                        ],
                       )
                     )
                   ],

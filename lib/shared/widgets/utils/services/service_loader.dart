@@ -33,6 +33,15 @@ class _ServiceLoaderState extends State<ServiceLoader> {
     _load();
   }
 
+  // 🚩 ดึงข้อความ error จาก field "error" ใน JSON body ก่อน (เดิมใช้ statusMessage ซึ่งเป็นแค่
+  // reason phrase ของ HTTP เช่น "Internal Server Error" ไม่ใช่ข้อความจริงจาก backend)
+  String _extractErrorMessage(dynamic data, String? fallbackStatusMessage) {
+    if (data is Map && data['error'] != null) {
+      return data['error'].toString();
+    }
+    return fallbackStatusMessage ?? 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง...';
+  }
+
   Future<void> _load() async {
 
     setState(() {
@@ -52,16 +61,23 @@ class _ServiceLoaderState extends State<ServiceLoader> {
       } else {
         setState(() {
           _state = ServiceLoaderState.error;
-          _errorMessage = res.statusMessage;
+          _errorMessage = _extractErrorMessage(res.data, res.statusMessage);
         });
       }
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _state = ServiceLoaderState.error;
-        _errorMessage = e.toString();
-      });
+      if (e is DioException && e.response != null) {
+        setState(() {
+          _state = ServiceLoaderState.error;
+          _errorMessage = _extractErrorMessage(e.response?.data, e.response?.statusMessage);
+        });
+      } else {
+        setState(() {
+          _state = ServiceLoaderState.error;
+          _errorMessage = e.toString();
+        });
+      }
     }
   }
 
@@ -81,7 +97,7 @@ class _ServiceLoaderState extends State<ServiceLoader> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง...'),
+              Text(_errorMessage ?? 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง...'),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _load,

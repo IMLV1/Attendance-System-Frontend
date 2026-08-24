@@ -5,7 +5,6 @@ import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
-import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -70,15 +69,42 @@ class _NotificationPageState extends State<NotificationPage> {
             final unread = provider.notifications.where((n) => !n.isRead).toList();
             final read = provider.notifications.where((n) => n.isRead).toList();
 
-            return SingleChildScrollView(
+            // 🚩 (2026-08-22) CustomScrollView + SliverList.builder — เดิมเป็น Column
+            // ใน SingleChildScrollView สร้าง widget ของแจ้งเตือนทุกอันพร้อมกัน
+            // (แจ้งเตือนสะสมได้เรื่อยๆ ไม่มีเพดาน) ตอนนี้สร้างเฉพาะที่อยู่ในจอ
+            //
+            // หมายเหตุ: SeparatorCard วาดเส้นคั่น+มุมโค้งให้ทั้งกล่อง ซึ่งต้องรู้จำนวน
+            // ลูกทั้งหมด เลยใช้ไม่ได้กับ builder — จัดเส้นคั่น/มุมโค้งเองรายตัวแทน
+            Widget buildGroup(List<NotificationModel> list, int index) {
+              final isFirst = index == 0;
+              final isLast = index == list.length - 1;
+              return Container(
+                decoration: BoxDecoration(
+                  color: AppColors.cardColor,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(isFirst ? 25 : 0),
+                    bottom: Radius.circular(isLast ? 25 : 0),
+                  ),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    _buildNotificationItem(context, list[index], provider),
+                    if (!isLast) const Divider(height: 0),
+                  ],
+                ),
+              );
+            }
+
+            return CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (unread.isNotEmpty) ...[
-                    const Padding(
-                      padding: EdgeInsets.only(left: 4, bottom: 8),
+              slivers: [
+                const SliverPadding(padding: EdgeInsets.only(top: 20)),
+
+                if (unread.isNotEmpty) ...[
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 20, right: 16, bottom: 8),
                       child: Text(
                         'ยังไม่อ่าน',
                         style: TextStyle(
@@ -88,16 +114,21 @@ class _NotificationPageState extends State<NotificationPage> {
                         ),
                       ),
                     ),
-                    SeparatorCard(
-                      children: unread.map((notification) {
-                        return _buildNotificationItem(context, notification, provider);
-                      }).toList(),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList.builder(
+                      itemCount: unread.length,
+                      itemBuilder: (context, i) => buildGroup(unread, i),
                     ),
-                    const SizedBox(height: 24),
-                  ],
-                  if (read.isNotEmpty) ...[
-                    const Padding(
-                      padding: EdgeInsets.only(left: 4, bottom: 8),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                ],
+
+                if (read.isNotEmpty) ...[
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 20, right: 16, bottom: 8),
                       child: Text(
                         'กล่องข้อความ',
                         style: TextStyle(
@@ -107,14 +138,18 @@ class _NotificationPageState extends State<NotificationPage> {
                         ),
                       ),
                     ),
-                    SeparatorCard(
-                      children: read.map((notification) {
-                        return _buildNotificationItem(context, notification, provider);
-                      }).toList(),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList.builder(
+                      itemCount: read.length,
+                      itemBuilder: (context, i) => buildGroup(read, i),
                     ),
-                  ],
+                  ),
                 ],
-              ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+              ],
             );
           },
         ),

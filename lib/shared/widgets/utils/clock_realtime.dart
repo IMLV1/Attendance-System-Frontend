@@ -10,18 +10,17 @@ class ClockWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ถ้ายังไม่มีเวลาส่งมาให้แสดง Loading
-    if (time == null) return const Text("กำลังซิงค์เวลา...");
-
+    // 🚩 แก้: ใช้ "--:--" แทนข้อความ "กำลังซิงค์เวลา..." — layout/ขนาดตัวอักษรเหมือนตอนมีเวลาจริง
+    // เป๊ะ (ไม่มีจังหวะ layout กระโดดตอนสลับจาก placeholder ไปเป็นเวลาจริง)
     return Column(
       children: [
         Text(
-          DateFormat('HH:mm').format(time!),
+          time == null ? '--:--' : DateFormat('HH:mm').format(time!),
           style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
         ),
         Text(
           // เพิ่มการเช็ค locale ให้เป็นภาษาไทยตามเดิม
-          DateFormat('EEEE d MMMM yyyy', 'th').format(time!),
+          time == null ? '--' : DateFormat('EEEE d MMMM yyyy', 'th').format(time!),
           style: const TextStyle(fontSize: 15, color: AppColors.lightTextColor),
         ),
       ],

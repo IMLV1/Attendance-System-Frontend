@@ -18,6 +18,7 @@ import '../../../shared/widgets/utils/popup/date_filter_popup.dart';
 import '../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import '../../../shared/widgets/utils/popup/multi_page/dynamic_push_popup.dart';
 import '../../../shared/widgets/utils/services/service_updater_promax.dart';
+import '../../../shared/widgets/utils/sliver_separator_list.dart';
 
 class TimeRequestPage extends StatefulWidget{
   const TimeRequestPage({super.key});
@@ -63,13 +64,16 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
             child: Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
+                  // 🚩 (2026-08-22) เดิม SingleChildScrollView + Column -> ทุกแถวของ
+                  // "รายการล่าสุด" ถูก build พร้อมกันตอนเปิดหน้า (คำขอสะสมไปเรื่อยๆ)
+                  // ⚠️ ห้ามเอา SingleChildScrollView กลับมาครอบ ไม่งั้น sliver ข้างในจะ
+                  // ถูก shrink-wrap แล้ว build ครบทุกแถวเหมือนเดิม
+                  child: CustomScrollView(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     physics: AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      spacing: 13,
-                      children: [
-                        SeparatorCard(
+                    slivers: [
+                        SliverToBoxAdapter(
+                          child: SeparatorCard(
                           children: [
                             IconTextButton(
                               icon: 'icon_create_role.svg',
@@ -87,6 +91,8 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                             )
                           ],
                         ),
+                        ),
+                        SliverToBoxAdapter(child: SizedBox(height: 13)),
                         ServiceUpdaterProMax(
                           requests: [
                             () =>TimeRequestService().getPending(),
@@ -117,12 +123,20 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                           },
                             fetchOnInit: true,
                             builder: (trigger, getState) {
-                              return (getState(0) == ServiceUpdaterProMaxState.loading && getState(1) == ServiceUpdaterProMaxState.loading) ?
-                              Center(child: CupertinoActivityIndicator()) :
-                              Column(
-                                spacing: 13,
-                                children: [
-                                  Container(
+                              if (getState(0) == ServiceUpdaterProMaxState.loading &&
+                                  getState(1) == ServiceUpdaterProMaxState.loading) {
+                                return const SliverFillRemaining(
+                                  hasScrollBody: false,
+                                  child: Center(child: CupertinoActivityIndicator()),
+                                );
+                              }
+
+                              return SliverMainAxisGroup(
+                                slivers: [
+                                  // "รอดำเนินการ" ของตัวเองมีไม่กี่รายการ -> ปล่อยเป็นก้อนเดียว
+                                  // ตัวที่โตไม่จำกัดคือ "รายการล่าสุด" ข้างล่าง
+                                  SliverToBoxAdapter(
+                                    child: Container(
                                       padding: EdgeInsetsGeometry.all(10),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(22),
@@ -216,10 +230,14 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                         ],
                                       )
                                   ),
-                                  Column(
-                                    spacing: 6,
-                                    children: [
-                                      Row(
+                                  ),
+
+                                  SliverToBoxAdapter(child: SizedBox(height: 13)),
+
+                                  SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(bottom: 6),
+                                      child: Row(
                                         spacing: 6,
                                         children: [
                                           SizedBox(
@@ -269,8 +287,12 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
 
                                         ],
                                       ),
-                                      (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading) ?
-                                      SeparatorCard(
+                                    ),
+                                  ),
+
+                                  if (recentList.isEmpty && getState(1) != ServiceUpdaterProMaxState.loading)
+                                    SliverToBoxAdapter(
+                                      child: SeparatorCard(
                                         children: [
                                           Container(
                                             color: Colors.white,
@@ -286,11 +308,14 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                             ),
                                           )
                                         ],
-                                      ) :
-                                      SeparatorCard(
+                                      ),
+                                    )
+                                  else
+                                    SliverSeparatorList(
                                         separatorPadding: EdgeInsetsGeometry.only(left: 60, right: 10),
-                                        children: [
-                                          ...recentList!.map((m) {
+                                        itemCount: recentList.length,
+                                        itemBuilder: (context, index) {
+                                            final m = recentList[index];
                                             return AppButton(
                                               icon: switch(m?.status) {
                                                 'approved' => 'icon_success.svg',
@@ -359,17 +384,14 @@ class _TimeRequestPageState extends State<TimeRequestPage> {
                                                 ).showPopup(context);
                                               },
                                             );
-                                          })
-                                        ],
-                                      )
-                                    ],
-                                  )
+                                        },
+                                    ),
                                 ],
                               );
                             }
-                        )
+                        ),
+                        SliverToBoxAdapter(child: SizedBox(height: 20)),
                       ],
-                    )
                   )
                 )
               ]

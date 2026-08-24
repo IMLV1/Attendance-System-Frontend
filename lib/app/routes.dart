@@ -81,14 +81,6 @@ final appRouter = GoRouter(
           builder: (_, _) => const SettingPage(),
           routes: [
             GoRoute(
-              name: RouteNames.approval,
-              path: 'approval',
-              builder: (context, state) {
-                final initialTab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
-                return Approval(initialTab: initialTab);
-              },
-            ),
-            GoRoute(
               name: RouteNames.settingBudgetYear,
               path: 'budget-year',
               builder: (_, _) => const SettingBudgetYear(),
@@ -118,17 +110,30 @@ final appRouter = GoRouter(
               path: 'role-management',
               builder: (_, _) => const RoleManagement(),
             ),
-            GoRoute(
-              name: RouteNames.attendanceHistory,
-              path: 'attendance-history',
-              builder: (_, _) => const AttendanceHistory(),
-            ),
-            GoRoute(
-              name: RouteNames.personnelInfo,
-              path: 'personnel-info',
-              builder: (_, _) => const PersonnelInfo(),
-            )
           ]
+        ),
+
+        // 🚩 (2026-08-24) 3 หน้านี้ย้ายออกมาเป็น route ระดับบนสุด — เดิมเป็นลูกของ
+        // `/settings` ทำให้ `context.go()` จาก sidebar สร้างสแตกที่มี `/settings`
+        // คาอยู่ข้างล่าง พฤติกรรมจึงไม่เหมือนหน้าหลักอื่นทั้งที่อยู่ในเมนูข้างเหมือนกัน
+        // (หน้าตั้งค่ายังเข้าถึงได้เหมือนเดิมเพราะนำทางด้วย `pushNamed` ไม่ใช่ path)
+        GoRoute(
+          name: RouteNames.approval,
+          path: '/approval',
+          builder: (context, state) {
+            final initialTab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+            return Approval(initialTab: initialTab);
+          },
+        ),
+        GoRoute(
+          name: RouteNames.attendanceHistory,
+          path: '/attendance-history',
+          builder: (_, _) => const AttendanceHistory(),
+        ),
+        GoRoute(
+          name: RouteNames.personnelInfo,
+          path: '/personnel-info',
+          builder: (_, _) => const PersonnelInfo(),
         ),
         GoRoute(
           name: RouteNames.profile,

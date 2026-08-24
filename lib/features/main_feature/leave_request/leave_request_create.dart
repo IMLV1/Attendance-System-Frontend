@@ -1,3 +1,5 @@
+import 'package:attendance_system/app/route_names.dart';
+import 'package:attendance_system/services/system_config/budget_year/config_budget_year_service.dart';
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
@@ -43,6 +45,11 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
 
   LeaveDate? _selectedDate;
 
+  // 🚩 เพิ่ม (2026-08-13): ขอบเขตปีงบประมาณปัจจุบัน ใช้จำกัดปฏิทินเลือกวันลา
+  // (ยื่นลาได้เฉพาะในปีงบปัจจุบัน — backend บังคับซ้ำอีกชั้น)
+  DateTime? _budgetStart;
+  DateTime? _budgetEnd;
+
   LeaveInfoModel? leaveStatsInfo;
 
   List<PlatformFile> allFiles = [];
@@ -53,16 +60,69 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
   bool submitted = false;
   bool confirmed = false;
 
-  double getLeaveDays() {
-    double leaveDays = leaveDate!.toDate!.difference(leaveDate!.fromDate!).inDays + 1;
-    double period = (leaveDate!.fromDateMorning ? 0 : -0.5) + (leaveDate!.toDateMorning ? -0.5 : 0);
-    double finalLeaves = leaveDays + period;
-
-    return finalLeaves;
+  @override
+  void initState() {
+    super.initState();
+    _loadBudgetPeriod();
   }
 
+  // ดึงขอบเขตปีงบปัจจุบันมาจำกัดปฏิทิน — ถ้าล้มเหลวปล่อยเป็น null (ไม่จำกัดฝั่ง UI)
+  // แล้วให้ backend เป็นด่านบล็อกแทน จะได้ไม่ทำให้หน้าใช้ไม่ได้ทั้งหน้า
+  Future<void> _loadBudgetPeriod() async {
+    try {
+      final res = await ConfigBudgetYearService().getCurrentPeriod();
+      final start = res.data?['date-start'];
+      final end = res.data?['date-end'];
+      if (start != null && end != null && mounted) {
+        setState(() {
+          _budgetStart = DateTime.parse(start);
+          _budgetEnd = DateTime.parse(end);
+        });
+      }
+    } catch (_) {
+      // เงียบไว้ — backend ยังบล็อกให้อยู่ดี
+    }
+  }
+
+  // 🚩 แก้ (2026-08-13): เดิมคำนวณ "จำนวนวันลา" เองจากผลต่างวันปฏิทินดิบ ซึ่งไม่ตัด
+  // เสาร์-อาทิตย์/วันหยุด → ไม่ตรงกับที่ backend หักจริงตอนอนุมัติ (เช่น 3–14 ส.ค. 2026
+  // นับได้ 12 แต่หักจริง 9) ทำให้คำเตือน "จะเกินสิทธิ์กี่วัน" เพี้ยน
+  // ตอนนี้ถามจาก backend (ใช้ CalculateLeaveDays ตัวเดียวกับตอนอนุมัติ) แทน
+  double? _calculatedLeaveDays;
+
+  Future<void> _recalculateLeaveDays() async {
+    final d = leaveDate;
+    if (d?.fromDate == null || d?.toDate == null) {
+      setState(() => _calculatedLeaveDays = null);
+      return;
+    }
+    try {
+      final res = await LeaveRequestService().calculateLeaveDays(
+        d!.fromDate!,
+        d.toDate!,
+        fromDateMorning: d.fromDateMorning,
+        toDateMorning: d.toDateMorning,
+      );
+      final days = (res.data?['days'] as num?)?.toDouble();
+      if (mounted) setState(() => _calculatedLeaveDays = days);
+    } catch (_) {
+      // ถามไม่ได้ ใช้วันปฏิทินดิบไปก่อน (จะได้ไม่บล็อกการใช้งาน) — backend ยังเป็นตัวตัดสิน
+      if (mounted) setState(() => _calculatedLeaveDays = null);
+    }
+  }
+
+  double getLeaveDays() {
+    if (_calculatedLeaveDays != null) return _calculatedLeaveDays!;
+
+    // fallback: วันปฏิทินดิบ (ใช้เฉพาะตอนถาม backend ไม่ได้)
+    double leaveDays = leaveDate!.toDate!.difference(leaveDate!.fromDate!).inDays + 1;
+    double period = (leaveDate!.fromDateMorning ? 0 : -0.5) + (leaveDate!.toDateMorning ? -0.5 : 0);
+    return leaveDays + period;
+  }
+
+  // หักคำขอที่ยังรออนุมัติออกด้วย ไม่งั้นจะเห็นสิทธิ์คงเหลือเกินจริง
   double getRemainLeaveDays() {
-    return (leaveStatsInfo?.max ?? 0) - (leaveStatsInfo?.used ?? 0);
+    return leaveStatsInfo?.remain ?? 0;
   }
 
   @override
@@ -150,6 +210,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                         setting = leaveType.getSetting(context);
 
                                                                         leaveDate = null;
+                                                                        _calculatedLeaveDays = null;
                                                                         _textEditingController.text = '';
                                                                         allFiles.clear();
 
@@ -184,9 +245,15 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                           ),
                                                                           children: [
                                                                             TextSpan(
-                                                                              text: (leaveStatsInfo!.max - leaveStatsInfo!.used <= 0) ? 'คุณได้ใช้สิทธิ์การ${leaveType!.display}ครบตามจำนวนที่กำหนดแล้ว' : 'คุณใช้สิทธิ์${leaveType!.display}ไปแล้ว ${leaveStatsInfo!.used} วัน และยังเหลือสิทธิ์ลา${leaveType!.display}อีก ${leaveStatsInfo!.max - leaveStatsInfo!.used} วัน ',
+                                                                              // 🚩 หักคำขอที่ยังรออนุมัติออกด้วย (leaveStatsInfo.remain) เดิมใช้แค่ max-used
+                                                                              // ซึ่ง used เพิ่มตอนอนุมัติเท่านั้น → ยื่นค้างไว้กี่ใบก็ยังเห็นเหลือเต็มโควตา
+                                                                              text: (leaveStatsInfo!.remain <= 0)
+                                                                                  ? 'คุณได้ใช้สิทธิ์การ${leaveType!.display}ครบตามจำนวนที่กำหนดแล้ว'
+                                                                                  : 'คุณใช้สิทธิ์${leaveType!.display}ไปแล้ว ${Utils.formatDays(leaveStatsInfo!.used)} วัน'
+                                                                                      '${leaveStatsInfo!.pending > 0 ? ' และมีคำขอรออนุมัติอีก ${Utils.formatDays(leaveStatsInfo!.pending)} วัน' : ''}'
+                                                                                      ' ยังเหลือสิทธิ์ลา${leaveType!.display}อีก ${Utils.formatDays(leaveStatsInfo!.remain)} วัน ',
                                                                               style: TextStyle(
-                                                                                color: (leaveStatsInfo!.max - leaveStatsInfo!.used <= 0) ? Colors.red : Colors.black
+                                                                                color: (leaveStatsInfo!.remain <= 0) ? Colors.red : Colors.black
                                                                               )
                                                                             ),
                                                                             TextSpan(
@@ -197,7 +264,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                               ),
                                                                               recognizer: TapGestureRecognizer()
                                                                                 ..onTap = () {
-                                                                                  // TODO: Navigate to statistic page
+                                                                                  context.goNamed(RouteNames.statistic);
                                                                                 },
                                                                             ),
                                                                           ],
@@ -228,6 +295,8 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                         return DateSelect(
                                                                           dateData: leaveDate,
                                                                           allowRetroactive: setting!.allowRetroactive,
+                                                                          budgetStart: _budgetStart,
+                                                                          budgetEnd: _budgetEnd,
                                                                           onChanged: (LeaveDate date) {
                                                                             _selectedDate = date;
                                                                           }
@@ -240,6 +309,8 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                         setState(() {
                                                                           leaveDate = _selectedDate;
                                                                         });
+                                                                        // ถามจำนวนวันลาจริงจาก backend (ตัดเสาร์-อาทิตย์/วันหยุด)
+                                                                        _recalculateLeaveDays();
                                                                       }
                                                                   ).showPopup(context);
                                                                 },
@@ -344,6 +415,52 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                   ),
                                                                 ),
                                                               ) : SizedBox(),
+                                                            ),
+
+                                                            // 🚩 (2026-08-22) สรุปว่าคำขอนี้จะใช้โควตากี่วัน
+                                                            // ตัวเลขมาจาก backend (ตัดเสาร์-อาทิตย์/วันหยุดแล้ว) ผู้ใช้จะได้
+                                                            // เห็นก่อนกดส่งว่าโดนหักจริงเท่าไร ไม่ใช่เดาจากจำนวนวันปฏิทิน
+                                                            AnimatedSwitcher(
+                                                              duration: const Duration(milliseconds: 200),
+                                                              child: (leaveDate != null && _calculatedLeaveDays != null)
+                                                                  ? Padding(
+                                                                      padding: const EdgeInsets.only(left: 13, right: 13, top: 8),
+                                                                      child: Row(
+                                                                        spacing: 6,
+                                                                        children: [
+                                                                          SvgPicture.asset(
+                                                                            'assets/images/iicon.svg',
+                                                                            width: 14,
+                                                                            height: 14,
+                                                                          ),
+                                                                          Expanded(
+                                                                            child: Text.rich(
+                                                                              TextSpan(
+                                                                                text: 'คำขอนี้จะใช้สิทธิ์',
+                                                                                style: const TextStyle(fontSize: 13, color: Colors.black),
+                                                                                children: [
+                                                                                  TextSpan(
+                                                                                    text: ' ${Utils.formatDays(_calculatedLeaveDays!)} วัน',
+                                                                                    style: const TextStyle(
+                                                                                      fontSize: 13,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      color: Colors.black,
+                                                                                    ),
+                                                                                  ),
+                                                                                  if (_calculatedLeaveDays! == 0)
+                                                                                    const TextSpan(text: ' (ช่วงที่เลือกเป็นวันหยุดทั้งหมด)')
+                                                                                  else
+                                                                                    TextSpan(
+                                                                                      text: ' จากที่เหลือ ${Utils.formatDays(getRemainLeaveDays())} วัน',
+                                                                                    ),
+                                                                                ],
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    )
+                                                                  : const SizedBox(),
                                                             )
                                                           ],
                                                         ),
@@ -807,7 +924,8 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                   children: [
                                                     RichText(
                                                         text: TextSpan(
-                                                            text: 'คุณได้ใช้สิทธิ์การลาป่วยครบตามจำนวนที่กำหนดแล้ว หากคำขอนี้ได้รับการอนุมัติจำนวนวันลาของคุณจะเกินสิทธิ์ทั้งหมด ${getLeaveDays() - getRemainLeaveDays()} วัน ซึ่งอาจส่งผลต่อการคำนวณตัวชี้วัดผลการปฏิบัติงาน ',
+                                                            // 🚩 เดิม hardcode 'ลาป่วย' ทุกประเภท + โชว์เลขดิบ (เช่น 2.0)
+                                                            text: 'คุณได้ใช้สิทธิ์การ${leaveType?.display ?? 'ลา'}ครบตามจำนวนที่กำหนดแล้ว หากคำขอนี้ได้รับการอนุมัติจำนวนวันลาของคุณจะเกินสิทธิ์ทั้งหมด ${Utils.formatDays(getLeaveDays() - getRemainLeaveDays())} วัน ซึ่งอาจส่งผลต่อการคำนวณตัวชี้วัดผลการปฏิบัติงาน ',
                                                             style: TextStyle(
                                                                 color: Colors.red
                                                             ),

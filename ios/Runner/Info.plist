@@ -52,12 +52,12 @@
                 <string>Editor</string>
                 <key>CFBundleURLSchemes</key>
                 <array>
-                    <string>com.googleusercontent.apps.264137744621-b5bkk9g2r7vmmur4a5jht0gb24dvn24e</string>
+                    <string>com.googleusercontent.apps.49120390115-49egi47bi83pc5s1khqj4scgl6m25p8g</string>
                 </array>
             </dict>
         </array>
         <key>GIDClientID</key>
-        <string>264137744621-b5bkk9g2r7vmmur4a5jht0gb24dvn24e.apps.googleusercontent.com</string>
+        <string>49120390115-49egi47bi83pc5s1khqj4scgl6m25p8g.apps.googleusercontent.com</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
     <key>NSCameraUsageDescription</key>
