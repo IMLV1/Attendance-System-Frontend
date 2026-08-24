@@ -35,7 +35,7 @@ class Header {
     // ทั้ง 28 จุด และไม่มีข้อมูลซ้ำให้หลุดกัน
     final dest = sidebarDestinationByPath[GoRouterState.of(context).matchedLocation];
     if (dest != null && Responsive.showSidebar(context)) {
-      return mainHeader(context, title: dest.name, iconPath: dest.icon);
+      return mainHeader(context, title: dest.name, subTitle: dest.nameEn, iconPath: dest.icon);
     }
 
     return AppBar(

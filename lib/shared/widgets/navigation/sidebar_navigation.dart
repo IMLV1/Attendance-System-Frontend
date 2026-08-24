@@ -101,17 +101,17 @@ class _SideBarNavigationState extends State<SideBarNavigation> {
               color: AppColors.lightTextColor,
             ),
             const SizedBox(height: 10),
-            SideBarButton(currentPath: currentPath, path: '/settings/attendance-history'),
+            SideBarButton(currentPath: currentPath, path: '/attendance-history'),
             // 🚩 ตัด 'บันทึกการลางาน' (/leave-history) และ 'บันทึกคำขออนุมัติเวลางาน'
             // (/time-request-history) ออก — ไม่มีหน้าพวกนี้ใน routes.dart และไม่จำเป็น
             // เพราะประวัติอยู่ในหน้า 'การลางาน' / 'ขออนุมัติเวลา' อยู่แล้ว (ส่วน "รายการล่าสุด")
             if (access.hasApprovalGroup) ..._group([
               if (access.canApprove)
-                SideBarButton(currentPath: currentPath, path: '/settings/approval'),
+                SideBarButton(currentPath: currentPath, path: '/approval'),
               // 🚩 ตัด 'บันทึกการอนุมัติคำขอ' (/approval-history) ออก — ไม่มีหน้านี้จริง
               // ประวัติการอนุมัติอยู่ในหน้า 'อนุมัติคำขอ' อยู่แล้ว (ส่วน "รายการล่าสุด")
               if (access.canViewPersonnel)
-                SideBarButton(currentPath: currentPath, path: '/settings/personnel-info'),
+                SideBarButton(currentPath: currentPath, path: '/personnel-info'),
             ]),
             // 🚩 (2026-08-24) ตัด 6 รายการออกจาก sidebar: จัดการผู้ใช้งานระบบ,
             // จัดการตำแหน่ง และ config อีก 4 ตัว — ไปอยู่หลังไอคอนเฟือง (/settings)

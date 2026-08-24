@@ -26,30 +26,29 @@ import 'package:provider/provider.dart';
 class SidebarDestination {
   final String path;
   final String name;
+
+  /// ชื่ออังกฤษใต้ชื่อไทยบนแถบหัว — หน้าหลักทุกหน้ามีอยู่แล้ว (Time Attendance,
+  /// Statistic, ...) หน้าที่มาจาก sidebar เหมือนกันจึงต้องมีให้ครบ ไม่งั้นแถบหัว
+  /// จะสูงไม่เท่ากันและดูเป็นคนละชุด
+  final String nameEn;
   final String icon;
 
-  const SidebarDestination(this.path, this.name, this.icon);
+  const SidebarDestination(this.path, this.name, this.nameEn, this.icon);
 }
 
 const sidebarDestinationList = <SidebarDestination>[
-  SidebarDestination('/check-in', 'ลงชื่อเข้า-ออกงาน', 'icon_checkin.svg'),
-  SidebarDestination('/attendance-request', 'ขออนุมัติเวลาเข้า-ออกงาน', 'icon_time_request.svg'),
-  SidebarDestination('/leave-request', 'การลางาน', 'icon_leave.svg'),
-  SidebarDestination('/statistic', 'สถิติ', 'icon_statistic.svg'),
-  SidebarDestination('/settings/attendance-history', 'บันทึกการเข้างาน', 'icon_attendance_history.svg'),
-  SidebarDestination('/settings/approval', 'อนุมัติคำขอ', 'icon_approval.svg'),
-  SidebarDestination('/settings/personnel-info', 'ข้อมูลบุคลากรในองค์กร', 'icon_personnel_info.svg'),
-
-  // 🚩 (2026-08-24) จัดการผู้ใช้งานระบบ / จัดการตำแหน่ง / config อีก 4 ตัว ถูกย้าย
-  // ออกจาก sidebar ไปอยู่หลังไอคอนเฟือง จึงไม่ใช่ "ปลายทาง" อีกต่อไป — ตอนนี้ถูก
-  // push มาจากหน้า `/settings` จริงๆ ทั้งบนมือถือและ desktop
-  // ผลที่ตามมาโดยตั้งใจ: หน้าพวกนั้นกลับไปมีปุ่ม back และใช้ subHeader ซึ่งถูกต้อง
-  // ตามบริบทใหม่ (เป็นหน้าลูกของ /settings เหมือนกันหมดทุกจอ)
+  SidebarDestination('/check-in', 'ลงชื่อเข้า-ออกงาน', 'Time Attendance', 'icon_checkin.svg'),
+  SidebarDestination('/attendance-request', 'ขออนุมัติเวลาเข้า-ออกงาน', 'Attendance Request', 'icon_time_request.svg'),
+  SidebarDestination('/leave-request', 'การลางาน', 'Leave Request', 'icon_leave.svg'),
+  SidebarDestination('/statistic', 'สถิติ', 'Statistic', 'icon_statistic.svg'),
+  SidebarDestination('/attendance-history', 'บันทึกการเข้างาน', 'Attendance History', 'icon_attendance_history.svg'),
+  SidebarDestination('/approval', 'อนุมัติคำขอ', 'Approval', 'icon_approval.svg'),
+  SidebarDestination('/personnel-info', 'ข้อมูลบุคลากรในองค์กร', 'Personnel Info', 'icon_personnel_info.svg'),
 
   // สองตัวนี้ไม่ได้เป็นปุ่มในรายการเมนู แต่ก็ถึงได้ในคลิกเดียวจากแถบโปรไฟล์ด้านล่าง
   // จึงนับเป็นปลายทางเหมือนกัน (ไม่ควรมีปุ่ม back)
-  SidebarDestination('/settings', 'ตั้งค่า', 'icon_setting.svg'),
-  SidebarDestination('/profile', 'โปรไฟล์', 'icon_personnel_info.svg'),
+  SidebarDestination('/settings', 'ตั้งค่า', 'Settings', 'icon_setting.svg'),
+  SidebarDestination('/profile', 'โปรไฟล์', 'User Profile', 'icon_personnel_info.svg'),
 ];
 
 final Map<String, SidebarDestination> sidebarDestinationByPath = {
