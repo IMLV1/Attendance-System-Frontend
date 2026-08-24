@@ -524,10 +524,25 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     // พอเพิ่มประวัติล่าสุดเข้ามา (ให้มีเหมือนจอใหญ่) กติกานั้นใช้ไม่ได้อีกแล้ว
     // เลยเปลี่ยนเป็นเรียงลงมาตรงๆ แล้วเลื่อนเอา ซึ่งได้ของแถมคือไม่ต้องกลัว
     // overflow ตอนข้อความยาวขึ้น (เคสที่เคยทำให้ overflow 4px)
+    // 🚩 (2026-08-25) `AppScaffold` วางเนื้อหาไว้ใน `Align(topCenter)` ซึ่งส่ง
+    // constraints แบบ **loose** ลงมา (min 0) — `SingleChildScrollView` เจอแบบนี้
+    // จะ "หดตามความสูงเนื้อหา" แทนที่จะกินพื้นที่ที่เหลือทั้งหมด
+    //
+    // ผลคือ viewport สูงเท่าเนื้อหา (ราว 940) ไม่ใช่เท่าพื้นที่จริง (ราว 1150)
+    // บน iPad แนวตั้ง พอผู้ใช้ลากเลื่อน เนื้อหาจึงถูกตัดที่ขอบ viewport ที่ลอย
+    // อยู่กลางจอ แล้วเหลือช่องว่างใต้ลงไปจนถึงแถบเมนู (ยืนยันด้วยการใส่สีพื้น
+    // ให้ scroll view ชั่วคราวแล้วถ่ายภาพ — สีจบก่อนถึงแถบเมนูจริงๆ)
+    //
+    // แก้ด้วยการบังคับให้เนื้อหาสูงอย่างน้อยเท่าพื้นที่ที่ได้รับ -> viewport
+    // เต็มพื้นที่เสมอ ส่วนตอนเนื้อหายาวกว่านั้นก็เลื่อนได้ตามปกติ
     return SafeArea(
-      child: SingleChildScrollView(
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -542,6 +557,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             _sideBox(child: _recentBox()),
           ],
         ),
+        ),
+        ),
+      ),
       ),
     );
   }
