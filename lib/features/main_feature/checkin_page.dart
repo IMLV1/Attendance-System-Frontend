@@ -568,34 +568,44 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Row(
-          // stretch = ลูกทั้งสองได้ความสูงเต็มเท่ากัน ฝั่งซ้ายค่อยจัดวงกลม
-          // กึ่งกลางเอง ฝั่งขวาเรียงจากบนลงมา — ทั้งสองฝั่งจึงนิ่ง ไม่ขยับตามกัน
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 32,
           children: [
-            // ฝั่งลงมือ — กว้างกว่าอีกฝั่งเล็กน้อยเพราะวงกลม+เรดาร์กินที่รอบตัว
+            // เวลาเป็นของกลางที่ทั้งสองฝั่งใช้ร่วมกัน (จะกดเช็คอินก็ดู จะอ่าน
+            // สถานะก็ดู) วางไว้ข้างใดข้างหนึ่งจึงผิด — ยกขึ้นเป็นแถบบนสุดเต็ม
+            // ความกว้าง แล้วค่อยแบ่งซ้าย/ขวาใต้มัน
+            _sideBox(child: _cardtime(large: true)),
+            const SizedBox(height: 24),
             Expanded(
-              flex: 6,
-              // Center กันเคสที่เนื้อหาสั้นกว่าความสูงที่ได้รับ ส่วน
-              // SingleChildScrollView ข้างใน _buttonCheckin จะเลื่อนเองถ้าไม่พอ
-              // วงกลมใหญ่ขึ้นเฉพาะที่นี่ — บนจอกว้างขนาด 170 ที่จูนมาสำหรับมือถือ
-              // ดูเล็กจนไม่เหมือนเป็นของหลักของหน้า
-              child: Center(child: _buttonCheckin(circleSize: 280, large: true)),
-            ),
-            Expanded(
-              flex: 5,
-              child: Column(
-                // ชิดบน ไม่ใช่กึ่งกลาง — กล่องจะได้อยู่ที่เดิมเสมอ ไม่ขยับตาม
-                // จำนวนแถวประวัติที่ดึงมาได้
-                mainAxisAlignment: MainAxisAlignment.start,
+              child: Row(
+                // stretch = ลูกทั้งสองได้ความสูงเต็มเท่ากัน ฝั่งซ้ายค่อยจัดวงกลม
+                // กึ่งกลางเอง ฝั่งขวาเรียงจากบนลงมา — ทั้งสองฝั่งจึงนิ่ง ไม่ขยับตามกัน
                 crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 32,
                 children: [
-                  _sideBox(child: _cardtime(large: true)),
-                  const SizedBox(height: 16),
-                  _sideBox(child: _currentstate(bare: true)),
-                  const SizedBox(height: 16),
-                  _sideBox(child: _recentBox()),
+                  // ฝั่งลงมือ — กว้างกว่าอีกฝั่งเพราะวงกลม+เรดาร์กินที่รอบตัว
+                  Expanded(
+                    flex: 6,
+                    // Center กันเคสที่เนื้อหาสั้นกว่าความสูงที่ได้รับ ส่วน
+                    // SingleChildScrollView ข้างใน _buttonCheckin เลื่อนเองถ้าไม่พอ
+                    child: Center(
+                      child: _buttonCheckin(circleSize: 280, large: true),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      // ชิดบน ไม่ใช่กึ่งกลาง — กล่องอยู่ที่เดิมเสมอ ไม่ขยับตาม
+                      // จำนวนแถวประวัติที่ดึงมาได้
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _sideBox(child: _currentstate(bare: true)),
+                        const SizedBox(height: 16),
+                        _sideBox(child: _recentBox()),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
