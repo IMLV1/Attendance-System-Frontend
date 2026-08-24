@@ -440,6 +440,51 @@ iPhone Pro Max 956×440") **เป็น dead code บน iOS** เพราะ�
 
 ---
 
+## 🖥️ desktop = web (สรุป 24 ส.ค. 10:00)
+
+**ไม่มี native desktop** — ไม่มีโฟลเดอร์ `macos/` `windows/` `linux/` โปรเจกต์รองรับ
+แค่ android / ios / web ที่ `flutter devices` โชว์ `macOS (desktop)` เป็นเพราะ toolchain
+ของเครื่อง ไม่ใช่ของโปรเจกต์ ถ้าจะทำต้อง `flutter create --platforms=macos .` ก่อน
+และ plugin ที่ขาดบน macOS มีตัวเดียวคือ `flutter_file_dialog` (= งาน Phase 5)
+
+**คำสั่งรัน**: `scratchpad/run_web.sh` → `flutter run -d chrome --web-port=5050`
+
+⚠️ **ห้ามใช้พอร์ต 5000** — macOS เปิด AirPlay Receiver ค้างไว้ (`ControlCenter`)
+
+### ต้องตั้งใน Google Cloud Console ก่อน (project 264137744621)
+
+1. OAuth client ชนิด **Web application** (ตัว iOS ใช้กับ web ไม่ได้)
+2. **Authorized JavaScript origins** = `http://localhost:5050` (+ `http://127.0.0.1:5050`)
+   — ช่อง redirect URIs เว้นว่าง GIS แบบ popup ตรวจแค่ origin
+3. เปิด **People API** — plugin บน web ยิง `content-people.googleapis.com/v1/people/me`
+   เพื่อดึงชื่อ/อีเมล/รูป (`google_sign_in_web/lib/src/people.dart:19`)
+4. ใส่ client id ที่ `.env` → `GOOGLE_CLIENT_ID_WEB` เท่านั้น
+   **ไม่ต้องแตะ `web/index.html`** — `google_sign_in_web.dart:142` ให้ค่าจาก
+   constructor ชนะ meta tag และ `.env` อยู่ใน `.gitignore` ด้วย
+
+### 🐞 บั๊กที่เจอตอนเปิด web ครั้งแรก (แก้แล้ว)
+
+**backend CORS ไม่อนุญาต `X-Client-Platform`** → เบราว์เซอร์บล็อกทุก request ทิ้ง
+ตั้งแต่ preflight ยิง API ไม่ได้เลยสักเส้น
+แก้ที่ `Attendance-System-Backend` commit `1841471`
+
+**ทำไมกว่าจะเจอถึงนาน** — dio บน web รายงาน CORS rejection เป็น
+`DioExceptionType.connectionError` ตัวเดียวกับตอนต่อ server ไม่ติดจริงๆ
+`auth_state.dart:115` จึงขึ้นข้อความ "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้" ซึ่งชี้ผิดทาง
+
+> 💡 **ยังไม่ได้ทำ**: น่าเพิ่มการแยกแยะใน `_loginErrorMessage` ว่าถ้าเป็น
+> `kIsWeb && connectionError` ให้บอกใบ้เรื่อง CORS ด้วย เพราะบน web สองสาเหตุนี้
+> หน้าตาเหมือนกันเป๊ะ แต่วิธีแก้คนละเรื่อง
+
+### ข้อสังเกตอื่นบน web
+
+- **ฟอนต์ไทยมาช้า** — แอปใช้ `Inter` ซึ่งไม่มี glyph ไทย บนมือถือระบบมีฟอนต์สำรองให้
+  แต่บน web CanvasKit ต้องโหลด Noto ไทยตอน runtime เฟรมแรกจึงเห็นเป็นกล่อง ▯ แว่บนึง
+  — เกี่ยวโดยตรงกับหัวข้อ splash/จอขาวตอนเปิดข้างล่าง
+- **ต้องเปิด Docker ไว้** ถ้าปิดเพื่อประหยัด RAM backend จะดับตาม ไม่ใช่บั๊กของแอป
+
+---
+
 ## Phase 5 — ระบบไฟล์: แนบ / พรีวิว / โหลด 🆕
 
 > ⏸ **พักไว้ก่อน** (เคาะ 24 ส.ค.) — ให้ไปทำ UI ของ tablet/desktop รายหน้า (Phase 3) ให้จบก่อน
