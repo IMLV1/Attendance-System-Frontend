@@ -476,10 +476,15 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       // 🚩 (Phase 3) จอที่วางคอลัมน์เดียว (มือถือ / iPad แนวตั้ง) กว้าง 1100 เกิน
       // จำเป็นมาก — 560 คือความกว้างที่วงกลมเช็คอินยังเป็นพระเอกอยู่
       // ส่วนโหมด expanded วางสองคอลัมน์จึงต้องการที่กว้างกว่านั้น
-      // จอกว้างไม่จำกัดความกว้าง — ตัวจัตุรัสถูกจำกัดด้วยความสูงอยู่แล้ว
-      maxWidth: Responsive.mode(context) == LayoutMode.expanded
-          ? double.infinity
-          : 560,
+      // expanded — ไม่จำกัด เพราะเนื้อหามีเพดานของตัวเองอยู่แล้ว (_wideMaxWidth)
+      // medium (iPad แนวตั้ง) — 560 ที่เคาะมาจากมือถือทำให้เหลือขอบว่างข้างละ
+      //   ~130 บนจอ 834 กว้างขึ้นเป็น 700 พอดีกว่าโดยบรรทัดข้อความยังไม่ยาวเกิน
+      // compact — 560 ไม่มีผลอยู่แล้วเพราะมือถือแคบกว่านั้น เก็บไว้กันจอใหญ่สุด
+      maxWidth: switch (Responsive.mode(context)) {
+        LayoutMode.expanded => double.infinity,
+        LayoutMode.medium => 700,
+        LayoutMode.compact => 560,
+      },
       header: Header.mainHeader(
         context,
         title: 'ลงเวลาปฏิบัติงาน',
