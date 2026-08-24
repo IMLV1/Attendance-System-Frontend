@@ -543,14 +543,29 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
   /// layout เฉพาะของ iPad แนวนอน / desktop — ไม่ใช่ layout มือถือที่ย่อมา
   ///
-  /// เต็มพื้นที่ที่มี (ผืนผ้า) ไม่จำกัดความกว้าง แบ่งเป็นสองฝั่ง:
+  /// ผืนผ้าเต็มพื้นที่ แบ่งเป็นสองฝั่ง:
   ///   ซ้าย 2 ส่วน = กล่องเช็คอิน  วงกลม + กติกาเวลา
   ///   ขวา  1 ส่วน = เวลา / สถานะ / ประวัติ เรียงลงมา
+  ///
+  /// 🚩 เพดาน 1280×920 แล้วจัดกลาง — ไม่ใช่การ "จำกัดความกว้าง" แบบเดิมที่ทำให้
+  /// iPad อึดอัด (iPad Pro 13 แนวนอนได้พื้นที่ราว 1095×890 จึงไม่โดนเพดานเลย
+  /// หน้าตายังเต็มเหมือนเดิมทุกประการ) แต่กันเคส desktop จอ 1920+ ที่เนื้อหา
+  /// ยืดจนกล่องกติกากลายเป็นแถบยาวเส้นเดียว คอลัมน์ขวากว้างเกิน 500
+  /// และกล่องประวัติสูงจนเหลือที่ว่างใต้ 5 แถวเป็นครึ่งกล่อง
+  static const double _wideMaxWidth = 1280;
+  static const double _wideMaxHeight = 920;
+
   Widget _wideContent() {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Row(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: _wideMaxWidth,
+              maxHeight: _wideMaxHeight,
+            ),
+            child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 16,
           children: [
@@ -566,14 +581,16 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                   const SizedBox(height: 16),
                   _sideBox(child: _currentstate(bare: true)),
                   const SizedBox(height: 16),
-                  // ประวัติกินที่ที่เหลือทั้งหมด -> ขอบล่างของคอลัมน์ขวาชน
-                  // ขอบล่างของกล่องเช็คอินพอดี
-                  // ความสูงมาจาก layout ไม่ใช่จำนวนแถว จึงยังนิ่งเหมือนเดิม
+                  // ประวัติกินที่ที่เหลือทั้งหมด -> ขอบล่างของคอลัมน์ขวาชนขอบล่าง
+                  // ของกล่องเช็คอินพอดี ทั้งบล็อกจึงเป็นสี่เหลี่ยมเต็ม ไม่แหว่ง
+                  // ความสูงมาจาก layout ไม่ใช่จำนวนแถวที่ดึงมาได้ จึงยังนิ่งเหมือนเดิม
                   Expanded(child: _sideBox(child: _recentBox(fill: true))),
                 ],
               ),
             ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -1106,6 +1123,9 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                   )
                 : null,
             child: Row(
+            // จัดทั้งก้อน (ไอคอน + ข้อความ) ไว้กลางกล่อง — mainAxisSize.min ทำให้
+            // Row กว้างเท่าเนื้อหาจริง ไม่ยืดเต็มกล่องแล้วดันข้อความไปชิดซ้าย
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
@@ -1114,9 +1134,11 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                 child: SvgPicture.asset('assets/images/iicon.svg'),
               ),
               const SizedBox(width: 10),
-              Expanded(
+              Flexible(
                 child: Text(
                   softWrap: true,
+                  // ตัวข้อความเรียงซ้าย->ขวาตามปกติ ที่จัดกลางคือ "ก้อน"
+                  // ไอคอน+ข้อความ ให้อยู่กลางการ์ดขาว (ดู mainAxisSize.min ข้างบน)
                   textAlign: TextAlign.start,
                   'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
                       ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
