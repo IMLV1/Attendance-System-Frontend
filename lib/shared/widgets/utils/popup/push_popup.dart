@@ -113,7 +113,13 @@ class PushPopup {
               ],
             ),
             Flexible(
-              fit: fit,
+              // 🚩 (2026-08-24) call site ส่ง FlexFit.tight มา 69 จุด ซึ่งบังคับให้
+              // เนื้อหายืดเต็มเพดานเสมอ — บนแผ่นเลื่อนที่ยึดขอบล่างอยู่แล้วดูปกติ
+              // แต่พอเป็นกล่องกลางจอจะได้กล่องสูงโย่งที่ว่างเป็นครึ่ง
+              // โหมดกล่องจึงบังคับ loose ให้กล่องหดตามเนื้อหาแทน
+              fit: PopupSurface.presentationOf(context) == PopupPresentation.dialog
+                  ? FlexFit.loose
+                  : fit,
               child: scroll
                   ? SingleChildScrollView(
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,

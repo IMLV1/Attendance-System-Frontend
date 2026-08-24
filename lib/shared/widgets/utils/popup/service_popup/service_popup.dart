@@ -135,7 +135,10 @@ class ServicePopup {
                                           ),
 
                                           Flexible(
-                                              fit: fit,
+                                              // ดูคำอธิบายเดียวกันใน push_popup.dart
+                                              fit: PopupSurface.presentationOf(context) == PopupPresentation.dialog
+                                                  ? FlexFit.loose
+                                                  : fit,
                                               child: SingleChildScrollView(
   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                                 physics: const AlwaysScrollableScrollPhysics(),
