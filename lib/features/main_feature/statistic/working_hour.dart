@@ -315,10 +315,13 @@ class _WorkingHourState extends State<WorkingHour> {
       leftReservedText = '0'; // Fallback text to reserve layout space when all values are 0
     }
 
+    // 🚩 (Phase 3) extraPadding ต้องเท่ากับ padding ขวาจริงที่ใช้ตอน render
+    // ตัวเลขแกน Y ด้านล่าง (Padding right:10) ไม่งั้นพื้นที่ที่จองไว้แคบกว่าที่
+    // ต้องใช้จริงอยู่ 4px ทำให้ตัวเลขที่มี comma (เช่น "1,282") ตัดขึ้นบรรทัดใหม่
     double leftReverseSide = getReservedSize(
         text: leftReservedText,
         style: TextStyle(fontSize: 11),
-        extraPadding: 6
+        extraPadding: 10
     );
 
     // 🚩 (2026-08-22) ปิด animation เมื่อ "จำนวนแท่ง" เปลี่ยน

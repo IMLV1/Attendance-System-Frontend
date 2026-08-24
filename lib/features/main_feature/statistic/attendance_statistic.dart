@@ -177,6 +177,60 @@ class AttendanceStatistic extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // 🚩 (Phase 3, ดู PHASE3_PAGE_DESIGN.md หัวข้อ /statistic) โดนัทมีวงสีเทา
+                    // ที่ไม่เคยมีคำอธิบายว่าคืออะไร — ตรงกับ noData ใน _circularChart()
+                    // (= actualWorkDays - onTime - late - absent) ที่มาจาก actualWorkDays
+                    // อิงยอดลาสะสม "ทั้งปีงบ" (leave_balances.days_used) ในขณะที่ on-time/
+                    // late/absent นับเฉพาะวันทำงานถึง "วันนี้" เท่านั้น — สองตัวเลขนี้คนละ
+                    // ขอบเขตวันที่กัน ต่างกันได้ทั้งบวก/ลบ ไม่ได้แปลว่าเป็น "วันลา" เสมอไป
+                    // เลยยังไม่ใส่ชื่อเจาะจง (เช่น "วันลา") กันชี้นำผิด — เพิ่มแค่แถวนี้ให้
+                    // ไม่มีสัดส่วนที่ไม่มีคำอธิบายเหลืออยู่ในหน้าจอ ส่วนต้นตอ (backend คำนวณ
+                    // สองยอดนี้จากคนละช่วงวันที่) ยังต้องตัดสินใจแยกว่าจะแก้ backend ยังไง
+                    if (statistic != null &&
+                        (statistic!.actualWorkDays -
+                                statistic!.attendanceDetail.onTimeDays -
+                                statistic!.attendanceDetail.lateDays -
+                                statistic!.attendanceDetail.absentDays) >
+                            0.5)
+                      Row(
+                        children: [
+                          Expanded(
+                              flex: 9,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: 6,
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey.shade300,
+                                        shape: BoxShape.circle,
+                                        border: BoxBorder.all(color: Colors.grey, strokeAlign: BorderSide.strokeAlignOutside)
+                                    ),
+                                  ),
+                                  Expanded(
+                                      child: Text(
+                                        'อื่นๆ',
+                                      )
+                                  )
+                                ],
+                              )
+                          ),
+                          Expanded(
+                              flex: 6,
+                              child: Text(
+                                '${(statistic!.actualWorkDays - statistic!.attendanceDetail.onTimeDays - statistic!.attendanceDetail.lateDays - statistic!.attendanceDetail.absentDays).round()} วัน',
+                              )
+                          ),
+                          Expanded(
+                              flex: 5,
+                              child: Text(
+                                '${((statistic!.actualWorkDays - statistic!.attendanceDetail.onTimeDays - statistic!.attendanceDetail.lateDays - statistic!.attendanceDetail.absentDays) / statistic!.actualWorkDays * 100).toInt()}%',
+                              )
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               )

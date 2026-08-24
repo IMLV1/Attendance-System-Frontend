@@ -6,6 +6,7 @@ import 'package:attendance_system/features/settings/user_management/user/user_in
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/services/user_management/user_management_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
@@ -114,6 +115,7 @@ class _UserManagementState extends State<UserManagement> {
   Widget build(BuildContext context) {
 
     return AppScaffold(
+      maxWidth: Responsive.widthFor(ContentShape.list),
       header: Header.subHeader(context, title: 'จัดการผู้ใช้งานระบบ'),
       content: SafeArea(
         child: Container(
@@ -376,7 +378,12 @@ class _UserManagementState extends State<UserManagement> {
                                       );
                                     },
                                   ),
-                                  title: m.nameTH,
+                                  // 🚩 (Phase 3) บาง account (เช่น admin/system-root) ไม่มี
+                                  // name-th/name-en จาก backend -> แถวว่างเปล่าไม่รู้ว่าเป็นใคร
+                                  // fallback ไปที่ email แล้วค่อย employee-id ให้แถวไม่ว่างเปล่า
+                                  title: m.nameTH.isNotEmpty
+                                      ? m.nameTH
+                                      : (m.email.isNotEmpty ? m.email : m.employeeId),
                                   subTitle: m.nameEN,
                                   roles: [...m.roles, Role(id: '0000000000', name: m.initRole, color: Color(0xFF535353))],
                                 ),
