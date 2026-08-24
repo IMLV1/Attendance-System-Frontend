@@ -1143,6 +1143,55 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           : body;
   }
 
+  String _fmtTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  /// ข้อความกติกาเวลา — ประกอบจาก config ระบบทั้งหมด ไม่ใช่ค่าคงที่
+  ///
+  /// 🚩 (2026-08-24) เดิมพูดถึงแค่ 2 ค่าจาก 6 ค่าที่ตั้งได้ในหน้า
+  /// `/settings/config-attendance` (เวลาเข้างาน กับ เวลาตัดรอบวัน) — "เวลาออกงาน"
+  /// ไม่เคยถูกบอกเลยทั้งที่เป็นเวลาที่ผู้ใช้ต้องกลับมาเช็คเอาท์ ส่วนเวลาของ
+  /// "ลาครึ่งวัน" ก็ถูกใช้ในตรรกะปุ่มอยู่แล้วแต่ไม่เคยบอกผู้ใช้
+  ///
+  /// ตอนนี้ประกอบจาก config ครบและเปลี่ยนตามสถานะการลาของวันนี้:
+  ///   ลาครึ่งวันเช้า -> ใช้ "เวลาเข้างานเมื่อลาครึ่งวันเช้า" แทนเวลาเข้างานปกติ
+  ///   ลาครึ่งวันเย็น -> ใช้ "เวลาออกงานเมื่อลาครึ่งวันเย็น" แทนเวลาออกงานปกติ
+  ///                    และบอกด้วยถ้าเปิด "เช็คเอ้าท์อัตโนมัติ" ไว้
+  String _infoText() {
+    final config = configSetting;
+    if (config == null) return '';
+
+    final leaveType = currentLeave?.isApproved == true ? currentLeave?.leaveType : null;
+    final isMorningLeave = leaveType == 'MORNING';
+    final isAfternoonLeave = leaveType == 'AFTERNOON';
+
+    final inAt = _fmtTime(isMorningLeave ? config.checkInLeaveTime : config.checkInTime);
+    final outAt = _fmtTime(isAfternoonLeave ? config.checkOutLeaveTime : config.checkOutTime);
+    final cutoff = _fmtTime(config.cutoffTime);
+
+    final parts = <String>[];
+
+    if (isMorningLeave) {
+      parts.add('วันนี้คุณลาครึ่งวันเช้า กรุณาเช็คอินหลังเวลา $inAt');
+    } else {
+      parts.add('กรุณาเช็คอินเข้างานภายในเวลา $inAt'
+          ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย');
+    }
+
+    if (isAfternoonLeave) {
+      parts.add('วันนี้คุณลาครึ่งวันเย็น เวลาออกงานคือ $outAt');
+      if (config.autoCheckout) {
+        parts.add('ระบบจะเช็คเอาท์ให้อัตโนมัติเมื่อถึงเวลา $outAt');
+      }
+    } else {
+      parts.add('เวลาออกงานคือ $outAt');
+    }
+
+    parts.add('ระบบจะทำการตัดรอบเวลา $cutoff ของทุกวัน');
+
+    return parts.join(' ');
+  }
+
   /// กล่องกติกาเวลาเช็คอิน (ⓘ)
   ///
   /// 🚩 บนจอกว้างข้อความนี้เคยเป็นบรรทัดจางๆ ลอยใต้ปุ่มดูเหมือนของหลุด
@@ -1176,8 +1225,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                   // ตัวข้อความเรียงซ้าย->ขวาตามปกติ ที่จัดกลางคือ "ก้อน"
                   // ไอคอน+ข้อความ ให้อยู่กลางการ์ดขาว (ดู mainAxisSize.min ข้างบน)
                   textAlign: TextAlign.start,
-                  'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
-                      ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
+                  _infoText(),
                   style: TextStyle(
                     fontSize: large ? 13 : 11,
                     height: large ? 1.5 : null,
