@@ -431,10 +431,10 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return AppScaffold(
       hideNavigation: false,
-      // 🚩 (Phase 3) หน้านี้มีก้อนเดียวเรียงลงมา ไม่ใช่ dashboard ที่มีการ์ดหลายใบ
-      // วางเรียงกัน กว้าง 1100 จึงกว้างเกินจำเป็น (ดู PHASE3_PAGE_DESIGN.md
-      // หัวข้อ /check-in) — 560 คือความกว้างที่วงกลมเช็คอินยังเป็นพระเอกอยู่
-      maxWidth: 560,
+      // 🚩 (Phase 3) จอที่วางคอลัมน์เดียว (มือถือ / iPad แนวตั้ง) กว้าง 1100 เกิน
+      // จำเป็นมาก — 560 คือความกว้างที่วงกลมเช็คอินยังเป็นพระเอกอยู่
+      // ส่วนโหมด expanded วางสองคอลัมน์จึงต้องการที่กว้างกว่านั้น
+      maxWidth: Responsive.mode(context) == LayoutMode.expanded ? 1000 : 560,
       header: Header.mainHeader(
         context,
         title: 'ลงเวลาปฏิบัติงาน',
@@ -466,6 +466,11 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     //
     // จอ compact ยังใช้ spaceBetween เหมือนเดิมทุกประการ เพราะนั่นคือสิ่งที่ทำให้
     // ทุก component พอดีหน้าเดียวโดยไม่ต้องเลื่อน — เปลี่ยนเฉพาะจอที่มีที่เหลือ
+    // โหมด expanded (iPad แนวนอน / desktop) มีที่ทางแนวนอนเหลือเฟือแต่ความสูง
+    // จำกัด — ย่อ layout ของมือถือมาใส่จึงได้คอลัมน์ผอมๆ กลางจอที่เหลือที่ว่าง
+    // สองข้างเปล่าๆ ตรงนี้จึงแยกเป็น layout ของตัวเองไปเลย
+    if (Responsive.mode(context) == LayoutMode.expanded) return _wideContent();
+
     final stackVertically = Responsive.mode(context) != LayoutMode.compact;
 
     return SafeArea(
@@ -494,6 +499,49 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             Flexible(child: _buttonCheckin()),
             SizedBox(height: stackVertically ? 32 : 6),
             _currentstate(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// layout เฉพาะของ iPad แนวนอน / desktop — ไม่ใช่ layout มือถือที่ย่อมา
+  ///
+  /// แบ่งตามหน้าที่ ไม่ใช่ตามลำดับที่เคยเรียงบนมือถือ:
+  ///   ซ้าย  = ฝั่ง "ลงมือ"  วงกลมเช็คอิน + ข้อความสถานะ + กติกาเวลา
+  ///   ขวา   = ฝั่ง "ข้อมูล" นาฬิกา + สรุปเช็คอิน/เช็คเอาท์ของวันนี้
+  ///
+  /// วงกลมได้อยู่กลางครึ่งซ้ายทั้งครึ่ง จึงยังเป็นพระเอกโดยไม่ต้องขยายขนาด
+  /// (ขนาด 170 กับระยะเงาถูกจูนไว้สัมพันธ์กับเรดาร์ 180 — ดูคอมเมนต์ใน
+  /// `_buttonCheckin` ก่อนคิดจะแตะ)
+  ///
+  /// สองฝั่งจัดกึ่งกลางแนวตั้งแยกกัน ความสูงไม่เท่ากันจึงไม่เป็นไร
+  Widget _wideContent() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 32,
+          children: [
+            // ฝั่งลงมือ — กว้างกว่าอีกฝั่งเล็กน้อยเพราะวงกลม+เรดาร์กินที่รอบตัว
+            Expanded(
+              flex: 6,
+              // Center กันเคสที่เนื้อหาสั้นกว่าความสูงที่ได้รับ ส่วน
+              // SingleChildScrollView ข้างใน _buttonCheckin จะเลื่อนเองถ้าไม่พอ
+              child: Center(child: _buttonCheckin()),
+            ),
+            Expanded(
+              flex: 5,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 16,
+                children: [
+                  _cardtime(),
+                  _currentstate(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
