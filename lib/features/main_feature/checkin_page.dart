@@ -600,12 +600,31 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   ///
   /// ไม่ปักกติกาไว้ขอบล่าง เพราะมันเป็นคำอธิบายของปุ่ม ควรอยู่ติดปุ่ม
   Widget _checkInBox() {
-    return Center(
-      child: _buttonCheckin(
-        circleSize: 280,
-        large: true,
-        scrollable: false,
-      ),
+    // 🚩 "จัดกลางถ้าพอ เลื่อนถ้าไม่พอ"
+    //
+    // วงกลม 280 + เงา + ข้อความ + กล่องกติกา รวมแล้วราว 470 ถ้าความสูงที่ได้รับ
+    // น้อยกว่านั้นจะล้น (RenderFlex overflowed) — เกิดได้จริงตอนผู้ใช้ซูมหน้าเว็บ
+    // หรือย่อหน้าต่างเบราว์เซอร์ให้เตี้ย ไม่ใช่เคสหายาก
+    //
+    // ConstrainedBox(minHeight) ทำให้เนื้อหาสูงอย่างน้อยเท่าช่องที่ได้ -> Center
+    // ข้างในจึงจัดกลางได้ตามปกติเมื่อที่พอ ส่วนตอนที่ไม่พอ เนื้อหาสูงกว่าช่อง
+    // แล้ว SingleChildScrollView ก็เลื่อนแทนการล้น
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: _buttonCheckin(
+                circleSize: 280,
+                large: true,
+                scrollable: false,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -647,7 +666,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         borderRadius: BorderRadius.circular(22),
       ),
       clipBehavior: Clip.antiAlias,
-      child: _recentBody(),
+      child: _recentBody(scrollable: fill),
     );
 
     return Column(
@@ -701,7 +720,17 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _recentBody() {
+  /// [scrollable] — ให้แถวเลื่อนอยู่ในการ์ดแทนที่จะล้น
+  ///
+  /// 🚩 แถวสูงตายตัวแถวละ 40 × 5 = 200 ส่วนการ์ดในโหมด `fill` สูงเท่าที่ layout
+  /// เหลือให้ ซึ่งอาจน้อยกว่า 200 ได้จริง — ไม่ใช่แค่ตอนซูมหน้าเว็บ แต่รวมถึง
+  /// หน้าต่างเบราว์เซอร์เตี้ยๆ บนโน้ตบุ๊กด้วย (ความสูงเนื้อหาเหลือ ~500 ก็ถึงแล้ว)
+  /// พอล้นจะได้แถบเหลือง-ดำในโหมด debug และเนื้อหาโดนตัดในโหมด release
+  ///
+  /// ปล่อยให้เลื่อนข้างในแทนการล้น — การ์ดเตี้ยก็เห็น 2-3 แถวแล้วเลื่อนดูที่เหลือ
+  /// (โหมดความสูงคงที่ของมือถือไม่ต้องใช้ เพราะการ์ดสูงพอดี 5 แถวเป๊ะอยู่แล้ว
+  /// และหน้ามี scroll ของตัวเองอยู่ ใส่ไปจะแย่ง gesture กัน)
+  Widget _recentBody({bool scrollable = false}) {
     final items = _recentHistory;
 
     if (items == null) {
@@ -716,7 +745,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       );
     }
 
-    return Column(
+    final rows = Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -730,6 +759,13 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         ],
       ],
     );
+
+    return scrollable
+        ? SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: rows,
+          )
+        : rows;
   }
 
   Widget _recentRow(AttendanceHistoryModel m) {
