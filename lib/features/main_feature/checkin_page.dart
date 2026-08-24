@@ -531,21 +531,38 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
               // SingleChildScrollView ข้างใน _buttonCheckin จะเลื่อนเองถ้าไม่พอ
               // วงกลมใหญ่ขึ้นเฉพาะที่นี่ — บนจอกว้างขนาด 170 ที่จูนมาสำหรับมือถือ
               // ดูเล็กจนไม่เหมือนเป็นของหลักของหน้า
-              child: Center(child: _buttonCheckin(circleSize: 240)),
+              child: Center(child: _buttonCheckin(circleSize: 280, large: true)),
             ),
-            Expanded(
-              flex: 5,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 16,
-                children: [
-                  _cardtime(),
-                  _currentstate(),
-                ],
-              ),
-            ),
+            Expanded(flex: 5, child: _todayPanel()),
           ],
         ),
+      ),
+    );
+  }
+
+  /// แผง "วันนี้" — นาฬิกากับสถานะรวมเป็นก้อนเดียว (ใช้เฉพาะ layout จอกว้าง)
+  ///
+  /// เดิมเป็นการ์ดสองใบลอยแยกกัน ซึ่งบนจอกว้างดูเหมือนของสองชิ้นที่บังเอิญมา
+  /// อยู่ใกล้กัน ทั้งที่มันตอบคำถามเดียวกันคือ "ตอนนี้กี่โมง แล้ววันนี้ลงเวลา
+  /// ไปยังไงบ้าง" — รวมเป็นแผงเดียวแล้วอ่านเป็นเรื่องเดียวกัน และได้ก้อนที่
+  /// มีน้ำหนักพอจะถ่วงกับวงกลมฝั่งซ้าย
+  ///
+  /// เทาห่อขาวเป็นภาษาเดียวกับที่ใช้ในหน้า /statistic อยู่แล้ว
+  Widget _todayPanel() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAEAEA),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _cardtime(large: true),
+          const SizedBox(height: 22),
+          _currentstate(bare: true),
+        ],
       ),
     );
   }
@@ -562,11 +579,16 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     });
   }
 
-  Widget _cardtime() {
+  /// [large] — จอกว้างมีที่เหลือ ใช้ตัวเลขเวลาใหญ่ขึ้นและการ์ดสูงขึ้น
+  /// ไม่งั้นการ์ดจะดูเป็นแถบบางๆ ลอยอยู่ในพื้นที่ว่างใหญ่ๆ
+  Widget _cardtime({bool large = false}) {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          // ในแผง "วันนี้" ป้ายนี้อยู่เหนือป้าย "สถานะปัจจุบัน" ซึ่งชิดซ้าย
+          // ถ้าตัวนี้จัดกลางจะเห็นเป็นสองแนวในก้อนเดียวกันทันที
+          mainAxisAlignment:
+              large ? MainAxisAlignment.start : MainAxisAlignment.center,
           children: [
             SizedBox(
               height: 15,
@@ -588,12 +610,21 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         Container(
           width: double.infinity,
           alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          padding: EdgeInsets.symmetric(
+            vertical: large ? 28 : 10,
+            horizontal: 10,
+          ),
           decoration: BoxDecoration(
             color: AppColors.cardColor,
             borderRadius: BorderRadius.circular(22),
           ),
-          child: Column(children: [ClockWidget(time: _timeSynced ? _currentNetworkTime : null)]),
+          child: Column(children: [
+            ClockWidget(
+              time: _timeSynced ? _currentNetworkTime : null,
+              timeFontSize: large ? 60 : 40,
+              dateFontSize: large ? 18 : 15,
+            )
+          ]),
         ),
       ],
     );
@@ -609,7 +640,7 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   ///   ไอคอน/ตัวอักษรในปุ่ม คูณตามสัดส่วน วง/170
   ///
   /// เช็คค่าเดิม: วง 170 -> padding = 12 + 170 + 19×2 = 220 ✓ ตรงกับที่จูนไว้เดิม
-  Widget _buttonCheckin({double circleSize = 170}) {
+  Widget _buttonCheckin({double circleSize = 170, bool large = false}) {
     final scale = circleSize / 170;
     final shadowGap = circleSize * 0.112;
     final shadowTop = 12 + circleSize + shadowGap * 2;
@@ -788,12 +819,13 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             ],
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: large ? 18 : 8),
           Text(
             showtext,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w200,
+              fontSize: large ? 17 : 13,
+              fontWeight: large ? FontWeight.w400 : FontWeight.w200,
               color: AppColors.greyTextColor,
             ),
           ),
@@ -812,14 +844,26 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
             ),
           ],
 
-          const SizedBox(height: 6),
+          SizedBox(height: large ? 24 : 6),
 
-          Row(
+          // 🚩 บนจอกว้างข้อความกติกาเป็นบรรทัดจางๆ ลอยใต้ปุ่มดูเหมือนของหลุด
+          // ใส่การ์ดนุ่มๆ ให้มันเป็น "ก้อน" หนึ่งของหน้าแทน
+          Container(
+            padding: large
+                ? const EdgeInsets.symmetric(horizontal: 18, vertical: 14)
+                : EdgeInsets.zero,
+            decoration: large
+                ? BoxDecoration(
+                    color: AppColors.cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                  )
+                : null,
+            child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
-                height: 15,
-                width: 15,
+                height: large ? 17 : 15,
+                width: large ? 17 : 15,
                 child: SvgPicture.asset('assets/images/iicon.svg'),
               ),
               const SizedBox(width: 10),
@@ -830,13 +874,15 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
                   'กรุณาเช็คอินเข้างานภายในเวลา ${configSetting?.checkInTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.checkInTime?.minute.toString().padLeft(2, '0') ?? '--'}'
                       ' หากเช็คอินเกินเวลาจะถือเป็นการเข้างานสาย ระบบจะทำการตัดรอบเวลา ${configSetting?.cutoffTime?.hour.toString().padLeft(2, '0') ?? '--'}:${configSetting?.cutoffTime?.minute.toString().padLeft(2, '0') ?? '--'} ของทุกวัน',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: large ? 13 : 11,
+                    height: large ? 1.5 : null,
                     fontWeight: FontWeight.normal,
                     color: AppColors.lightTextColor,
                   ),
                 ),
               ),
             ],
+          ),
           ),
         ],
       ),
@@ -911,15 +957,19 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     }
   }
 
-  Widget _currentstate() {
+  /// [bare] — ไม่ต้องมีกรอบเทาของตัวเอง (ใช้ตอนถูกวางในแผงเทาใหญ่แล้ว
+  /// ไม่งั้นจะได้เทาซ้อนเทา — ดู `_todayPanel`)
+  Widget _currentstate({bool bare = false}) {
     String state = _getButtonState();
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Color(0xFFEAEAEA),
-        borderRadius: BorderRadius.circular(22),
-      ),
+      padding: bare ? EdgeInsets.zero : const EdgeInsets.all(16),
+      decoration: bare
+          ? null
+          : BoxDecoration(
+              color: Color(0xFFEAEAEA),
+              borderRadius: BorderRadius.circular(22),
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
