@@ -443,6 +443,64 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
                                                 // -----------------------------
                                                 // UI ของแต่ละแถว
                                                 // -----------------------------
+                                                // 🚩 (Phase 3) เดิมเวลากับสถานะซ้อนกันสองบรรทัดชิดซ้าย
+                                                // การ์ดกว้าง 800 แต่เนื้อหาจบที่ ~590 เหลือขวาว่าง
+                                                // (RESPONSIVE_PLAN.md 0.4 รอบสาม ข้อ G)
+                                                // จอกว้างกางไปคนละฝั่ง จอแคบยังซ้อนเหมือนเดิม
+                                                final timeRow = Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text("เข้างาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                                    Text(timeIn, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                                                    const SizedBox(width: 11),
+                                                    Text("|", style: TextStyle(color: Colors.grey.shade400)),
+                                                    const SizedBox(width: 11),
+                                                    Text("ออกงาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                                    Text(timeOut, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                                                  ],
+                                                );
+
+                                                final statusRow = Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                      decoration: BoxDecoration(
+                                                        color: ui["statusBg"],
+                                                        borderRadius: BorderRadius.circular(20),
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          SvgPicture.asset(
+                                                            ui["statusIconAsset"],
+                                                            width: 16,
+                                                            height: 16,
+                                                            colorFilter: ColorFilter.mode(ui["statusFg"], BlendMode.srcIn),
+                                                          ),
+                                                          const SizedBox(width: 6),
+                                                          Text(
+                                                            ui["statusText"],
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.w600,
+                                                              color: ui["statusFg"],
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    SvgPicture.asset(
+                                                      'assets/images/clock_attendance.svg',
+                                                      width: 16,
+                                                      height: 16,
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Text(ui["duration"], style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+                                                  ],
+                                                );
+
                                                 return Padding(
                                                   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                                                   child: Row(
@@ -467,68 +525,22 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
                                                       // รายละเอียดเวลา + สถานะ
                                                       Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            // แถวเวลาเข้างาน/ออกงาน
-                                                            Row(
-                                                              children: [
-                                                                Text("เข้างาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                                                                Text(timeIn, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                                                                const SizedBox(width: 11),
-                                                                Text("|", style: TextStyle(color: Colors.grey.shade400)),
-                                                                const SizedBox(width: 11),
-                                                                Text("ออกงาน  ", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                                                                Text(timeOut, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                                                              ],
-                                                            ),
-                                                            const SizedBox(height: 8),
-
-                                                            // แถวสถานะ + ชั่วโมงทำงาน
-                                                            Row(
-                                                              children: [
-                                                                // Chip สถานะ: ตรงเวลา/สาย/ไม่สมบูรณ์ พร้อมไอคอน
-                                                                Container(
-                                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                                                  decoration: BoxDecoration(
-                                                                    color: ui["statusBg"],
-                                                                    borderRadius: BorderRadius.circular(20),
-                                                                  ),
-                                                                  child: Row(
-                                                                    children: [
-                                                                      SvgPicture.asset(
-                                                                        ui["statusIconAsset"],
-                                                                        width: 16,
-                                                                        height: 16,
-                                                                        // ย้อมสีไอคอนให้เป็นสีเดียวกับข้อความสถานะ
-                                                                        colorFilter: ColorFilter.mode(ui["statusFg"], BlendMode.srcIn),
-                                                                      ),
-                                                                      const SizedBox(width: 6),
-                                                                      Text(
-                                                                        ui["statusText"],
-                                                                        style: TextStyle(
-                                                                          fontSize: 12,
-                                                                          fontWeight: FontWeight.w600,
-                                                                          color: ui["statusFg"],
-                                                                        ),
-                                                                      )
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                                const SizedBox(width: 12),
-
-                                                                // ไอคอนนาฬิกา + duration ชั่วโมงทำงาน
-                                                                SvgPicture.asset(
-                                                                  'assets/images/clock_attendance.svg',
-                                                                  width: 16,
-                                                                  height: 16,
-                                                                ),
-                                                                const SizedBox(width: 6),
-                                                                Text(ui["duration"], style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        ),
+                                                        child: Responsive.isCompact(context)
+                                                            ? Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  timeRow,
+                                                                  const SizedBox(height: 8),
+                                                                  statusRow,
+                                                                ],
+                                                              )
+                                                            : Row(
+                                                                children: [
+                                                                  timeRow,
+                                                                  const Spacer(),
+                                                                  statusRow,
+                                                                ],
+                                                              ),
                                                       )
                                                     ],
                                                   ),
