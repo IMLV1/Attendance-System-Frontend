@@ -107,7 +107,11 @@ class PersonnelLeave extends StatefulWidget {
 
   final PersonnelInfoModel personnel;
 
-  const PersonnelLeave({super.key, required this.personnel});
+  /// ฝังเนื้อหาลงในคอลัมน์ขวาของ master-detail แทนการเป็นหน้าเต็ม
+  /// — ไม่มีแถบหัวและปุ่ม back เพราะรายการทางซ้ายทำหน้าที่นำทางแทนแล้ว
+  final bool embedded;
+
+  const PersonnelLeave({super.key, required this.personnel, this.embedded = false});
 
   @override
   State<StatefulWidget> createState() => _PersonnelLeaveState();
@@ -141,6 +145,8 @@ class _PersonnelLeaveState extends State<PersonnelLeave> {
     pendingLeaves.sort((a, b) => a.dateStart.toLocal().millisecondsSinceEpoch.compareTo(b.dateStart.toLocal().millisecondsSinceEpoch));
     recentLeaves.sort((a, b) => b.dateStart.toLocal().millisecondsSinceEpoch.compareTo(a.dateStart.toLocal().millisecondsSinceEpoch));
 
+    if (widget.embedded) return _body(context);
+
     return AppScaffold(
       header: Header.subHeader(
         context,
@@ -149,7 +155,14 @@ class _PersonnelLeaveState extends State<PersonnelLeave> {
           Navigator.of(context).pop(personnel);
         }
       ),
-      content: SafeArea(
+      content: _body(context),
+    );
+  }
+
+    /// เนื้อหาล้วนๆ ไม่รวมแถบหัว — ใช้ทั้งตอนเป็นหน้าเต็มและตอนถูกฝัง
+    /// ในคอลัมน์ขวาของ master-detail
+    Widget _body(BuildContext context) {
+      return SafeArea(
         child: Container(
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
@@ -482,7 +495,6 @@ class _PersonnelLeaveState extends State<PersonnelLeave> {
             )
           )
         )
-      )
-    );
-  }
+      );
+    }
 }

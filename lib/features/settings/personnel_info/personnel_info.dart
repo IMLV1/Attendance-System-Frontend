@@ -4,6 +4,7 @@ import 'package:attendance_system/features/settings/personnel_info/personnel_att
 import 'package:attendance_system/features/settings/personnel_info/personnel_data.dart';
 import 'package:attendance_system/features/settings/personnel_info/personnel_leave.dart';
 import 'package:attendance_system/features/settings/personnel_info/personnel_statistic.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/personnel_info/personnel_info_model.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -15,6 +16,21 @@ import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:flutter/material.dart' hide TextButton;
+import 'package:flutter_svg/flutter_svg.dart';
+
+/// หัวข้อย่อยของบุคลากรหนึ่งคน — บนจอแคบเป็นเมนูที่กดแล้ว push หน้าใหม่
+/// บนจอกว้างเป็นแท็บของคอลัมน์ขวา
+enum _Section {
+  data('ข้อมูลส่วนตัว', 'icon_profile.svg'),
+  attendance('การเข้างาน', 'icon_attendance_history.svg'),
+  leave('การลางาน', 'icon_leave.svg'),
+  request('การขออนุมัติเวลางาน', 'icon_attendance_request_history.svg'),
+  statistic('สถิติ', 'icon_statistic.svg');
+
+  final String label;
+  final String icon;
+  const _Section(this.label, this.icon);
+}
 
 class PersonnelInfo extends StatefulWidget {
 
@@ -28,8 +44,152 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
 
   PersonnelInfoModel? userInfo;
 
+  /// หัวข้อที่เปิดอยู่ในคอลัมน์ขวา — ใช้เฉพาะจอกว้าง
+  _Section _section = _Section.data;
+
+  void _choose(PersonnelInfoModel personnel) {
+    setState(() => userInfo = personnel);
+  }
+
+  /// เนื้อหาของหัวข้อที่เลือก แบบฝังในคอลัมน์ขวา (ไม่มีแถบหัวของตัวเอง)
+  ///
+  /// ผูก key กับ id ของคนที่เลือก เพื่อให้สลับคนแล้วสร้าง state ใหม่ทั้งก้อน
+  /// ไม่ใช่เอา state ของคนเดิมมาใช้ต่อ
+  Widget _sectionBody(PersonnelInfoModel personnel) {
+    final key = ValueKey('${_section.name}-${personnel.id}');
+    return switch (_section) {
+      _Section.data =>
+          PersonnelData(key: key, personnel: personnel, embedded: true),
+      _Section.attendance =>
+          PersonnelAttendance(key: key, personnel: personnel, embedded: true),
+      _Section.leave =>
+          PersonnelLeave(key: key, personnel: personnel, embedded: true),
+      _Section.request => PersonnelAttendanceRequest(
+          key: key, personnel: personnel, embedded: true),
+      _Section.statistic =>
+          PersonnelStatistic(key: key, personnel: personnel, embedded: true),
+    };
+  }
+
+  Widget _sectionTabs() {
+    return Container(
+      color: AppColors.backgroundColor,
+      padding: const EdgeInsets.fromLTRB(10, 14, 10, 0),
+      child: Row(
+        spacing: 8,
+        children: [
+          for (final s in _Section.values)
+            Expanded(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => setState(() => _section = s),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _section == s
+                        ? AppColors.cardColor
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: _section == s
+                          ? const Color(0xFFD8D8D8)
+                          : Colors.transparent,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 8,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/${s.icon}',
+                        width: 16,
+                        height: 16,
+                      ),
+                      Flexible(
+                        child: Text(
+                          s.label,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: _section == s
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// 🚩 (Phase 2, 2026-08-25) บนจอกว้างหน้านี้เคยว่างเกือบทั้งหน้า มีแค่ปุ่ม
+  /// "เลือกบุคลากร" บรรทัดเดียว ที่เหลือโล่ง ~90% (ดู RESPONSIVE_PLAN.md
+  /// หัวข้อ 0.4 รอบสาม ข้อ A) ทั้งที่ข้อมูลที่ต้องดูมี 5 หัวข้อเต็มๆ
+  ///
+  /// จัดใหม่เป็น master-detail: รายชื่ออยู่ซ้ายตลอดเวลา (ไม่ต้องเปิด popup
+  /// เพื่อสลับคน) เนื้อหาของคนที่เลือกอยู่ขวา แยกเป็นแท็บ 5 หัวข้อ
+  ///
+  /// ผลพลอยได้: 5 หน้านั้นเดิมถูก push ด้วย `Navigator.push(MaterialPageRoute)`
+  /// ซึ่งเป็น route ที่ไม่มีใน go_router — เป็นต้นเหตุของบั๊กจอค้าง (ดูบั๊ก #3
+  /// ใน RESPONSIVE_PLAN.md) บนจอกว้างจึงไม่ต้อง push อีกต่อไป
+  Widget _masterDetail(BuildContext context) {
+    final personnel = userInfo;
+
+    return AppScaffold(
+      fullWidth: true,
+      header: Header.subHeader(context, title: 'ข้อมูลบุคลากรในองค์กร'),
+      content: SafeArea(
+        child: Container(
+          color: AppColors.backgroundColor,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: 360,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
+                  child: ChoosePersonnel(
+                    inline: true,
+                    selectedUserId: personnel?.id,
+                    onChoose: _choose,
+                  ),
+                ),
+              ),
+              const VerticalDivider(width: 1, thickness: 1),
+              Expanded(
+                child: personnel == null
+                    ? const Center(
+                        child: Text(
+                          'เลือกบุคลากรจากรายการทางซ้าย',
+                          style: TextStyle(color: Color(0xFF7F7F7F)),
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          _sectionTabs(),
+                          Expanded(child: _sectionBody(personnel)),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    if (Responsive.mode(context) == LayoutMode.expanded) {
+      return _masterDetail(context);
+    }
 
     return AppScaffold(
       header: Header.subHeader(

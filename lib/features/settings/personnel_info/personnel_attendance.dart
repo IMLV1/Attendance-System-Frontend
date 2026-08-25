@@ -22,7 +22,11 @@ class PersonnelAttendance extends StatefulWidget {
 
   final PersonnelInfoModel personnel;
 
-  const PersonnelAttendance({super.key, required this.personnel});
+  /// ฝังเนื้อหาลงในคอลัมน์ขวาของ master-detail แทนการเป็นหน้าเต็ม
+  /// — ไม่มีแถบหัวและปุ่ม back เพราะรายการทางซ้ายทำหน้าที่นำทางแทนแล้ว
+  final bool embedded;
+
+  const PersonnelAttendance({super.key, required this.personnel, this.embedded = false});
 
   @override
   State<StatefulWidget> createState() => _PersonnelAttendanceState();
@@ -75,6 +79,8 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
     _checkInLeaveHour = setting?.checkInLeaveTime.hour?? 0;
     _checkInLeaveMin = setting?.checkInLeaveTime.minute?? 0;
 
+    if (widget.embedded) return _body(context);
+
     return AppScaffold(
       header: Header.subHeader(
         context,
@@ -83,7 +89,175 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
           Navigator.of(context).pop(personnel);
         }
       ),
-      content: SafeArea(
+      content: _body(context),
+    );
+  }
+
+  String _toYmd(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return "$y-$m-$day";
+  }
+
+  /// แสดงวันที่แบบไทย: dd/mm/(yyyy+543) ถ้า null แสดง "---"
+  String _formatDateDisplay(DateTime? date) {
+    if (date == null) return "---";
+    return "${date.day}/${date.month}/${date.year + 543}";
+  }
+
+  /// แปลงเลขเดือน -> ชื่อเดือนภาษาไทย
+  String _thaiMonth(int m) {
+    const months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+    if (m < 1 || m > 12) return '';
+    return months[m];
+  }
+
+  /// แสดงหัวข้อเดือน/ปีแบบไทย เช่น "ธันวาคม 2569"
+  String _monthYearLabel(DateTime d) => "${_thaiMonth(d.month)} ${d.year + 543}";
+
+  /// ถ้า backend ส่ง dow เป็น null -> คำนวณจาก DateTime.weekday
+  String _thaiDowFromDate(DateTime d) {
+    switch (d.weekday) {
+      case 1: return 'จันทร์';
+      case 2: return 'อังคาร';
+      case 3: return 'พุธ';
+      case 4: return 'พฤหัสบดี';
+      case 5: return 'ศุกร์';
+      case 6: return 'เสาร์';
+      case 7: return 'อาทิตย์';
+      default: return '';
+    }
+  }
+
+  /// เช็คว่าเวลาหาย/ไม่สมบูรณ์ไหม (ใช้เพื่อแยกเคส "ไม่สมบูรณ์")
+  bool _isMissingTime(String t) {
+    final s = t.trim();
+    return s.isEmpty || s == '--:--' || s == '--.--' || s == '-';
+  }
+
+  /// แปลง String เวลา "08.30" หรือ "08:30" -> DateTime(2000-01-01 HH:MM)
+  /// ใช้วันที่คงที่ (2000-01-01) เพื่อให้เปรียบเทียบเวลาได้ง่าย
+  DateTime _parseTime(String t) {
+    final s = t.trim().replaceAll('.', ':');
+    final parts = s.split(':');
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+    return DateTime(2000, 1, 1, h, m);
+  }
+  //ที่เลือก 2000-01-01 เพื่อทำให้ “เวลา” กลายเป็น DateTime ที่เทียบกันง่าย โดยไม่เอาวันจริงมาเกี่ยวครับ
+
+  /// แปลง Duration -> "H:MM" เช่น 7:05, 13:00
+  String _formatHourMinute(Duration d) {
+    if (d.isNegative) return '--:--';
+    final totalMin = d.inMinutes;
+    final h = totalMin ~/ 60;
+    final m = totalMin % 60;
+    return '$h:${m.toString().padLeft(2, '0')}';
+  }
+
+  /// แปลงจำนวน "นาที" -> "H:MM" เช่น 75 -> 1:15
+  String _formatMinutesToHourMinute(int minutes) {
+    if (minutes <= 0) return '0:00';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return '$h:${m.toString().padLeft(2, '0')}';
+  }
+
+  /// เลือกสีพื้น badge ตามวันในสัปดาห์ (เพื่อทำ UI ให้ต่างกัน)
+  Color _badgeColorByDow(String dow) {
+    switch (dow.trim()) {
+      case 'จันทร์': return const Color(0xFFFFF3CD);
+      case 'อังคาร': return const Color(0xFFF7ECFE);
+      case 'พุธ': return const Color(0xFFEAF5EE);
+      case 'พฤหัสบดี': return const Color(0xFFFFE0B2);
+      case 'ศุกร์': return const Color(0xFFBBDEFB);
+      case 'เสาร์': return const Color(0xFFE1BEE7);
+      case 'อาทิตย์': return const Color(0xFFFFE5E5);
+      default: return const Color(0xFFF2F4F7);
+    }
+  }
+
+  /// คำนวณข้อมูล UI สำหรับแถวประวัติ 1 แถว:
+  /// - สี badge ตามวัน
+  /// - สถานะ: ไม่สมบูรณ์ / สาย / ตรงเวลา
+  /// - duration ชั่วโมงทำงาน
+  /// - ไอคอน/สีสำหรับ status chip
+  Map<String, dynamic> _computeUi({
+    required String dow,
+    required String timeIn,
+    required String timeOut,
+    required String leavePeriod
+  }) {
+    final badgeColor = _badgeColorByDow(dow);
+    final inMissing = _isMissingTime(timeIn);
+    final outMissing = _isMissingTime(timeOut);
+
+    // เคส 1) เวลาเข้า/ออกหายอย่างน้อยหนึ่งฝั่ง -> ไม่สมบูรณ์
+    if (inMissing || outMissing) {
+      return {
+        "bgColor": badgeColor,
+        "statusText": "ไม่สมบูรณ์",
+        "statusBg": const Color(0xFFFFE5E5),
+        "statusFg": const Color(0xFFD32F2F),
+        "duration": "--.-- ชั่วโมง",
+        "statusIconAsset": "assets/images/warning2_outline__attendance.svg",
+      };
+    }
+
+    // แปลงเวลาเข้า/ออก เป็น DateTime เพื่อหาผลต่าง
+    final DateTime inDt = _parseTime(timeIn);
+    final DateTime outDt = _parseTime(timeOut);
+
+
+    // ถ้าลาเช้า (MORNING) ใช้เวลา checkInLeaveTime เป็นมาตรฐานแทน
+    final DateTime stdDt = (leavePeriod == "MORNING")
+        ? DateTime(2000, 1, 1, _checkInLeaveHour, _checkInLeaveMin)// ถ้าใช่ setting?.checkIn
+        : DateTime(2000, 1, 1, _stdInHour, _stdInMinute);// ถ้าไม่ เวลาเข้างานมาตรฐาน จาก setting?.checkInTime
+
+    // lateMinutes > 0 แปลว่าเข้างานช้ากว่าเวลามาตรฐาน
+    final lateMinutes = inDt.difference(stdDt).inMinutes;
+
+    // duration = เวลาออก - เวลาเข้า
+    final duration = _formatHourMinute(outDt.difference(inDt));
+
+    // เคส 2) สาย
+    if (lateMinutes > 0) {
+      late String lateText;
+
+      // ถ้าสายเกิน 60 นาที -> แสดงเป็นชั่วโมง:นาที
+      if (lateMinutes >= 60) {
+        lateText = "สาย ${_formatMinutesToHourMinute(lateMinutes)} ชม.";
+      } else {
+        // ถ้าสายน้อยกว่า 60 นาที -> แสดงเป็นนาที
+        lateText = "สาย $lateMinutes นาที";
+      }
+
+      return {
+        "bgColor": badgeColor,
+        "statusText": lateText,
+        "statusBg": const Color(0xFFFFF3CD),
+        "statusFg": const Color(0xFFB26A00),
+        "duration": "$duration ชั่วโมง",
+        "statusIconAsset": "assets/images/warning_outline__attendance.svg",
+      };
+    }
+
+    // เคส 3) ตรงเวลา (ไม่สาย และข้อมูลครบ)
+    return {
+      "bgColor": badgeColor,
+      "statusText": "ตรงเวลา",
+      "statusBg": const Color(0xFFE6F4EA),
+      "statusFg": const Color(0xFF1E8E3E),
+      "duration": "$duration ชั่วโมง",
+      "statusIconAsset": "assets/images/check_circle__attendance.svg",
+    };
+  }
+
+    /// เนื้อหาล้วนๆ ไม่รวมแถบหัว — ใช้ทั้งตอนเป็นหน้าเต็มและตอนถูกฝัง
+    /// ในคอลัมน์ขวาของ master-detail
+    Widget _body(BuildContext context) {
+      return SafeArea(
         child: Container(
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
@@ -439,168 +613,6 @@ class _PersonnelAttendanceState extends State<PersonnelAttendance> {
             )
           )
         )
-      )
-    );
-  }
-
-  String _toYmd(DateTime d) {
-    final y = d.year.toString().padLeft(4, '0');
-    final m = d.month.toString().padLeft(2, '0');
-    final day = d.day.toString().padLeft(2, '0');
-    return "$y-$m-$day";
-  }
-
-  /// แสดงวันที่แบบไทย: dd/mm/(yyyy+543) ถ้า null แสดง "---"
-  String _formatDateDisplay(DateTime? date) {
-    if (date == null) return "---";
-    return "${date.day}/${date.month}/${date.year + 543}";
-  }
-
-  /// แปลงเลขเดือน -> ชื่อเดือนภาษาไทย
-  String _thaiMonth(int m) {
-    const months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-    if (m < 1 || m > 12) return '';
-    return months[m];
-  }
-
-  /// แสดงหัวข้อเดือน/ปีแบบไทย เช่น "ธันวาคม 2569"
-  String _monthYearLabel(DateTime d) => "${_thaiMonth(d.month)} ${d.year + 543}";
-
-  /// ถ้า backend ส่ง dow เป็น null -> คำนวณจาก DateTime.weekday
-  String _thaiDowFromDate(DateTime d) {
-    switch (d.weekday) {
-      case 1: return 'จันทร์';
-      case 2: return 'อังคาร';
-      case 3: return 'พุธ';
-      case 4: return 'พฤหัสบดี';
-      case 5: return 'ศุกร์';
-      case 6: return 'เสาร์';
-      case 7: return 'อาทิตย์';
-      default: return '';
+      );
     }
-  }
-
-  /// เช็คว่าเวลาหาย/ไม่สมบูรณ์ไหม (ใช้เพื่อแยกเคส "ไม่สมบูรณ์")
-  bool _isMissingTime(String t) {
-    final s = t.trim();
-    return s.isEmpty || s == '--:--' || s == '--.--' || s == '-';
-  }
-
-  /// แปลง String เวลา "08.30" หรือ "08:30" -> DateTime(2000-01-01 HH:MM)
-  /// ใช้วันที่คงที่ (2000-01-01) เพื่อให้เปรียบเทียบเวลาได้ง่าย
-  DateTime _parseTime(String t) {
-    final s = t.trim().replaceAll('.', ':');
-    final parts = s.split(':');
-    final h = int.tryParse(parts[0]) ?? 0;
-    final m = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
-    return DateTime(2000, 1, 1, h, m);
-  }
-  //ที่เลือก 2000-01-01 เพื่อทำให้ “เวลา” กลายเป็น DateTime ที่เทียบกันง่าย โดยไม่เอาวันจริงมาเกี่ยวครับ
-
-  /// แปลง Duration -> "H:MM" เช่น 7:05, 13:00
-  String _formatHourMinute(Duration d) {
-    if (d.isNegative) return '--:--';
-    final totalMin = d.inMinutes;
-    final h = totalMin ~/ 60;
-    final m = totalMin % 60;
-    return '$h:${m.toString().padLeft(2, '0')}';
-  }
-
-  /// แปลงจำนวน "นาที" -> "H:MM" เช่น 75 -> 1:15
-  String _formatMinutesToHourMinute(int minutes) {
-    if (minutes <= 0) return '0:00';
-    final h = minutes ~/ 60;
-    final m = minutes % 60;
-    return '$h:${m.toString().padLeft(2, '0')}';
-  }
-
-  /// เลือกสีพื้น badge ตามวันในสัปดาห์ (เพื่อทำ UI ให้ต่างกัน)
-  Color _badgeColorByDow(String dow) {
-    switch (dow.trim()) {
-      case 'จันทร์': return const Color(0xFFFFF3CD);
-      case 'อังคาร': return const Color(0xFFF7ECFE);
-      case 'พุธ': return const Color(0xFFEAF5EE);
-      case 'พฤหัสบดี': return const Color(0xFFFFE0B2);
-      case 'ศุกร์': return const Color(0xFFBBDEFB);
-      case 'เสาร์': return const Color(0xFFE1BEE7);
-      case 'อาทิตย์': return const Color(0xFFFFE5E5);
-      default: return const Color(0xFFF2F4F7);
-    }
-  }
-
-  /// คำนวณข้อมูล UI สำหรับแถวประวัติ 1 แถว:
-  /// - สี badge ตามวัน
-  /// - สถานะ: ไม่สมบูรณ์ / สาย / ตรงเวลา
-  /// - duration ชั่วโมงทำงาน
-  /// - ไอคอน/สีสำหรับ status chip
-  Map<String, dynamic> _computeUi({
-    required String dow,
-    required String timeIn,
-    required String timeOut,
-    required String leavePeriod
-  }) {
-    final badgeColor = _badgeColorByDow(dow);
-    final inMissing = _isMissingTime(timeIn);
-    final outMissing = _isMissingTime(timeOut);
-
-    // เคส 1) เวลาเข้า/ออกหายอย่างน้อยหนึ่งฝั่ง -> ไม่สมบูรณ์
-    if (inMissing || outMissing) {
-      return {
-        "bgColor": badgeColor,
-        "statusText": "ไม่สมบูรณ์",
-        "statusBg": const Color(0xFFFFE5E5),
-        "statusFg": const Color(0xFFD32F2F),
-        "duration": "--.-- ชั่วโมง",
-        "statusIconAsset": "assets/images/warning2_outline__attendance.svg",
-      };
-    }
-
-    // แปลงเวลาเข้า/ออก เป็น DateTime เพื่อหาผลต่าง
-    final DateTime inDt = _parseTime(timeIn);
-    final DateTime outDt = _parseTime(timeOut);
-
-
-    // ถ้าลาเช้า (MORNING) ใช้เวลา checkInLeaveTime เป็นมาตรฐานแทน
-    final DateTime stdDt = (leavePeriod == "MORNING")
-        ? DateTime(2000, 1, 1, _checkInLeaveHour, _checkInLeaveMin)// ถ้าใช่ setting?.checkIn
-        : DateTime(2000, 1, 1, _stdInHour, _stdInMinute);// ถ้าไม่ เวลาเข้างานมาตรฐาน จาก setting?.checkInTime
-
-    // lateMinutes > 0 แปลว่าเข้างานช้ากว่าเวลามาตรฐาน
-    final lateMinutes = inDt.difference(stdDt).inMinutes;
-
-    // duration = เวลาออก - เวลาเข้า
-    final duration = _formatHourMinute(outDt.difference(inDt));
-
-    // เคส 2) สาย
-    if (lateMinutes > 0) {
-      late String lateText;
-
-      // ถ้าสายเกิน 60 นาที -> แสดงเป็นชั่วโมง:นาที
-      if (lateMinutes >= 60) {
-        lateText = "สาย ${_formatMinutesToHourMinute(lateMinutes)} ชม.";
-      } else {
-        // ถ้าสายน้อยกว่า 60 นาที -> แสดงเป็นนาที
-        lateText = "สาย $lateMinutes นาที";
-      }
-
-      return {
-        "bgColor": badgeColor,
-        "statusText": lateText,
-        "statusBg": const Color(0xFFFFF3CD),
-        "statusFg": const Color(0xFFB26A00),
-        "duration": "$duration ชั่วโมง",
-        "statusIconAsset": "assets/images/warning_outline__attendance.svg",
-      };
-    }
-
-    // เคส 3) ตรงเวลา (ไม่สาย และข้อมูลครบ)
-    return {
-      "bgColor": badgeColor,
-      "statusText": "ตรงเวลา",
-      "statusBg": const Color(0xFFE6F4EA),
-      "statusFg": const Color(0xFF1E8E3E),
-      "duration": "$duration ชั่วโมง",
-      "statusIconAsset": "assets/images/check_circle__attendance.svg",
-    };
-  }
 }

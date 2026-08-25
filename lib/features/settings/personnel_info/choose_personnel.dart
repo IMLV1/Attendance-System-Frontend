@@ -15,7 +15,21 @@ class ChoosePersonnel extends StatefulWidget {
 
   final void Function(PersonnelInfoModel personnel) onChoose;
 
-  const ChoosePersonnel({super.key, required this.onChoose});
+  /// วางรายการไว้ในหน้าโดยตรง (คอลัมน์ซ้ายของ master-detail) แทนการอยู่ใน popup
+  ///
+  /// ต่างกันตรงที่ไม่ต้อง `Navigator.pop` เมื่อเลือก เพราะไม่มี popup ให้ปิด
+  /// และโชว์ว่าตอนนี้เลือกใครอยู่ผ่าน [selectedUserId]
+  final bool inline;
+
+  /// id ของคนที่เลือกอยู่ — ใช้ไฮไลต์แถวในโหมด [inline]
+  final String? selectedUserId;
+
+  const ChoosePersonnel({
+    super.key,
+    required this.onChoose,
+    this.inline = false,
+    this.selectedUserId,
+  });
 
   @override
   State<StatefulWidget> createState() => _ChoosePersonnelState();
@@ -137,9 +151,16 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
                   final isFirst = index == 0;
                   final isLast = index == filteredPersonnel.length - 1;
 
+                  final isSelected =
+                      widget.inline && m.id == widget.selectedUserId;
+
                   return Container(
                     decoration: BoxDecoration(
-                      color: AppColors.cardColor,
+                      // ไฮไลต์คนที่กำลังดูอยู่ — จำเป็นเฉพาะโหมด inline ที่รายการ
+                      // ค้างอยู่ข้างๆ เนื้อหาตลอดเวลา (ใน popup เลือกแล้วปิดไปเลย)
+                      color: isSelected
+                          ? const Color(0xFFEDE3E4)
+                          : AppColors.cardColor,
                       borderRadius: BorderRadius.vertical(
                         top: Radius.circular(isFirst ? 25 : 0),
                         bottom: Radius.circular(isLast ? 25 : 0),
@@ -161,7 +182,7 @@ class _ChoosePersonnelState extends State<ChoosePersonnel> {
                             Role(id: '0000000000', name: m.initRole, color: const Color(0xFF535353)),
                           ],
                           onPressed: () {
-                            Navigator.pop(context);
+                            if (!widget.inline) Navigator.pop(context);
                             widget.onChoose(m);
                           },
                         ),

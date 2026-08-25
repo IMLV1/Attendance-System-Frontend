@@ -25,7 +25,11 @@ class PersonnelStatistic extends StatefulWidget {
 
   final PersonnelInfoModel personnel;
 
-  const PersonnelStatistic({super.key, required this.personnel});
+  /// ฝังเนื้อหาลงในคอลัมน์ขวาของ master-detail แทนการเป็นหน้าเต็ม
+  /// — ไม่มีแถบหัวและปุ่ม back เพราะรายการทางซ้ายทำหน้าที่นำทางแทนแล้ว
+  final bool embedded;
+
+  const PersonnelStatistic({super.key, required this.personnel, this.embedded = false});
 
   @override
   State<StatefulWidget> createState() => _PersonnelStatisticState();
@@ -68,6 +72,8 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.embedded) return _body(context);
+
     return AppScaffold(
         header: Header.subHeader(
             context,
@@ -76,7 +82,14 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
               Navigator.of(context).pop(personnel);
             }
         ),
-        content: SafeArea(
+      content: _body(context),
+    );
+  }
+
+    /// เนื้อหาล้วนๆ ไม่รวมแถบหัว — ใช้ทั้งตอนเป็นหน้าเต็มและตอนถูกฝัง
+    /// ในคอลัมน์ขวาของ master-detail
+    Widget _body(BuildContext context) {
+      return SafeArea(
           child: Container(
             color: AppColors.backgroundColor,
             alignment: Alignment.topCenter,
@@ -321,7 +334,6 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
               )
             )
           )
-        )
-    );
-  }
+        );
+    }
 }
