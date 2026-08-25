@@ -55,26 +55,47 @@ const _transientLocations = {'/splash', '/login'};
 /// ถ้าเปลี่ยนชนิด Page ตามขนาดจอ พอผู้ใช้หมุน iPad ระหว่างอยู่หน้านั้น
 /// `Page.canUpdate` จะเป็น false (คนละ runtimeType) Navigator จะถอดหน้าเก่าทิ้ง
 /// แล้ว push ใหม่ = state ของหน้าหายทั้งก้อน
+///
+/// 🚩 (รอบสอง) จอแคบต้องมอบงานต่อให้ `PageTransitionsTheme.buildTransitions`
+/// ซึ่งเป็นบรรทัดเดียวกับที่ `MaterialRouteTransitionMixin.buildTransitions`
+/// เรียก — รอบแรกผมเขียน `SlideTransition` ขึ้นมาเอง อนิเมชันเลยไม่เหมือนหน้า
+/// อื่นในแอป (บน iOS ของจริงเป็น `CupertinoPageTransition` ที่มี parallax ของ
+/// หน้าเดิม เงาที่ขอบ และปัดกลับได้ ส่วน Android เป็น zoom/fade)
+///
+/// ระยะเวลาก็ดึงจาก builder ตัวเดียวกัน — `PageTransitionsTheme` ตั้ง map ของ
+/// ทุกแพลตฟอร์มไว้ตั้งแต่ constructor อยู่แล้ว จึงหยิบตรงๆ ได้ ไม่ต้อง import
+/// cupertino มาระบุคลาสเอง (`CupertinoPageTransitionsBuilder` ไม่ได้ถูก export
+/// ผ่าน material.dart)
 CustomTransitionPage<void> _destinationPage(
+  BuildContext context,
   GoRouterState state,
   Widget child,
 ) {
+  final theme = Theme.of(context);
+  final transitions = theme.pageTransitionsTheme.builders[theme.platform];
+  const fallback = Duration(milliseconds: 300);
+
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 250),
-    reverseTransitionDuration: const Duration(milliseconds: 200),
+    transitionDuration: transitions?.transitionDuration ?? fallback,
+    reverseTransitionDuration:
+        transitions?.reverseTransitionDuration ?? fallback,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       // จอที่มี sidebar = สลับปลายทาง ไม่ใช่กดเข้าไปข้างใน จึงไม่ต้องมีอนิเมชัน
       if (Responsive.showSidebar(context)) return child;
 
-      return SlideTransition(
-        position: animation.drive(
-          Tween(begin: const Offset(1, 0), end: Offset.zero)
-              .chain(CurveTween(curve: Curves.fastOutSlowIn)),
-        ),
-        child: child,
-      );
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        return Theme.of(context).pageTransitionsTheme.buildTransitions(
+              route,
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            );
+      }
+      return child;
     },
   );
 }
@@ -142,8 +163,8 @@ final appRouter = GoRouter(
         GoRoute(
           name: RouteNames.setting,
           path: '/settings',
-          pageBuilder: (_, state) =>
-              _destinationPage(state, const SettingPage()),
+          pageBuilder: (context, state) =>
+              _destinationPage(context, state, const SettingPage()),
           routes: [
             GoRoute(
               name: RouteNames.settingBudgetYear,
@@ -187,20 +208,20 @@ final appRouter = GoRouter(
           path: '/approval',
           pageBuilder: (context, state) {
             final initialTab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
-            return _destinationPage(state, Approval(initialTab: initialTab));
+            return _destinationPage(context, state, Approval(initialTab: initialTab));
           },
         ),
         GoRoute(
           name: RouteNames.attendanceHistory,
           path: '/attendance-history',
-          pageBuilder: (_, state) =>
-              _destinationPage(state, const AttendanceHistory()),
+          pageBuilder: (context, state) =>
+              _destinationPage(context, state, const AttendanceHistory()),
         ),
         GoRoute(
           name: RouteNames.personnelInfo,
           path: '/personnel-info',
-          pageBuilder: (_, state) =>
-              _destinationPage(state, const PersonnelInfo()),
+          pageBuilder: (context, state) =>
+              _destinationPage(context, state, const PersonnelInfo()),
         ),
         GoRoute(
           name: RouteNames.profile,
