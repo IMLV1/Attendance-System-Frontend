@@ -85,6 +85,10 @@ class _StatisticPageState extends State<StatisticPage> {
 
   StatisticModel? statistic;
   WorkingHourModel? workingHour;
+
+  /// โหมดของกราฟชั่วโมงทำงาน — ยกขึ้นมาถือไว้ที่หน้า เพราะบนจอกว้างการ์ดสรุป
+  /// ถูกย้ายไปอยู่แถว KPI ด้านบน แยกจากปุ่มเลือกโหมดที่อยู่เหนือกราฟด้านล่าง
+  StatisticMode hourMode = StatisticMode.total;
   DateTime yearFilter = DateTime(DateTime.now().year);
 
   DateTime? allowFilterStart;
@@ -281,7 +285,45 @@ class _StatisticPageState extends State<StatisticPage> {
                                     spacing: 13,
                                     children: [
                                       /// Working Day
-                                      WorkingDay(statistic),
+                                      //
+                                      // 🚩 (Phase 3) KPI ของหน้านี้มี 4 ตัวแต่
+                                      // เดิมแยกเป็นสองก้อนคนละหัวคนละท้ายหน้า
+                                      // (วันทำงาน 2 ตัวบนสุด ชั่วโมงทำงาน 2 ตัว
+                                      // ล่างสุด) เพราะมาจากคนละ model ไม่ใช่
+                                      // เพราะคนละเรื่อง — บนจอกว้างเอามารวมเป็น
+                                      // แถวเดียว 4 ใบ อ่านรวดเดียวจบ
+                                      // (RESPONSIVE_PLAN.md 0.4 รอบสาม ข้อ B)
+                                      if (!Responsive.isCompact(context))
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 15, horizontal: 12),
+                                          decoration: BoxDecoration(
+                                            color: Color(0xFFEAEAEA),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          child: Row(
+                                            spacing: 10,
+                                            children: [
+                                              Expanded(
+                                                child: WorkingDay(statistic,
+                                                    bare: true),
+                                              ),
+                                              Expanded(
+                                                child: WorkingHour(
+                                                  workingHour,
+                                                  showChart: false,
+                                                  mode: hourMode,
+                                                  onModeChanged: (m) =>
+                                                      setState(
+                                                          () => hourMode = m),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        WorkingDay(statistic),
 
                                       Container(
                                         padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
@@ -298,7 +340,10 @@ class _StatisticPageState extends State<StatisticPage> {
                                         // ระยะจากชื่อถึงตัวเลขลดเหลือราว 180px ใกล้เคียง
                                         // กับบนมือถือที่อ่านรู้เรื่องอยู่แล้ว — ไม่ต้อง
                                         // ออกแบบการ์ดใหม่เลย แค่เปลี่ยนที่วาง
-                                        child: Responsive.mode(context) == LayoutMode.expanded
+                                        // จอที่ไม่ใช่มือถือกว้างพอวางคู่กันทั้งหมด — iPad แนวตั้ง
+                                        // (1032) ก็เหลือคอลัมน์ละ ~500 เท่ากับ
+                                        // desktop ที่จำกัดไว้ 1100
+                                        child: !Responsive.isCompact(context)
                                             ? Row(
                                                 // ไม่ยืดสองการ์ดให้สูงเท่ากัน — ปล่อยให้
                                                 // แต่ละใบสูงตามเนื้อหาจริง (IntrinsicHeight
@@ -328,7 +373,26 @@ class _StatisticPageState extends State<StatisticPage> {
                               ),
 
                               /// Working Hour
-                              WorkingHour(workingHour)
+                              //
+                              // จอกว้าง: การ์ดสรุปย้ายขึ้นไปแถว KPI แล้ว เหลือ
+                              // เฉพาะกราฟ และคุมความกว้างไว้ไม่ให้ยืดเต็ม 1100
+                              // เพราะข้อมูลมีไม่กี่แท่ง ยิ่งกว้างยิ่งโล่ง
+                              if (!Responsive.isCompact(context))
+                                Center(
+                                  child: ConstrainedBox(
+                                    constraints:
+                                        BoxConstraints(maxWidth: 760),
+                                    child: WorkingHour(
+                                      workingHour,
+                                      showSummary: false,
+                                      mode: hourMode,
+                                      onModeChanged: (m) =>
+                                          setState(() => hourMode = m),
+                                    ),
+                                  ),
+                                )
+                              else
+                                WorkingHour(workingHour)
                             ],
                           );
                         }

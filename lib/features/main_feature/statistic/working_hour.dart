@@ -13,7 +13,28 @@ class WorkingHour extends StatefulWidget {
 
   final WorkingHourModel? workingHour;
 
-  const WorkingHour(this.workingHour, {super.key});
+  /// 🚩 (Phase 3) บนจอกว้าง `/statistic` ดึงการ์ดสรุปสองใบขึ้นไปรวมแถวเดียวกับ
+  /// KPI วันทำงานที่หัวหน้า ส่วนกราฟอยู่ล่างสุด — สองส่วนนี้จึงต้องแยกวางกันได้
+  /// เดิมตัวเลขทั้งสี่กระจายอยู่คนละหัวคนละท้ายหน้าเพราะมาจากคนละ model
+  final bool showChart;
+  final bool showSummary;
+
+  /// โหมดที่เลือกอยู่ (ทั้งหมด / สัปดาห์ / เดือน / ปี)
+  ///
+  /// ตัวเลขในการ์ดสรุปเปลี่ยนตามปุ่มที่อยู่เหนือกราฟ พอแยกสองส่วนออกจากกันแล้ว
+  /// จึงต้องยกสถานะนี้ขึ้นไปให้หน้าถือแทน ทั้งคู่จะได้อ่านค่าจากตัวเดียวกัน
+  /// ถ้าไม่ส่งมา (จอแคบ ใช้เป็นก้อนเดียว) ตัวเองเก็บสถานะเหมือนเดิม
+  final StatisticMode? mode;
+  final ValueChanged<StatisticMode>? onModeChanged;
+
+  const WorkingHour(
+    this.workingHour, {
+    super.key,
+    this.showChart = true,
+    this.showSummary = true,
+    this.mode,
+    this.onModeChanged,
+  });
 
   @override
   State<StatefulWidget> createState() => _WorkingHourState();
@@ -21,7 +42,18 @@ class WorkingHour extends StatefulWidget {
 
 class _WorkingHourState extends State<WorkingHour> {
 
-  StatisticMode selection = StatisticMode.total;
+  StatisticMode _ownSelection = StatisticMode.total;
+
+  StatisticMode get selection => widget.mode ?? _ownSelection;
+
+  void _selectMode(StatisticMode mode) {
+    final notify = widget.onModeChanged;
+    if (notify != null) {
+      notify(mode);
+    } else {
+      setState(() => _ownSelection = mode);
+    }
+  }
 
   int touchedIndex = -1;
 
@@ -36,6 +68,7 @@ class _WorkingHourState extends State<WorkingHour> {
       spacing: 6,
       children: [
         /// Title
+        if (widget.showChart)
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 4),
           child: Row(
@@ -61,6 +94,7 @@ class _WorkingHourState extends State<WorkingHour> {
           spacing: 13,
           children: [
             /// Content
+            if (widget.showChart)
             Container(
               padding: EdgeInsetsGeometry.symmetric(horizontal: 20, vertical: 20),
               height: 300,
@@ -79,40 +113,32 @@ class _WorkingHourState extends State<WorkingHour> {
                           text: 'ทั้งหมด',
                           selected: selection == StatisticMode.total,
                           onTap: () {
-                            setState(() {
-                              selection = StatisticMode.total;
-                              touchedIndex = -1;
-                            });
+                            setState(() => touchedIndex = -1);
+                            _selectMode(StatisticMode.total);
                           }
                       ),
                       _selectionButton(
                           text: 'สัปดาห์',
                           selected: selection == StatisticMode.week,
                           onTap: () {
-                            setState(() {
-                              selection = StatisticMode.week;
-                              touchedIndex = -1;
-                            });
+                            setState(() => touchedIndex = -1);
+                            _selectMode(StatisticMode.week);
                           }
                       ),
                       _selectionButton(
                           text: 'เดือน',
                           selected: selection == StatisticMode.month,
                           onTap: () {
-                            setState(() {
-                              selection = StatisticMode.month;
-                              touchedIndex = -1;
-                            });
+                            setState(() => touchedIndex = -1);
+                            _selectMode(StatisticMode.month);
                           }
                       ),
                       _selectionButton(
                           text: 'ปี',
                           selected: selection == StatisticMode.year,
                           onTap: () {
-                            setState(() {
-                              selection = StatisticMode.year;
-                              touchedIndex = -1;
-                            });
+                            setState(() => touchedIndex = -1);
+                            _selectMode(StatisticMode.year);
                           }
                       ),
                     ],
@@ -158,6 +184,7 @@ class _WorkingHourState extends State<WorkingHour> {
             ),
 
             /// Summary
+            if (widget.showSummary)
             Row(
               spacing: 10,
               children: [

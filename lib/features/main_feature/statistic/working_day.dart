@@ -2,7 +2,6 @@ import 'package:attendance_system/services/statistic/statistic_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -10,7 +9,11 @@ class WorkingDay extends StatelessWidget {
 
   final StatisticModel? statistic;
 
-  const WorkingDay(this.statistic, {super.key});
+  /// ถอดกล่องเทาที่ครอบออก — ใช้ตอนถูกเอาไปวางรวมแถวเดียวกับการ์ดชั่วโมงทำงาน
+  /// บนจอกว้าง ซึ่งมีกล่องเทาของแถวนั้นครอบให้อยู่แล้ว
+  final bool bare;
+
+  const WorkingDay(this.statistic, {super.key, this.bare = false});
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +21,11 @@ class WorkingDay extends StatelessWidget {
       spacing: 6,
       children: [
         Container(
-          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 12),
+          padding: bare
+              ? EdgeInsets.zero
+              : EdgeInsets.symmetric(vertical: 15, horizontal: 12),
           decoration: BoxDecoration(
-            color: Color(0xFFEAEAEA),
+            color: bare ? Colors.transparent : Color(0xFFEAEAEA),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
