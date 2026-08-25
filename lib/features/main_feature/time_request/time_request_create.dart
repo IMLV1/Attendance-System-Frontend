@@ -142,9 +142,24 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                   left: 10, right: 10, top: 20
               ),
               child: Stack(
+                // ปุ่มที่หดตามเนื้อหา (จอกว้าง) ต้องถูกจับไปชิดล่างของ Stack
+                // ซึ่งสูงเท่าฟอร์มพอดี — บนมือถือทั้งสองลูกสูงเต็มอยู่แล้ว
+                // ค่านี้จึงไม่มีผล
+                alignment: Alignment.bottomCenter,
                 children: [
                   Column(
                     spacing: 6,
+                    // 🚩 (Phase 3) ปุ่ม "ส่ง" ถูกวางซ้อนใน Stack แล้วดันไปชิดล่าง
+                    // ด้วย mainAxisAlignment.end — บนมือถือถูกต้อง (นิ้วโป้งเอื้อม
+                    // ถึง) แต่บน desktop จอสูง 963 ฟอร์มจบที่ ~300 ปุ่มเลยลอย
+                    // ห่างจากฟอร์มเกือบ 350px เหมือนไม่เกี่ยวข้องกัน
+                    //
+                    // ให้ฟอร์มหดตามเนื้อหาบนจอกว้าง Stack จะสูงเท่าฟอร์ม ปุ่มที่
+                    // ชิดล่างจึงมาอยู่ใต้ฟอร์มพอดี (เว้นที่ให้ด้วย SizedBox ท้าย
+                    // คอลัมน์ ไม่งั้นปุ่มจะไปทับการ์ดใบสุดท้าย)
+                    mainAxisSize: Responsive.isCompact(context)
+                        ? MainAxisSize.max
+                        : MainAxisSize.min,
                     children: [
                       Row(
                         spacing: 5,
@@ -923,6 +938,10 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                       //     )
                       //   ],
                       // ),
+
+                      // ที่ว่างสำหรับปุ่ม "ส่ง" ที่ลอยซ้อนอยู่ด้านล่าง
+                      if (!Responsive.isCompact(context))
+                        const SizedBox(height: 82),
                     ],
                   ),
                   // if (setting.requestNeedSignature) ... [
@@ -1198,6 +1217,9 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                             padding: EdgeInsetsGeometry.symmetric(vertical: 20),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisSize: Responsive.isCompact(context)
+                                  ? MainAxisSize.max
+                                  : MainAxisSize.min,
                               children: [
                                 Column(
                                   children: [

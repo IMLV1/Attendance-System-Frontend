@@ -144,10 +144,25 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                 child: Padding(
                     padding: EdgeInsets.only(left: 10, right: 10, top: 20),
                     child: Stack(
+                      // 🚩 (Phase 3) ปุ่ม "ส่ง" ถูกวางซ้อนใน Stack แล้วดันไปชิดล่าง
+                      // — บนมือถือถูกต้อง (นิ้วโป้งเอื้อมถึง) แต่บน desktop จอสูง
+                      // ฟอร์มจบไม่ถึงครึ่งจอ ปุ่มเลยลอยห่างเหมือนไม่เกี่ยวข้องกัน
+                      //
+                      // จอกว้างให้ฟอร์มหดตามเนื้อหา Stack จะสูงเท่าฟอร์ม ปุ่มที่
+                      // ชิดล่างจึงมาอยู่ใต้ฟอร์มพอดี
+                      alignment: Alignment.bottomCenter,
                       children: [
                         Column(
+                            mainAxisSize: Responsive.isCompact(context)
+                                ? MainAxisSize.max
+                                : MainAxisSize.min,
                             children: [
-                              Expanded(
+                              Flexible(
+                                  // มือถือ: ยืดเต็มเหมือน Expanded เดิม
+                                  // จอกว้าง: หดตามเนื้อหา คอลัมน์จึงหดตามได้
+                                  fit: Responsive.isCompact(context)
+                                      ? FlexFit.tight
+                                      : FlexFit.loose,
                                   child: SingleChildScrollView(
                                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                       physics: AlwaysScrollableScrollPhysics(),
@@ -778,7 +793,11 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                         ],
                                       )
                                   )
-                              )
+                              ),
+
+                              // ที่ว่างสำหรับปุ่ม "ส่ง" ที่ลอยซ้อนอยู่ด้านล่าง
+                              if (!Responsive.isCompact(context))
+                                const SizedBox(height: 82),
                             ]
                         ),
 
@@ -800,6 +819,9 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                 padding: EdgeInsetsGeometry.symmetric(vertical: 20),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.end,
+                                  mainAxisSize: Responsive.isCompact(context)
+                                      ? MainAxisSize.max
+                                      : MainAxisSize.min,
                                   children: [
                                     Column(
                                       children: [
