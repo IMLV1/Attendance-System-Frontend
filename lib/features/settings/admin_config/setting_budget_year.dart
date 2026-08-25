@@ -201,7 +201,11 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                                             value: '${selectedDayIndex +
                                                 1} ${months[selectedMonthIndex]}'
                                         ),
-                                        SizedBox(
+                                        // 🚩 (2026-08-25) เดิมไม่มีที่ว่างใต้วงล้อ
+                                        // ขอบล่างการ์ดจึงเฉือนแถวสุดท้ายครึ่งแถว
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 10),
+                                          child: SizedBox(
                                           height: 150,
                                           child: WheelSelector(
                                             leftItems: months,
@@ -227,6 +231,7 @@ class _SettingBudgetYearState extends State<SettingBudgetYear> {
                                               });
                                             },
                                           ),
+                                        ),
                                         )
                                       ],
                                     ),

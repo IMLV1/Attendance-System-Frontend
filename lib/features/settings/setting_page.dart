@@ -124,6 +124,10 @@ class _SettingPageState extends State<SettingPage> {
                         },icon: 'icon_role_management.svg', label: 'จัดการตำแหน่ง'),
                       ]
                   ),
+                  // 🚩 (2026-08-25) ชื่อในเมนูต้องตรงกับหัวหน้าที่กดเข้าไปเจอ
+                  // เดิมตรงกันแค่ 'ตั้งค่าปีงบประมาณ' หน้าเดียว อีก 3 หน้าใช้คำ
+                  // คนละชุด (เช่นเมนูว่า 'คำขออนุมัติเวลางาน' แต่หัวหน้าว่า
+                  // 'ตั้งค่าการขออนุมัติเวลา') กดแล้วไม่แน่ใจว่ามาถูกหน้ารึเปล่า
                   if (access.canConfigSystem)
                     SeparatorCard(
                       separatorPadding: EdgeInsets.only(left: 45, right: 15),
@@ -133,13 +137,13 @@ class _SettingPageState extends State<SettingPage> {
                         }, icon: 'icon_setting.svg', label: 'ตั้งค่าปีงบประมาณ'),
                         IconTextButton(onPressed: () {
                           context.pushNamed(RouteNames.settingAttendanceTime);
-                        }, icon: 'icon_setting.svg', label: 'การลงชื่อเข้า-ออกงาน'),
+                        }, icon: 'icon_setting.svg', label: 'ตั้งค่าการลงชื่อเข้า-ออกงาน'),
                         IconTextButton(onPressed: () {
                           context.pushNamed(RouteNames.settingAttendanceRequest);
-                        }, icon: 'icon_setting.svg', label: 'คำขออนุมัติเวลางาน'),
+                        }, icon: 'icon_setting.svg', label: 'ตั้งค่าการขออนุมัติเวลา'),
                         IconTextButton(onPressed: () {
                           context.pushNamed(RouteNames.settingLeaveType);
-                        }, icon: 'icon_setting.svg', label: 'ประเภทการลางาน'),
+                        }, icon: 'icon_setting.svg', label: 'ตั้งค่าประเภทการลา'),
                       ]
                     ),
 
