@@ -404,7 +404,7 @@ class _EditRoleState extends State<EditRole> {
                                           },
                                         ),
                                         FloatingServicePopupButton(
-                                          text: 'ยันยัน',
+                                          text: 'ยืนยัน',
                                           foregroundColor: Colors.red,
                                           request: () => RoleManagementService().deleteRole(_role),
                                           setError: parent,

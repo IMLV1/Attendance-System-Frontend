@@ -712,7 +712,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                     backgroundColor: AppColors.primaryColor,
                                   ),
                                   FloatingServicePopupButton(
-                                    text: 'ยันยัน',
+                                    text: 'ยืนยัน',
                                     foregroundColor: Colors.red,
                                     request: () => TimeRequestService().delete(widget.id),
                                     setError: setError,

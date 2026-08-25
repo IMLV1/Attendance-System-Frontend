@@ -701,7 +701,7 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                                       backgroundColor: AppColors.primaryColor,
                                                     ),
                                                     FloatingServicePopupButton(
-                                                      text: 'ยันยัน',
+                                                      text: 'ยืนยัน',
                                                       foregroundColor: Colors.red,
                                                       request: () => LeaveApprovalService().approval(widget.requestID, ApproveStatus.rejected.state, _textEditingController.text, null),
                                                       setError: setError,
@@ -840,7 +840,7 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                                       backgroundColor: AppColors.primaryColor,
                                                     ),
                                                     FloatingServicePopupButton(
-                                                      text: 'ยันยัน',
+                                                      text: 'ยืนยัน',
                                                       foregroundColor: Colors.red,
                                                       request: () => LeaveApprovalService().approval(widget.requestID, ApproveStatus.approved.state, _textEditingController.text, null),
                                                       setError: setError,

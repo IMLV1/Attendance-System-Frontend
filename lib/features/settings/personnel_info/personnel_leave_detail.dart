@@ -738,7 +738,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                                                         backgroundColor: AppColors.primaryColor,
                                                       ),
                                                       FloatingServicePopupButton(
-                                                        text: 'ยันยัน',
+                                                        text: 'ยืนยัน',
                                                         foregroundColor: Colors.red,
                                                         request: () => LeaveApprovalService().approval(widget.requestID, 'rejected', _textEditingController.text, null),
                                                         setError: setError,
@@ -877,7 +877,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                                                         backgroundColor: AppColors.primaryColor,
                                                       ),
                                                       FloatingServicePopupButton(
-                                                        text: 'ยันยัน',
+                                                        text: 'ยืนยัน',
                                                         foregroundColor: Colors.red,
                                                         request: () => LeaveApprovalService().approval(widget.requestID, 'approved', _textEditingController.text, null),
                                                         setError: setError,

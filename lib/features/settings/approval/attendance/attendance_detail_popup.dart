@@ -825,7 +825,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                       backgroundColor: AppColors.primaryColor,
                                                     ),
                                                     FloatingServicePopupButton(
-                                                      text: 'ยันยัน',
+                                                      text: 'ยืนยัน',
                                                       foregroundColor: Colors.red,
                                                       request: () => AttendanceApprovalService().approval(widget.reqId, status, _textEditingController.text, null),
                                                       setError: setError,
@@ -966,7 +966,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                                       backgroundColor: AppColors.primaryColor,
                                                     ),
                                                     FloatingServicePopupButton(
-                                                      text: 'ยันยัน',
+                                                      text: 'ยืนยัน',
                                                       foregroundColor: Colors.red,
                                                       request: () => AttendanceApprovalService().approval(widget.reqId, status, _textEditingController.text, null), // Utils.mockResponse(),
                                                       setError: setError,

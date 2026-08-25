@@ -863,7 +863,7 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                           backgroundColor: AppColors.primaryColor,
                                                         ),
                                                         FloatingServicePopupButton(
-                                                          text: 'ยันยัน',
+                                                          text: 'ยืนยัน',
                                                           foregroundColor: Colors.red,
                                                           request: () => AttendanceApprovalService().approval(widget.id, 'rejected', _textEditingController.text, null),
                                                           setError: setError,
@@ -1002,7 +1002,7 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                           backgroundColor: AppColors.primaryColor,
                                                         ),
                                                         FloatingServicePopupButton(
-                                                          text: 'ยันยัน',
+                                                          text: 'ยืนยัน',
                                                           foregroundColor: Colors.red,
                                                           request: () => AttendanceApprovalService().approval(widget.id, 'approved', _textEditingController.text, null),
                                                           setError: setError,
