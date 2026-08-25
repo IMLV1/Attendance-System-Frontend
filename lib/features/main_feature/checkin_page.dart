@@ -478,11 +478,19 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
       // ส่วนโหมด expanded วางสองคอลัมน์จึงต้องการที่กว้างกว่านั้น
       // expanded — ไม่จำกัด เพราะเนื้อหามีเพดานของตัวเองอยู่แล้ว (_wideMaxWidth)
       // medium (iPad แนวตั้ง) — 560 ที่เคาะมาจากมือถือทำให้เหลือขอบว่างข้างละ
-      //   ~130 บนจอ 834 กว้างขึ้นเป็น 700 พอดีกว่าโดยบรรทัดข้อความยังไม่ยาวเกิน
+      //   ~130 บนจอ 834
+      //
+      //   🚩 (2026-08-25) ขยับ 700 -> 860 เพราะ iPad Pro 13 แนวตั้งกว้าง 1032
+      //   ที่ 700 เหลือขอบข้างละ ~165 ดูโล่งเหมือนลืมจัด ที่ 860 เหลือข้างละ
+      //   ~85 อ่านเป็นขอบที่ตั้งใจ
+      //
+      //   ไม่ปล่อยเต็มจอ เพราะ layout แนวตั้งเรียงกล่องซ้อนกัน พอยืดเต็ม 1032
+      //   ป้ายจะชิดซ้ายสุดและค่าชิดขวาสุดห่างกันเกือบ 1000 ซึ่งเป็นอาการเดิม
+      //   ที่ Phase 3 ไล่แก้มาทั้งงาน (PHASE3_PAGE_DESIGN.md ข้อ 1)
       // compact — 560 ไม่มีผลอยู่แล้วเพราะมือถือแคบกว่านั้น เก็บไว้กันจอใหญ่สุด
       maxWidth: switch (Responsive.mode(context)) {
         LayoutMode.expanded => double.infinity,
-        LayoutMode.medium => 700,
+        LayoutMode.medium => 860,
         LayoutMode.compact => 560,
       },
       header: Header.mainHeader(
