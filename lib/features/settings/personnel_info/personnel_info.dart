@@ -75,51 +75,58 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
     return Container(
       color: AppColors.backgroundColor,
       padding: const EdgeInsets.fromLTRB(10, 14, 10, 0),
-      child: Row(
+      // 🚩 ใช้ Wrap ไม่ใช่ Row+Expanded — แท็บกว้างตามข้อความจริง ถ้าที่ไม่พอ
+      // ก็ขึ้นบรรทัดใหม่เอง แทนที่จะบีบทุกแท็บให้เท่ากันจนชื่อยาวโดนตัด
+      // (บน iPad แนวตั้งคอลัมน์ขวาเหลือ ~670 หาร 5 ได้แท็บละ ~124 ซึ่งสั้นกว่า
+      // คำว่า 'การขออนุมัติเวลางาน' อยู่มาก)
+      child: Wrap(
         spacing: 8,
+        runSpacing: 8,
         children: [
           for (final s in _Section.values)
-            Expanded(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => setState(() => _section = s),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  decoration: BoxDecoration(
+            InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => setState(() => _section = s),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color:
+                      _section == s ? AppColors.cardColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
                     color: _section == s
-                        ? AppColors.cardColor
+                        ? const Color(0xFFD8D8D8)
                         : Colors.transparent,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: _section == s
-                          ? const Color(0xFFD8D8D8)
-                          : Colors.transparent,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 8,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/${s.icon}',
+                      width: 16,
+                      height: 16,
+                      // 🚩 ต้องย้อมสีเสมอ — ไอคอนชุดนี้สีไม่เหมือนกัน
+                      // icon_profile.svg เป็น fill="white" ล้วน (ทำมาสำหรับแถบหัว
+                      // สีแดงเข้ม) ถ้าไม่ย้อมจะหายไปกับพื้นขาว ส่วน
+                      // icon_attendance_request_history.svg มีทั้งขาวและดำผสมกัน
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFF2C2C2C),
+                        BlendMode.srcIn,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 8,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/${s.icon}',
-                        width: 16,
-                        height: 16,
+                    Text(
+                      s.label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: _section == s
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
-                      Flexible(
-                        child: Text(
-                          s.label,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: _section == s
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -151,6 +158,8 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
+                // 360 เท่ากันทุกโหมด — แคบกว่านี้ป้ายตำแหน่งใน UserInfoButton
+                // จะตัดขึ้นบรรทัดใหม่จนแถวสูงไม่เท่ากัน
                 width: 360,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
@@ -187,7 +196,11 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
   @override
   Widget build(BuildContext context) {
 
-    if (Responsive.mode(context) == LayoutMode.expanded) {
+    // 🚩 (2026-08-25) เปิดใช้ตั้งแต่ medium ขึ้นไป ไม่ใช่เฉพาะ expanded —
+    // iPad แนวตั้งกว้าง 1032 พอสำหรับสองคอลัมน์สบายๆ ถ้าปล่อยเป็นเมนูเดิม
+    // เนื้อหาจะจบที่ ~15% ของความสูงจอ ที่เหลือโล่งทั้งหมด
+    // มือถือ (compact) ยังเป็นเมนูที่กดแล้ว push หน้าใหม่เหมือนเดิม
+    if (!Responsive.isCompact(context)) {
       return _masterDetail(context);
     }
 
