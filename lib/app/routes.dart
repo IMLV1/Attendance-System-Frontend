@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/auth/auth_state.dart';
+import '../core/utils/responsive.dart';
 import '../features/auth/login_page.dart';
 import '../features/history/attendance_history.dart';
 import '../features/notification/notification.dart';
@@ -34,6 +35,49 @@ String? _pendingLocation;
 
 /// หน้าที่เป็นแค่ทางผ่าน ไม่ควรถูกจำเป็นปลายทาง
 const _transientLocations = {'/splash', '/login'};
+
+/// หน้าที่เป็น **ปลายทางของ sidebar บนจอกว้าง** แต่เป็น **หน้าที่ push มา**
+/// บนจอแคบ
+///
+/// 🚩 (2026-08-25) สี่หน้านี้ (/attendance-history, /approval, /personnel-info,
+/// /settings) เดิมอยู่ในเมนู "การตั้งค่าและการจัดการ" แล้วถูกยกขึ้นมาเป็นปลายทาง
+/// ของ sidebar ตอน Phase 1 แต่ยังใช้ `builder:` เฉยๆ อยู่ ซึ่ง go_router จะห่อ
+/// ด้วย MaterialPage ให้ = มีอนิเมชันเลื่อนเข้าแบบ push
+///
+/// ผลคือกดสลับเมนูใน sidebar แล้วสี่หน้านี้เลื่อนเข้ามา ต่างจากอีกห้าหน้าที่
+/// สลับทันที (ใช้ NoTransitionPage) — รู้สึกเหมือนกดเข้าไป "ข้างใน" ไม่ใช่สลับ
+/// ปลายทาง
+///
+/// แก้ไม่ได้ด้วยการเปลี่ยนเป็น NoTransitionPage เฉยๆ เพราะบนจอแคบสี่หน้านี้
+/// ถูก `pushNamed` มาจริงๆ (จากเมนูการตั้งค่า / ปุ่ม ≡) อนิเมชันเลื่อนถูกต้องแล้ว
+///
+/// จึงคงชนิด Page ไว้ตัวเดียวเสมอ แล้วไปตัดสินที่ `transitionsBuilder` แทน —
+/// ถ้าเปลี่ยนชนิด Page ตามขนาดจอ พอผู้ใช้หมุน iPad ระหว่างอยู่หน้านั้น
+/// `Page.canUpdate` จะเป็น false (คนละ runtimeType) Navigator จะถอดหน้าเก่าทิ้ง
+/// แล้ว push ใหม่ = state ของหน้าหายทั้งก้อน
+CustomTransitionPage<void> _destinationPage(
+  GoRouterState state,
+  Widget child,
+) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 250),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      // จอที่มี sidebar = สลับปลายทาง ไม่ใช่กดเข้าไปข้างใน จึงไม่ต้องมีอนิเมชัน
+      if (Responsive.showSidebar(context)) return child;
+
+      return SlideTransition(
+        position: animation.drive(
+          Tween(begin: const Offset(1, 0), end: Offset.zero)
+              .chain(CurveTween(curve: Curves.fastOutSlowIn)),
+        ),
+        child: child,
+      );
+    },
+  );
+}
 
 final appRouter = GoRouter(
   refreshListenable: getIt<AuthState>(),
@@ -98,7 +142,8 @@ final appRouter = GoRouter(
         GoRoute(
           name: RouteNames.setting,
           path: '/settings',
-          builder: (_, _) => const SettingPage(),
+          pageBuilder: (_, state) =>
+              _destinationPage(state, const SettingPage()),
           routes: [
             GoRoute(
               name: RouteNames.settingBudgetYear,
@@ -140,20 +185,22 @@ final appRouter = GoRouter(
         GoRoute(
           name: RouteNames.approval,
           path: '/approval',
-          builder: (context, state) {
+          pageBuilder: (context, state) {
             final initialTab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
-            return Approval(initialTab: initialTab);
+            return _destinationPage(state, Approval(initialTab: initialTab));
           },
         ),
         GoRoute(
           name: RouteNames.attendanceHistory,
           path: '/attendance-history',
-          builder: (_, _) => const AttendanceHistory(),
+          pageBuilder: (_, state) =>
+              _destinationPage(state, const AttendanceHistory()),
         ),
         GoRoute(
           name: RouteNames.personnelInfo,
           path: '/personnel-info',
-          builder: (_, _) => const PersonnelInfo(),
+          pageBuilder: (_, state) =>
+              _destinationPage(state, const PersonnelInfo()),
         ),
         GoRoute(
           name: RouteNames.profile,

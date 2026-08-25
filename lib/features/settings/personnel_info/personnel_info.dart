@@ -80,7 +80,7 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
       // (บน iPad แนวตั้งคอลัมน์ขวาเหลือ ~670 หาร 5 ได้แท็บละ ~124 ซึ่งสั้นกว่า
       // คำว่า 'การขออนุมัติเวลางาน' อยู่มาก)
       child: Wrap(
-        spacing: 8,
+        spacing: 4,
         runSpacing: 8,
         children: [
           for (final s in _Section.values)
@@ -89,7 +89,7 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
               onTap: () => setState(() => _section = s),
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 decoration: BoxDecoration(
                   color:
                       _section == s ? AppColors.cardColor : Colors.transparent,
@@ -102,7 +102,7 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  spacing: 8,
+                  spacing: 6,
                   children: [
                     SvgPicture.asset(
                       'assets/images/${s.icon}',
