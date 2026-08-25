@@ -19,15 +19,30 @@ import 'package:provider/provider.dart';
 
 import '../../core/auth/auth_state.dart';
 
-class SettingPage extends StatelessWidget {
+class SettingPage extends StatefulWidget {
 
   const SettingPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
+  State<SettingPage> createState() => _SettingPageState();
+}
 
-    Uint8List? signature;
+class _SettingPageState extends State<SettingPage> {
+
+  /// 🚩 (2026-08-25) เดิมประกาศเป็นตัวแปร local ใน `build()` ของ
+  /// `StatelessWidget` แล้วให้ `StatefulBuilder` ข้างในคอย setState ใส่
+  ///
+  /// ทุกครั้งที่หน้านี้ rebuild ด้วยเหตุอื่น (หมุนจอ = MediaQuery เปลี่ยน)
+  /// ตัวแปรจะถูกสร้างใหม่เป็น null แต่ State ของ `StatefulBuilder` กับ
+  /// `ServiceUpdater` ยังเป็นตัวเดิม — `fetchOnInit` เลยไม่ยิงซ้ำ ลายเซ็นที่
+  /// โหลดมาแล้วจึงหายไปเฉยๆ ปุ่มกลับไปเป็น "เพิ่มลายเซ็น" และ popup ได้
+  /// `current: null` เหมือนไม่เคยมีลายเซ็น
+  ///
+  /// ต้องอยู่ใน State ของหน้าเอง ถึงจะรอดข้ามการ rebuild
+  Uint8List? _signature;
+
+  @override
+  Widget build(BuildContext context) {
 
     AuthState authState = context.read<AuthState>();
     // 🚩 (2026-08-24) เดิมเช็ค role เป็น list inline ตรงนี้ทีละจุด ซึ่งเป็น
@@ -128,18 +143,15 @@ class SettingPage extends StatelessWidget {
                       ]
                     ),
 
-                  StatefulBuilder(
-                    builder: (context, setState) {
-
-                      return SeparatorCard(
-                        separatorPadding: EdgeInsets.only(left: 45, right: 15),
-                        children: [
+                  SeparatorCard(
+                    separatorPadding: EdgeInsets.only(left: 45, right: 15),
+                    children: [
                           ServiceUpdater(
                             request: () => SignatureService().get(),
                             onSuccessResponse: (pngBytes) {
 
                               setState(() {
-                                signature = pngBytes;
+                                _signature = pngBytes;
                               });
                             },
                             fetchOnInit: true,
@@ -153,10 +165,10 @@ class SettingPage extends StatelessWidget {
                                   importSignature: false,
                                   onSuccess: (Uint8List? pngBytes) {
                                     setState(() {
-                                      signature = pngBytes;
+                                      _signature = pngBytes;
                                     });
                                   },
-                                  current: signature,
+                                  current: _signature,
                                   infoWidget: Row(
                                     spacing: 5,
                                     children: [
@@ -171,12 +183,10 @@ class SettingPage extends StatelessWidget {
                                     ],
                                   ),
                                 ).showPopup(context);
-                              }, label: signature == null ? 'เพิ่มลายเซ็น' : 'แก้ไขลายเซ็น', color: signature == null ? AppColors.primaryColor : Colors.black);
+                              }, label: _signature == null ? 'เพิ่มลายเซ็น' : 'แก้ไขลายเซ็น', color: _signature == null ? AppColors.primaryColor : Colors.black);
                             },
-                          )
-                        ]
-                      );
-                    }
+                      )
+                    ]
                   ),
                   SeparatorCard(
                     separatorPadding: EdgeInsets.only(left: 45, right: 15),
