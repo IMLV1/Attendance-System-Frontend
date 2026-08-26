@@ -446,10 +446,13 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                                       child: SeparatorCard(
                                                         borderRadius: BorderRadius.circular(20),
                                                         children: [
+                                                          // 🚩 (2026-08-26) เดิมเป็นปุ่มเดียวชื่อ "ส่งออกไฟล์" ที่ทำสองความหมายปนกัน
+                                                          // — บนมือถือมันเปิด share sheet (ส่งต่อ) บนเว็บมันเปิดแท็บใหม่ (ดู)
+                                                          // ไม่มีทางไหนเลยที่บันทึกลงเครื่องจริงๆ แยกเป็นสองปุ่มตามที่ผู้ใช้ตั้งใจ
                                                           IconTextButton(
                                                             icon: 'download.svg',
                                                             arrow: false,
-                                                            label: 'ส่งออกไฟล์',
+                                                            label: 'บันทึกไฟล์',
                                                             onPressed: () async {
                                                               menuController.close();
                                                               Downloader(
@@ -459,9 +462,27 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                                                   onDownloadSuccess: () => setState(() {
                                                                     downloading = false;
                                                                   })
-                                                              ).downloadFile(file);
+                                                              ).saveFile(file);
                                                             },
                                                           ),
+                                                          // เว็บไม่มี share sheet ที่ส่งไฟล์ได้จริง จึงไม่ต้องมีปุ่มนี้
+                                                          if (Downloader.canShare)
+                                                            IconTextButton(
+                                                              icon: 'icon_send.svg',
+                                                              arrow: false,
+                                                              label: 'แชร์ไฟล์',
+                                                              onPressed: () async {
+                                                                menuController.close();
+                                                                Downloader(
+                                                                    onDownloadStart: () => setState(() {
+                                                                      downloading = true;
+                                                                    }),
+                                                                    onDownloadSuccess: () => setState(() {
+                                                                      downloading = false;
+                                                                    })
+                                                                ).shareFile(file);
+                                                              },
+                                                            ),
                                                           Padding(
                                                             padding: const EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 5),
                                                             child: Row(
