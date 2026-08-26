@@ -85,10 +85,6 @@ class _StatisticPageState extends State<StatisticPage> {
 
   StatisticModel? statistic;
   WorkingHourModel? workingHour;
-
-  /// โหมดของกราฟชั่วโมงทำงาน — ยกขึ้นมาถือไว้ที่หน้า เพราะบนจอกว้างการ์ดสรุป
-  /// ถูกย้ายไปอยู่แถว KPI ด้านบน แยกจากปุ่มเลือกโหมดที่อยู่เหนือกราฟด้านล่าง
-  StatisticMode hourMode = StatisticMode.total;
   DateTime yearFilter = DateTime(DateTime.now().year);
 
   DateTime? allowFilterStart;
@@ -285,45 +281,7 @@ class _StatisticPageState extends State<StatisticPage> {
                                     spacing: 13,
                                     children: [
                                       /// Working Day
-                                      //
-                                      // 🚩 (Phase 3) KPI ของหน้านี้มี 4 ตัวแต่
-                                      // เดิมแยกเป็นสองก้อนคนละหัวคนละท้ายหน้า
-                                      // (วันทำงาน 2 ตัวบนสุด ชั่วโมงทำงาน 2 ตัว
-                                      // ล่างสุด) เพราะมาจากคนละ model ไม่ใช่
-                                      // เพราะคนละเรื่อง — บนจอกว้างเอามารวมเป็น
-                                      // แถวเดียว 4 ใบ อ่านรวดเดียวจบ
-                                      // (RESPONSIVE_PLAN.md 0.4 รอบสาม ข้อ B)
-                                      if (!Responsive.isCompact(context))
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 15, horizontal: 12),
-                                          decoration: BoxDecoration(
-                                            color: Color(0xFFEAEAEA),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                          ),
-                                          child: Row(
-                                            spacing: 10,
-                                            children: [
-                                              Expanded(
-                                                child: WorkingDay(statistic,
-                                                    bare: true),
-                                              ),
-                                              Expanded(
-                                                child: WorkingHour(
-                                                  workingHour,
-                                                  showChart: false,
-                                                  mode: hourMode,
-                                                  onModeChanged: (m) =>
-                                                      setState(
-                                                          () => hourMode = m),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        )
-                                      else
-                                        WorkingDay(statistic),
+                                      WorkingDay(statistic),
 
                                       Container(
                                         padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
@@ -374,21 +332,19 @@ class _StatisticPageState extends State<StatisticPage> {
 
                               /// Working Hour
                               //
-                              // จอกว้าง: การ์ดสรุปย้ายขึ้นไปแถว KPI แล้ว เหลือ
-                              // เฉพาะกราฟ และคุมความกว้างไว้ไม่ให้ยืดเต็ม 1100
-                              // เพราะข้อมูลมีไม่กี่แท่ง ยิ่งกว้างยิ่งโล่ง
+                              // 🚩 (Phase 3) การ์ดสรุป "ชั่วโมงทำงานรวม/เฉลี่ย"
+                              // ต้องอยู่กับกราฟเสมอ เพราะตัวเลขเปลี่ยนตามปุ่ม
+                              // ทั้งหมด/สัปดาห์/เดือน/ปี ที่อยู่เหนือกราฟ
+                              // (เคยลองย้ายขึ้นไปรวมกับ KPI วันทำงานด้านบน แล้ว
+                              // กลายเป็นว่ากดปุ่มกลางหน้าแต่เลขบนหัวเปลี่ยน งงกว่าเดิม)
+                              //
+                              // จอกว้างคุมความกว้างไว้ ไม่ให้ยืดเต็ม 1100 เพราะ
+                              // ข้อมูลมีไม่กี่แท่ง ยิ่งกว้างยิ่งโล่ง
                               if (!Responsive.isCompact(context))
                                 Center(
                                   child: ConstrainedBox(
-                                    constraints:
-                                        BoxConstraints(maxWidth: 760),
-                                    child: WorkingHour(
-                                      workingHour,
-                                      showSummary: false,
-                                      mode: hourMode,
-                                      onModeChanged: (m) =>
-                                          setState(() => hourMode = m),
-                                    ),
+                                    constraints: BoxConstraints(maxWidth: 760),
+                                    child: WorkingHour(workingHour),
                                   ),
                                 )
                               else
