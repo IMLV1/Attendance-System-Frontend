@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'download/save_bytes_stub.dart'
     if (dart.library.js_interop) 'download/save_bytes_web.dart';
@@ -41,8 +42,22 @@ class Downloader {
   Future<void> saveFile(NetworkFile file) async {
     try {
       if (kIsWeb) {
-        final bytes = await _downloadBytes(file);
-        await saveBytesToDevice(bytes, file.fileName);
+        // 🚩 (2026-08-26) การดาวน์โหลดจริงบนเว็บต้องอ่าน bytes เองก่อน ซึ่งแปลว่า
+        // เซิร์ฟเวอร์ไฟล์**ต้องส่ง CORS header มาด้วย** ตอนเขียนนี้ route /uploads
+        // ของ backend ยังถูกลงทะเบียนก่อน cors middleware จึงไม่ส่งมาเลย (patch
+        // ไว้แล้วฝั่ง backend แต่ยังไม่ได้ deploy)
+        //
+        // ถ้าอ่าน bytes ไม่ได้ ไม่ควรจบด้วยความเงียบ — ถอยไปเปิดแท็บใหม่ซึ่งเป็น
+        // พฤติกรรมเดิมของแอป ผู้ใช้ยังกดบันทึกเองจากเบราว์เซอร์ได้ ไม่ใช่ทางที่ดี
+        // ที่สุดแต่ดีกว่ากดแล้วไม่เกิดอะไรเลย
+        try {
+          final bytes = await _downloadBytes(file);
+          await saveBytesToDevice(bytes, file.fileName);
+        } catch (e) {
+          debugPrint('🟠 ดาวน์โหลดตรงไม่ได้ (น่าจะติด CORS) ถอยไปเปิดแท็บใหม่ — $e');
+          final uri = Uri.parse(file.fileUrl);
+          if (!await launchUrl(uri, webOnlyWindowName: '_blank')) rethrow;
+        }
         return;
       }
 
