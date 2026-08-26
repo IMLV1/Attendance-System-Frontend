@@ -22,6 +22,7 @@ import '../core/utils/responsive.dart';
 import '../features/auth/login_page.dart';
 import '../features/history/attendance_history.dart';
 import '../features/notification/notification.dart';
+import '../features/splash/splash_page.dart';
 import '../features/settings/approval/approval.dart';
 import '../features/settings/role_management/role_management.dart';
 import '../service_locator.dart';
@@ -136,9 +137,9 @@ final appRouter = GoRouter(
 
   routes: [
     GoRoute(
-      name: '1',
+      name: RouteNames.splash,
       path: '/splash',
-      builder: (_, _) => const Center(child: CircularProgressIndicator()),
+      builder: (_, _) => const SplashPage(),
     ),
     GoRoute(
       name: RouteNames.login,

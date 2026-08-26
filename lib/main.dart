@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:attendance_system/core/utils/navigation_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -28,11 +31,24 @@ void prepareNationalities() {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final binding = WidgetsFlutterBinding.ensureInitialized();
+
+  // 🚩 (2026-08-26) คู่ preserve/remove นี้จำเป็นเพราะ **web** โดยเฉพาะ
+  //
+  // `flutter_native_splash:create` เขียน `<picture id="splash">` กับฟังก์ชัน
+  // `removeSplashFromWeb()` ลงใน web/index.html ให้ แต่**ไม่มีใครเรียกฟังก์ชัน
+  // นั้นเลย** (สมัยที่ยังโหลดผ่าน flutter.js มีตัวเรียกให้ พอย้ายมาใช้
+  // flutter_bootstrap.js ก็ไม่มีแล้ว) ถ้าไม่ต่อสายเอง รูป splash จะค้างอยู่ใน
+  // DOM ตลอดอายุหน้าเว็บ และ `body` ก็ยังทาสีพื้นทับอยู่
+  //
+  // `remove()` ของ package เป็นตัวที่ไปเรียก `removeSplashFromWeb()` ให้
+  // ส่วนบน iOS/Android มันแทบไม่ทำอะไร เพราะ LaunchScreen ของ OS ถูกถอดตอน
+  // engine วาดเฟรมแรกอยู่แล้ว — และเป็นสิ่งที่เราต้องการพอดี: ส่งไม้ต่อให้หน้า
+  // `/splash` ของ Flutter ที่หน้าตาเหมือนกันเป๊ะทันที ไม่ต้องหน่วงไว้
+  FlutterNativeSplash.preserve(widgetsBinding: binding);
   await initializeDateFormatting('th_TH', null);
   await dotenv.load(fileName: '.env');
   await setupServiceLocator();
-  await getIt<AuthState>().init();
   prepareNationalities();
 
   usePathUrlStrategy(); // see https://pub.dev/packages/url_strategy
@@ -63,6 +79,27 @@ void main() async {
       child: const App(),
     ),
   );
+
+  // 🚩 (2026-08-26) เดิมบรรทัดนี้เป็น `await getIt<AuthState>().init();` อยู่
+  // **ก่อน** `runApp()` แปลว่าตั้งแต่กดไอคอนแอปจนถึงเฟรมแรกของ Flutter ผู้ใช้
+  // มองจอเปล่าๆ อยู่ตลอดเวลาที่รอ token + 4 API — และ route `/splash` ที่เขียน
+  // ไว้แล้วก็ไม่มีวันถูกเห็น เพราะกว่าจะวาดได้ `status` ก็พ้น `unknown` ไปแล้ว
+  //
+  // ย้ายมาไว้หลัง `runApp()` และ **ไม่ await** — เฟรมแรกขึ้นทันทีโดย `status`
+  // ยังเป็น `unknown` redirect ใน routes.dart จึงพาไป `/splash` ตามที่ออกแบบไว้
+  // พอ `init()` เสร็จมันเรียก `notifyListeners()` ซึ่ง `refreshListenable` ของ
+  // GoRouter ฟังอยู่ → redirect ทำงานอีกรอบ → พาไปหน้าที่ผู้ใช้ขอมาจริงๆ
+  // (`_pendingLocation`) หรือ `/login` โดยอัตโนมัติ ไม่ต้องเดินสายเพิ่มเลย
+  //
+  // ใช้ `unawaited` ไม่ใช่ปล่อยลอยๆ เพื่อบอกทั้งคนอ่านและ lint ว่าตั้งใจไม่รอ
+  // error ที่หลุดออกมาจาก init() จะไปโผล่เป็น unhandled error ของ zone เหมือน
+  // ตอนที่ยัง await อยู่ก่อน runApp
+  // เฟรมแรกของ Flutter (= หน้า /splash) ถูกกำหนดให้วาดแล้ว ปลด splash ชั้น
+  // native/web ทิ้งได้ ผู้ใช้จะไม่เห็นรอยต่อเพราะสองชั้นวาดโลโก้ตัวเดียวกัน
+  // บนพื้นสีเดียวกัน
+  FlutterNativeSplash.remove();
+
+  unawaited(getIt<AuthState>().init());
 
   _lockPortraitOnPhonesOnly();
 }

@@ -61,6 +61,7 @@ dependencies:
   pdfrx: ^2.2.24
   flutter_file_dialog: ^3.0.3
   share_plus: ^12.0.1
+  flutter_native_splash: ^2.4.8
 
 dev_dependencies:
   flutter_test:
@@ -72,11 +73,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
 
   # The following line ensures that the Material Icons font is
@@ -124,3 +120,28 @@ flutter:
           style: italic
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# 🚩 (2026-08-26) LaunchScreen ระดับ OS — ชั้นแรกสุดที่ผู้ใช้เห็นตอนกดไอคอนแอป
+#
+# ของเดิมเป็น boilerplate ของ Flutter ล้วนๆ: Android เป็นสีขาว/สีพื้นของธีม
+# ระบบ ส่วน iOS เป็น LaunchImage เปล่า = จอขาว แล้วค่อยกระพริบเข้าหน้า
+# `/splash` ของ Flutter ที่พื้นเป็น #F6F6F6 — เห็นรอยตัดชัดมาก
+#
+# ตั้งให้ทั้ง 3 แพลตฟอร์มใช้ **โลโก้ตัวเดียวกัน บนพื้นสีเดียวกัน** กับหน้า
+# `/splash` และ `/login` ผู้ใช้จะเห็นโลโก้นิ่งอยู่ตั้งแต่วินาทีแรกจนถึงหน้า
+# ล็อกอิน ไม่มีจังหวะขาววาบหรือโลโก้กระโดดขนาด
+#
+# สั่ง generate ใหม่ด้วย: flutter pub run flutter_native_splash:create
+# (dart run ใช้ไม่ได้ — package นี้ต้องการ Flutter SDK)
+flutter_native_splash:
+  color: "#F6F6F6"
+  image: assets/images/app_logo.png
+
+  # Android 12+ ใช้ API คนละตัว: รูปถูกครอปเป็นวงกลมและกินแค่ 768px กลางภาพ
+  # 1152x1152 โลโก้ของเราเป็นแนวนอน (397x224) ถ้าส่งตัวเดิมไปจะโดนครอปหัวท้าย
+  # จึงเตรียมไฟล์จัตุรัสที่เติมขอบสีพื้นไว้ให้แล้วใน assets/splash/
+  android_12:
+    color: "#F6F6F6"
+    image: assets/splash/android12_logo.png
+
+  web: true
