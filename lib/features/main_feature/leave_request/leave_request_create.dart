@@ -12,7 +12,6 @@ import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/attachment_picker.dart';
-import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
@@ -569,17 +568,10 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                   // ย้ายไป AttachmentPicker ซึ่งเลือกท่าให้ตรงกับแต่ละแพลตฟอร์ม — บนเว็บ
                                                                   // ปล่อยให้เบราว์เซอร์เด้งชีตของ OS เอง (iOS Safari ให้ Photo Library /
                                                                   // Take Photo / Choose Files อยู่แล้ว) ส่วนบนแอปใช้ชีตของ iOS/Android จริงๆ
-                                                                  IconTextButton(
-                                                                    icon: 'icon_upload_file.svg',
-                                                                    label: 'อัพโหลดไฟล์',
-                                                                    color: AppColors.primaryColor,
-                                                                    onPressed: () async {
-                                                                      final file = await AttachmentPicker.pick(context);
-                                                                      if (file == null || !mounted) return;
-                                                                      setState(() {
-                                                                        allFiles.add(file);
-                                                                      });
-                                                                    },
+                                                                  AttachmentPickerButton(
+                                                                    onPicked: (file) => setState(() {
+                                                                      allFiles.add(file);
+                                                                    }),
                                                                   ),
 
                                                                   Padding(

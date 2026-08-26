@@ -18,7 +18,6 @@ import 'package:provider/provider.dart';
 
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/utils/attachment_picker.dart';
-import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 import '../../../shared/widgets/utils/services/service_updater.dart';
@@ -573,17 +572,10 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                         // ย้ายไป AttachmentPicker ซึ่งเลือกท่าให้ตรงกับแต่ละแพลตฟอร์ม — บนเว็บ
                                         // ปล่อยให้เบราว์เซอร์เด้งชีตของ OS เอง (iOS Safari ให้ Photo Library /
                                         // Take Photo / Choose Files อยู่แล้ว) ส่วนบนแอปใช้ชีตของ iOS/Android จริงๆ
-                                        IconTextButton(
-                                          icon: 'icon_upload_file.svg',
-                                          label: 'อัพโหลดไฟล์',
-                                          color: AppColors.primaryColor,
-                                          onPressed: () async {
-                                            final file = await AttachmentPicker.pick(context);
-                                            if (file == null || !mounted) return;
-                                            setState(() {
-                                              allFiles.add(file);
-                                            });
-                                          },
+                                        AttachmentPickerButton(
+                                          onPicked: (file) => setState(() {
+                                            allFiles.add(file);
+                                          }),
                                         ),
 
                                         Padding(

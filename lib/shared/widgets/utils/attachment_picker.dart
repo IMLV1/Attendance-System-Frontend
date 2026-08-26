@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -28,9 +28,14 @@ import 'package:path/path.dart' as p;
 /// | แพลตฟอร์ม | ทำอะไร |
 /// |---|---|
 /// | web | เรียก file picker ตรงๆ ปล่อยให้เบราว์เซอร์/OS เด้งชีตเอง |
-/// | iOS | `CupertinoActionSheet` — ตัวเดียวกับที่ Safari ใช้ (`UIAlertController`) |
-/// | Android | bottom sheet ของ Material |
+/// | iOS / Android | เมนูลอยยึดกับปุ่มที่กด (ทรงเดียวกับ menu ของ iOS) |
 /// | macOS / Windows / Linux | ไดอะล็อกเลือกไฟล์ของ OS ตรงๆ (ไม่มีกล้อง) |
+///
+/// 🚩 (รอบสอง) เคยทำเป็น `CupertinoActionSheet` เลื่อนขึ้นจากขอบล่าง ซึ่งเป็น
+/// control ของ iOS จริงแต่**คนละตัว**กับที่ Safari ใช้ — ของ Safari เป็นเมนูลอย
+/// ยึดกับปุ่ม (UIMenu) ไม่ใช่ action sheet และบน iPad การเลื่อนขึ้นจากล่างยัง
+/// ผิดสำนวนด้วย (ควรเป็น popover ชี้ที่ปุ่ม) จึงเปลี่ยนมาใช้ `MenuAnchor` ที่
+/// ยึดกับ child ของตัวเองอยู่แล้ว ได้ตำแหน่งถูกทั้งสองเครื่องโดยไม่ต้องแยกโค้ด
 ///
 /// **บนแอป native ไม่มีชีตสำเร็จรูปของ OS ที่รวมรูป+กล้อง+ไฟล์ไว้ด้วยกัน**
 /// แม้แต่ Safari ก็ประกอบเองจาก UIAlertController เราจึงยังต้องมีสามตัวเลือกเอง
@@ -52,105 +57,20 @@ class AttachmentPicker {
   /// แพลตฟอร์มนี้มีกล้องให้เรียกไหม
   static bool get hasCamera => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
-  /// เปิดตัวเลือกไฟล์ตามสำนวนของแพลตฟอร์มนั้น — คืน `null` ถ้าผู้ใช้ยกเลิก
-  static Future<PlatformFile?> pick(BuildContext context) async {
-    // เว็บ: อย่าวาดเมนูเอง ชีตของ OS ดีกว่าและได้มาฟรี
-    if (kIsWeb) return _pickFromFiles();
-
-    if (Platform.isIOS) return _iosSheet(context);
-    if (Platform.isAndroid) return _androidSheet(context);
-
-    // desktop ไม่มีกล้องและไม่มีคลังรูปแยก — ไดอะล็อกเดียวจบ
-    return _pickFromFiles();
-  }
-
-  // ── ชีตของแต่ละแพลตฟอร์ม ───────────────────────────────────────────────
-
-  static Future<PlatformFile?> _iosSheet(BuildContext context) async {
-    final source = await showCupertinoModalPopup<_Source>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        actions: [
-          _cupertinoAction(context, _Source.gallery, 'photos_upload.svg', 'คลังรูปภาพ'),
-          _cupertinoAction(context, _Source.camera, 'camera_upload.svg', 'ถ่ายรูป'),
-          _cupertinoAction(context, _Source.files, 'file_upload.svg', 'เลือกไฟล์'),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          isDefaultAction: true,
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('ยกเลิก'),
-        ),
-      ),
-    );
-    return _pickFrom(source);
-  }
-
-  static CupertinoActionSheetAction _cupertinoAction(
-    BuildContext context,
-    _Source source,
-    String icon,
-    String label,
-  ) {
-    return CupertinoActionSheetAction(
-      onPressed: () => Navigator.of(context).pop(source),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 10,
-        children: [
-          SvgPicture.asset('assets/images/$icon', width: 20, height: 20),
-          Text(label),
-        ],
-      ),
-    );
-  }
-
-  static Future<PlatformFile?> _androidSheet(BuildContext context) async {
-    final source = await showModalBottomSheet<_Source>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _materialTile(context, _Source.gallery, 'photos_upload.svg', 'คลังรูปภาพ'),
-            _materialTile(context, _Source.camera, 'camera_upload.svg', 'ถ่ายรูป'),
-            _materialTile(context, _Source.files, 'file_upload.svg', 'เลือกไฟล์'),
-          ],
-        ),
-      ),
-    );
-    return _pickFrom(source);
-  }
-
-  static Widget _materialTile(
-    BuildContext context,
-    _Source source,
-    String icon,
-    String label,
-  ) {
-    return ListTile(
-      leading: SvgPicture.asset('assets/images/$icon', width: 22, height: 22),
-      title: Text(label, style: const TextStyle(color: AppColors.blackTextColor)),
-      onTap: () => Navigator.of(context).pop(source),
-    );
-  }
-
   // ── การหยิบไฟล์จริง ────────────────────────────────────────────────────
 
-  static Future<PlatformFile?> _pickFrom(_Source? source) async {
+  static Future<PlatformFile?> _pickFrom(_Source source) async {
     switch (source) {
       case _Source.gallery:
         return _pickFromCamera(ImageSource.gallery);
       case _Source.camera:
         return _pickFromCamera(ImageSource.camera);
       case _Source.files:
-        return _pickFromFiles();
-      case null:
-        return null; // ผู้ใช้ปิดชีตทิ้ง
+        return pickFiles();
     }
   }
 
-  static Future<PlatformFile?> _pickFromFiles() async {
+  static Future<PlatformFile?> pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: allowedExtensions,
@@ -176,3 +96,72 @@ class AttachmentPicker {
 }
 
 enum _Source { gallery, camera, files }
+
+/// ปุ่ม "อัพโหลดไฟล์" พร้อมเมนูเลือกแหล่งไฟล์ที่**ยึดกับตัวปุ่มเอง**
+///
+/// เป็น widget ไม่ใช่ฟังก์ชัน เพราะตำแหน่งเมนูต้องอ้างอิง render object ของปุ่ม
+/// `MenuAnchor` ทำให้อยู่แล้วโดยไม่ต้องส่ง GlobalKey หรือคำนวณพิกัดเอง
+///
+/// บนเว็บ/desktop ไม่มีเมนู กดแล้วเปิดตัวเลือกไฟล์ของ OS ตรงๆ (ดู [AttachmentPicker])
+class AttachmentPickerButton extends StatelessWidget {
+
+  const AttachmentPickerButton({super.key, required this.onPicked});
+
+  final void Function(PlatformFile file) onPicked;
+
+  bool get _usesMenu => AttachmentPicker.hasCamera;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_usesMenu) {
+      return _button(onPressed: () async {
+        final file = await AttachmentPicker.pickFiles();
+        if (file != null) onPicked(file);
+      });
+    }
+
+    return MenuAnchor(
+      // ให้เมนูโผล่ใต้ปุ่มพอดี ไม่ทับตัวปุ่ม
+      alignmentOffset: const Offset(0, 4),
+      style: MenuStyle(
+        backgroundColor: const WidgetStatePropertyAll(Colors.white),
+        elevation: const WidgetStatePropertyAll(8),
+        padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 4)),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+      ),
+      menuChildren: [
+        _item(_Source.gallery, 'photos_upload.svg', 'คลังรูปภาพ'),
+        _item(_Source.camera, 'camera_upload.svg', 'ถ่ายรูป'),
+        _item(_Source.files, 'file_upload.svg', 'เลือกไฟล์'),
+      ],
+      builder: (context, controller, child) => _button(
+        onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+      ),
+    );
+  }
+
+  Widget _button({required VoidCallback onPressed}) {
+    return IconTextButton(
+      icon: 'icon_upload_file.svg',
+      label: 'อัพโหลดไฟล์',
+      color: AppColors.primaryColor,
+      onPressed: onPressed,
+    );
+  }
+
+  Widget _item(_Source source, String icon, String label) {
+    return MenuItemButton(
+      leadingIcon: SvgPicture.asset('assets/images/$icon', width: 20, height: 20),
+      onPressed: () async {
+        final file = await AttachmentPicker._pickFrom(source);
+        if (file != null) onPicked(file);
+      },
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 15, color: AppColors.blackTextColor),
+      ),
+    );
+  }
+}

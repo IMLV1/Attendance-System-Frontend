@@ -4,9 +4,7 @@ import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
-import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/attachment_picker.dart';
-import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/service_signature_page.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
@@ -378,17 +376,10 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
                                     // ย้ายไป AttachmentPicker ซึ่งเลือกท่าให้ตรงกับแต่ละแพลตฟอร์ม — บนเว็บ
                                     // ปล่อยให้เบราว์เซอร์เด้งชีตของ OS เอง (iOS Safari ให้ Photo Library /
                                     // Take Photo / Choose Files อยู่แล้ว) ส่วนบนแอปใช้ชีตของ iOS/Android จริงๆ
-                                    IconTextButton(
-                                      icon: 'icon_upload_file.svg',
-                                      label: 'อัพโหลดไฟล์',
-                                      color: AppColors.primaryColor,
-                                      onPressed: () async {
-                                        final file = await AttachmentPicker.pick(context);
-                                        if (file == null || !mounted) return;
-                                        setState(() {
-                                          allFiles.add(file);
-                                        });
-                                      },
+                                    AttachmentPickerButton(
+                                      onPicked: (file) => setState(() {
+                                        allFiles.add(file);
+                                      }),
                                     ),
 
                                     Padding(

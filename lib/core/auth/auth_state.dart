@@ -29,13 +29,40 @@ class AuthState extends ChangeNotifier {
 
   bool get isLoggedIn => status == AuthStatus.authenticated;
 
+  /// 🚩 (2026-08-27) `init()` ต้อง **สรุปสถานะและ notify ให้ได้เสมอ** ไม่ว่าจะพัง
+  /// ตรงไหน เพราะ router ใช้ `status` ตัดสินทาง ถ้ามันค้างที่ `unknown`
+  /// redirect จะวนส่งกลับ `/splash` ตลอดกาล = แอปค้างที่หน้า splash เงียบๆ
+  ///
+  /// เจอจริงตอนเปิดเว็บจากมือถือผ่าน LAN (`http://192.168.x.x:5050`):
+  /// `repo.hasToken()` เรียก flutter_secure_storage ซึ่งบนเว็บใช้ `crypto.subtle`
+  /// และตัวมันโยน `UnsupportedError` ทันทีถ้า `window.isSecureContext == false`
+  /// — ซึ่ง http ที่ไม่ใช่ localhost เข้าข่ายทั้งหมด exception หลุดออกมาก่อนถึง
+  /// `notifyListeners()` ผู้ใช้เลยเห็นแต่หน้า splash ไม่มีวันไปถึงหน้า login
+  ///
+  /// (ก่อนหน้านี้ `init()` ถูก await ก่อน `runApp()` เคสนี้จึงพังแบบจอขาวแทน
+  /// ที่จะค้าง — พังเหมือนกันแต่คนละอาการ)
   Future<void> init() async {
-    final ok = await repo.hasToken();
-    status = ok ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+    try {
+      final ok = await repo.hasToken();
+      status = ok ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+    } catch (e, s) {
+      // อ่าน token ไม่ได้ = ไม่รู้ว่าเป็นใคร ให้ถือว่ายังไม่ล็อกอินแล้วพาไปหน้า login
+      // ดีกว่าค้างอยู่เฉยๆ อย่างน้อยผู้ใช้ยังกดล็อกอินใหม่ได้
+      debugPrint('🔴 AuthState.init: อ่านสถานะล็อกอินไม่ได้ — $e');
+      debugPrint('🔴 stack: $s');
+      status = AuthStatus.unauthenticated;
+    }
 
     if (status == AuthStatus.authenticated) {
-      user = await repo.getUser();
-      await _loadUserContext();
+      try {
+        user = await repo.getUser();
+        await _loadUserContext();
+      } catch (e) {
+        // ตรงนี้ **ไม่** ลดสถานะกลับเป็น unauthenticated — token ใช้ได้อยู่ แค่
+        // ข้อมูลประกอบโหลดไม่สำเร็จ (เน็ตสะดุด/เซิร์ฟเวอร์ล่ม) การเตะออกจากระบบ
+        // เพราะเหตุนี้รุนแรงเกินไป แต่ละหน้ามีปุ่มลองใหม่ของตัวเองอยู่แล้ว
+        debugPrint('🟠 AuthState.init: โหลดข้อมูลผู้ใช้ไม่สำเร็จ — $e');
+      }
     }
 
     notifyListeners();
