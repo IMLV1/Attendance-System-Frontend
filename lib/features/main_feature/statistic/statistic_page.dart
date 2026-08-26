@@ -151,15 +151,8 @@ class _StatisticPageState extends State<StatisticPage> {
                         },
                         fetchOnInit: true,
                         builder: (trigger, getState) {
-                          return Column(
-                            spacing: 13,
-                            children: [
-                              /// First Part
-                              Column(
-                                spacing: 6,
-                                children: [
-                                  /// Filter
-                                  Padding(
+                          /// การ์ดตัวกรองปีงบประมาณ — ใช้ตัวเดียวกันทุกขนาดจอ
+                          final filterCard = Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 6),
                                     child: InkWell(
                                       onTap: () {
@@ -252,41 +245,135 @@ class _StatisticPageState extends State<StatisticPage> {
                                           ).showPopup(context);
                                         }
                                       },
-                                      child: Row(
-                                        spacing: 6,
+                                      child: SeparatorCard(
+                                        borderRadius: BorderRadius.circular(22),
                                         children: [
-                                          SvgPicture.asset(
-                                            'assets/images/filter.svg',
-                                            colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 10),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Color(0xFFEAEAEA),
+                                                    borderRadius:
+                                                        BorderRadius.circular(22),
+                                                  ),
+                                                  padding: EdgeInsets.all(6),
+                                                  child: SizedBox(
+                                                    width: 18,
+                                                    height: 18,
+                                                    child: SvgPicture.asset(
+                                                      'assets/images/filter.svg',
+                                                      colorFilter:
+                                                          ColorFilter.mode(
+                                                              Color(0xFF2C2C2C),
+                                                              BlendMode.srcIn),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        'ปีงบประมาณ',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: Color(
+                                                                0xFF7F7F7F)),
+                                                      ),
+                                                      Row(
+                                                        spacing: 6,
+                                                        children: [
+                                                          Text(
+                                                            '${yearFilter.year + 543}',
+                                                            style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight.bold,
+                                                              color: AppColors
+                                                                  .primaryColor,
+                                                            ),
+                                                          ),
+                                                          if (getState(0) ==
+                                                              ServiceUpdaterProMaxState
+                                                                  .loading)
+                                                            CupertinoActivityIndicator(
+                                                                radius: 7),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                SvgPicture.asset(
+                                                  'assets/images/icon_next.svg',
+                                                  colorFilter: ColorFilter.mode(
+                                                      Color(0xFF2C2C2C),
+                                                      BlendMode.srcIn),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                          Text(
-                                              'ปีงบประมาณ ${yearFilter.year + 543}',
-                                              style: TextStyle(
-                                                  color: Color(0xFF2C2C2C),
-                                                  fontWeight: FontWeight.bold
-                                              )
-                                          ),
-                                          SvgPicture.asset(
-                                            'assets/images/icon_next.svg',
-                                            colorFilter: ColorFilter.mode(Color(0xFF2C2C2C), BlendMode.srcIn),
-                                          ),
-                                          if (getState(0) == ServiceUpdaterProMaxState.loading)
-                                            CupertinoActivityIndicator()
                                         ],
                                       ),
                                     ),
-                                  ),
+                                  );
 
+                          return Column(
+                            spacing: 13,
+                            children: [
+                              /// First Part
+                              Column(
+                                spacing: 6,
+                                children: [
                                   Column(
                                     spacing: 13,
                                     children: [
                                       /// Working Day
                                       //
-                                      // แถวบนสุดเต็มความกว้าง ทุกขนาดจอ
-                                      // (เคยลองย้ายไปเป็นหัวของกล่อง
-                                      // "อัตราการเข้างาน" และลองแยกเป็นคอลัมน์
-                                      // ที่ 3 แล้ว — อยู่บนสุดอ่านง่ายที่สุด)
-                                      WorkingDay(statistic),
+                                      // แถวบนสุด — ตัวกรองปีงบประมาณเป็นการ์ด
+                                      // ใบแรกของแถวเดียวกัน เพราะมันคือบริบทของ
+                                      // ทุกตัวเลขในหน้าอยู่แล้ว
+                                      //
+                                      // component ชุดเดียวกันทั้ง 3 แพลตฟอร์ม
+                                      // ต่างแค่การจัดวาง — จอกว้างเรียงสามใบใน
+                                      // แถวเดียว จอแคบเอาตัวกรองขึ้นบนเต็มความ
+                                      // กว้างแล้ววางสองใบที่เหลือข้างกันใต้มัน
+                                      // (สามใบในแถวเดียวบนจอ 390 จะแคบเกินไป)
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 15, horizontal: 12),
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFFEAEAEA),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                        ),
+                                        child: Responsive.isCompact(context)
+                                            ? Column(
+                                                spacing: 10,
+                                                children: [
+                                                  filterCard,
+                                                  WorkingDay(statistic,
+                                                      bare: true),
+                                                ],
+                                              )
+                                            : Row(
+                                                children: [
+                                                  Expanded(child: filterCard),
+                                                  SizedBox(width: 10),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: WorkingDay(statistic,
+                                                        bare: true),
+                                                  ),
+                                                ],
+                                              ),
+                                      ),
 
                                       Container(
                                         padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
