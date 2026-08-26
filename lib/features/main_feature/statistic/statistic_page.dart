@@ -281,7 +281,14 @@ class _StatisticPageState extends State<StatisticPage> {
                                     spacing: 13,
                                     children: [
                                       /// Working Day
-                                      WorkingDay(statistic),
+                                      //
+                                      // 🚩 (Phase 3) จอกว้างไม่แยกเป็นแถวของ
+                                      // ตัวเอง — ยืดเต็ม 1100 ทั้งที่มีตัวเลข
+                                      // นิดเดียว ดูผิดสัดส่วน ย้ายไปเป็นหัวของ
+                                      // กล่อง "อัตราการเข้างาน" ซึ่งใช้ตัวเลข
+                                      // ชุดเดียวกันเป็นฐานคิดอยู่แล้ว
+                                      if (Responsive.isCompact(context))
+                                        WorkingDay(statistic),
 
                                       Container(
                                         padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
@@ -301,19 +308,38 @@ class _StatisticPageState extends State<StatisticPage> {
                                         // จอที่ไม่ใช่มือถือกว้างพอวางคู่กันทั้งหมด — iPad แนวตั้ง
                                         // (1032) ก็เหลือคอลัมน์ละ ~500 เท่ากับ
                                         // desktop ที่จำกัดไว้ 1100
+                                        // 🚩 (Phase 3) ยืดสองการ์ดให้สูงเท่ากัน
+                                        // ถึงจะอ่านเป็นสี่เหลี่ยมคู่ที่ลงตัว
+                                        // เดิมปล่อยตามเนื้อหาจริงจึงสูงไม่เท่ากัน
+                                        //
+                                        // ต้องห่อ IntrinsicHeight ก่อน เพราะ Row
+                                        // ตัวนี้อยู่ใน scroll view ที่ความสูงไม่
+                                        // จำกัด — `stretch` เพียวๆ จะส่ง
+                                        // constraint เป็น infinity แล้ว assert
+                                        // ตอน layout (แพงขึ้นนิดหน่อย แต่มีแค่
+                                        // สองลูก คุ้มกับความเรียบร้อยที่ได้)
                                         child: !Responsive.isCompact(context)
-                                            ? Row(
-                                                // ไม่ยืดสองการ์ดให้สูงเท่ากัน — ปล่อยให้
-                                                // แต่ละใบสูงตามเนื้อหาจริง (IntrinsicHeight
-                                                // ที่ห่อ Row จะบังคับให้วัดความสูงล่วงหน้า
-                                                // ซึ่งแพงและไม่ได้อะไรเพิ่มตรงนี้)
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                            ? IntrinsicHeight(
+                                                child: Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.stretch,
                                                 spacing: 13,
                                                 children: [
-                                                  Expanded(child: AttendanceStatistic(statistic)),
-                                                  Expanded(child: LeaveStatistic(statistic)),
+                                                  Expanded(
+                                                    child: AttendanceStatistic(
+                                                      statistic,
+                                                      topStats: WorkingDay(
+                                                          statistic,
+                                                          bare: true),
+                                                      fill: true,
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                      child: LeaveStatistic(
+                                                          statistic,
+                                                          fill: true)),
                                                 ],
-                                              )
+                                              ))
                                             : Column(
                                                 spacing: 13,
                                                 children: [

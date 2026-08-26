@@ -7,7 +7,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 class AttendanceStatistic extends StatelessWidget {
   final StatisticModel? statistic;
 
-  const AttendanceStatistic(this.statistic, {super.key});
+  /// การ์ดสรุปวันทำงานที่เอามาวางเป็นหัวในกล่องขาวเดียวกัน (จอกว้างเท่านั้น)
+  ///
+  /// 🚩 (Phase 3) เดิมสองใบนี้เป็นแถวแยกเต็มความกว้าง 1100 ทั้งที่มีตัวเลขนิดเดียว
+  /// ดูยืดผิดสัดส่วน — และมันคือฐานของอัตราการเข้างานอยู่แล้ว (คิดจาก
+  /// "วันที่ต้องทำงานจริง") อยู่กล่องเดียวกันจึงอ่านต่อกันได้เลย
+  final Widget? topStats;
+
+  /// ยืดกล่องขาวให้เต็มความสูงคอลัมน์ (จอกว้างที่วางสองใบคู่กัน)
+  /// ไม่งั้นใบที่เนื้อหาสั้นกว่าจะลอยอยู่ครึ่งบน เหลือพื้นเทาโล่งข้างล่าง
+  final bool fill;
+
+  const AttendanceStatistic(this.statistic,
+      {super.key, this.topStats, this.fill = false});
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +54,20 @@ class AttendanceStatistic extends StatelessWidget {
         ),
 
         /// Content
-        Container(
+        _fill(Container(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(22),
           ),
-          child: Row(
-            spacing: 13,
+          child: Column(
+            spacing: 10,
             children: [
+              ?topStats,
+
+              Row(
+                spacing: 13,
+                children: [
               /// Pie Chart
               _circularChart(),
 
@@ -234,11 +251,12 @@ class AttendanceStatistic extends StatelessWidget {
                   ],
                 ),
               )
-            ],
-          ),
-        ),
+                ],
+              ),
 
-        /// Info
+              /// Info — ต้องอยู่ในกล่องขาวเดียวกัน ไม่ใช่ลอยอยู่ข้างนอก
+              /// ไม่งั้นคอลัมน์นี้จะสูงกว่าคอลัมน์ "การลางาน" ที่อยู่ข้างๆ
+              /// สองกล่องเลยไม่เป็นสี่เหลี่ยมเท่ากัน
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 2),
           child: Row(
@@ -272,6 +290,9 @@ class AttendanceStatistic extends StatelessWidget {
             ],
           ),
         ),
+            ],
+          ),
+        )),
       ],
     );
   }
@@ -347,4 +368,8 @@ class AttendanceStatistic extends StatelessWidget {
       ],
     );
   }
+
+  /// ห่อด้วย Expanded เฉพาะตอนต้องยืดเต็มคอลัมน์ — บนจอแคบคอลัมน์อยู่ใน
+  /// scroll view ที่ความสูงไม่จำกัด ใส่ Expanded แล้วจะ assert
+  Widget _fill(Widget child) => fill ? Expanded(child: child) : child;
 }

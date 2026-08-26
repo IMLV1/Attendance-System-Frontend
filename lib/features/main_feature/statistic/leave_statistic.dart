@@ -8,7 +8,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 class LeaveStatistic extends StatelessWidget {
   final StatisticModel? statistic;
 
-  const LeaveStatistic(this.statistic, {super.key});
+  /// ยืดกล่องขาวให้เต็มความสูงคอลัมน์ (จอกว้างที่วางสองใบคู่กัน)
+  /// ไม่งั้นใบที่เนื้อหาสั้นกว่าจะลอยอยู่ครึ่งบน เหลือพื้นเทาโล่งข้างล่าง
+  final bool fill;
+
+  const LeaveStatistic(this.statistic, {super.key, this.fill = false});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +43,7 @@ class LeaveStatistic extends StatelessWidget {
         ),
 
         /// Content
-        Container(
+        _fill(Container(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 20, vertical: 20),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -104,7 +108,7 @@ class LeaveStatistic extends StatelessWidget {
               )
             ],
           ),
-        )
+        ))
       ],
     );
   }
@@ -166,4 +170,9 @@ class LeaveStatistic extends StatelessWidget {
       ],
     );
   }
+
+  /// ห่อด้วย Expanded เฉพาะตอนต้องยืดเต็มคอลัมน์ — บนจอแคบคอลัมน์อยู่ใน
+  /// scroll view ที่ความสูงไม่จำกัด ใส่ Expanded แล้วจะ assert
+  Widget _fill(Widget child) => fill ? Expanded(child: child) : child;
+
 }
