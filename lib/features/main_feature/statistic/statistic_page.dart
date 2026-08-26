@@ -364,17 +364,11 @@ class _StatisticPageState extends State<StatisticPage> {
                               // (เคยลองย้ายขึ้นไปรวมกับ KPI วันทำงานด้านบน แล้ว
                               // กลายเป็นว่ากดปุ่มกลางหน้าแต่เลขบนหัวเปลี่ยน งงกว่าเดิม)
                               //
-                              // จอกว้างคุมความกว้างไว้ ไม่ให้ยืดเต็ม 1100 เพราะ
-                              // ข้อมูลมีไม่กี่แท่ง ยิ่งกว้างยิ่งโล่ง
-                              if (!Responsive.isCompact(context))
-                                Center(
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(maxWidth: 760),
-                                    child: WorkingHour(workingHour),
-                                  ),
-                                )
-                              else
-                                WorkingHour(workingHour)
+                              // กว้างเต็มเท่าแถวข้างบน — เคยบีบไว้ 760 กันกราฟ
+                              // ยืดจนโล่ง แต่ตอนนี้การ์ดสรุปกินฝั่งขวาไปแล้ว
+                              // กราฟจึงไม่ได้ยืดเต็มอยู่ดี และการบีบทำให้ขอบ
+                              // กล่องไม่ตรงกับสองกล่องข้างบน
+                              WorkingHour(workingHour)
                             ],
                           );
                         }
