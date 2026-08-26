@@ -4,15 +4,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
 import '../../../core/auth/auth_state.dart';
 import '../../../services/leave/leave_model.dart';
 import '../../../services/time_request/time_request_model.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/widgets/utils/attachment_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import '../../../shared/widgets/utils/popup/multi_page/service_signature_page.dart';
@@ -52,7 +51,6 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
 
   bool submitted = false;
 
-  final MenuController _menuController = MenuController();
   final TextEditingController _textEditingController = TextEditingController();
 
   String _formatDate(DateTime? date) {
@@ -487,130 +485,23 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
                           child: SeparatorCard(
                             separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
                             children: [
-                              MenuAnchor(
-                                useRootOverlay: true,
-                                controller: _menuController,
-                                builder: (context, controller, child) {
-                                  return IconTextButton(
-                                    icon: 'icon_upload_file.svg',
-                                    label: 'อัพโหลดไฟล์',
-                                    color: AppColors.primaryColor,
-                                    onPressed: () {
-                                      controller.open();
-                                    },
-                                  );
+                              // 🚩 (2026-08-27) เดิมตรงนี้เป็น MenuAnchor ~120 บรรทัดที่วาดเมนู
+                              // คลังรูปภาพ/ถ่ายรูป/เลือกไฟล์ ขึ้นมาเอง และถูกก๊อปไว้เหมือนกัน 4 ที่
+                              //
+                              // ย้ายไป AttachmentPicker ซึ่งเลือกท่าให้ตรงกับแต่ละแพลตฟอร์ม — บนเว็บ
+                              // ปล่อยให้เบราว์เซอร์เด้งชีตของ OS เอง (iOS Safari ให้ Photo Library /
+                              // Take Photo / Choose Files อยู่แล้ว) ส่วนบนแอปใช้ชีตของ iOS/Android จริงๆ
+                              IconTextButton(
+                                icon: 'icon_upload_file.svg',
+                                label: 'อัพโหลดไฟล์',
+                                color: AppColors.primaryColor,
+                                onPressed: () async {
+                                  final file = await AttachmentPicker.pick(context);
+                                  if (file == null || !mounted) return;
+                                  setState(() {
+                                    allFiles.add(file);
+                                  });
                                 },
-                                clipBehavior: Clip.none,
-                                consumeOutsideTap: true,
-                                style: const MenuStyle(
-                                  backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                                  elevation: WidgetStatePropertyAll(0),
-                                ),
-                                menuChildren: [
-                                  TweenAnimationBuilder<double>(
-                                    tween: Tween(begin: 0, end: 1),
-                                    duration: const Duration(milliseconds: 250),
-                                    curve: Curves.easeOut,
-                                    builder: (context, value, child) {
-                                      return Opacity(
-                                        opacity: value,
-                                        child: child,
-                                      );
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.18),
-                                            blurRadius: 100,
-                                            spreadRadius: 6,
-                                            offset: Offset.zero,
-                                          ),
-                                        ],
-                                      ),
-                                      child: SeparatorCard(
-                                        borderRadius: BorderRadius.circular(20),
-                                        children: [
-                                          IconTextButton(
-                                            icon: 'photos_upload.svg',
-                                            arrow: false,
-                                            label: 'คลังรูปภาพ',
-                                            onPressed: () async {
-                                              _menuController.close();
-
-                                              final picker = ImagePicker();
-                                              final image = await picker.pickImage(source: ImageSource.gallery);
-
-                                              if (image != null) {
-
-                                                final extension = p.extension(image.name);
-                                                final bytes = await image.readAsBytes();
-
-                                                final file = PlatformFile(
-                                                  name: 'IMG_${Utils.generateRandomNumber(5)}$extension',
-                                                  size: bytes.length,
-                                                  path: image.path,
-                                                  bytes: bytes,
-                                                );
-
-                                                setState(() {
-                                                  allFiles.add(file);
-                                                });
-                                              }
-                                            },
-                                          ),
-                                          IconTextButton(
-                                            icon: 'camera_upload.svg',
-                                            arrow: false,
-                                            label: 'ถ่ายรูป',
-                                            onPressed: () async {
-                                              _menuController.close();
-                                              final picker = ImagePicker();
-                                              final image = await picker.pickImage(source: ImageSource.camera);
-
-                                              if (image != null) {
-
-                                                final extension = p.extension(image.name);
-                                                final bytes = await image.readAsBytes();
-
-                                                final file = PlatformFile(
-                                                  name: 'IMG_${Utils.generateRandomNumber(5)}$extension',
-                                                  size: bytes.length,
-                                                  path: image.path,
-                                                  bytes: bytes,
-                                                );
-
-                                                setState(() {
-                                                  allFiles.add(file);
-                                                });
-                                              }
-                                            },
-                                          ),
-                                          IconTextButton(
-                                            icon: 'file_upload.svg',
-                                            arrow: false,
-                                            label: 'เลือกไฟล์',
-                                            onPressed: () async {
-                                              _menuController.close();
-                                              final result = await FilePicker.platform.pickFiles(
-                                                type: FileType.custom,
-                                                allowedExtensions: ['pdf'],
-                                              );
-
-                                              if (result != null) {
-                                                setState(() {
-                                                  allFiles.add(result.files.first);
-                                                });
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
 
                               Padding(

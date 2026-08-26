@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:attendance_system/features/main_feature/time_request/time_request_popup.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
@@ -14,12 +13,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
 import '../../../core/auth/auth_state.dart';
+import '../../../shared/widgets/utils/attachment_picker.dart';
 import '../../../shared/widgets/utils/icon_text_button.dart';
 import '../../../shared/widgets/utils/popup/service_popup/service_signature_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
@@ -40,19 +38,6 @@ String _formatBytes(int bytes, {int decimals = 2}) {
 
   return '${size.toStringAsFixed(decimals).replaceAll(RegExp(r'\.?0+$'), '')} ${suffixes[i]}';
 }
-int _generateRandomNumber(int digits) {
-  if (digits <= 0) {
-    throw ArgumentError('Digits must be greater than 0');
-  }
-
-  final random = Random();
-
-  int min = pow(10, digits - 1).toInt();   // smallest number with N digits
-  int max = pow(10, digits).toInt() - 1;   // largest number with N digits
-
-  return min + random.nextInt(max - min + 1);
-}
-
 class TimeRequestCreate extends StatefulWidget {
   const TimeRequestCreate({super.key});
 
@@ -70,7 +55,6 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
 
   bool _submitted = false;
 
-  final MenuController _menuController = MenuController();
   final TextEditingController remarkController = TextEditingController();
 
   // ConfigAttendanceRequestModel? setting;
@@ -583,129 +567,23 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                     child: SeparatorCard(
                                       separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
                                       children: [
-                                        MenuAnchor(
-                                          controller: _menuController,
-                                          builder: (context, controller, child) {
-                                            return IconTextButton(
-                                              icon: 'icon_upload_file.svg',
-                                              label: 'อัพโหลดไฟล์',
-                                              color: AppColors.primaryColor,
-                                              onPressed: () {
-                                                controller.open();
-                                              },
-                                            );
+                                        // 🚩 (2026-08-27) เดิมตรงนี้เป็น MenuAnchor ~120 บรรทัดที่วาดเมนู
+                                        // คลังรูปภาพ/ถ่ายรูป/เลือกไฟล์ ขึ้นมาเอง และถูกก๊อปไว้เหมือนกัน 4 ที่
+                                        //
+                                        // ย้ายไป AttachmentPicker ซึ่งเลือกท่าให้ตรงกับแต่ละแพลตฟอร์ม — บนเว็บ
+                                        // ปล่อยให้เบราว์เซอร์เด้งชีตของ OS เอง (iOS Safari ให้ Photo Library /
+                                        // Take Photo / Choose Files อยู่แล้ว) ส่วนบนแอปใช้ชีตของ iOS/Android จริงๆ
+                                        IconTextButton(
+                                          icon: 'icon_upload_file.svg',
+                                          label: 'อัพโหลดไฟล์',
+                                          color: AppColors.primaryColor,
+                                          onPressed: () async {
+                                            final file = await AttachmentPicker.pick(context);
+                                            if (file == null || !mounted) return;
+                                            setState(() {
+                                              allFiles.add(file);
+                                            });
                                           },
-                                          clipBehavior: Clip.none,
-                                          consumeOutsideTap: true,
-                                          style: const MenuStyle(
-                                            backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                                            elevation: WidgetStatePropertyAll(0),
-                                          ),
-                                          menuChildren: [
-                                            TweenAnimationBuilder<double>(
-                                              tween: Tween(begin: 0, end: 1),
-                                              duration: const Duration(milliseconds: 250),
-                                              curve: Curves.easeOut,
-                                              builder: (context, value, child) {
-                                                return Opacity(
-                                                  opacity: value,
-                                                  child: child,
-                                                );
-                                              },
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(20),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black.withValues(alpha: 0.18),
-                                                      blurRadius: 100,
-                                                      spreadRadius: 6,
-                                                      offset: Offset.zero,
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: SeparatorCard(
-                                                  borderRadius: BorderRadius.circular(20),
-                                                  children: [
-                                                    IconTextButton(
-                                                      icon: 'photos_upload.svg',
-                                                      arrow: false,
-                                                      label: 'คลังรูปภาพ',
-                                                      onPressed: () async {
-                                                        _menuController.close();
-
-                                                        final picker = ImagePicker();
-                                                        final image = await picker.pickImage(source: ImageSource.gallery);
-
-                                                        if (image != null) {
-
-                                                          final extension = p.extension(image.name);
-                                                          final bytes = await image.readAsBytes();
-
-                                                          final file = PlatformFile(
-                                                            name: 'IMG_${_generateRandomNumber(5)}$extension',
-                                                            size: bytes.length,
-                                                            path: image.path,
-                                                            bytes: bytes,
-                                                          );
-
-                                                          setState(() {
-                                                            allFiles.add(file);
-                                                          });
-                                                        }
-                                                      },
-                                                    ),
-                                                    IconTextButton(
-                                                      icon: 'camera_upload.svg',
-                                                      arrow: false,
-                                                      label: 'ถ่ายรูป',
-                                                      onPressed: () async {
-                                                        _menuController.close();
-                                                        final picker = ImagePicker();
-                                                        final image = await picker.pickImage(source: ImageSource.camera);
-
-                                                        if (image != null) {
-
-                                                          final extension = p.extension(image.name);
-                                                          final bytes = await image.readAsBytes();
-
-                                                          final file = PlatformFile(
-                                                            name: 'IMG_${_generateRandomNumber(5)}$extension',
-                                                            size: bytes.length,
-                                                            path: image.path,
-                                                            bytes: bytes,
-                                                          );
-
-                                                          setState(() {
-                                                            allFiles.add(file);
-                                                          });
-                                                        }
-                                                      },
-                                                    ),
-                                                    IconTextButton(
-                                                      icon: 'file_upload.svg',
-                                                      arrow: false,
-                                                      label: 'เลือกไฟล์',
-                                                      onPressed: () async {
-                                                        _menuController.close();
-                                                        final result = await FilePicker.platform.pickFiles(
-                                                          type: FileType.custom,
-                                                          allowedExtensions: ['pdf'],
-                                                        );
-
-                                                        if (result != null) {
-                                                          setState(() {
-                                                            allFiles.add(result.files.first);
-                                                          });
-                                                        }
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
                                         ),
 
                                         Padding(
