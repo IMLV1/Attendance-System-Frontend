@@ -134,12 +134,29 @@ class _WorkingHourState extends State<WorkingHour> {
                       child: LayoutBuilder(
                           builder: (context, constraints) {
                             // final random = Random();
-                            final data = switch (selection) {
+                            final raw = switch (selection) {
                               StatisticMode.total => widget.workingHour?.total ?? {},
                               StatisticMode.week => widget.workingHour?.week ?? {},
                               StatisticMode.month => widget.workingHour?.month ?? {},
                               StatisticMode.year => widget.workingHour?.year ?? {},
-                            }; // { for (var item in List.generate((random.nextDouble() * 31.0).toInt(), (i) => i)) '${item+1}' : random.nextDouble() * 50.0 },
+                            };
+
+                            // 🚩 (2026-08-26) แท็บ "ทั้งหมด" เคยขึ้นแกน x เป็น 68 / 69
+                            //
+                            // ไม่ใช่ข้อมูลเพี้ยน — backend ตั้งใจส่งมาแค่ 2 หลักท้าย
+                            // (`personnel_repo.go`: `strconv.Itoa(y+543)[2:]`)
+                            // แต่พอวางข้างแท็บ "เดือน" ที่แกน x เป็นเลขวันที่ 1–31
+                            // เหมือนกัน ผู้ใช้แยกไม่ออกว่าเลขโดดๆ นั้นคือปีหรือวัน
+                            //
+                            // อีกสามแท็บ backend ส่งคำไทยมาให้อ่านได้อยู่แล้ว
+                            // (จ. อ. พ. / ม.ค. ก.พ.) มีแต่แท็บนี้ที่ถูกย่อจนกำกวม
+                            // จึงคลี่กลับเป็นปีเต็มเฉพาะแท็บนี้ที่เดียว
+                            final data = selection == StatisticMode.total
+                                ? {
+                                    for (final e in raw.entries)
+                                      _fullBuddhistYear(e.key): e.value
+                                  }
+                                : raw; // { for (var item in List.generate((random.nextDouble() * 31.0).toInt(), (i) => i)) '${item+1}' : random.nextDouble() * 50.0 },
 
                             // 🚩 (2026-08-26) กราฟกินความกว้างที่ได้รับเต็มเสมอ
                             //
@@ -336,6 +353,23 @@ class _WorkingHourState extends State<WorkingHour> {
     );
   }
 
+  /// คลี่ปี พ.ศ. 2 หลักที่ backend ส่งมาให้เป็นปีเต็ม — '68' → '2568'
+  ///
+  /// ไม่ hardcode '25' นำหน้า เพราะจะพังตอนขึ้น พ.ศ. 2600 (ค.ศ. 2057) แต่ยึด
+  /// ศตวรรษของปีปัจจุบันแทน แล้วถอยหลัง 100 ปีถ้าผลลัพธ์ตกไปอยู่ในอนาคต
+  /// (เคสข้ามศตวรรษ เช่นเจอ '99' ตอนที่ปีปัจจุบันเป็น 2601)
+  ///
+  /// รูปแบบอื่นที่ไม่ใช่เลข 2 หลักปล่อยผ่านไปตามเดิม ไม่เดาแทน backend
+  String _fullBuddhistYear(String key) {
+    if (key.length != 2) return key;
+    final n = int.tryParse(key);
+    if (n == null) return key;
+
+    final nowBE = DateTime.now().year + 543;
+    final candidate = (nowBE ~/ 100) * 100 + n;
+    return (candidate > nowBE ? candidate - 100 : candidate).toString();
+  }
+
   Widget _barChart({required Map<String, double> data, required double width}) {
 
     double keyWidth = getMaxKeyWidth(data, TextStyle(fontSize: 11));
@@ -464,6 +498,22 @@ class _WorkingHourState extends State<WorkingHour> {
               return Color(0xFF8979FF).withValues(alpha: 0.2);
             },
             tooltipPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+
+            // 🚩 (2026-08-26) เดิมไม่ได้ override ตัวนี้ fl_chart จึงใช้ค่า
+            // default ที่พิมพ์ `toY.toString()` ตรงๆ — ป้ายเลยขึ้นว่า
+            // "1310.2999999999995" เต็มกล่องจนล้นไปทับแถบแท็บด้านบน
+            //
+            // ค่าในการ์ดสรุปข้างๆ ไม่มีปัญหานี้เพราะ backend ปัดให้แล้ว
+            // (`math.Round(x*100)/100`) แต่ map ที่ป้อนกราฟเป็นผลบวกดิบ
+            // ไม่ได้ปัด จึงพา floating point error ติดมาเต็มๆ
+            getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem(
+              _formatHour(rod.toY),
+              const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF7765FF),
+              ),
+            ),
           ),
           touchCallback: (FlTouchEvent event, barTouchResponse) {
             // 2. Only trigger on Tap Up (when the user lifts their finger)
@@ -503,6 +553,13 @@ class _WorkingHourState extends State<WorkingHour> {
         }).toList(),
       ),
     );
+  }
+
+  /// ตัดทศนิยมให้เหลือ 2 ตำแหน่ง แล้วตัดศูนย์ท้ายทิ้ง — 8.0 → "8", 7.905 → "7.91"
+  String _formatHour(double value) {
+    final text = value.toStringAsFixed(2);
+    if (!text.contains('.')) return text;
+    return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
   double getMaxKeyWidth(Map<String, double> data, TextStyle style) {
