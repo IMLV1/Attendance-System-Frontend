@@ -136,6 +136,7 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
                                     child: SeparatorCard(
                                       children: [
                                         UserInfoButton(
+                                          arrow: !widget.embedded,
                                           icon: Image.network(
                                             personnel!.avatarUrl,
                                             fit: BoxFit.cover,
@@ -147,7 +148,14 @@ class _PersonnelStatisticState extends State<PersonnelStatistic> {
                                             ...personnel!.roles,
                                             Role(id: '0000000000', name: personnel!.initRole, color: Color(0xFF535353))
                                           ],
-                                          onPressed: () {
+                                          // 🚩 (2026-08-26) ในโหมด master-detail (จอกว้าง) รายการคนอยู่ที่แถบ
+                                          // ซ้ายแล้ว การ์ดนี้เป็นแค่ป้ายบอกว่ากำลังดูใครอยู่ ถ้าปล่อยให้กดเลือกคน
+                                          // ได้ด้วยจะได้สองที่ที่เลือกคนแต่ไม่รู้จักกัน — กดจากการ์ดแล้วเนื้อหา
+                                          // เปลี่ยน แต่รายการซ้ายยังไฮไลต์คนเดิม ไม่มีทางรู้ว่าดูใครอยู่กันแน่
+                                          //
+                                          // `onPressed: null` ทำให้ UserInfoButton กลายเป็นโหมดแสดงผลอย่างเดียว
+                                          // (ไม่มี ripple) และซ่อนลูกศรด้วย จะได้ไม่ชวนให้กด
+                                          onPressed: widget.embedded ? null : () {
                                             PushPopup(
                                                 title: 'เลือกบุคลากร',
                                                 fit: FlexFit.tight,

@@ -34,9 +34,23 @@ class UserInfoButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    // 🚩 (2026-08-26) เดิมเป็น `onPressed ?? () {}` — ไม่ส่ง callback มาก็ยังเป็น
+    // ปุ่มที่กดได้อยู่ดี แค่กดแล้วไม่เกิดอะไร ผู้ใช้เห็น ripple เห็นลูกศร แล้วคิดว่า
+    // ตัวเองกดพลาด
+    //
+    // ตอนนี้ทุกที่ที่เรียกส่ง callback มาครบ (เช็คแล้ว 7 จุด) จึงให้ `null`
+    // แปลว่า "แสดงผลอย่างเดียว" ได้ — ใช้ในโหมด master-detail ของ
+    // /personnel-info ที่การ์ดคนเป็นแค่ป้ายบอกว่ากำลังดูใครอยู่ ไม่ใช่ตัวเลือกคน
+    if (onPressed == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+        child: _row(context),
+      );
+    }
+
     return ElevatedButton(
 
-      onPressed: onPressed ?? () {},
+      onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         elevation: 0,
         padding: EdgeInsets.all(0),
@@ -47,7 +61,15 @@ class UserInfoButton extends StatelessWidget {
 
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        child: Row(
+        child: _row(context),
+      ),
+    );
+  }
+
+  /// เนื้อในของการ์ด — แยกออกมาเพื่อให้โหมดกดได้กับโหมดแสดงผลอย่างเดียว
+  /// ใช้ layout ชุดเดียวกันเป๊ะ ไม่ต้องกลัวว่าสองทางจะหน้าตาเพี้ยนกัน
+  Widget _row(BuildContext context) {
+    return Row(
           spacing: 10,
           children: [
             Expanded(
@@ -135,8 +157,6 @@ class UserInfoButton extends StatelessWidget {
               )
             ),
           ],
-        )
-      )
     );
   }
 
