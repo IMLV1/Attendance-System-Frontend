@@ -61,10 +61,30 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
   bool submitted = false;
   bool confirmed = false;
 
+  /// วันที่ลาไปแล้ว ใช้ปิดวันในปฏิทิน — ว่างไว้ก่อนจนกว่าจะโหลดเสร็จ
+  OccupiedLeaveDates _occupiedDates = const OccupiedLeaveDates.empty();
+
   @override
   void initState() {
     super.initState();
     _loadBudgetPeriod();
+    _loadOccupiedDates();
+  }
+
+  // 🚩 (2026-08-26) ดึงวันที่ลาไปแล้วมาปิดในปฏิทิน
+  //
+  // ใช้ท่าเดียวกับ _loadBudgetPeriod: ล้มเหลวก็ปล่อยเป็นเซ็ตว่าง ไม่ปิดวันไหนเลย
+  // แล้วให้ backend เป็นด่านบล็อกแทน — ปิดผิดเพราะโหลดพลาดแย่กว่าไม่ปิด
+  Future<void> _loadOccupiedDates() async {
+    try {
+      final res = await LeaveRequestService().getOccupiedDates();
+      if (!mounted) return;
+      setState(() {
+        _occupiedDates = OccupiedLeaveDates.fromJson(res.data);
+      });
+    } catch (_) {
+      // เงียบไว้ — backend ยังบล็อกให้อยู่ดี
+    }
   }
 
   // ดึงขอบเขตปีงบปัจจุบันมาจำกัดปฏิทิน — ถ้าล้มเหลวปล่อยเป็น null (ไม่จำกัดฝั่ง UI)
@@ -316,6 +336,7 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                                           allowRetroactive: setting!.allowRetroactive,
                                                                           budgetStart: _budgetStart,
                                                                           budgetEnd: _budgetEnd,
+                                                                          occupiedDates: _occupiedDates,
                                                                           onChanged: (LeaveDate date) {
                                                                             _selectedDate = date;
                                                                           }
@@ -932,10 +953,20 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                             ),
                                           ),
                                         ),
+                                        // 🚩 (2026-08-26) เดิมเป็นข้อความตายตัว "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง..."
+                                        // ทั้งที่ ServiceUpdater แกะข้อความจริงจาก response มาให้แล้ว (errorMessage)
+                                        //
+                                        // เคสที่เจอชัดสุดคือลาซ้อนวัน — backend ตอบ 409 พร้อมบอกว่า "มีช่วงเวลาการลา
+                                        // ซ้อนทับกับใบลาเดิมที่คุณเคยยื่นไปแล้ว" แต่ผู้ใช้เห็นแค่ "ลองอีกครั้ง" ซึ่ง
+                                        // แนะนำผิดทางด้วย เพราะกดใหม่ยังไงก็ไม่มีวันผ่าน
+                                        //
+                                        // ข้อความจาก backend เป็นภาษาไทยที่เขียนมาให้ผู้ใช้อ่านอยู่แล้ว ส่วน fallback
+                                        // ของ ServiceUpdater ก็เป็นข้อความเดิมนี้ จึงไม่มีทางโชว์ข้อความดิบแบบ technical
                                         if (state == ServiceUpdatorState.error)
-                                          const Text(
-                                            'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
-                                            style: TextStyle(color: Colors.red),
+                                          Text(
+                                            errorMessage,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(color: Colors.red),
                                           )
                                         else if (confirmed && getLeaveDays() > getRemainLeaveDays())
                                           Row(

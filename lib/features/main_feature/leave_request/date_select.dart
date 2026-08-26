@@ -20,6 +20,9 @@ class DateSelect extends StatefulWidget {
   final DateTime? budgetStart;
   final DateTime? budgetEnd;
 
+  /// วันที่ผู้ใช้ลาไปแล้ว — ปิดไม่ให้เลือกซ้ำ (ดู [OccupiedLeaveDates])
+  final OccupiedLeaveDates occupiedDates;
+
   const DateSelect({
     super.key,
     required this.allowRetroactive,
@@ -27,6 +30,7 @@ class DateSelect extends StatefulWidget {
     required this.onChanged,
     this.budgetStart,
     this.budgetEnd,
+    this.occupiedDates = const OccupiedLeaveDates.empty(),
   });
 
   @override
@@ -274,6 +278,13 @@ class _DateSelectState extends State<DateSelect> {
               if (widget.budgetStart != null && d.isBefore(widget.budgetStart!)) return false;
               if (widget.budgetEnd != null && d.isAfter(widget.budgetEnd!)) return false;
 
+              // 🚩 (2026-08-26) วันที่ลาไปแล้ว "เต็มวัน" ปิดตั้งแต่ต้นทาง
+              // เดิมเลือกได้หมด แล้วค่อยโดน backend ตอบ 409 ตอนกดส่ง (หลังเซ็นชื่อ
+              // ไปแล้วด้วย) — รู้ได้ตั้งแต่แรกก็ควรบอกตั้งแต่แรก
+              //
+              // วันที่ลาไว้แค่ครึ่งเดียวยังปล่อยให้เลือก เพราะยื่นอีกครึ่งได้จริง
+              if (widget.occupiedDates.isFull(d)) return false;
+
               return (widget.allowRetroactive) ? true : day.isAfter(
                 DateTime(today.year, today.month, today.day),
               );
@@ -488,4 +499,62 @@ class LeaveDate {
   final bool toDateMorning;
 
   const LeaveDate({this.fromDate, this.toDate, this.fromDateMorning = true, this.toDateMorning = false});
+}
+/// วันที่ผู้ใช้ลาไปแล้ว แปลงมาจาก `GET /leave_request/occupied_dates`
+///
+/// 🚩 (2026-08-26) ใช้เกณฑ์ "ช่องครึ่งวัน" ชุดเดียวกับ `CheckOverlappingLeave`
+/// ฝั่ง backend เป๊ะๆ — เช้า = ช่องคู่, บ่าย = ช่องคี่ ถ้าสองที่นี้หลุดจากกันเมื่อไหร่
+/// ปฏิทินจะปิดวันไม่ตรงกับที่ backend ยอมรับจริง ซึ่งงงกว่าไม่ปิดเลย
+///
+/// ปิดเฉพาะวันที่ **เต็มทั้งสองครึ่ง** เท่านั้น วันที่ลาไว้แค่ครึ่งเดียวยังเลือกได้
+/// เพราะยื่นอีกครึ่งได้จริง (ตกลงกันแล้วว่าลาเช้า+ลาบ่ายวันเดียวกันคนละใบควรได้)
+class OccupiedLeaveDates {
+
+  /// ช่องครึ่งวันที่ถูกจองแล้ว นับจาก 1970-01-01 (วัน * 2 + 0 เช้า / 1 บ่าย)
+  final Set<int> _slots;
+
+  const OccupiedLeaveDates._(this._slots);
+
+  const OccupiedLeaveDates.empty() : _slots = const {};
+
+  static const _epoch = 1970;
+
+  static int _dayIndex(DateTime d) =>
+      DateTime.utc(d.year, d.month, d.day)
+          .difference(DateTime.utc(_epoch, 1, 1))
+          .inDays;
+
+  factory OccupiedLeaveDates.fromJson(dynamic data) {
+    final list = (data is Map ? data['data'] : data);
+    if (list is! List) return const OccupiedLeaveDates.empty();
+
+    final slots = <int>{};
+    for (final item in list) {
+      if (item is! Map) continue;
+
+      final from = DateTime.tryParse('${item['date-from']}');
+      final to = DateTime.tryParse('${item['date-to']}');
+      if (from == null || to == null) continue;
+
+      final fromMorning = item['from-date-morning'] == true;
+      final toMorning = item['to-date-morning'] == true;
+
+      final start = _dayIndex(from) * 2 + (fromMorning ? 0 : 1);
+      final end = _dayIndex(to) * 2 + (toMorning ? 0 : 1);
+      if (end < start) continue;
+
+      for (var s = start; s <= end; s++) {
+        slots.add(s);
+      }
+    }
+    return OccupiedLeaveDates._(slots);
+  }
+
+  /// วันนี้ถูกจองไปแล้วทั้งวัน (ทั้งเช้าและบ่าย) หรือยัง
+  bool isFull(DateTime day) {
+    final i = _dayIndex(day) * 2;
+    return _slots.contains(i) && _slots.contains(i + 1);
+  }
+
+  bool get isEmpty => _slots.isEmpty;
 }

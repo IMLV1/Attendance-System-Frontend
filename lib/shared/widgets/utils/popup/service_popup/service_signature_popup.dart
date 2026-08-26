@@ -226,10 +226,20 @@ class ServiceSignaturePopup {
                       );
                     },
                   ),
+                // 🚩 (2026-08-26) เดิมเป็นข้อความตายตัว "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง..."
+                // ทั้งที่ ServiceUpdater แกะข้อความจริงจาก response มาให้แล้ว (errorMessage)
+                //
+                // เคสที่เจอชัดสุดคือลาซ้อนวัน — backend ตอบ 409 พร้อมบอกว่า "มีช่วงเวลาการลา
+                // ซ้อนทับกับใบลาเดิมที่คุณเคยยื่นไปแล้ว" แต่ผู้ใช้เห็นแค่ "ลองอีกครั้ง" ซึ่ง
+                // แนะนำผิดทางด้วย เพราะกดใหม่ยังไงก็ไม่มีวันผ่าน
+                //
+                // ข้อความจาก backend เป็นภาษาไทยที่เขียนมาให้ผู้ใช้อ่านอยู่แล้ว ส่วน fallback
+                // ของ ServiceUpdater ก็เป็นข้อความเดิมนี้ จึงไม่มีทางโชว์ข้อความดิบแบบ technical
                 if (state == ServiceUpdatorState.error)
-                  const Text(
-                    'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง...',
-                    style: TextStyle(color: Colors.red),
+                  Text(
+                    errorMessage,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
                   ),
               ],
             );
