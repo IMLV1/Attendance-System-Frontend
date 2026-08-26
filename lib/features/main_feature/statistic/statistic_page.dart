@@ -263,8 +263,12 @@ class _StatisticPageState extends State<StatisticPage> {
                                                   child: SizedBox(
                                                     width: 18,
                                                     height: 18,
+                                                    // ใช้ไอคอนเดียวกับหัวข้อ
+                                                    // "ปีงบประมาณ" ในตัวเลือกปี
+                                                    // และหน้าตั้งค่าปีงบประมาณ
+                                                    // แทน filter.svg ทั่วไป
                                                     child: SvgPicture.asset(
-                                                      'assets/images/filter.svg',
+                                                      'assets/images/budget_year.svg',
                                                       colorFilter:
                                                           ColorFilter.mode(
                                                               Color(0xFF2C2C2C),
