@@ -141,26 +141,18 @@ class _WorkingHourState extends State<WorkingHour> {
                               StatisticMode.year => widget.workingHour?.year ?? {},
                             }; // { for (var item in List.generate((random.nextDouble() * 31.0).toInt(), (i) => i)) '${item+1}' : random.nextDouble() * 50.0 },
 
-                            // 🚩 (Phase 3) แท่งกว้างสุด 40 อยู่แล้ว แต่ fl_chart กระจาย
-                            // แท่งให้เต็มความกว้างที่ได้รับเสมอ พอแท็บ "ทั้งหมด" มีแค่
-                            // 2 แท่งบนจอกว้าง ~920 จึงได้แท่งเล็กจ้อยสองอันลอยห่างกัน
-                            // คนละมุม (ดู PHASE3_PAGE_DESIGN.md หัวข้อ /statistic)
+                            // 🚩 (2026-08-26) กราฟกินความกว้างที่ได้รับเต็มเสมอ
                             //
-                            // จำกัดความกว้าง "กราฟ" ตามจำนวนแท่งแล้วจัดกลุ่มไว้กลาง
-                            // — แท็บที่มีแท่งเยอะ (เดือน = 31 แท่ง) ยังได้เต็มความกว้าง
-                            // เหมือนเดิมเพราะ min() เลือกค่าที่เล็กกว่า
-                            const slotPerBar = 80.0;
-                            const axisSpace = 60.0;
-                            final chartWidth = min(
-                              constraints.maxWidth,
-                              max(320.0, data.length * slotPerBar + axisSpace),
-                            );
+                            // เคยจำกัดไว้ตามจำนวนแท่ง (แท่งละ 80 อย่างน้อย 320)
+                            // เพราะกลัวว่าแท็บ "ทั้งหมด" ที่มี 2 แท่งจะลอยห่างกัน
+                            // บนพื้นที่กว้าง — แต่พอย้ายการ์ดสรุปไปอยู่ฝั่งขวา
+                            // พื้นที่กราฟแคบลงมากแล้ว การจำกัดซ้ำทำให้กราฟเป็นเกาะ
+                            // เล็กๆ กลางกล่องขาว เหลือขอบว่างสองข้างแทน
+                            final chartWidth = constraints.maxWidth;
 
-                            return Center(
-                              child: SizedBox(
-                                width: chartWidth,
-                                child: _barChart(data: data, width: chartWidth),
-                              ),
+                            return SizedBox(
+                              width: chartWidth,
+                              child: _barChart(data: data, width: chartWidth),
                             );
                           }
                       )

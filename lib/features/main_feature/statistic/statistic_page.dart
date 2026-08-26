@@ -282,13 +282,11 @@ class _StatisticPageState extends State<StatisticPage> {
                                     children: [
                                       /// Working Day
                                       //
-                                      // 🚩 (Phase 3) จอกว้างไม่แยกเป็นแถวของ
-                                      // ตัวเอง — ยืดเต็ม 1100 ทั้งที่มีตัวเลข
-                                      // นิดเดียว ดูผิดสัดส่วน ย้ายไปเป็นหัวของ
-                                      // กล่อง "อัตราการเข้างาน" ซึ่งใช้ตัวเลข
-                                      // ชุดเดียวกันเป็นฐานคิดอยู่แล้ว
-                                      if (Responsive.isCompact(context))
-                                        WorkingDay(statistic),
+                                      // แถวบนสุดเต็มความกว้าง ทุกขนาดจอ
+                                      // (เคยลองย้ายไปเป็นหัวของกล่อง
+                                      // "อัตราการเข้างาน" และลองแยกเป็นคอลัมน์
+                                      // ที่ 3 แล้ว — อยู่บนสุดอ่านง่ายที่สุด)
+                                      WorkingDay(statistic),
 
                                       Container(
                                         padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
@@ -327,17 +325,14 @@ class _StatisticPageState extends State<StatisticPage> {
                                                 children: [
                                                   Expanded(
                                                     child: AttendanceStatistic(
-                                                      statistic,
-                                                      topStats: WorkingDay(
-                                                          statistic,
-                                                          bare: true),
-                                                      fill: true,
-                                                    ),
+                                                        statistic,
+                                                        fill: true),
                                                   ),
                                                   Expanded(
-                                                      child: LeaveStatistic(
-                                                          statistic,
-                                                          fill: true)),
+                                                    child: LeaveStatistic(
+                                                        statistic,
+                                                        fill: true),
+                                                  ),
                                                 ],
                                               ))
                                             : Column(
