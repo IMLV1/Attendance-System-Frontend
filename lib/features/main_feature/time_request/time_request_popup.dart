@@ -1,5 +1,6 @@
 import 'package:attendance_system/services/time_request/time_request_model.dart';
 import 'package:attendance_system/shared/widgets/utils/ios_menu.dart';
+import 'package:attendance_system/shared/widgets/utils/native_select/native_select.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -118,7 +119,17 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                     spacing: 15,
                     children: [
                       Expanded(
-                        child: MenuAnchor(
+                        child: NativeSelect(
+                          options: [
+                            for (final m in _selectableMonths(focusedMonth.year))
+                              ('${m['index']}', m['name'] as String),
+                          ],
+                          value: '${focusedMonth.month - 1}',
+                          onChanged: (v) => setState(() {
+                            _focusedDay = _clamp(
+                                DateTime(focusedMonth.year, int.parse(v) + 1));
+                          }),
+                          fallback: MenuAnchor(
                           controller: _monthController,
                           builder: (context, controller, child) {
                             return InkWell(
@@ -157,9 +168,20 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
   ),
 ],
                         ),
+                        ),
                       ),
                       Expanded(
-                        child: MenuAnchor(
+                        child: NativeSelect(
+                          options: [
+                            for (int y = _lastDay.year; y >= _firstDay.year; y--)
+                              ('$y', (y + 543).toString()),
+                          ],
+                          value: '${focusedMonth.year}',
+                          onChanged: (v) => setState(() {
+                            _focusedDay =
+                                _clamp(DateTime(int.parse(v), focusedMonth.month));
+                          }),
+                          fallback: MenuAnchor(
                           controller: _yearController,
                           builder: (context, controller, child) {
                             return InkWell(
@@ -197,6 +219,7 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                                             ],
   ),
 ],
+                        ),
                         ),
                       )
                     ],

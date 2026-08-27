@@ -1,5 +1,6 @@
 import 'package:attendance_system/shared/widgets/utils/animation/animated_widget.dart';
 import 'package:attendance_system/shared/widgets/utils/ios_menu.dart';
+import 'package:attendance_system/shared/widgets/utils/native_select/native_select.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
@@ -106,6 +107,23 @@ class DateSelectorFilter extends StatefulWidget {
 }
 
 class DateSelectorFilterState extends State<DateSelectorFilter> {
+
+  /// สลับปีแล้วดันเดือนให้อยู่ในช่วงที่อนุญาต
+  ///
+  /// 🚩 (2026-08-27) logic นี้เดิมเขียนอยู่ใน onTap ของเมนู พอเพิ่มทาง
+  /// `<select>` บนเว็บเข้ามาก็ต้องใช้ร่วมกันทั้งสองทาง จึงดึงออกมาเป็นเมธอด
+  /// ไม่งั้นแก้ที่เดียวแล้วอีกทางจะเพี้ยน
+  void _selectYear(int year) {
+    final maxDate = allowDateTo ?? DateTime(DateTime.now().year + 100);
+    final minDate = allowDateFrom ?? DateTime(DateTime.now().year - 100);
+
+    int month = _focusedDay.month;
+    if (year == maxDate.year && month > maxDate.month) month = maxDate.month;
+    if (year == minDate.year && month < minDate.month) month = minDate.month;
+
+    _focusedDay = DateTime(year, month);
+  }
+
 
   DateTime _focusedDay = DateTime.now();
   DateTime? _rangeStart;
@@ -318,7 +336,17 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                           spacing: 15,
                                           children: [
                                             Expanded(
-                                              child: MenuAnchor(
+                                              child: NativeSelect(
+                                                options: [
+                                                  for (int i = ((allowDateFrom?.year ?? DateTime.now().year - 100) == _focusedDay.year) ? (allowDateFrom?.month ?? 1) - 1 : 0; i <= (((allowDateTo?.year ?? DateTime.now().year) == _focusedDay.year) ? (allowDateTo?.month ?? DateTime.now().month) - 1 : 11); i++)
+                                                    ('$i', month[i]),
+                                                ],
+                                                value: '${_focusedDay.month - 1}',
+                                                onChanged: (v) => setState(() {
+                                                  _focusedDay = DateTime(
+                                                      _focusedDay.year, int.parse(v) + 1);
+                                                }),
+                                                fallback: MenuAnchor(
                                                 controller: _monthController,
                                                 builder: (context, controller, child) {
                                                   return InkWell(
@@ -372,9 +400,18 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
   ),
 ],
                                               ),
+                                              ),
                                             ),
                                             Expanded(
-                                              child: MenuAnchor(
+                                              child: NativeSelect(
+                                                options: [
+                                                  for (int i = (allowDateTo?.year ?? DateTime.now().year); i >= (allowDateFrom?.year ?? DateTime.now().year - 100); i--)
+                                                    ('$i', (i + 543).toString()),
+                                                ],
+                                                value: '${_focusedDay.year}',
+                                                onChanged: (v) =>
+                                                    setState(() => _selectYear(int.parse(v))),
+                                                fallback: MenuAnchor(
                                                 controller: _yearController,
                                                 builder: (context, controller, child) {
                                                   return InkWell(
@@ -427,6 +464,7 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                                                   ],
   ),
 ],
+                                              ),
                                               ),
                                             )
                                           ],
