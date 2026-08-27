@@ -5,6 +5,7 @@ import 'package:attendance_system/features/settings/role_management/edit_role.da
 import 'package:attendance_system/services/role_management/role_management_service.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
+import 'package:attendance_system/shared/widgets/master_detail_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -230,6 +231,10 @@ class _RoleManagementState extends State<RoleManagement> {
   List<RoleSystem> _filteredMainRoles = [];
   List<RoleSystem> _filteredSpecialRoles = [];
 
+  /// ตำแหน่งที่กำลังดูอยู่ในคอลัมน์ขวา — ใช้เฉพาะโหมด master-detail (จอกว้าง)
+  /// บนมือถือยังกดแล้ว push หน้าใหม่เหมือนเดิม ค่านี้จึงเป็น null ตลอด
+  RoleSystem? _selected;
+
   @override
   void initState() {
     super.initState();
@@ -328,15 +333,73 @@ class _RoleManagementState extends State<RoleManagement> {
   }
 
 
+  /// เปิดตำแหน่งเพื่อแก้ไข — จอกว้างเปลี่ยนเนื้อหาคอลัมน์ขวา จอแคบ push หน้าใหม่
+  Future<void> _openRole(BuildContext context, RoleSystem m) async {
+    if (!Responsive.isCompact(context)) {
+      setState(() => _selected = m);
+      return;
+    }
+
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => EditRole(roleInfo: m)),
+    );
+
+    if (result == null) return;
+    if (result is Map && result['status'] == 1) {
+      _removeRole(m.id);
+    } else if (result is RoleSystem) {
+      _updateRole(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    // 🚩 (Phase 6, 2026-08-27) รูปทรงเดียวกับ user-management และหน้าข้อมูล
+    // บุคลากร — รายการตำแหน่งค้างอยู่ซ้าย เนื้อหาของตำแหน่งที่เลือกอยู่ขวา
+    // ยิ่งตำแหน่งเยอะยิ่งได้ผล เพราะไม่ต้อง back กลับมาหาในรายการทุกครั้ง
+    if (!Responsive.isCompact(context)) return _masterDetail(context);
+
     return AppScaffold(
       maxWidth: Responsive.widthFor(ContentShape.list),
       header: Header.subHeader(
         context,
         title: 'จัดการตำแหน่ง'
       ),
-      content: SafeArea(
+      content: _body(context),
+    );
+  }
+
+  Widget _masterDetail(BuildContext context) {
+    final role = _selected;
+
+    return MasterDetailScaffold(
+      title: 'จัดการตำแหน่ง',
+      emptyLabel: 'เลือกตำแหน่งจากรายการทางซ้าย',
+      masterWidth: 400,
+      masterPadding: EdgeInsets.zero,
+      master: _body(context),
+      detail: role == null
+          ? null
+          : EditRole(
+              // สลับตำแหน่งแล้วต้องได้ State ใหม่ ไม่งั้นช่องชื่อค้างของเดิม
+              key: ValueKey(role.id),
+              roleInfo: role,
+              embedded: true,
+              onSaved: (updated) {
+                _updateRole(updated);
+                setState(() => _selected = updated);
+              },
+              onDeleted: () {
+                _removeRole(role.id);
+                setState(() => _selected = null);
+              },
+            ),
+    );
+  }
+
+  Widget _body(BuildContext context) {
+    return SafeArea(
         child: Container(
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
@@ -546,24 +609,13 @@ class _RoleManagementState extends State<RoleManagement> {
                                                   subTitle: 'สมาชิกในสังกัด ${m.members
                                                       .length} คน',
                                                   arrow: true,
-                                                  onPressed: () async {
-                                                    final result = await Navigator.of(
-                                                        context).push(
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            EditRole(roleInfo: m),
-                                                      ),
-                                                    );
-
-                                                    if (result != null) {
-                                                      if (result is Map &&
-                                                          result['status'] == 1) {
-                                                        _removeRole(m.id);
-                                                      } else if (result is RoleSystem) {
-                                                        _updateRole(result);
-                                                      }
-                                                    }
-                                                  },
+                                                  // ไฮไลต์เฉพาะโหมด master-detail — จอแคบกดแล้วเปิด
+                                                  // หน้าใหม่ทับไปเลย ไม่มีรายการค้างให้ต้องบอกว่าเลือกอะไรอยู่
+                                                  bg: !Responsive.isCompact(context) &&
+                                                          m.id == _selected?.id
+                                                      ? const Color(0xFFEDE3E4)
+                                                      : null,
+                                                  onPressed: () => _openRole(context, m),
                                                 );
                                               }).toList();
                                             }(),
@@ -618,24 +670,11 @@ class _RoleManagementState extends State<RoleManagement> {
                                                 subTitle: 'สมาชิกในสังกัด ${m.members
                                                     .length} คน',
                                                 arrow: true,
-                                                onPressed: () async {
-                                                  final result = await Navigator
-                                                      .of(context)
-                                                      .push(
-                                                    MaterialPageRoute(
-                                                      builder: (_) => EditRole(roleInfo: m),
-                                                    ),
-                                                  );
-
-                                                  if (result != null) {
-                                                    if (result is Map &&
-                                                        result['status'] == 1) {
-                                                      _removeRole(m.id);
-                                                    } else if (result is RoleSystem) {
-                                                      _updateRole(result);
-                                                    }
-                                                  }
-                                                },
+                                                bg: !Responsive.isCompact(context) &&
+                                                        m.id == _selected?.id
+                                                    ? const Color(0xFFEDE3E4)
+                                                    : null,
+                                                onPressed: () => _openRole(context, m),
                                               );
                                             }).toList(),
                                           ),
@@ -653,7 +692,6 @@ class _RoleManagementState extends State<RoleManagement> {
             ),
           ),
         ),
-      )
     );
   }
 }

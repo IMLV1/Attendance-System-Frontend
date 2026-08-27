@@ -9,6 +9,7 @@ import 'package:attendance_system/services/personnel_info/personnel_info_model.d
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
+import 'package:attendance_system/shared/widgets/master_detail_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
@@ -145,51 +146,29 @@ class _PersonnelInfoState extends State<PersonnelInfo> {
   /// ผลพลอยได้: 5 หน้านั้นเดิมถูก push ด้วย `Navigator.push(MaterialPageRoute)`
   /// ซึ่งเป็น route ที่ไม่มีใน go_router — เป็นต้นเหตุของบั๊กจอค้าง (ดูบั๊ก #3
   /// ใน RESPONSIVE_PLAN.md) บนจอกว้างจึงไม่ต้อง push อีกต่อไป
+  ///
+  /// 🚩 (Phase 6, 2026-08-27) โครงสองคอลัมน์ย้ายไปอยู่ที่
+  /// `MasterDetailScaffold` แล้ว เพราะ `user-management` กับ `role-management`
+  /// ใช้รูปทรงเดียวกัน หน้านี้เหลือแค่บอกว่าซ้ายคืออะไร ขวาคืออะไร
   Widget _masterDetail(BuildContext context) {
     final personnel = userInfo;
 
-    return AppScaffold(
-      fullWidth: true,
-      header: Header.subHeader(context, title: 'ข้อมูลบุคลากรในองค์กร'),
-      content: SafeArea(
-        child: Container(
-          color: AppColors.backgroundColor,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                // 360 เท่ากันทุกโหมด — แคบกว่านี้ป้ายตำแหน่งใน UserInfoButton
-                // จะตัดขึ้นบรรทัดใหม่จนแถวสูงไม่เท่ากัน
-                width: 360,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
-                  child: ChoosePersonnel(
-                    inline: true,
-                    selectedUserId: personnel?.id,
-                    onChoose: _choose,
-                  ),
-                ),
-              ),
-              const VerticalDivider(width: 1, thickness: 1),
-              Expanded(
-                child: personnel == null
-                    ? const Center(
-                        child: Text(
-                          'เลือกบุคลากรจากรายการทางซ้าย',
-                          style: TextStyle(color: Color(0xFF7F7F7F)),
-                        ),
-                      )
-                    : Column(
-                        children: [
-                          _sectionTabs(),
-                          Expanded(child: _sectionBody(personnel)),
-                        ],
-                      ),
-              ),
-            ],
-          ),
-        ),
+    return MasterDetailScaffold(
+      title: 'ข้อมูลบุคลากรในองค์กร',
+      emptyLabel: 'เลือกบุคลากรจากรายการทางซ้าย',
+      master: ChoosePersonnel(
+        inline: true,
+        selectedUserId: personnel?.id,
+        onChoose: _choose,
       ),
+      detail: personnel == null
+          ? null
+          : Column(
+              children: [
+                _sectionTabs(),
+                Expanded(child: _sectionBody(personnel)),
+              ],
+            ),
     );
   }
 

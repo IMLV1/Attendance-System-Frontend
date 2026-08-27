@@ -23,7 +23,25 @@ class UserInfo extends StatefulWidget {
 
   final UserManagementModel userInfo;
 
-  const UserInfo({super.key, required this.userInfo});
+  /// ฝังเนื้อหาลงในคอลัมน์ขวาของ master-detail แทนการเป็นหน้าเต็ม
+  /// — ไม่มีแถบหัวและปุ่ม back เพราะรายการทางซ้ายทำหน้าที่นำทางแทนแล้ว
+  final bool embedded;
+
+  /// 🚩 โหมดหน้าเต็มคืนผลลัพธ์ตอน pop ได้ แต่โหมดฝังไม่มี pop ให้คืน
+  /// ต้องรายงานกลับทันทีที่แก้ ไม่งั้นรายการทางซ้ายจะค้างชื่อเดิมทั้งที่
+  /// ทางขวาเปลี่ยนไปแล้ว
+  final ValueChanged<UserManagementModel>? onChanged;
+
+  /// เรียกหลังลบผู้ใช้สำเร็จ (โหมดฝังเท่านั้น)
+  final VoidCallback? onDeleted;
+
+  const UserInfo({
+    super.key,
+    required this.userInfo,
+    this.embedded = false,
+    this.onChanged,
+    this.onDeleted,
+  });
 
   @override
   State<StatefulWidget> createState() => _UserInfoState();
@@ -40,9 +58,39 @@ class _UserInfoState extends State<UserInfo> {
   }
 
   @override
+  void didUpdateWidget(UserInfo oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // ในโหมด master-detail widget ตัวเดิมถูกใช้ซ้ำเมื่อสลับคน ถ้าไม่รับค่าใหม่
+    // จะค้างข้อมูลของคนก่อนหน้า
+    if (widget.userInfo.id != oldWidget.userInfo.id) {
+      userInfo = widget.userInfo;
+    }
+  }
+
+  /// อัปเดตข้อมูลในหน้า แล้วรายงานให้ผู้เรียกรู้ถ้าอยู่ในโหมดฝัง
+  void _update(UserManagementModel next) {
+    setState(() => userInfo = next);
+    widget.onChanged?.call(next);
+  }
+
+  @override
   Widget build(BuildContext context) {
 
     String userName = userInfo.nameTH;
+
+    // โหมดฝัง: ไม่มี AppScaffold (จะกลายเป็น Scaffold ซ้อน Scaffold) แต่ยัง
+    // ต้องคุมความกว้างเองเพราะคอลัมน์ขวากว้างกว่าฟอร์มมาก
+    if (widget.embedded) {
+      return Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.widthFor(ContentShape.form),
+          ),
+          child: _body(context),
+        ),
+      );
+    }
 
     return AppScaffold(
       // 🚩 (2026-08-27) เดิมไม่ได้ระบุ maxWidth เลยตกไปใช้ค่า default
@@ -56,7 +104,13 @@ class _UserInfoState extends State<UserInfo> {
             Navigator.pop(context, (status: 0, updatedUser: userInfo));
         }
       ),
-      content: SafeArea(
+      content: _body(context),
+    );
+  }
+
+  /// เนื้อหาล้วนๆ ไม่รวมแถบหัว — ใช้ทั้งตอนเป็นหน้าเต็มและตอนถูกฝัง
+  Widget _body(BuildContext context) {
+    return SafeArea(
 
         child: Container(
           color: AppColors.backgroundColor,
@@ -108,9 +162,7 @@ class _UserInfoState extends State<UserInfo> {
                                         },
                                         request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(employeeId: value)),
                                         onSuccess: (value) {
-                                          setState(() {
-                                            userInfo = userInfo.copyWith(employeeId: value);
-                                          });
+                                          _update(userInfo.copyWith(employeeId: value));
                                         }
                                       ).showPopup(context);
                                     }, label: 'รหัสบุคลากร', value: userInfo.employeeId),
@@ -127,9 +179,7 @@ class _UserInfoState extends State<UserInfo> {
                                         },
                                         request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nameTH: value)),
                                         onSuccess: (value) {
-                                          setState(() {
-                                            userInfo = userInfo.copyWith(nameTH: value);
-                                          });
+                                          _update(userInfo.copyWith(nameTH: value));
                                         }
                                       ).showPopup(context);
                                     }, label: 'ชื่อ-นามสกุล', value: userInfo.nameTH),
@@ -146,9 +196,7 @@ class _UserInfoState extends State<UserInfo> {
                                         },
                                         request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nameEN: value)),
                                         onSuccess: (value) {
-                                          setState(() {
-                                            userInfo = userInfo.copyWith(nameEN: value);
-                                          });
+                                          _update(userInfo.copyWith(nameEN: value));
                                         }
                                       ).showPopup(context);
                                     }, label: 'Full Name', value: userInfo.nameEN),
@@ -165,9 +213,7 @@ class _UserInfoState extends State<UserInfo> {
                                           },
                                           request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(gender: value)),
                                           onSuccess: (value) {
-                                            setState(() {
-                                              userInfo = userInfo.copyWith(gender: value);
-                                            });
+                                            _update(userInfo.copyWith(gender: value));
                                           }
                                       ).showPopup(context);
                                     }, label: 'เพศ', value: userInfo.gender),
@@ -184,9 +230,7 @@ class _UserInfoState extends State<UserInfo> {
                                           },
                                           request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(nationality: value)),
                                           onSuccess: (value) {
-                                            setState(() {
-                                              userInfo = userInfo.copyWith(nationality: value);
-                                            });
+                                            _update(userInfo.copyWith(nationality: value));
                                           }
                                       ).showPopup(context);
                                     }, label: 'สัญชาติ', value: userInfo.nationality),
@@ -215,9 +259,7 @@ class _UserInfoState extends State<UserInfo> {
                                         },
                                         request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(phone: value)),
                                         onSuccess: (value) {
-                                          setState(() {
-                                            userInfo = userInfo.copyWith(phone: value);
-                                          });
+                                          _update(userInfo.copyWith(phone: value));
                                         }
                                       ).showPopup(context);
                                     }, label: 'เบอร์โทร', value: userInfo.phone),
@@ -234,9 +276,7 @@ class _UserInfoState extends State<UserInfo> {
                                           },
                                           request: (value) => UserManagementService().updateUserInfo(userInfo.copyWith(initRole: value)),
                                           onSuccess: (value) {
-                                            setState(() {
-                                              userInfo = userInfo.copyWith(initRole: value);
-                                            });
+                                            _update(userInfo.copyWith(initRole: value));
                                           }
                                       ).showPopup(context);
                                     }, label: 'สังกัด', value: userInfo.initRole),
@@ -255,9 +295,7 @@ class _UserInfoState extends State<UserInfo> {
                                       );
 
                                       if (updatedRole != null) {
-                                        setState(() {
-                                          userInfo = userInfo.copyWith(roles: updatedRole);
-                                        });
+                                        _update(userInfo.copyWith(roles: updatedRole));
                                       }
 
                                     }, label: 'ตำแหน่งปัจจุบัน', roles: [...userInfo.roles], icon: SvgPicture.asset('assets/images/icon_role.svg')),
@@ -284,7 +322,11 @@ class _UserInfoState extends State<UserInfo> {
                                           }, text: 'ยกเลิก', foregroundColor: Colors.white, backgroundColor: AppColors.primaryColor, ),
                                           FloatingServicePopupButton(onSuccess: () {
                                             Navigator.of(context1).pop();
-                                            Navigator.pop(context, (status: 1, updatedUser: null));
+                                            if (widget.embedded) {
+                                              widget.onDeleted?.call();
+                                            } else {
+                                              Navigator.pop(context, (status: 1, updatedUser: null));
+                                            }
                                           }, text: 'ลบ', foregroundColor: Colors.red, request: () => UserManagementService().deleteUser(userInfo.id), setError: parent)
                                         ]
                                       ).showPopup(context);
@@ -299,7 +341,6 @@ class _UserInfoState extends State<UserInfo> {
               )
             )
           )
-      )
     );
   }
 }

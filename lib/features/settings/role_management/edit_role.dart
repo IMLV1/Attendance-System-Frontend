@@ -99,9 +99,25 @@ Future<Response> getMemberAll() async {
 class EditRole extends StatefulWidget {
   final RoleSystem roleInfo;
 
+  /// ฝังเนื้อหาลงในคอลัมน์ขวาของ master-detail แทนการเป็นหน้าเต็ม
+  /// — ไม่มีแถบหัวและปุ่ม back เพราะรายการทางซ้ายทำหน้าที่นำทางแทนแล้ว
+  ///
+  /// 🚩 ผู้เรียกต้องใส่ `key: ValueKey(role.id)` ด้วย สลับตำแหน่งแล้ว State
+  /// (พร้อม TextEditingController ทั้งสามตัว) จะได้ถูกสร้างใหม่ ไม่ค้างชื่อเดิม
+  final bool embedded;
+
+  /// เรียกหลังบันทึกสำเร็จ (โหมดฝัง) — โหมดหน้าเต็มคืนค่าตอน pop แทน
+  final ValueChanged<RoleSystem>? onSaved;
+
+  /// เรียกหลังลบตำแหน่งสำเร็จ (โหมดฝัง)
+  final VoidCallback? onDeleted;
+
   const EditRole({
     super.key,
     required this.roleInfo,
+    this.embedded = false,
+    this.onSaved,
+    this.onDeleted,
   });
 
   @override
@@ -251,6 +267,20 @@ class _EditRoleState extends State<EditRole> {
   // ---------- UI ----------
   @override
   Widget build(BuildContext context) {
+    // โหมดฝัง: ไม่มี AppScaffold (จะกลายเป็น Scaffold ซ้อน Scaffold) แต่ยัง
+    // ต้องคุมความกว้างเองเพราะคอลัมน์ขวากว้างกว่าฟอร์มมาก
+    if (widget.embedded) {
+      return Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.widthFor(ContentShape.form),
+          ),
+          child: _body(context),
+        ),
+      );
+    }
+
     return AppScaffold(
       // 🚩 (2026-08-27) เดิมไม่ได้ระบุ maxWidth เลยตกไปใช้ค่า default
       // (dashboard = 1100) ทั้งที่หน้านี้เป็นฟอร์มคอลัมน์เดียว ผลคือบนจอกว้าง
@@ -260,7 +290,13 @@ class _EditRoleState extends State<EditRole> {
         context,
         title: 'แก้ไข: ${_role.roleName}',
       ),
-      content: SafeArea(
+      content: _body(context),
+    );
+  }
+
+  /// เนื้อหาล้วนๆ ไม่รวมแถบหัว — ใช้ทั้งตอนเป็นหน้าเต็มและตอนถูกฝัง
+  Widget _body(BuildContext context) {
+    return SafeArea(
         child: Container(
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
@@ -416,9 +452,13 @@ class _EditRoleState extends State<EditRole> {
                                           onSuccess: () {
                                             Navigator.of(context1).pop();
 
-                                            Navigator.pop(context, {
-                                              'status': 1,
-                                            });
+                                            if (widget.embedded) {
+                                              widget.onDeleted?.call();
+                                            } else {
+                                              Navigator.pop(context, {
+                                                'status': 1,
+                                              });
+                                            }
                                           },
                                         )
                                       ]
@@ -776,7 +816,17 @@ class _EditRoleState extends State<EditRole> {
                           _roleColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2),
                         );
 
-                        Navigator.pop(context, updatedRole);
+                        if (widget.embedded) {
+                          // อยู่หน้าเดิมต่อ — อัปเดตค่าอ้างอิงในหน้าให้ตรงกับที่
+                          // เพิ่งบันทึก ไม่งั้นปุ่มบันทึกจะยังคิดว่ามีของค้างแก้อยู่
+                          setState(() {
+                            _role = updatedRole;
+                            _originalValue = updatedRole.roleName;
+                          });
+                          widget.onSaved?.call(updatedRole);
+                        } else {
+                          Navigator.pop(context, updatedRole);
+                        }
                       },
                       builder: (trigger, state, errorMessage) {
                         return Column(
@@ -843,7 +893,6 @@ class _EditRoleState extends State<EditRole> {
             )
           ),
         )
-      ),
     );
   }
 }

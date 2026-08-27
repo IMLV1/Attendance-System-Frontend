@@ -8,6 +8,7 @@ import 'package:attendance_system/services/user_management/user_management_servi
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
+import 'package:attendance_system/shared/widgets/master_detail_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
@@ -75,6 +76,10 @@ class _UserManagementState extends State<UserManagement> {
   List<UserManagementModel> users = [];
   List<UserManagementModel> filteredUsers = [];
 
+  /// ผู้ใช้ที่กำลังดูอยู่ในคอลัมน์ขวา — ใช้เฉพาะโหมด master-detail (จอกว้าง)
+  /// บนมือถือยังกดแล้ว push หน้าใหม่เหมือนเดิม ค่านี้จึงเป็น null ตลอด
+  UserManagementModel? selected;
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -114,10 +119,59 @@ class _UserManagementState extends State<UserManagement> {
   @override
   Widget build(BuildContext context) {
 
+    // 🚩 (Phase 6, 2026-08-27) บนจอกว้างหน้านี้เคยเป็นรายการแคบๆ กลางจอ
+    // กดชื่อแล้ว push ทับทั้งหน้าเพื่อดูข้อมูลคนเดียว ทั้งที่พื้นที่พอวางสอง
+    // คอลัมน์ได้สบาย และการสลับดูทีละคนต้องกด back ทุกครั้ง
+    if (!Responsive.isCompact(context)) return _masterDetail(context);
+
     return AppScaffold(
       maxWidth: Responsive.widthFor(ContentShape.list),
       header: Header.subHeader(context, title: 'จัดการผู้ใช้งานระบบ'),
-      content: SafeArea(
+      content: _body(context),
+    );
+  }
+
+  Widget _masterDetail(BuildContext context) {
+    final user = selected;
+
+    return MasterDetailScaffold(
+      title: 'จัดการผู้ใช้งานระบบ',
+      emptyLabel: 'เลือกผู้ใช้จากรายการทางซ้าย',
+      // กว้างกว่า 360 ของหน้าข้อมูลบุคลากร เพราะแถวนี้มี fallback เป็นอีเมล
+      // เต็มๆ (บาง account ไม่มีชื่อ) ที่ 360 อีเมลตัดสามบรรทัดจนแถวสูงผิดปกติ
+      masterWidth: 430,
+      masterPadding: EdgeInsets.zero,
+      master: _body(context),
+      detail: user == null
+          ? null
+          // key ผูกกับ id — สลับคนแล้ว state เก่าหายไปเอง ไม่ต้องไล่เคลียร์
+          : UserInfo(
+              key: ValueKey(user.id),
+              userInfo: user,
+              embedded: true,
+              onChanged: _replaceUser,
+              onDeleted: () {
+                setState(() {
+                  users.remove(user);
+                  selected = null;
+                });
+                _onSearchChanged(_controller.text);
+              },
+            ),
+    );
+  }
+
+  void _replaceUser(UserManagementModel updated) {
+    final index = users.indexWhere((u) => u.id == updated.id);
+    setState(() {
+      if (index >= 0) users[index] = updated;
+      selected = updated;
+    });
+    _onSearchChanged(_controller.text);
+  }
+
+  Widget _body(BuildContext context) {
+    return SafeArea(
         child: Container(
           color: AppColors.backgroundColor,
           alignment: Alignment.topCenter,
@@ -333,9 +387,17 @@ class _UserManagementState extends State<UserManagement> {
                               final m = filteredUsers[index];
                               final isFirst = index == 0;
                               final isLast = index == filteredUsers.length - 1;
+                              // ไฮไลต์เฉพาะโหมด master-detail — จอแคบกดแล้วเปิด
+                              // หน้าใหม่ทับไปเลย ไม่มีรายการค้างให้ต้องบอกว่าเลือกอะไรอยู่
+                              final isSelected = !Responsive.isCompact(context) &&
+                                  m.id == selected?.id;
                               return Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.cardColor,
+                                  // ไฮไลต์คนที่กำลังดูอยู่ — จำเป็นเฉพาะโหมด
+                                  // master-detail ที่รายการค้างอยู่ข้างๆ ตลอด
+                                  color: isSelected
+                                      ? const Color(0xFFEDE3E4)
+                                      : AppColors.cardColor,
                                   borderRadius: BorderRadius.vertical(
                                     top: Radius.circular(isFirst ? 25 : 0),
                                     bottom: Radius.circular(isLast ? 25 : 0),
@@ -346,6 +408,13 @@ class _UserManagementState extends State<UserManagement> {
                                   children: [
                                 UserInfoButton(
                                   onPressed: () async {
+                                    // จอกว้าง: เปลี่ยนเนื้อหาคอลัมน์ขวาแทนการ
+                                    // push ทับทั้งหน้า
+                                    if (!Responsive.isCompact(context)) {
+                                      setState(() => selected = m);
+                                      return;
+                                    }
+
                                     final ({int status, UserManagementModel? updatedUser})? res = await Navigator.of(context).push<({int status, UserManagementModel? updatedUser})>(
                                       MaterialPageRoute(
                                         builder: (context) => UserInfo(userInfo: m),
@@ -441,7 +510,6 @@ class _UserManagementState extends State<UserManagement> {
               )
           )
         )
-      ),
     );
   }
 }
