@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 
+import 'root_overlay_tracker.dart';
+
 /// วาง `<input type="file">` ของจริงทับปุ่ม เพื่อให้ **ผู้ใช้แตะ element นั้นตรงๆ**
 ///
 /// 🚩 (2026-08-27) รอบแรกลองสร้าง input ซ่อนไว้แล้วสั่ง `.click()` จากโค้ด แล้ว
@@ -22,14 +24,74 @@ Widget? buildNativeFileInput({
   required void Function(PlatformFile file) onPicked,
   required Widget child,
 }) {
-  return Stack(
-    children: [
-      child,
-      Positioned.fill(
-        child: _FileInputOverlay(extensions: extensions, onPicked: onPicked),
-      ),
-    ],
+  return _NativeFileInput(
+    extensions: extensions,
+    onPicked: onPicked,
+    child: child,
   );
+}
+
+class _NativeFileInput extends StatefulWidget {
+
+  const _NativeFileInput({
+    required this.extensions,
+    required this.onPicked,
+    required this.child,
+  });
+
+  final List<String> extensions;
+  final void Function(PlatformFile file) onPicked;
+  final Widget child;
+
+  @override
+  State<_NativeFileInput> createState() => _NativeFileInputState();
+}
+
+class _NativeFileInputState extends State<_NativeFileInput> {
+
+  /// route บนสุด ณ ตอนที่ widget นี้โผล่ — ต้องอ่านหลังเฟรมแรก เพราะตอน build
+  /// รอบแรก observer อาจยังไม่ทันบันทึก route ที่กำลัง push อยู่
+  Route<dynamic>? _seenAtMount;
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _seenAtMount = RootOverlayTracker.topRoute.value;
+        _ready = true;
+      });
+    });
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    // 🚩 (2026-08-27) HtmlElementView อยู่ใน DOM ชั้นเหนือ canvas ของ Flutter
+    // popup ที่ Flutter วาดจึงทับมันไม่ได้ — แตะตรงตำแหน่งปุ่มทั้งที่ popup
+    // เปิดอยู่ เมนูแนบไฟล์จะเด้งทะลุขึ้นมา ต้องถอด overlay ทิ้งเองตอนมีอะไรบัง
+    return ValueListenableBuilder<Route<dynamic>?>(
+      valueListenable: RootOverlayTracker.topRoute,
+      builder: (context, _, child) {
+        if (_ready && RootOverlayTracker.isCoveredSince(_seenAtMount)) {
+          return widget.child;
+        }
+        return Stack(
+          children: [
+            widget.child,
+            Positioned.fill(
+              child: _FileInputOverlay(
+                extensions: widget.extensions,
+                onPicked: widget.onPicked,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _FileInputOverlay extends StatelessWidget {

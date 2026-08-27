@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:web/web.dart' as web;
 
+import 'root_overlay_tracker.dart';
+
 /// ฝัง `<select>` ของจริงลงในหน้า เพื่อให้ **OS เป็นคนวาดเมนูให้**
 ///
 /// 🚩 (2026-08-27) Flutter Web วาดทุกอย่างลง canvas ผืนเดียว เบราว์เซอร์จึงไม่
@@ -51,6 +53,24 @@ class _WebSelect extends StatefulWidget {
 class _WebSelectState extends State<_WebSelect> {
 
   web.HTMLSelectElement? _element;
+
+  /// route บนสุด ณ ตอนที่ widget นี้โผล่ — ต้องอ่านหลังเฟรมแรก เพราะตอน build
+  /// รอบแรก observer อาจยังไม่ทันบันทึก route ที่กำลัง push อยู่
+  Route<dynamic>? _seenAtMount;
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _seenAtMount = RootOverlayTracker.topRoute.value;
+        _ready = true;
+      });
+    });
+  }
+
 
   @override
   void didUpdateWidget(_WebSelect old) {
@@ -107,9 +127,19 @@ class _WebSelectState extends State<_WebSelect> {
 
   @override
   Widget build(BuildContext context) {
-    return HtmlElementView.fromTagName(
-      tagName: 'select',
-      onElementCreated: _onCreated,
+    // เหตุผลเดียวกับ native_file_input_web: DOM อยู่เหนือ canvas เสมอ
+    // ถ้ามี popup ซ้อนอยู่ต้องถอดทิ้ง ไม่งั้นแตะทะลุลงมาโดน
+    return ValueListenableBuilder<Route<dynamic>?>(
+      valueListenable: RootOverlayTracker.topRoute,
+      builder: (context, _, child) {
+        if (_ready && RootOverlayTracker.isCoveredSince(_seenAtMount)) {
+          return const SizedBox.shrink();
+        }
+        return HtmlElementView.fromTagName(
+          tagName: 'select',
+          onElementCreated: _onCreated,
+        );
+      },
     );
   }
 }

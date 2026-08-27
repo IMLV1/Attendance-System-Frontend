@@ -23,6 +23,7 @@ import '../features/auth/login_page.dart';
 import '../features/history/attendance_history.dart';
 import '../features/notification/notification.dart';
 import '../features/splash/splash_page.dart';
+import '../shared/widgets/utils/native_select/root_overlay_tracker.dart';
 import '../features/settings/approval/approval.dart';
 import '../features/settings/role_management/role_management.dart';
 import '../service_locator.dart';
@@ -102,6 +103,8 @@ CustomTransitionPage<void> _destinationPage(
 }
 
 final appRouter = GoRouter(
+  // ให้ HtmlElementView บนเว็บรู้ว่ามี popup บังอยู่ไหม (ดู RootOverlayTracker)
+  observers: [RootOverlayTracker()],
   refreshListenable: getIt<AuthState>(),
   initialLocation: '/login',
   redirect: (_, state) {
