@@ -104,17 +104,30 @@ enum _Source { gallery, camera, files }
 /// `MenuAnchor` ทำให้อยู่แล้วโดยไม่ต้องส่ง GlobalKey หรือคำนวณพิกัดเอง
 ///
 /// บนเว็บ/desktop ไม่มีเมนู กดแล้วเปิดตัวเลือกไฟล์ของ OS ตรงๆ (ดู [AttachmentPicker])
-class AttachmentPickerButton extends StatelessWidget {
+class AttachmentPickerButton extends StatefulWidget {
+
+  const AttachmentPickerButton({super.key, required this.onPicked});
+
+  final void Function(PlatformFile file) onPicked;
+
+  @override
+  State<AttachmentPickerButton> createState() => _AttachmentPickerButtonState();
+}
+
+class _AttachmentPickerButtonState extends State<AttachmentPickerButton> {
+
+  /// 🚩 (2026-08-27) ต้องถือ controller ไว้เองเพื่อ **ปิดเมนู** ตอนเลือกเสร็จ
+  ///
+  /// เมนูของ `MenuAnchor` วาดอยู่ใน overlay ไม่ใช่ route — เดิมเผลอปิดด้วย
+  /// `Navigator.of(context).pop()` ซึ่งไปเด้ง route ของ "หน้า" ออกแทน
+  /// กดเลือกไฟล์ทีเดียวเลยหลุดกลับไปหน้าก่อนหน้า
+  final MenuController _menuController = MenuController();
 
   /// มุมโค้งของเมนู iOS
   static const double _radius = 13;
 
   /// สี label ของ iOS โหมดสว่าง (ไม่ใช่ดำสนิท)
   static const Color _labelColor = Color(0xFF1C1C1E);
-
-  const AttachmentPickerButton({super.key, required this.onPicked});
-
-  final void Function(PlatformFile file) onPicked;
 
   bool get _usesMenu => AttachmentPicker.hasCamera;
 
@@ -123,11 +136,12 @@ class AttachmentPickerButton extends StatelessWidget {
     if (!_usesMenu) {
       return _button(onPressed: () async {
         final file = await AttachmentPicker.pickFiles();
-        if (file != null) onPicked(file);
+        if (file != null) widget.onPicked(file);
       });
     }
 
     return MenuAnchor(
+      controller: _menuController,
       // iOS วางเมนูใต้ตัวควบคุมโดยเว้นช่องเล็กน้อย
       alignmentOffset: const Offset(0, 6),
 
@@ -230,9 +244,9 @@ class AttachmentPickerButton extends StatelessWidget {
           highlightColor: const Color(0x1A000000),
           hoverColor: const Color(0x0D000000),
           onTap: () async {
-            Navigator.of(context).pop();
+            _menuController.close();
             final file = await AttachmentPicker._pickFrom(source);
-            if (file != null) onPicked(file);
+            if (file != null) widget.onPicked(file);
           },
           child: SizedBox(
             height: 44,
