@@ -59,9 +59,32 @@ class _WebDropRegionState extends State<_WebDropRegion> {
 
   bool _hovering = false;
 
+  /// ปลด handler ของ `desktop_drop` ทิ้งครั้งเดียวต่อการเปิดแอป
+  static bool _pluginDisarmed = false;
+
+  /// 🚩 `desktop_drop` ลงทะเบียนฝั่งเว็บให้อัตโนมัติผ่าน plugin registrant ตั้งแต่
+  /// แอปเริ่มทำงาน (ไม่เกี่ยวกับว่าเรา import มันตรงไหน) แล้วมันไป **ยึด
+  /// `window.ondrop` ไว้เป็นของตัวเอง** ทั้งที่เราไม่ได้ใช้ฝั่งเว็บของมันแล้ว
+  ///
+  /// ผลคือทุกครั้งที่ผู้ใช้ลากไฟล์ผ่านหน้าจอ คอนโซลจะพ่น `MissingPluginException`
+  /// (entered / updated / performOperation_web) กับ `Unexpected null value` ของมัน
+  /// ออกมารัวๆ (ดูเหตุผลเต็มที่หัวไฟล์) — ไม่ทำให้ฟีเจอร์พังเพราะเราดักที่ document
+  /// ซึ่งมาก่อน window ในสาย bubble อยู่แล้ว แต่เป็น exception ที่โยนทุกครั้งโดย
+  /// ไม่มีใครได้อะไร จึงถอดทิ้งทั้ง 4 ตัวไปเลย
+  static void _disarmDesktopDropPlugin() {
+    if (_pluginDisarmed) return;
+    _pluginDisarmed = true;
+    web.window.ondrop = null;
+    web.window.ondragenter = null;
+    web.window.ondragover = null;
+    web.window.ondragleave = null;
+  }
+
   @override
   void initState() {
     super.initState();
+    _disarmDesktopDropPlugin();
+
     // ต้องดักที่ document ไม่ใช่ element ของตัวเอง เพราะ Flutter วาดลง canvas
     // ตัวเดียว — ไม่มี DOM element ของ widget นี้ให้ผูก listener
     web.document.addEventListener('dragover', _onDragOver);
