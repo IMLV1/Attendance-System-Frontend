@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/ios_menu.dart';
+import 'package:attendance_system/shared/widgets/utils/native_select/native_file_input_stub.dart'
+    if (dart.library.js_interop) 'package:attendance_system/shared/widgets/utils/native_select/native_file_input_web.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -127,10 +129,20 @@ class _AttachmentPickerButtonState extends State<AttachmentPickerButton> {
   @override
   Widget build(BuildContext context) {
     if (!_usesMenu) {
-      return _button(onPressed: () async {
+      final button = _button(onPressed: () async {
         final file = await AttachmentPicker.pickFiles();
         if (file != null) widget.onPicked(file);
       });
+
+      // บนเว็บวาง <input type="file"> จริงทับปุ่ม เพื่อให้ผู้ใช้แตะ element นั้น
+      // ตรงๆ — Safari จะได้ยึดเมนูของ OS ไว้กับปุ่ม แทนที่จะไปโผล่ตำแหน่ง default
+      // (ปุ่ม Flutter ข้างล่างยังทำงานอยู่ เผื่อเบราว์เซอร์ที่ฝัง input ไม่ได้)
+      return buildNativeFileInput(
+            extensions: AttachmentPicker.allowedExtensions,
+            onPicked: widget.onPicked,
+            child: button,
+          ) ??
+          button;
     }
 
     return MenuAnchor(
