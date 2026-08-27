@@ -116,15 +116,29 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  # 🚩 (2026-08-27) เลิก bundle Inter แล้ว — ทั้งแอปใช้ฟอนต์ของ OS แทน
-  # (ดู AppTheme.systemFontFamily) ไฟล์ยังอยู่ใน assets/fonts/ ถ้าจะกลับไปใช้
-  # แค่เอาคอมเมนต์ออก
-  # fonts:
-  #   - family: Inter
-  #     fonts:
-  #       - asset: assets/fonts/Inter-VariableFont_opsz,wght.ttf
-  #       - asset: assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf
-  #         style: italic
+  # 🚩 (2026-08-27) เว็บใช้ฟอนต์ระบบไม่ได้ — CanvasKit วาดตัวอักษรลง canvas เอง
+  # จึงเข้าถึงฟอนต์ที่ติดตั้งใน OS ไม่ได้ (HTML renderer ที่เคยทำได้ถูกถอดออกจาก
+  # Flutter ไปแล้ว) ส่วนแอปใช้ฟอนต์ระบบได้ปกติ ดู AppTheme.systemFontFamily
+  #
+  # จึง bundle ฟอนต์ไว้ให้เว็บใช้ เพื่อให้ทั้งหน้ากลืนกันเอง — ไทยต้องมีด้วย
+  # เพราะ Inter ไม่มี glyph ไทย ถ้าไม่ใส่ ไทยจะไปหยิบ fallback ที่คุมไม่ได้
+  # แล้วไม่ตรงกับ <select> ที่วาดด้วย CSS
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-VariableFont_opsz,wght.ttf
+        - asset: assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf
+          style: italic
+    - family: NotoSansThai
+      fonts:
+        - asset: assets/fonts/NotoSansThai-400.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansThai-500.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansThai-600.ttf
+          weight: 600
+        - asset: assets/fonts/NotoSansThai-700.ttf
+          weight: 700
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 

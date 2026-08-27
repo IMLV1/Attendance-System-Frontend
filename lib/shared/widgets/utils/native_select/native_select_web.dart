@@ -90,13 +90,9 @@ class _WebSelectState extends State<_WebSelect> {
       ..background = 'transparent'
       ..color = _css(style.color ?? Colors.black)
       ..fontSize = '${style.fontSize ?? 14}px'
-      // 🚩 (2026-08-27) เดิม fallback เป็น 'Inter' ซึ่งเลิก bundle ไปแล้ว
-      // เบราว์เซอร์จึงตกไปใช้ฟอนต์อื่น ทำให้ตัวเลขในช่องนี้ไม่ตรงกับข้อความ
-      // ที่เหลือในหน้า — element นี้จัดฟอนต์ด้วย CSS แยกจาก theme ของ Flutter
-      // จึงต้องระบุ stack เดียวกับ AppTheme ให้ตรงกันเอง
-      ..fontFamily = style.fontFamily == null
-          ? AppTheme.systemFontFallback.join(', ')
-          : '${style.fontFamily}, ${AppTheme.systemFontFallback.join(', ')}'
+      // element นี้เบราว์เซอร์วาดเอง จึงต้องระบุ stack ให้ตรงกับที่ canvas ใช้
+      // ไม่งั้นข้อความในช่องกับข้อความรอบๆ จะคนละฟอนต์ (เคยเป็นแบบนั้นมาแล้ว)
+      ..fontFamily = AppTheme.cssFontStack
       // ตัดลูกศร default ของเบราว์เซอร์ทิ้ง ให้หน้าตาใกล้ของเดิม
       ..appearance = 'none'
       ..textAlign = 'center';

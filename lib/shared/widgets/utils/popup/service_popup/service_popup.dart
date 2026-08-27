@@ -95,7 +95,7 @@ class ServicePopup {
                                                           decoration: TextDecoration.none,
                                                           fontSize: 20,
                                                           color: Colors.black,
-                                                          fontFamily: AppTheme.systemFontFamily,
+                                                          fontFamily: AppTheme.fontFamily,
                                                           fontWeight: FontWeight.normal,
 
                                                         )
@@ -123,7 +123,7 @@ class ServicePopup {
                                                             style: TextStyle(
                                                               fontSize: 17,
                                                               color: AppColors.primaryColor,
-                                                              fontFamily: AppTheme.systemFontFamily,
+                                                              fontFamily: AppTheme.fontFamily,
                                                               fontWeight: FontWeight.normal,
                                                             ),
                                                           )

@@ -122,7 +122,7 @@ class DynamicPushPopup {
                                                     decoration: TextDecoration.none,
                                                     fontSize: 20,
                                                     color: Colors.black,
-                                                    fontFamily: AppTheme.systemFontFamily,
+                                                    fontFamily: AppTheme.fontFamily,
                                                     fontWeight: FontWeight.normal,
                                                   ),
                                                 ),
@@ -153,7 +153,7 @@ class DynamicPushPopup {
                                                       style: TextStyle(
                                                         fontSize: 17,
                                                         color: currentConfig.buttonColor,
-                                                        fontFamily: AppTheme.systemFontFamily,
+                                                        fontFamily: AppTheme.fontFamily,
                                                         fontWeight: FontWeight.normal,
                                                       ),
                                                     ),

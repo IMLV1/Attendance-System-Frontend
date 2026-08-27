@@ -174,7 +174,7 @@ class FloatingPopupButton extends StatelessWidget {
         text,
         style: TextStyle(
           decoration: TextDecoration.none,
-          fontFamily: AppTheme.systemFontFamily,
+          fontFamily: AppTheme.fontFamily,
           fontWeight: FontWeight.w600,
           color: foregroundColor,
           fontSize: 17
@@ -238,7 +238,7 @@ class FloatingServicePopupButton extends StatelessWidget {
                 text,
                 style: TextStyle(
                     decoration: TextDecoration.none,
-                    fontFamily: AppTheme.systemFontFamily,
+                    fontFamily: AppTheme.fontFamily,
                     fontWeight: FontWeight.w600,
                     color: foregroundColor,
                     fontSize: 17

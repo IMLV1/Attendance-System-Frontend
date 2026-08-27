@@ -32,6 +32,30 @@
 
   <title>attendance_system</title>
   <link rel="manifest" href="manifest.json">
+  <!-- 🚩 (2026-08-27) ฟอนต์ที่ Flutter bundle ไว้ถูกโหลดเข้า CanvasKit เท่านั้น
+       เบราว์เซอร์ไม่รู้จัก จึงต้องประกาศ @font-face ซ้ำที่นี่ ให้ element ที่
+       เบราว์เซอร์วาดเอง (เช่น <select> ในตัวเลือกเดือน/ปี) ใช้ฟอนต์เดียวกับ
+       ที่ canvas ใช้ ไม่งั้นข้อความสองที่จะคนละฟอนต์ -->
+  <style id="app-fonts">
+    @font-face {
+      font-family: 'Inter';
+      src: url('assets/assets/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+      font-weight: 100 900;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'NotoSansThai';
+      src: url('assets/assets/fonts/NotoSansThai-400.ttf') format('truetype');
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'NotoSansThai';
+      src: url('assets/assets/fonts/NotoSansThai-600.ttf') format('truetype');
+      font-weight: 600;
+      font-display: swap;
+    }
+  </style>
   <style id="splash-screen-style">
     html {
       height: 100%

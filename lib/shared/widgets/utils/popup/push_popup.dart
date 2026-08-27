@@ -78,7 +78,7 @@ class PushPopup {
                           decoration: TextDecoration.none,
                           fontSize: 20,
                           color: Colors.black,
-                          fontFamily: AppTheme.systemFontFamily,
+                          fontFamily: AppTheme.fontFamily,
                           fontWeight: FontWeight.normal,
                         ),
                       ),
@@ -102,7 +102,7 @@ class PushPopup {
                             style: TextStyle(
                               fontSize: 17,
                               color: AppColors.primaryColor,
-                              fontFamily: AppTheme.systemFontFamily,
+                              fontFamily: AppTheme.fontFamily,
                               fontWeight: FontWeight.normal,
                             ),
                           ),
