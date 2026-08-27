@@ -116,12 +116,15 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  fonts:
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter-VariableFont_opsz,wght.ttf
-        - asset: assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf
-          style: italic
+  # 🚩 (2026-08-27) เลิก bundle Inter แล้ว — ทั้งแอปใช้ฟอนต์ของ OS แทน
+  # (ดู AppTheme.systemFontFamily) ไฟล์ยังอยู่ใน assets/fonts/ ถ้าจะกลับไปใช้
+  # แค่เอาคอมเมนต์ออก
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/Inter-VariableFont_opsz,wght.ttf
+  #       - asset: assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf
+  #         style: italic
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 

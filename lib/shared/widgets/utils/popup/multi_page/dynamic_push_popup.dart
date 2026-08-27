@@ -1,4 +1,5 @@
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
+import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/popup_surface.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -117,11 +118,11 @@ class DynamicPushPopup {
                                                 alignment: Alignment.bottomCenter,
                                                 child: Text(
                                                   currentConfig.title,
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     decoration: TextDecoration.none,
                                                     fontSize: 20,
                                                     color: Colors.black,
-                                                    fontFamily: 'Inter',
+                                                    fontFamily: AppTheme.systemFontFamily,
                                                     fontWeight: FontWeight.normal,
                                                   ),
                                                 ),
@@ -152,7 +153,7 @@ class DynamicPushPopup {
                                                       style: TextStyle(
                                                         fontSize: 17,
                                                         color: currentConfig.buttonColor,
-                                                        fontFamily: 'Inter',
+                                                        fontFamily: AppTheme.systemFontFamily,
                                                         fontWeight: FontWeight.normal,
                                                       ),
                                                     ),

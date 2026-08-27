@@ -1,4 +1,5 @@
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
+import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -173,7 +174,7 @@ class FloatingPopupButton extends StatelessWidget {
         text,
         style: TextStyle(
           decoration: TextDecoration.none,
-          fontFamily: 'Inter',
+          fontFamily: AppTheme.systemFontFamily,
           fontWeight: FontWeight.w600,
           color: foregroundColor,
           fontSize: 17
@@ -237,7 +238,7 @@ class FloatingServicePopupButton extends StatelessWidget {
                 text,
                 style: TextStyle(
                     decoration: TextDecoration.none,
-                    fontFamily: 'Inter',
+                    fontFamily: AppTheme.systemFontFamily,
                     fontWeight: FontWeight.w600,
                     color: foregroundColor,
                     fontSize: 17

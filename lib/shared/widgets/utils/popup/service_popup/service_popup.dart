@@ -1,4 +1,5 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/popup_surface.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:dio/dio.dart';
@@ -94,7 +95,7 @@ class ServicePopup {
                                                           decoration: TextDecoration.none,
                                                           fontSize: 20,
                                                           color: Colors.black,
-                                                          fontFamily: 'Inter',
+                                                          fontFamily: AppTheme.systemFontFamily,
                                                           fontWeight: FontWeight.normal,
 
                                                         )
@@ -122,7 +123,7 @@ class ServicePopup {
                                                             style: TextStyle(
                                                               fontSize: 17,
                                                               color: AppColors.primaryColor,
-                                                              fontFamily: 'Inter',
+                                                              fontFamily: AppTheme.systemFontFamily,
                                                               fontWeight: FontWeight.normal,
                                                             ),
                                                           )

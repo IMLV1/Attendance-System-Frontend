@@ -1,4 +1,5 @@
 import 'package:attendance_system/shared/theme/app_colors.dart';
+import 'package:attendance_system/shared/theme/app_theme.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/popup_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -73,11 +74,11 @@ class PushPopup {
                       alignment: Alignment.bottomCenter,
                       child: Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           decoration: TextDecoration.none,
                           fontSize: 20,
                           color: Colors.black,
-                          fontFamily: 'Inter',
+                          fontFamily: AppTheme.systemFontFamily,
                           fontWeight: FontWeight.normal,
                         ),
                       ),
@@ -101,7 +102,7 @@ class PushPopup {
                             style: TextStyle(
                               fontSize: 17,
                               color: AppColors.primaryColor,
-                              fontFamily: 'Inter',
+                              fontFamily: AppTheme.systemFontFamily,
                               fontWeight: FontWeight.normal,
                             ),
                           ),
