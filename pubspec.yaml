@@ -66,6 +66,8 @@ dependencies:
   url_launcher: ^6.3.2
   collection: ^1.19.1
   web: ^1.1.1
+  open_filex: ^4.7.0
+  desktop_drop: ^0.8.2
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,7 @@ import 'package:attendance_system/services/leave/leave_service.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/widgets/utils/attachment_picker.dart';
+import 'package:attendance_system/shared/widgets/utils/file_drop_target.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/multi_page/service_signature_page.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
@@ -367,162 +368,166 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
                                     width: 1.5,
                                   ) : null,
                                 ),
-                                child: SeparatorCard(
-                                  separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                                  children: [
-                                    // 🚩 (2026-08-27) เดิมตรงนี้เป็น MenuAnchor ~120 บรรทัดที่วาดเมนู
-                                    // คลังรูปภาพ/ถ่ายรูป/เลือกไฟล์ ขึ้นมาเอง และถูกก๊อปไว้เหมือนกัน 4 ที่
-                                    //
-                                    // ย้ายไป AttachmentPicker ซึ่งเลือกท่าให้ตรงกับแต่ละแพลตฟอร์ม — บนเว็บ
-                                    // ปล่อยให้เบราว์เซอร์เด้งชีตของ OS เอง (iOS Safari ให้ Photo Library /
-                                    // Take Photo / Choose Files อยู่แล้ว) ส่วนบนแอปใช้ชีตของ iOS/Android จริงๆ
-                                    AttachmentPickerButton(
-                                      onPicked: (file) => setState(() {
-                                        allFiles.add(file);
-                                      }),
-                                    ),
+                                child: FileDropTarget(
+                                  // ลากไฟล์จาก Finder/Explorer มาวางบนการ์ดนี้ได้เลย (desktop/web)
+                                  onPicked: (file) => setState(() => allFiles.add(file)),
+                                  child: SeparatorCard(
+                                    separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                                    children: [
+                                      // 🚩 (2026-08-27) เดิมตรงนี้เป็น MenuAnchor ~120 บรรทัดที่วาดเมนู
+                                      // คลังรูปภาพ/ถ่ายรูป/เลือกไฟล์ ขึ้นมาเอง และถูกก๊อปไว้เหมือนกัน 4 ที่
+                                      //
+                                      // ย้ายไป AttachmentPicker ซึ่งเลือกท่าให้ตรงกับแต่ละแพลตฟอร์ม — บนเว็บ
+                                      // ปล่อยให้เบราว์เซอร์เด้งชีตของ OS เอง (iOS Safari ให้ Photo Library /
+                                      // Take Photo / Choose Files อยู่แล้ว) ส่วนบนแอปใช้ชีตของ iOS/Android จริงๆ
+                                      AttachmentPickerButton(
+                                        onPicked: (file) => setState(() {
+                                          allFiles.add(file);
+                                        }),
+                                      ),
 
-                                    Padding(
-                                        padding: EdgeInsetsGeometry.all(10),
-                                        child: (allFiles.isEmpty && oldFiles.isEmpty) ? Padding(
-                                          padding: EdgeInsetsGeometry.all(5),
-                                          child: Text(
-                                            'ยังไม่ได้อัพโหลดไฟล์',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              color: Color(0xFF7D7D7D), // สีจาง
+                                      Padding(
+                                          padding: EdgeInsetsGeometry.all(10),
+                                          child: (allFiles.isEmpty && oldFiles.isEmpty) ? Padding(
+                                            padding: EdgeInsetsGeometry.all(5),
+                                            child: Text(
+                                              'ยังไม่ได้อัพโหลดไฟล์',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Color(0xFF7D7D7D), // สีจาง
+                                              ),
                                             ),
-                                          ),
-                                        ) : SizedBox(
-                                            width: double.infinity,
-                                            child: Wrap(
+                                          ) : SizedBox(
+                                              width: double.infinity,
+                                              child: Wrap(
 
-                                              spacing: 5,
-                                              runSpacing: 7,
-                                              children: [
+                                                spacing: 5,
+                                                runSpacing: 7,
+                                                children: [
 
-                                                ...oldFiles.map((file) {
+                                                  ...oldFiles.map((file) {
 
-                                                  return Container(
+                                                    return Container(
 
-                                                      constraints: BoxConstraints(
-                                                          maxWidth: 230
-                                                      ),
-
-                                                      decoration: BoxDecoration(
-                                                        border: Border.all(
-                                                          color: Color(0xFFBDBDBD), // stroke color
-                                                          width: 2, // stroke width
+                                                        constraints: BoxConstraints(
+                                                            maxWidth: 230
                                                         ),
-                                                        borderRadius: BorderRadius.circular(10),
-                                                      ),
-                                                      padding: EdgeInsetsGeometry.all(5),
-                                                      child: Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Flexible(child: Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            mainAxisSize: MainAxisSize.min,
-                                                            children: [
-                                                              Text(file.fileName,
-                                                                  overflow: TextOverflow.ellipsis,
-                                                                  style: TextStyle(
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w800
-                                                                  )
-                                                              ),
-                                                              Text('ขนาด ${Utils.formatBytes(file.fileSize)}',
-                                                                  style: TextStyle(
-                                                                      color: Color(0xFF7D7D7D),
-                                                                      fontWeight: FontWeight.normal
-                                                                  )
-                                                              ),
-                                                            ],
-                                                          )),
-                                                          InkWell(
-                                                            customBorder: CircleBorder(),
-                                                            onTap: () {
-                                                              setState(() {
-                                                                oldFiles.remove(file);
-                                                              });
-                                                            },
-                                                            child: Padding(
-                                                              padding: EdgeInsets.all(6),
-                                                              child: Icon(
-                                                                CupertinoIcons.xmark_circle_fill,
-                                                                size: 17,
-                                                                color: Colors.black,
+
+                                                        decoration: BoxDecoration(
+                                                          border: Border.all(
+                                                            color: Color(0xFFBDBDBD), // stroke color
+                                                            width: 2, // stroke width
+                                                          ),
+                                                          borderRadius: BorderRadius.circular(10),
+                                                        ),
+                                                        padding: EdgeInsetsGeometry.all(5),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            Flexible(child: Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                Text(file.fileName,
+                                                                    overflow: TextOverflow.ellipsis,
+                                                                    style: TextStyle(
+                                                                        color: Colors.black,
+                                                                        fontWeight: FontWeight.w800
+                                                                    )
+                                                                ),
+                                                                Text('ขนาด ${Utils.formatBytes(file.fileSize)}',
+                                                                    style: TextStyle(
+                                                                        color: Color(0xFF7D7D7D),
+                                                                        fontWeight: FontWeight.normal
+                                                                    )
+                                                                ),
+                                                              ],
+                                                            )),
+                                                            InkWell(
+                                                              customBorder: CircleBorder(),
+                                                              onTap: () {
+                                                                setState(() {
+                                                                  oldFiles.remove(file);
+                                                                });
+                                                              },
+                                                              child: Padding(
+                                                                padding: EdgeInsets.all(6),
+                                                                child: Icon(
+                                                                  CupertinoIcons.xmark_circle_fill,
+                                                                  size: 17,
+                                                                  color: Colors.black,
+                                                                ),
                                                               ),
                                                             ),
-                                                          ),
-                                                        ],
-                                                      )
-                                                  );
-                                                }),
+                                                          ],
+                                                        )
+                                                    );
+                                                  }),
 
-                                                ...allFiles.map((file) {
-                                                  return Container(
+                                                  ...allFiles.map((file) {
+                                                    return Container(
 
-                                                      constraints: BoxConstraints(
-                                                          maxWidth: 230
-                                                      ),
-
-                                                      decoration: BoxDecoration(
-                                                        border: Border.all(
-                                                          color: Color(0xFFBDBDBD), // stroke color
-                                                          width: 2, // stroke width
+                                                        constraints: BoxConstraints(
+                                                            maxWidth: 230
                                                         ),
-                                                        borderRadius: BorderRadius.circular(10),
-                                                      ),
-                                                      padding: EdgeInsetsGeometry.all(5),
-                                                      child: Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Flexible(child: Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            mainAxisSize: MainAxisSize.min,
-                                                            children: [
-                                                              Text(file.name,
-                                                                  overflow: TextOverflow.ellipsis,
-                                                                  style: TextStyle(
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w800
-                                                                  )
-                                                              ),
-                                                              Text('ขนาด ${Utils.formatBytes(file.size)}',
-                                                                  style: TextStyle(
-                                                                      color: Color(0xFF7D7D7D),
-                                                                      fontWeight: FontWeight.normal
-                                                                  )
-                                                              ),
-                                                            ],
-                                                          )),
-                                                          InkWell(
-                                                            customBorder: CircleBorder(),
-                                                            onTap: () {
-                                                              setState(() {
-                                                                allFiles.remove(file);
-                                                              });
-                                                            },
-                                                            child: Padding(
-                                                              padding: EdgeInsets.all(6),
-                                                              child: Icon(
-                                                                CupertinoIcons.xmark_circle_fill,
-                                                                size: 17,
-                                                                color: Colors.black,
+
+                                                        decoration: BoxDecoration(
+                                                          border: Border.all(
+                                                            color: Color(0xFFBDBDBD), // stroke color
+                                                            width: 2, // stroke width
+                                                          ),
+                                                          borderRadius: BorderRadius.circular(10),
+                                                        ),
+                                                        padding: EdgeInsetsGeometry.all(5),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            Flexible(child: Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                Text(file.name,
+                                                                    overflow: TextOverflow.ellipsis,
+                                                                    style: TextStyle(
+                                                                        color: Colors.black,
+                                                                        fontWeight: FontWeight.w800
+                                                                    )
+                                                                ),
+                                                                Text('ขนาด ${Utils.formatBytes(file.size)}',
+                                                                    style: TextStyle(
+                                                                        color: Color(0xFF7D7D7D),
+                                                                        fontWeight: FontWeight.normal
+                                                                    )
+                                                                ),
+                                                              ],
+                                                            )),
+                                                            InkWell(
+                                                              customBorder: CircleBorder(),
+                                                              onTap: () {
+                                                                setState(() {
+                                                                  allFiles.remove(file);
+                                                                });
+                                                              },
+                                                              child: Padding(
+                                                                padding: EdgeInsets.all(6),
+                                                                child: Icon(
+                                                                  CupertinoIcons.xmark_circle_fill,
+                                                                  size: 17,
+                                                                  color: Colors.black,
+                                                                ),
                                                               ),
                                                             ),
-                                                          ),
-                                                        ],
-                                                      )
-                                                  );
-                                                })
-                                              ],
-                                            )
-                                        )
-                                    )
-                                  ],
+                                                          ],
+                                                        )
+                                                    );
+                                                  })
+                                                ],
+                                              )
+                                          )
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ),
 

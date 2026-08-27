@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -106,6 +107,48 @@ class Downloader {
 
   /// เว็บไม่มี share sheet ที่ส่งไฟล์ได้จริง — ให้ผู้เรียกซ่อนปุ่มแชร์เอง
   static bool get canShare => !kIsWeb;
+
+  /// เปิดไฟล์ด้วยแอปเริ่มต้นของระบบ — Preview/Acrobat/Photos/แท็บใหม่ แล้วแต่ OS
+  ///
+  /// 🚩 (2026-08-27) นี่คือครึ่งหลังของทาง **B3** ที่เคาะไว้ใน Phase 5.3: พรีวิว
+  /// หลักยังอยู่ในแอป (คุมหน้าตาได้ ไม่หลุดบริบท) แต่ผู้ใช้ที่อยากได้ของแถมจาก
+  /// ระบบ — สั่งพิมพ์ ค้นข้อความในเอกสาร เขียนโน้ตทับ ส่งเข้า Files — กดปุ่มนี้
+  /// ออกไปหาแอปของ OS ได้ ซึ่ง viewer ที่เขียนเองไม่มีวันทำได้ครบ
+  ///
+  /// ท่าเปิดของแต่ละแพลตฟอร์มคนละตัวกันหมด:
+  /// - web: เปิดแท็บใหม่ตรงจาก URL ไม่ต้องโหลดอะไรลงเครื่อง
+  /// - iOS/Android: ต้องมีไฟล์จริงในเครื่องก่อน แล้วส่งให้ `OpenFilex`
+  ///   (= `UIDocumentInteractionController` / `ACTION_VIEW`)
+  /// - desktop: `Uri.file()` ผ่าน `url_launcher` = ดับเบิลคลิกไฟล์นั่นแหละ
+  ///   (`OpenFilex` ไม่รองรับ desktop)
+  Future<void> openExternally(NetworkFile file) async {
+    try {
+      if (kIsWeb) {
+        final uri = Uri.parse(file.fileUrl);
+        if (!await launchUrl(uri, webOnlyWindowName: '_blank')) {
+          throw Exception('เปิดแท็บใหม่ไม่สำเร็จ');
+        }
+        return;
+      }
+
+      final tempPath = await _downloadToTemp(file);
+
+      if (Platform.isIOS || Platform.isAndroid) {
+        final result = await OpenFilex.open(tempPath);
+        // `done` = ระบบรับช่วงต่อแล้ว นอกนั้นคือไม่มีแอปเปิดไฟล์ชนิดนี้/ถูกปฏิเสธ
+        if (result.type != ResultType.done) {
+          throw Exception('เปิดไฟล์ไม่ได้ — ${result.message}');
+        }
+        return;
+      }
+
+      if (!await launchUrl(Uri.file(tempPath))) {
+        throw Exception('เปิดไฟล์ไม่ได้');
+      }
+    } catch (e) {
+      onError?.call(e);
+    }
+  }
 
   /// โหลดลงโฟลเดอร์ชั่วคราวแล้วคืน path — ข้ามการโหลดถ้าไฟล์เดิมครบอยู่แล้ว
   Future<String> _downloadToTemp(NetworkFile file) async {

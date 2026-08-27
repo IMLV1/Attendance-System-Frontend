@@ -1,4 +1,5 @@
 import 'package:attendance_system/services/leave/leave_model.dart';
+import 'package:attendance_system/shared/widgets/utils/downloader.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -15,6 +16,10 @@ class FilePreviewPopup {
   late Animation<double> _opacity;
   PdfViewerController pdfViewerController = PdfViewerController();
 
+  /// กำลังโหลดไฟล์ลงเครื่องเพื่อส่งต่อให้แอปของระบบ — overlay ไม่ใช่ StatefulWidget
+  /// เลยใช้ notifier แทน setState
+  final ValueNotifier<bool> _openingExternally = ValueNotifier(false);
+
   void showPopup(BuildContext context) {
     _controller = AnimationController(
       vsync: Navigator.of(context, rootNavigator: true),
@@ -26,7 +31,12 @@ class FilePreviewPopup {
       curve: Curves.easeInOut,
     );
 
-    final double topGap = MediaQuery.of(context).padding.top + 3 * kToolbarHeight;
+    // 🚩 (2026-08-27) เดิมเป็น `padding.top + 3 * kToolbarHeight` — เลข 3 ถูกเคาะ
+    // ด้วยสายตาบนมือถือ ไม่ได้อ้างอิงอะไรที่วาดจริง ของที่บังหัวจอมีแค่ safe area
+    // กับแถบปุ่มสูง `kToolbarHeight` เท่านั้น บน iPad ที่ safe area บางกว่ามือถือ
+    // เลยเว้นหัวเกินจริงไปเกือบ 100px จนหน้าแรกของ PDF ลอยต่ำผิดที่
+    final double topGap =
+        MediaQuery.of(context).padding.top + kToolbarHeight + 24;
 
     _overlayEntry = OverlayEntry(
       builder: (context) => FadeTransition(
@@ -36,6 +46,9 @@ class FilePreviewPopup {
             // 🔥 Black overlay
             Positioned.fill(
               child: GestureDetector(
+                // เดิม `GestureDetector` ตัวนี้ไม่มี callback เลยสักตัว = ฉากหลัง
+                // กดไม่ได้ ทั้งที่ lightbox ทุกตัวในโลกปิดด้วยการแตะข้างนอก
+                onTap: hidePopup,
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.8),
                 ),
@@ -221,6 +234,35 @@ class FilePreviewPopup {
                         ),
                       ),
                     ),
+
+                    // ครึ่งหลังของทาง B3 — พรีวิวยังอยู่ในแอป แต่มีทางออกไปหา
+                    // แอปของระบบสำหรับสิ่งที่ viewer นี้ทำไม่ได้ (พิมพ์ / ค้นคำ /
+                    // เขียนโน้ตทับ / เซฟเข้า Files)
+                    Positioned(
+                      right: 10,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: _openingExternally,
+                          builder: (context, busy, _) {
+                            if (busy) {
+                              return const SizedBox(
+                                width: 48,
+                                height: 48,
+                                child: Center(
+                                  child: CupertinoActivityIndicator(color: Colors.white),
+                                ),
+                              );
+                            }
+                            return IconButton(
+                              tooltip: 'เปิดด้วยแอปอื่น',
+                              icon: const Icon(Icons.open_in_new, color: Colors.white),
+                              onPressed: _openExternally,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                   ],
                 )
               )
@@ -234,10 +276,19 @@ class FilePreviewPopup {
     _controller.forward(); // 🔥 Fade in
   }
 
+  Future<void> _openExternally() async {
+    _openingExternally.value = true;
+    await Downloader(
+      onError: (e) => debugPrint('🟠 เปิดไฟล์ด้วยแอปอื่นไม่สำเร็จ — $e'),
+    ).openExternally(file);
+    _openingExternally.value = false;
+  }
+
   Future<void> hidePopup() async {
     await _controller.reverse(); // 🔥 Fade out ก่อน
     _overlayEntry?.remove();
     _overlayEntry = null;
     _controller.dispose();
+    _openingExternally.dispose();
   }
 }
