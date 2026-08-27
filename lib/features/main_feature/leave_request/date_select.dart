@@ -47,6 +47,36 @@ class _DateSelectState extends State<DateSelect> {
   bool _fromDateMorning = true;
   bool _toDateMorning = false;
 
+  /// ขอบเขตที่ปฏิทินยอมรับ — ต้องเป็นค่าเดียวกับ `firstDay`/`lastDay` ของ
+  /// TableCalendar ข้างล่าง
+  DateTime get _firstDay => widget.budgetStart ?? DateTime(2000);
+  DateTime get _lastDay => widget.budgetEnd ?? DateTime(2100);
+
+  /// 🚩 (2026-08-27) ตัวเลือกเดือน/ปีเคยเสนอค่านอกขอบเขตปฏิทิน
+  ///
+  /// รายการปีถูกเขียนตายไว้ว่า `now.year - 1` ถึง `+10` ตั้งแต่ตอนที่ปฏิทินยัง
+  /// ไม่จำกัดช่วง พอเพิ่มการล็อกให้อยู่ในปีงบประมาณ (`firstDay`/`lastDay`)
+  /// รายการก็ไม่ได้ตามไปด้วย — เลือกปีที่เกิน `lastDay` แล้ว TableCalendar
+  /// assert แตกทันที (`isSameDay(focusedDay, lastDay) || focusedDay.isBefore(lastDay)`)
+  /// หน้าจอกลายเป็นแดงทั้งหน้า
+  ///
+  /// แก้สองชั้น: ไม่เสนอค่าที่เลือกไม่ได้ตั้งแต่แรก และ clamp กันไว้อีกชั้น
+  /// เผื่อมีทางอื่นมาตั้งค่าผิดช่วง
+  DateTime _clamp(DateTime d) {
+    if (d.isBefore(_firstDay)) return _firstDay;
+    if (d.isAfter(_lastDay)) return _lastDay;
+    return d;
+  }
+
+  /// เดือนที่เลือกได้ในปีที่กำลังดูอยู่
+  Iterable<Map<String, dynamic>> _selectableMonths(int year) {
+    final from = year == _firstDay.year ? _firstDay.month : 1;
+    final to = year == _lastDay.year ? _lastDay.month : 12;
+    return month
+        .cast<Map<String, dynamic>>()
+        .where((m) => m['index'] + 1 >= from && m['index'] + 1 <= to);
+  }
+
   final List<dynamic> month = [
     {'name': 'มกราคม', 'index': 0},
     {'name': 'กุมภาพันธ์', 'index': 1},
@@ -117,13 +147,14 @@ class _DateSelectState extends State<DateSelect> {
     width: 200,
     maxHeight: 400,
     children: [
-                                        ...month.map((m) {
+                                        ..._selectableMonths(focusedMonth.year).map((m) {
                                           return IosMenuItem(
                                             label: m['name'],
                                             onTap: () {
                                               setState(() {
                                                 _monthController.close();
-                                                _focusedDay = DateTime(focusedMonth.year, m['index']+1);
+                                                _focusedDay = _clamp(
+                                                    DateTime(focusedMonth.year, m['index'] + 1));
                                               });
                                             },
                                           );
@@ -158,15 +189,14 @@ class _DateSelectState extends State<DateSelect> {
     width: 200,
     maxHeight: 400,
     children: [
-                                              for (int i = -1; i <= 10; i++)
+                                              for (int y = _firstDay.year; y <= _lastDay.year; y++)
                                                 IosMenuItem(
-                                                  label: (DateTime.now().year + 543 + i).toString(),
+                                                  label: (y + 543).toString(),
                                                   onTap: () {
                                                     setState(() {
                                                       _yearController.close();
-                                                      _focusedDay = DateTime(
-                                                          DateTime.now().year + i, focusedMonth.month
-                                                      );
+                                                      _focusedDay = _clamp(
+                                                          DateTime(y, focusedMonth.month));
                                                     });
                                                   },
                                                 ),

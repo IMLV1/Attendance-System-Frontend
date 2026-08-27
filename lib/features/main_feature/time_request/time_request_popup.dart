@@ -33,6 +33,29 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
+  /// ขอบเขตที่ปฏิทินยอมรับ — ต้องตรงกับ `firstDay`/`lastDay` ของ TableCalendar
+  static final DateTime _firstDay = DateTime(2000);
+  static final DateTime _lastDay = DateTime(2100);
+
+  /// 🚩 (2026-08-27) รายการปีเคยไล่ย้อนหลัง 100 ปีจากปีปัจจุบัน (ถึง ~1926)
+  /// ทั้งที่ปฏิทินรับตั้งแต่ 2000 เท่านั้น เลือกปีก่อนหน้านั้นแล้ว TableCalendar
+  /// assert แตกทันที หน้าจอแดงทั้งหน้า (เจอบั๊กฝาแฝดกันใน date_select.dart
+  /// ซึ่งพังคนละทาง — ของนั่นเสนอปีที่ *เกิน* lastDay)
+  DateTime _clamp(DateTime d) {
+    if (d.isBefore(_firstDay)) return _firstDay;
+    if (d.isAfter(_lastDay)) return _lastDay;
+    return d;
+  }
+
+  /// เดือนที่เลือกได้ในปีที่กำลังดูอยู่
+  Iterable<Map<String, dynamic>> _selectableMonths(int year) {
+    final from = year == _firstDay.year ? _firstDay.month : 1;
+    final to = year == _lastDay.year ? _lastDay.month : 12;
+    return month
+        .cast<Map<String, dynamic>>()
+        .where((m) => m['index'] + 1 >= from && m['index'] + 1 <= to);
+  }
+
   final List<dynamic> month = [
     {'name': 'มกราคม', 'index': 0},
     {'name': 'กุมภาพันธ์', 'index': 1},
@@ -119,13 +142,13 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
     width: 200,
     maxHeight: 400,
     children: [
-                                              ...month.map((m) {
+                                              ..._selectableMonths(focusedMonth.year).map((m) {
                                                 return IosMenuItem(
                                                   label: m['name'],
                                                   onTap: () {
                                                     setState(() {
                                                       _monthController.close();
-                                                      _focusedDay = DateTime(focusedMonth.year, m['index']+1);
+                                                      _focusedDay = _clamp(DateTime(focusedMonth.year, m['index'] + 1));
                                                     });
                                                   },
                                                 );
@@ -160,15 +183,14 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
     width: 200,
     maxHeight: 400,
     children: [
-                                              for (int i = 0; i <= 100; i++)
+                                              for (int y = _lastDay.year; y >= _firstDay.year; y--)
                                                 IosMenuItem(
-                                                  label: (DateTime.now().year + 543 - i).toString(),
+                                                  label: (y + 543).toString(),
                                                   onTap: () {
                                                     setState(() {
                                                       _yearController.close();
-                                                      _focusedDay = DateTime(
-                                                          DateTime.now().year - i, focusedMonth.month
-                                                      );
+                                                      _focusedDay = _clamp(
+                                                          DateTime(y, focusedMonth.month));
                                                     });
                                                   },
                                                 ),
