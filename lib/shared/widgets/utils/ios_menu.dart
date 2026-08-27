@@ -115,14 +115,20 @@ class IosMenuItem extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.icon,
+    this.iconData,
     this.selected = false,
-  });
+  }) : assert(icon == null || iconData == null,
+            'เลือกไอคอนได้ทางเดียว: svg ของแอป หรือ IconData');
 
   final String label;
   final VoidCallback onTap;
 
   /// ชื่อไฟล์ svg ใน assets/images (ไม่ใส่ก็ได้ เช่นเมนูเลือกเดือน/ปี)
   final String? icon;
+
+  /// ไอคอนจากชุดของ Material — ใช้เมื่อยังไม่มี svg ของแอปสำหรับความหมายนั้น
+  /// (ใส่พร้อม [icon] ไม่ได้ ให้เลือกอย่างใดอย่างหนึ่ง)
+  final IconData? iconData;
 
   final bool selected;
 
@@ -152,6 +158,9 @@ class IosMenuItem extends StatelessWidget {
                     BlendMode.srcIn,
                   ),
                 ),
+                const SizedBox(width: 12),
+              ] else if (iconData != null) ...[
+                Icon(iconData, size: 21, color: IosMenu.labelColor),
                 const SizedBox(width: 12),
               ],
               Expanded(

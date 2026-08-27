@@ -1,294 +1,381 @@
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/shared/widgets/utils/downloader.dart';
+import 'package:attendance_system/shared/widgets/utils/ios_menu.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pdfrx/pdfrx.dart';
 
+/// ตัวดูไฟล์แนบเต็มจอ
+///
+/// 🚩 (2026-08-27) เดิมทั้งหน้าเป็น `OverlayEntry` ที่ประกอบเองจากศูนย์ ซึ่งพา
+/// ปัญหามาหลายอย่างพร้อมกัน — ทั้งหมดนี้เห็นด้วยตาบนเว็บแล้ว:
+///
+/// 1. **รูปไปกองชิดซ้าย** ไม่อยู่กลางจอ — `Column` ที่ห่อรูปเป็นลูกแบบไม่
+///    `Positioned` ใน `Stack` ซึ่งจัดชิด topLeft เป็นค่าเริ่มต้น และกว้างเท่าลูก
+///    ของตัวเองไม่ใช่เต็มจอ บนจอ 1742px รูปกินแค่ถึง x≈1134 เหลือขวาว่าง 600px
+/// 2. **ฉากหลังจางเกิน** (`alpha 0.8`) อ่านหน้าที่อยู่ข้างหลังออกทั้งหน้า
+/// 3. **Esc ปิดไม่ได้** และปุ่ม back ของเบราว์เซอร์/Android ก็ปิดไม่ได้ เพราะ
+///    overlay ไม่ใช่ route ระบบนำทางจึงไม่รู้จักมัน
+/// 4. กดปิดรัวๆ สองที `_controller.dispose()` โดนเรียกซ้ำ → throw
+/// 5. `padding` อยู่**ข้างใน** `InteractiveViewer` ขอบเลยซูมตามรูปไปด้วย
+///
+/// ทำเป็น **route** แทน ได้ปุ่ม back / Esc / focus / การคืนทรัพยากรมาฟรีจาก
+/// `Navigator` ทั้งชุด — ของที่เดิมต้องเขียนเองทีละอย่างและเขียนไม่ครบ
+///
+/// เติมท่ามาตรฐานของตัวอ่านรูปเข้าไปด้วย: แตะสองทีเพื่อซูม, ลากลงเพื่อปิด
+/// (ฉากหลังจางลงตามระยะที่ลาก) และยุบปุ่มบันทึก/แชร์/เปิดด้วยแอปอื่นมาไว้ใน
+/// เมนูเดียวที่มุมขวาบน — เดิมสองอันแรกอยู่ในเมนูของ**การ์ดไฟล์** ส่วนอันหลัง
+/// อยู่ใน**พรีวิว** คนละที่กัน
+///
+/// API เดิมคงไว้ (`FilePreviewPopup(file: f).showPopup(context)`) จุดเรียกทั้ง
+/// 6 ที่จึงไม่ต้องแก้
 class FilePreviewPopup {
+  const FilePreviewPopup({required this.file});
 
   final NetworkFile file;
 
-  FilePreviewPopup({required this.file});
-
-  OverlayEntry? _overlayEntry;
-  late AnimationController _controller;
-  late Animation<double> _opacity;
-  PdfViewerController pdfViewerController = PdfViewerController();
-
-  /// กำลังโหลดไฟล์ลงเครื่องเพื่อส่งต่อให้แอปของระบบ — overlay ไม่ใช่ StatefulWidget
-  /// เลยใช้ notifier แทน setState
-  final ValueNotifier<bool> _openingExternally = ValueNotifier(false);
-
-  void showPopup(BuildContext context) {
-    _controller = AnimationController(
-      vsync: Navigator.of(context, rootNavigator: true),
-      duration: const Duration(milliseconds: 250),
+  Future<void> showPopup(BuildContext context) {
+    return Navigator.of(context, rootNavigator: true).push(
+      PageRouteBuilder<void>(
+        // โปร่งใสได้ = หน้าข้างล่างยังถูกวาดอยู่ ฉากหลังจึงค่อยๆ จางเข้ามาได้
+        opaque: false,
+        barrierColor: null,
+        barrierDismissible: false,
+        transitionDuration: const Duration(milliseconds: 250),
+        reverseTransitionDuration: const Duration(milliseconds: 200),
+        pageBuilder: (_, _, _) => _FilePreviewView(file: file),
+        transitionsBuilder: (_, animation, _, child) => FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+          child: child,
+        ),
+      ),
     );
+  }
+}
 
-    _opacity = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
+class _FilePreviewView extends StatefulWidget {
+  const _FilePreviewView({required this.file});
+
+  final NetworkFile file;
+
+  @override
+  State<_FilePreviewView> createState() => _FilePreviewViewState();
+}
+
+class _FilePreviewViewState extends State<_FilePreviewView> {
+  /// ระยะที่ต้องลากลงก่อนปล่อยแล้วถือว่า "ปิด"
+  static const double _dismissThreshold = 120;
+
+  final PdfViewerController _pdfController = PdfViewerController();
+  final TransformationController _zoom = TransformationController();
+
+  /// ใช้แปลงพิกัดที่แตะให้เป็นพิกัดในกรอบของ viewer ตอนซูมเข้าหาจุดที่แตะ
+  final GlobalKey _viewerKey = GlobalKey();
+  final MenuController _menu = MenuController();
+
+  /// ระยะที่นิ้วลากลงอยู่ตอนนี้ — ใช้ทั้งเลื่อนรูปและหรี่ฉากหลัง
+  double _dragOffset = 0;
+
+  /// ตำแหน่งที่แตะสองทีล่าสุด (พิกัดจอ) — เก็บไว้เพื่อซูมเข้าหาจุดนั้น
+  Offset? _lastTap;
+
+  bool _busy = false;
+
+  bool get _isPdf => widget.file.fileType.toLowerCase() == 'pdf';
+
+  /// PDF เลื่อนอ่านในแนวตั้งอยู่แล้ว ถ้าดักลากลงด้วยจะแย่งท่ากัน
+  bool get _canDragToDismiss => !_isPdf;
+
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_onKey);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKey);
+    _zoom.dispose();
+    super.dispose();
+  }
+
+  /// 🚩 (2026-08-27) ดัก Esc ที่ `HardwareKeyboard` ตรงๆ ไม่ผ่าน `Focus`
+  ///
+  /// ลอง `Focus(autofocus: true, onKeyEvent: ...)` ก่อนแล้วไม่ทำงาน — ยิง Esc
+  /// เข้าไปแล้วพรีวิวยังอยู่ ทางนี้ไม่ขึ้นกับว่าตอนนั้นโฟกัสอยู่ที่ไหน ซึ่งเดาไม่ได้
+  /// เพราะในหน้ามีปุ่มกับเมนูที่แย่งโฟกัสกันเอง
+  ///
+  /// handler มีอายุเท่ากับตัว widget และตอบเฉพาะ Esc จึงไม่ไปกวนหน้าอื่น
+  bool _onKey(KeyEvent event) {
+    if (event is! KeyDownEvent || event.logicalKey != LogicalKeyboardKey.escape || !mounted) {
+      return false;
+    }
+
+    // เมนูเปิดอยู่ให้ปิดเมนูก่อน ค่อยปิดพรีวิวในการกดครั้งถัดไป
+    if (_menu.isOpen) {
+      _menu.close();
+    } else {
+      Navigator.of(context).pop();
+    }
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ฉากหลังทึบเกือบสนิทตามธรรมเนียมตัวอ่านรูป — จางลงตามระยะที่ลากลง เพื่อให้
+    // รู้สึกว่ากำลัง "ดึงออก" ไม่ใช่แค่รูปขยับเฉยๆ
+    final progress = (_dragOffset.abs() / (_dismissThreshold * 2)).clamp(0.0, 1.0);
+
+    return Scaffold(
+      backgroundColor: Colors.black.withValues(alpha: 0.95 * (1 - progress)),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Transform.translate(offset: Offset(0, _dragOffset), child: _content()),
+          ),
+          _topBar(),
+        ],
+      ),
     );
+  }
 
-    // 🚩 (2026-08-27) เดิมเป็น `padding.top + 3 * kToolbarHeight` — เลข 3 ถูกเคาะ
-    // ด้วยสายตาบนมือถือ ไม่ได้อ้างอิงอะไรที่วาดจริง ของที่บังหัวจอมีแค่ safe area
-    // กับแถบปุ่มสูง `kToolbarHeight` เท่านั้น บน iPad ที่ safe area บางกว่ามือถือ
-    // เลยเว้นหัวเกินจริงไปเกือบ 100px จนหน้าแรกของ PDF ลอยต่ำผิดที่
-    final double topGap =
-        MediaQuery.of(context).padding.top + kToolbarHeight + 24;
+  Widget _content() {
+    if (_isPdf) return _pdf();
 
-    _overlayEntry = OverlayEntry(
-      builder: (context) => FadeTransition(
-        opacity: _opacity,
-        child: Stack(
-          children: [
-            // 🔥 Black overlay
-            Positioned.fill(
-              child: GestureDetector(
-                // เดิม `GestureDetector` ตัวนี้ไม่มี callback เลยสักตัว = ฉากหลัง
-                // กดไม่ได้ ทั้งที่ lightbox ทุกตัวในโลกปิดด้วยการแตะข้างนอก
-                onTap: hidePopup,
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.8),
-                ),
-              ),
-            ),
-
-            (file.fileType.toLowerCase() == 'pdf') ?
-            PdfViewer.uri(
-              Uri.parse(file.fileUrl),
-              controller: pdfViewerController,
-              params: PdfViewerParams(
-                backgroundColor: Colors.transparent, // โปร่งใสได้จริงๆ
-                margin: 30, // ระยะห่างระหว่างหน้ากระดาษ (Gap)
-                scrollPhysics: BouncingScrollPhysics(),
-                boundaryMargin: EdgeInsets.only(bottom: 20, top: topGap),
-
-                loadingBannerBuilder: (context, bytesDownloaded, totalBytes) {
-                  return Center(
-                    child: CupertinoActivityIndicator(color: Colors.white),
-                  );
-                },
-
-                // 3. หน้าตาตอนโหลดไฟล์พังหรือ Error (Custom Error)
-                errorBannerBuilder: (context, error, stackTrace, documentRef) {
-                  return Center(
-                      child: Column(
-                        spacing: 30,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/images/error.svg',
-                            colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                            width: 50,
-                            height: 50,
-                          ),
-                          Text(
-                            'โหลดเอกสารไม่สำเร็จ',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                decoration: TextDecoration.none
-                            ),
-                          ),
-                        ],
-                      )
-                  );
-                },
-              ),
-            ) :
-            Column(
-              children: [
-                Expanded(
-                  child: Image.network(
-                    file.fileUrl,
-                    fit: BoxFit.contain,
-
-                    // ใช้ loadingBuilder ในการดักจับสถานะการโหลด
-                    loadingBuilder: (context, child, loadingProgress) {
-                      // ถ้า loadingProgress เป็น null แปลว่า "โหลดรูปภาพเสร็จสมบูรณ์ 100% แล้ว"
-                      if (loadingProgress == null) {
-                        // ค่อยคืนค่า InteractiveViewer ที่หุ้มรูปภาพ (child) กลับไป
-                        return InteractiveViewer(
-                          minScale: 0.5,
-                          maxScale: 10.0,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
-                            child: child, // child ตัวนี้คือรูปภาพตัวจริงที่ Flutter เรนเดอร์เสร็จแล้ว
-                          ),
-                        );
-                      }
-
-                      // ถ้ารูปยังโหลดไม่เสร็จ ให้คืนค่าหน้าโหลดดิง (ซึ่งไม่มี InteractiveViewer หุ้มอยู่ เลยซูมไม่ได้)
-                      return const Center(
-                        child: CupertinoActivityIndicator(color: Colors.white),
-                      );
-                    },
-
-                    // ส่วนของ errorBuilder ก็จะไม่มี InteractiveViewer หุ้มเช่นกัน ทำให้ซูมตอน Error ไม่ได้
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                          child: Column(
-                            spacing: 30,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/error.svg',
-                                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                                width: 50,
-                                height: 50,
-                              ),
-                              const Text(
-                                'โหลดเอกสารไม่สำเร็จ',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    decoration: TextDecoration.none
-                                ),
-                              ),
-                            ],
-                          )
-                      );
-                    },
-                  )
-                )
-              ],
-            ),
-
-            Positioned(
-              top: 0,   // ล็อกติดขอบบน
-              left: 0,  // ล็อกติดขอบซ้าย
-              right: 0, // ล็อกติดขอบขวา
-              child: Container(
-                // วาด Gradient ที่ Container แทน
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black,       // ดำสุดขอบบน
-                      Colors.transparent, // ค่อยๆ ใสลงมา
-                    ],
-                    stops: [0.2, 1.0],
-                  ),
-                ),
-                // เอา AppBar มาใส่ข้างใน Container
-                child: SafeArea( // ใส่ SafeArea เพื่อไม่ให้ AppBar ไปซ้อนทับรอยบากมือถือ
-                  child: AppBar(
-                    toolbarHeight: kToolbarHeight,
-                    backgroundColor: Colors.transparent, // ให้ AppBar ใสทะลุเห็นสี Container
-                    elevation: 0,
-                  ),
-                ),
-              ),
-            ),
-
-            Theme(
-              data: Theme.of(context),
-              child: SafeArea(
-                bottom: false,
-                child: Stack(
-                  children: [
-
-                    SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                                padding: EdgeInsetsGeometry.symmetric(vertical: 10),
-                                width: 200,
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(50), // 👈 มุมโค้ง
-                                  border: Border.all(
-                                    color: Colors.grey,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: Text(
-                                  file.fileName,
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                      fontSize: 17,
-                                      decoration: TextDecoration.none,
-                                      color: Colors.grey.shade300,
-                                      fontWeight: FontWeight.normal
-                                  ),
-                                )
-                            ),
-                          ],
-                        )
-                    ),
-
-                    Positioned(
-                      left: 10,
-                      child: Material(
-                        color: Colors.transparent, // ทำให้พื้นหลังโปร่งใส
-                        child: IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: hidePopup, // กดแล้วปิด Overlay
-                        ),
-                      ),
-                    ),
-
-                    // ครึ่งหลังของทาง B3 — พรีวิวยังอยู่ในแอป แต่มีทางออกไปหา
-                    // แอปของระบบสำหรับสิ่งที่ viewer นี้ทำไม่ได้ (พิมพ์ / ค้นคำ /
-                    // เขียนโน้ตทับ / เซฟเข้า Files)
-                    Positioned(
-                      right: 10,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: ValueListenableBuilder<bool>(
-                          valueListenable: _openingExternally,
-                          builder: (context, busy, _) {
-                            if (busy) {
-                              return const SizedBox(
-                                width: 48,
-                                height: 48,
-                                child: Center(
-                                  child: CupertinoActivityIndicator(color: Colors.white),
-                                ),
-                              );
-                            }
-                            return IconButton(
-                              tooltip: 'เปิดด้วยแอปอื่น',
-                              icon: const Icon(Icons.open_in_new, color: Colors.white),
-                              onPressed: _openExternally,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              )
-            )
-          ],
+    final viewer = Center(
+      child: InteractiveViewer(
+        key: _viewerKey,
+        transformationController: _zoom,
+        minScale: 1,
+        maxScale: 10,
+        // 🚩 (2026-08-27) ท่า "ลากลงเพื่อปิด" ต้องขี่ callback ของ
+        // `InteractiveViewer` เอง ห้ามใช้ `GestureDetector` ครอบข้างนอก
+        //
+        // ลองแบบครอบข้างนอกก่อนแล้วไม่ทำงานเลย: viewer สร้าง
+        // `ScaleGestureRecognizer` ของตัวเองซึ่งชนะใน gesture arena ทุกครั้ง
+        // ต่อให้ตอนนั้นยังไม่ได้ซูมและมันไม่ได้เอา pan ไปทำอะไร
+        onInteractionUpdate: _canDragToDismiss ? _onInteractionUpdate : null,
+        onInteractionEnd: _canDragToDismiss ? _onInteractionEnd : null,
+        child: Image.network(
+          widget.file.fileUrl,
+          fit: BoxFit.contain,
+          loadingBuilder: (context, child, progress) => progress == null
+              ? child
+              : const Center(child: CupertinoActivityIndicator(color: Colors.white)),
+          errorBuilder: (_, _, _) => _error(),
         ),
       ),
     );
 
-    Overlay.of(context, rootOverlay: true).insert(_overlayEntry!);
-    _controller.forward(); // 🔥 Fade in
+    return GestureDetector(
+      // แตะสองทีเพื่อสลับซูม — ท่าที่คนคาดหวังจากตัวอ่านรูปทุกตัว
+      onDoubleTapDown: (details) => _lastTap = details.globalPosition,
+      onDoubleTap: _toggleZoom,
+      child: Padding(
+        // อยู่**นอก** InteractiveViewer — ไม่งั้นขอบจะซูมตามรูปไปด้วย
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 72),
+        child: viewer,
+      ),
+    );
   }
 
-  Future<void> _openExternally() async {
-    _openingExternally.value = true;
-    await Downloader(
-      onError: (e) => debugPrint('🟠 เปิดไฟล์ด้วยแอปอื่นไม่สำเร็จ — $e'),
-    ).openExternally(file);
-    _openingExternally.value = false;
+  Widget _pdf() {
+    return PdfViewer.uri(
+      Uri.parse(widget.file.fileUrl),
+      controller: _pdfController,
+      params: PdfViewerParams(
+        backgroundColor: Colors.transparent,
+        margin: 30,
+        scrollPhysics: const BouncingScrollPhysics(),
+        // เว้นหัวเท่าของที่บังจริง = safe area + ความสูงแถบปุ่ม ไม่ใช่ตัวเลขที่
+        // เคาะด้วยสายตาบนมือถือแล้วเว้นเกินบน iPad
+        boundaryMargin: EdgeInsets.only(
+          top: MediaQuery.paddingOf(context).top + kToolbarHeight + 24,
+          bottom: 20,
+        ),
+        loadingBannerBuilder: (_, _, _) =>
+            const Center(child: CupertinoActivityIndicator(color: Colors.white)),
+        errorBannerBuilder: (_, _, _, _) => _error(),
+      ),
+    );
   }
 
-  Future<void> hidePopup() async {
-    await _controller.reverse(); // 🔥 Fade out ก่อน
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-    _controller.dispose();
-    _openingExternally.dispose();
+  Widget _error() {
+    return Center(
+      child: Column(
+        spacing: 30,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SvgPicture.asset(
+            'assets/images/error.svg',
+            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            width: 50,
+            height: 50,
+          ),
+          const Text(
+            'โหลดเอกสารไม่สำเร็จ',
+            style: TextStyle(color: Colors.white, fontSize: 16, decoration: TextDecoration.none),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── แถบบน ──────────────────────────────────────────────────────────────
+
+  Widget _topBar() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.black, Colors.transparent],
+            stops: [0.2, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: kToolbarHeight,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+
+                // ชื่อไฟล์ยืดตามที่เหลือ ไม่ fix ความกว้างไว้ 200 เหมือนเดิม
+                // ซึ่งตัดชื่อภาษาไทยทิ้งตั้งแต่ยังไม่ทันยาว
+                Expanded(
+                  child: Text(
+                    widget.file.fileName,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      color: Colors.white,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ),
+
+                SizedBox(width: 48, child: _actionsButton()),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _actionsButton() {
+    if (_busy) {
+      return const Center(child: CupertinoActivityIndicator(color: Colors.white));
+    }
+
+    return MenuAnchor(
+      controller: _menu,
+      alignmentOffset: const Offset(0, 6),
+      style: IosMenu.menuStyle,
+      menuChildren: [
+        IosMenu(
+          width: 240,
+          children: [
+            // 🚩 ใช้ไอคอนชุด Material ทั้งเมนู ไม่ใช้ `download.svg` ของแอป
+            // เพราะไฟล์นั้นจริงๆ เป็นไอคอน "export" (กล่องมีลูกศรพุ่งออก) ซึ่ง
+            // เป็นภาพเดียวกับ `open_in_new` เป๊ะ — พอมาอยู่เมนูเดียวกันจะกลาย
+            // เป็นสองบรรทัดที่หน้าตาเหมือนกันแต่ทำคนละเรื่อง
+            IosMenuItem(
+              iconData: Icons.download_outlined,
+              label: 'บันทึกไฟล์',
+              onTap: () => _run((d) => d.saveFile(widget.file)),
+            ),
+            if (Downloader.canShare)
+              IosMenuItem(
+                iconData: Icons.ios_share,
+                label: 'แชร์ไฟล์',
+                onTap: () => _run((d) => d.shareFile(widget.file)),
+              ),
+            // ครึ่งหลังของทาง B3 — พรีวิวยังอยู่ในแอป แต่มีทางออกไปหาแอปของ
+            // ระบบสำหรับสิ่งที่ viewer นี้ทำไม่ได้ (พิมพ์ / ค้นคำในเอกสาร /
+            // เขียนโน้ตทับ / เซฟเข้า Files)
+            IosMenuItem(
+              iconData: Icons.open_in_new,
+              label: 'เปิดด้วยแอปอื่น',
+              onTap: () => _run((d) => d.openExternally(widget.file)),
+            ),
+          ],
+        ),
+      ],
+      builder: (context, controller, _) => IconButton(
+        icon: const Icon(Icons.more_horiz, color: Colors.white),
+        onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+      ),
+    );
+  }
+
+  Future<void> _run(Future<void> Function(Downloader) action) async {
+    // เมนูอยู่ใน overlay ไม่ใช่ route — ปิดด้วย controller เท่านั้น
+    // (เคยเผลอใช้ Navigator.pop() แล้วมันไปเด้ง route ของหน้าออกแทน)
+    _menu.close();
+
+    setState(() => _busy = true);
+    await action(Downloader(onError: (e) => debugPrint('🟠 จัดการไฟล์ไม่สำเร็จ — $e')));
+    if (mounted) setState(() => _busy = false);
+  }
+
+  // ── ท่าสัมผัส ──────────────────────────────────────────────────────────
+
+  /// 🚩 ซูม**เข้าหาจุดที่แตะ** ไม่ใช่มุมซ้ายบน
+  ///
+  /// รอบแรกใช้ `Matrix4.identity()..scale(2.5)` เฉยๆ ซึ่งขยายรอบจุด (0,0) ของรูป
+  /// — แตะกลางรูปแล้วภาพกระโดดไปโชว์มุมซ้ายบนแทน ผิดจากที่ทุกแอปทำ
+  ///
+  /// สูตรที่ทำให้จุด p อยู่กับที่: เลื่อน `-p * (s - 1)` แล้วค่อยขยาย s เท่า
+  void _toggleZoom() {
+    const scale = 2.5;
+
+    if (_isZoomed) {
+      _zoom.value = Matrix4.identity();
+      return;
+    }
+
+    final box = _viewerKey.currentContext?.findRenderObject();
+    final tap = _lastTap;
+    if (box is! RenderBox || tap == null) {
+      _zoom.value = Matrix4.identity()..scaleByDouble(scale, scale, scale, 1);
+      return;
+    }
+
+    final local = box.globalToLocal(tap);
+    _zoom.value = Matrix4.identity()
+      ..translateByDouble(-local.dx * (scale - 1), -local.dy * (scale - 1), 0, 1)
+      ..scaleByDouble(scale, scale, scale, 1);
+  }
+
+  bool get _isZoomed => _zoom.value.getMaxScaleOnAxis() > 1.01;
+
+  void _onInteractionUpdate(ScaleUpdateDetails details) {
+    // ซูมอยู่ = การลากคือการเลื่อนดูรูป ไม่ใช่การปิด
+    // สองนิ้วขึ้นไป = กำลังจะซูม ไม่ใช่จะปิด
+    if (_isZoomed || details.pointerCount > 1) return;
+    setState(() => _dragOffset += details.focalPointDelta.dy);
+  }
+
+  void _onInteractionEnd(ScaleEndDetails details) {
+    if (_isZoomed || _dragOffset == 0) return;
+
+    if (_dragOffset.abs() > _dismissThreshold || details.velocity.pixelsPerSecond.dy.abs() > 700) {
+      Navigator.of(context).pop();
+      return;
+    }
+    setState(() => _dragOffset = 0);
   }
 }
