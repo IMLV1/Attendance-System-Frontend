@@ -1,4 +1,5 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/approval/attendance/attendance_service.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
@@ -52,7 +53,14 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
     final setting = auth.attendanceConfig;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 15),
+      padding: EdgeInsets.only(
+        // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
+        // (หน้า + การ์ดสีเทา) เหลือให้เนื้อหาจริงไม่ถึง 330pt — บีบขอบหน้า
+        // ลงบนจอเล็ก จอใหญ่ยังเว้นเท่าเดิมเพราะมีที่เหลือเฟือ
+        top: 0,
+        left: Responsive.isCompact(context) ? 14 : 20,
+        right: Responsive.isCompact(context) ? 14 : 20,
+      ),
       child: ServiceLoader(
         request: () => AttendanceApprovalService().getDetail(widget.reqId),
         onSuccess: (val) {
@@ -196,7 +204,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                               arrow: false,
                             ),
                             Container(
-                                padding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
+                                padding: EdgeInsets.only(left: 10, right: 10, bottom: 12),
                                 decoration: BoxDecoration(
                                     color: Color(0xFFEAEAEA),
                                     borderRadius: BorderRadius.circular(22)
@@ -217,7 +225,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                               Expanded(
                                                   child: Padding(
                                                     padding: EdgeInsets.symmetric(
-                                                        horizontal: 12,
+                                                        horizontal: 10,
                                                         vertical: 10
                                                     ),
                                                     child: Row(
@@ -270,7 +278,7 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                                               Expanded(
                                                   child: Padding(
                                                     padding: EdgeInsets.symmetric(
-                                                        horizontal: 12,
+                                                        horizontal: 10,
                                                         vertical: 10
                                                     ),
                                                     child: Row(

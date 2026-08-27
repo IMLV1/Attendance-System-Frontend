@@ -1,4 +1,5 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/approval/attendance/attendance_service.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/personnel_info/personnel_attendance_request_service.dart';
@@ -117,7 +118,14 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
     final setting = auth.attendanceConfig;
 
     return Padding(
-        padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+        padding: EdgeInsets.only(
+          // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
+          // (หน้า + การ์ดสีเทา) เหลือให้เนื้อหาจริงไม่ถึง 330pt — บีบขอบหน้า
+          // ลงบนจอเล็ก จอใหญ่ยังเว้นเท่าเดิมเพราะมีที่เหลือเฟือ
+          top: 10,
+          left: Responsive.isCompact(context) ? 14 : 20,
+          right: Responsive.isCompact(context) ? 14 : 20,
+        ),
         child: ServiceLoader(
             request: () {
               // return mockData();
@@ -248,7 +256,7 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                     arrow: false,
                                   ),
                                   Container(
-                                      padding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
+                                      padding: EdgeInsets.only(left: 10, right: 10, bottom: 12),
                                       decoration: BoxDecoration(
                                           color: Color(0xFFEAEAEA),
                                           borderRadius: BorderRadius.circular(22)
@@ -269,7 +277,7 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                     Expanded(
                                                         child: Padding(
                                                           padding: EdgeInsets.symmetric(
-                                                              horizontal: 12,
+                                                              horizontal: 10,
                                                               vertical: 10
                                                           ),
                                                           child: Row(
@@ -322,7 +330,7 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                     Expanded(
                                                         child: Padding(
                                                           padding: EdgeInsets.symmetric(
-                                                              horizontal: 12,
+                                                              horizontal: 10,
                                                               vertical: 10
                                                           ),
                                                           child: Row(

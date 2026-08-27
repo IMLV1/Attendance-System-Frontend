@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/services/approval/leave/leave_service.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
@@ -112,7 +113,14 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
   Widget build(BuildContext context) {
 
     return Padding(
-      padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+      padding: EdgeInsets.only(
+        // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
+        // (หน้า + การ์ดสีเทา) เหลือให้เนื้อหาจริงไม่ถึง 330pt — บีบขอบหน้า
+        // ลงบนจอเล็ก จอใหญ่ยังเว้นเท่าเดิมเพราะมีที่เหลือเฟือ
+        top: 10,
+        left: Responsive.isCompact(context) ? 14 : 20,
+        right: Responsive.isCompact(context) ? 14 : 20,
+      ),
       child: ServiceLoader(
           request: () => PersonnelLeaveService().getRequestDetail(widget.requestID), // mockData(),
           onSuccess: (val) {
@@ -227,7 +235,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                                 onPressed: null,
                               ),
                               Container(
-                                  padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
+                                  padding: const EdgeInsets.only(left: 10, right: 10, bottom: 12),
                                   decoration: BoxDecoration(
                                       color: const Color(0xFFEAEAEA),
                                       borderRadius: BorderRadius.circular(22)
@@ -248,7 +256,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                                                 Expanded(
                                                     child: Padding(
                                                       padding: const EdgeInsets.symmetric(
-                                                          horizontal: 12,
+                                                          horizontal: 10,
                                                           vertical: 10
                                                       ),
                                                       child: Row(
@@ -301,7 +309,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                                                 Expanded(
                                                     child: Padding(
                                                       padding: const EdgeInsets.symmetric(
-                                                          horizontal: 12,
+                                                          horizontal: 10,
                                                           vertical: 10
                                                       ),
                                                       child: Row(

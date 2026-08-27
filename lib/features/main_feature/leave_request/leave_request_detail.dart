@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/features/main_feature/leave_request/date_select.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_request_resend.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
@@ -107,7 +108,14 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+      padding: EdgeInsets.only(
+        // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
+        // (หน้า + การ์ดสีเทา) เหลือให้เนื้อหาจริงไม่ถึง 330pt — บีบขอบหน้า
+        // ลงบนจอเล็ก จอใหญ่ยังเว้นเท่าเดิมเพราะมีที่เหลือเฟือ
+        top: 10,
+        left: Responsive.isCompact(context) ? 14 : 20,
+        right: Responsive.isCompact(context) ? 14 : 20,
+      ),
       child: ServiceLoader(
           request: () => LeaveRequestService().getRequestDetail(widget.requestID),
           onSuccess: (val) {
@@ -215,7 +223,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                         onPressed: null,
                       ),
                       Container(
-                          padding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
+                          padding: EdgeInsets.only(left: 10, right: 10, bottom: 12),
                           decoration: BoxDecoration(
                               color: Color(0xFFEAEAEA),
                               borderRadius: BorderRadius.circular(22)
@@ -236,7 +244,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                                         Expanded(
                                             child: Padding(
                                               padding: EdgeInsets.symmetric(
-                                                  horizontal: 12,
+                                                  horizontal: 10,
                                                   vertical: 10
                                               ),
                                               child: Row(
@@ -289,7 +297,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                                         Expanded(
                                             child: Padding(
                                               padding: EdgeInsets.symmetric(
-                                                  horizontal: 12,
+                                                  horizontal: 10,
                                                   vertical: 10
                                               ),
                                               child: Row(

@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/features/main_feature/time_request/time_request_resend.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -118,7 +119,14 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
         builder: () {
 
           return Padding(
-            padding: EdgeInsetsGeometry.only(left: 15, right: 15),
+            padding: EdgeInsets.only(
+              // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
+              // (หน้า + การ์ดสีเทา) เหลือให้เนื้อหาจริงไม่ถึง 330pt — บีบขอบหน้า
+              // ลงบนจอเล็ก จอใหญ่ยังเว้นเท่าเดิมเพราะมีที่เหลือเฟือ
+              top: 0,
+              left: Responsive.isCompact(context) ? 14 : 20,
+              right: Responsive.isCompact(context) ? 14 : 20,
+            ),
             child: Column(
               spacing: 13,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +261,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                         arrow: false,
                       ),
                       Container(
-                          padding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
+                          padding: EdgeInsets.only(left: 10, right: 10, bottom: 12),
                           decoration: BoxDecoration(
                               color: Color(0xFFEAEAEA),
                               borderRadius: BorderRadius.circular(22)
@@ -274,7 +282,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                         Expanded(
                                             child: Padding(
                                               padding: EdgeInsets.symmetric(
-                                                  horizontal: 12,
+                                                  horizontal: 10,
                                                   vertical: 10
                                               ),
                                               child: Row(
@@ -327,7 +335,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                         Expanded(
                                             child: Padding(
                                               padding: EdgeInsets.symmetric(
-                                                  horizontal: 12,
+                                                  horizontal: 10,
                                                   vertical: 10
                                               ),
                                               child: Row(
