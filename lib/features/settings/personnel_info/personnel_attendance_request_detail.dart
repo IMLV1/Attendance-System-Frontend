@@ -283,24 +283,29 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                                   colorFilter: ColorFilter.mode(Color(0xFF5F5F5F), BlendMode.srcIn),
                                                                 ),
                                                               ),
-                                                              Column(
-                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                children: [
-                                                                  Text(
-                                                                      'จากวันที่',
-                                                                      style: TextStyle(
-                                                                          fontSize: 13,
-                                                                          color: Color(0xFF626262)
-                                                                      )
-                                                                  ),
-                                                                  Text(
-                                                                      _formatDate(data?.requestDetail.dateFrom),
-                                                                      style: TextStyle(
-                                                                          fontSize: 13,
-                                                                          color: Colors.black
-                                                                      )
-                                                                  ),
-                                                                ],
+                                                              Expanded(
+                                                                // 🚩 (2026-08-27) ต้องห่อ Expanded ไม่งั้น Column กว้างตามเนื้อหาตัวเอง
+                                                                // แล้วล้นกรอบบนจอแคบ — เจอบน iPhone: "RIGHT OVERFLOWED BY 2.9 PIXELS"
+                                                                // ตรงบรรทัด "4 ส.ค. 2569 เช้า" (ยาวกว่าที่มีให้อยู่ไม่กี่ px)
+                                                                child: Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  children: [
+                                                                    Text(
+                                                                        'จากวันที่',
+                                                                        style: TextStyle(
+                                                                            fontSize: 13,
+                                                                            color: Color(0xFF626262)
+                                                                        )
+                                                                    ),
+                                                                    Text(
+                                                                        _formatDate(data?.requestDetail.dateFrom),
+                                                                        style: TextStyle(
+                                                                            fontSize: 13,
+                                                                            color: Colors.black
+                                                                        )
+                                                                    ),
+                                                                  ],
+                                                                ),
                                                               ),
                                                             ],
                                                           ),
@@ -334,24 +339,29 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                                   ),
                                                                 ),
                                                               ),
-                                                              Column(
-                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                children: [
-                                                                  Text(
-                                                                      'ถึงวันที่',
-                                                                      style: TextStyle(
-                                                                          fontSize: 13,
-                                                                          color: Color(0xFF626262)
-                                                                      )
-                                                                  ),
-                                                                  Text(
-                                                                      _formatDate(data?.requestDetail.dateTo),
-                                                                      style: TextStyle(
-                                                                          fontSize: 13,
-                                                                          color: Colors.black
-                                                                      )
-                                                                  ),
-                                                                ],
+                                                              Expanded(
+                                                                // 🚩 (2026-08-27) ต้องห่อ Expanded ไม่งั้น Column กว้างตามเนื้อหาตัวเอง
+                                                                // แล้วล้นกรอบบนจอแคบ — เจอบน iPhone: "RIGHT OVERFLOWED BY 2.9 PIXELS"
+                                                                // ตรงบรรทัด "4 ส.ค. 2569 เช้า" (ยาวกว่าที่มีให้อยู่ไม่กี่ px)
+                                                                child: Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  children: [
+                                                                    Text(
+                                                                        'ถึงวันที่',
+                                                                        style: TextStyle(
+                                                                            fontSize: 13,
+                                                                            color: Color(0xFF626262)
+                                                                        )
+                                                                    ),
+                                                                    Text(
+                                                                        _formatDate(data?.requestDetail.dateTo),
+                                                                        style: TextStyle(
+                                                                            fontSize: 13,
+                                                                            color: Colors.black
+                                                                        )
+                                                                    ),
+                                                                  ],
+                                                                ),
                                                               ),
                                                             ],
                                                           ),

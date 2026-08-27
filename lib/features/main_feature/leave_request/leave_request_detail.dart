@@ -250,24 +250,29 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                                                       colorFilter: ColorFilter.mode(Color(0xFF5F5F5F), BlendMode.srcIn),
                                                     ),
                                                   ),
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                          'จากวันที่',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Color(0xFF626262)
-                                                          )
-                                                      ),
-                                                      Text(
-                                                          '${_formatDate(requestDetail!.requestDetail.dateFrom)} ${(requestDetail!.requestDetail.fromDateMorning) ? 'เช้า' : 'เย็น'}',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black
-                                                          )
-                                                      ),
-                                                    ],
+                                                  Expanded(
+                                                    // 🚩 (2026-08-27) ต้องห่อ Expanded ไม่งั้น Column กว้างตามเนื้อหาตัวเอง
+                                                    // แล้วล้นกรอบบนจอแคบ — เจอบน iPhone: "RIGHT OVERFLOWED BY 2.9 PIXELS"
+                                                    // ตรงบรรทัด "4 ส.ค. 2569 เช้า" (ยาวกว่าที่มีให้อยู่ไม่กี่ px)
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                            'จากวันที่',
+                                                            style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Color(0xFF626262)
+                                                            )
+                                                        ),
+                                                        Text(
+                                                            '${_formatDate(requestDetail!.requestDetail.dateFrom)} ${(requestDetail!.requestDetail.fromDateMorning) ? 'เช้า' : 'เย็น'}',
+                                                            style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Colors.black
+                                                            )
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -301,24 +306,29 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                                                       ),
                                                     ),
                                                   ),
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                          'ถึงวันที่',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Color(0xFF626262)
-                                                          )
-                                                      ),
-                                                      Text(
-                                                          '${_formatDate(requestDetail!.requestDetail.dateTo)} ${(requestDetail!.requestDetail.toDateMorning) ? 'เช้า' : 'เย็น'}',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black
-                                                          )
-                                                      ),
-                                                    ],
+                                                  Expanded(
+                                                    // 🚩 (2026-08-27) ต้องห่อ Expanded ไม่งั้น Column กว้างตามเนื้อหาตัวเอง
+                                                    // แล้วล้นกรอบบนจอแคบ — เจอบน iPhone: "RIGHT OVERFLOWED BY 2.9 PIXELS"
+                                                    // ตรงบรรทัด "4 ส.ค. 2569 เช้า" (ยาวกว่าที่มีให้อยู่ไม่กี่ px)
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                            'ถึงวันที่',
+                                                            style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Color(0xFF626262)
+                                                            )
+                                                        ),
+                                                        Text(
+                                                            '${_formatDate(requestDetail!.requestDetail.dateTo)} ${(requestDetail!.requestDetail.toDateMorning) ? 'เช้า' : 'เย็น'}',
+                                                            style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Colors.black
+                                                            )
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ],
                                               ),
