@@ -1,4 +1,5 @@
 import 'package:attendance_system/services/time_request/time_request_model.dart';
+import 'package:attendance_system/shared/widgets/utils/ios_menu.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +7,6 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../shared/widgets/utils/animation/animated_widget.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
-import '../../../shared/widgets/utils/text_button.dart' as utils;
 import '../../../shared/widgets/utils/wheel_selector.dart';
 
 class TimeRequestPopup extends StatefulWidget {
@@ -113,56 +113,16 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                                 )
                             );
                           },
-                          clipBehavior: Clip.none,
-                          style: const MenuStyle(
-                            backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                            elevation: WidgetStatePropertyAll(0),
-                          ),
+                          style: IosMenu.menuStyle,
                           menuChildren: [
-                            TweenAnimationBuilder<double>(
-                              tween: Tween(begin: 0, end: 1),
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut,
-                              builder: (context, value, child) {
-                                return Opacity(
-                                  opacity: value,
-                                  child: child,
-                                );
-                              },
-                              child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.18),
-                                        blurRadius: 100,
-                                        spreadRadius: 6,
-                                        offset: Offset.zero,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                      maxHeight: 400,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(22),
-                                    ),
-                                    clipBehavior: Clip.antiAlias,
-                                    child: SizedBox(
-                                        width: 200,
-                                        child: SingleChildScrollView(
-                                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                                          primary: false,
-                                          child: SeparatorCard(
-                                            borderRadius: BorderRadius.circular(0),
-                                            children: [
+  IosMenu(
+    width: 200,
+    maxHeight: 400,
+    children: [
                                               ...month.map((m) {
-                                                return utils.TextButton(
-                                                  arrow: false,
+                                                return IosMenuItem(
                                                   label: m['name'],
-                                                  onPressed: () {
+                                                  onTap: () {
                                                     setState(() {
                                                       _monthController.close();
                                                       _focusedDay = DateTime(focusedMonth.year, m['index']+1);
@@ -171,13 +131,8 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                                                 );
                                               })
                                             ],
-                                          ),
-                                        )
-                                    ),
-                                  )
-                              ),
-                            ),
-                          ],
+  ),
+],
                         ),
                       ),
                       Expanded(
@@ -199,56 +154,16 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                                 )
                             );
                           },
-                          clipBehavior: Clip.none,
-                          style: const MenuStyle(
-                            backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                            elevation: WidgetStatePropertyAll(0),
-                          ),
+                          style: IosMenu.menuStyle,
                           menuChildren: [
-                            TweenAnimationBuilder<double>(
-                              tween: Tween(begin: 0, end: 1),
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut,
-                              builder: (context, value, child) {
-                                return Opacity(
-                                  opacity: value,
-                                  child: child,
-                                );
-                              },
-                              child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.18),
-                                        blurRadius: 100,
-                                        spreadRadius: 6,
-                                        offset: Offset.zero,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                      maxHeight: 400,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(22),
-                                    ),
-                                    clipBehavior: Clip.antiAlias,
-                                    child: SizedBox(
-                                        width: 200,
-                                        child: SingleChildScrollView(
-                                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                                          primary: false,
-                                          child: SeparatorCard(
-                                            borderRadius: BorderRadius.circular(0),
-                                            children: [
+  IosMenu(
+    width: 200,
+    maxHeight: 400,
+    children: [
                                               for (int i = 0; i <= 100; i++)
-                                                utils.TextButton(
-                                                  arrow: false,
+                                                IosMenuItem(
                                                   label: (DateTime.now().year + 543 - i).toString(),
-                                                  onPressed: () {
+                                                  onTap: () {
                                                     setState(() {
                                                       _yearController.close();
                                                       _focusedDay = DateTime(
@@ -258,13 +173,8 @@ class _TimeRequestPopupState extends State<TimeRequestPopup> {
                                                   },
                                                 ),
                                             ],
-                                          ),
-                                        )
-                                    ),
-                                  )
-                              ),
-                            ),
-                          ],
+  ),
+],
                         ),
                       )
                     ],

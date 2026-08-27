@@ -1,13 +1,12 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
+import 'package:attendance_system/shared/widgets/utils/ios_menu.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 
@@ -123,12 +122,6 @@ class _AttachmentPickerButtonState extends State<AttachmentPickerButton> {
   /// กดเลือกไฟล์ทีเดียวเลยหลุดกลับไปหน้าก่อนหน้า
   final MenuController _menuController = MenuController();
 
-  /// มุมโค้งของเมนู iOS
-  static const double _radius = 13;
-
-  /// สี label ของ iOS โหมดสว่าง (ไม่ใช่ดำสนิท)
-  static const Color _labelColor = Color(0xFF1C1C1E);
-
   bool get _usesMenu => AttachmentPicker.hasCamera;
 
   @override
@@ -144,28 +137,33 @@ class _AttachmentPickerButtonState extends State<AttachmentPickerButton> {
       controller: _menuController,
       // iOS วางเมนูใต้ตัวควบคุมโดยเว้นช่องเล็กน้อย
       alignmentOffset: const Offset(0, 6),
-
-      // ปิดหน้าตา default ของ Material ทิ้งให้หมด แล้วไปวาดการ์ดเองใน
-      // menuChildren — เพราะพื้นหลังแบบ iOS ต้องมี BackdropFilter ซึ่ง
-      // MenuStyle ทำให้ไม่ได้
-      style: const MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-        surfaceTintColor: WidgetStatePropertyAll(Colors.transparent),
-        shadowColor: WidgetStatePropertyAll(Colors.transparent),
-        elevation: WidgetStatePropertyAll(0),
-        padding: WidgetStatePropertyAll(EdgeInsets.zero),
-        visualDensity: VisualDensity.standard,
-        // ต้องตั้งให้ตรงกับ ClipRRect ข้างใน ไม่งั้น Material clip ทับเป็นมุมเหลี่ยม
-        shape: WidgetStatePropertyAll(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(_radius)),
-          ),
+      style: IosMenu.menuStyle,
+      menuChildren: [
+        IosMenu(
+          children: [
+            _item(_Source.gallery, 'photos_upload.svg', 'คลังรูปภาพ'),
+            _item(_Source.camera, 'camera_upload.svg', 'ถ่ายรูป'),
+            _item(_Source.files, 'file_upload.svg', 'เลือกไฟล์'),
+          ],
         ),
-      ),
-      menuChildren: [_menuCard()],
+      ],
       builder: (context, controller, child) => _button(
         onPressed: () => controller.isOpen ? controller.close() : controller.open(),
       ),
+    );
+  }
+
+  Widget _item(_Source source, String icon, String label) {
+    return IosMenuItem(
+      icon: icon,
+      label: label,
+      onTap: () async {
+        // เมนูอยู่ใน overlay ไม่ใช่ route — ปิดด้วย controller เท่านั้น
+        // (เคยเผลอใช้ Navigator.pop() แล้วมันไปเด้งหน้าออกแทน)
+        _menuController.close();
+        final file = await AttachmentPicker._pickFrom(source);
+        if (file != null) widget.onPicked(file);
+      },
     );
   }
 
@@ -178,107 +176,4 @@ class _AttachmentPickerButtonState extends State<AttachmentPickerButton> {
     );
   }
 
-  /// การ์ดเมนูทรง iOS
-  ///
-  /// อ้างอิงจากเมนูที่ Safari เด้งให้ตอนแตะ `<input type="file">` (จับภาพเทียบ
-  /// บน iPhone/iPad จริง): พื้นหลังโปร่งเบลอ มุมโค้ง 13 แถวสูง 44 ไอคอนอยู่ซ้าย
-  /// ข้อความ 17pt ชิดซ้าย คั่นด้วยเส้น hairline เต็มความกว้าง และเงานุ่มฟุ้ง
-  ///
-  /// วาดเองทั้งการ์ดแทนการใช้ `MenuItemButton` เพราะตัวนั้นบังคับ padding/สี
-  /// ตามสำนวน Material ซึ่งคนละทรงกัน
-  Widget _menuCard() {
-    return Container(
-      constraints: const BoxConstraints(minWidth: 250),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_radius),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x24000000),
-            blurRadius: 24,
-            offset: Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 60,
-            offset: Offset(0, 20),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(_radius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-          child: Container(
-            // เทียบจากเมนูจริง: โปร่งพอให้เห็นของหลังเบลอทะลุมา ถ้าทึบเกิน
-            // BackdropFilter จะเสียเปล่า (เคยตั้ง 0xF2 = 95% แล้วมองไม่เห็นเลย)
-            color: const Color(0xD6F2F2F2),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _row(_Source.gallery, 'photos_upload.svg', 'คลังรูปภาพ'),
-                _separator(),
-                _row(_Source.camera, 'camera_upload.svg', 'ถ่ายรูป'),
-                _separator(),
-                _row(_Source.files, 'file_upload.svg', 'เลือกไฟล์'),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _separator() => Container(
-        height: 0.5,
-        // separator ของ iOS จางมาก — ของเดิม 30% เข้มจนเห็นเป็นเส้นดำ
-        color: const Color(0x1F3C3C43),
-      );
-
-  Widget _row(_Source source, String icon, String label) {
-    return Builder(
-      builder: (context) => Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          // iOS ไฮไลต์ทั้งแถวเป็นเทาจางตอนกด ไม่มี ripple แผ่
-          splashFactory: NoSplash.splashFactory,
-          highlightColor: const Color(0x1A000000),
-          hoverColor: const Color(0x0D000000),
-          onTap: () async {
-            _menuController.close();
-            final file = await AttachmentPicker._pickFrom(source);
-            if (file != null) widget.onPicked(file);
-          },
-          child: SizedBox(
-            height: 44,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/$icon',
-                    width: 21,
-                    height: 21,
-                    colorFilter: const ColorFilter.mode(
-                      _labelColor,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        color: _labelColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

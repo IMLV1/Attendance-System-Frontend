@@ -1,4 +1,5 @@
 import 'package:attendance_system/shared/widgets/utils/animation/animated_widget.dart';
+import 'package:attendance_system/shared/widgets/utils/ios_menu.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
@@ -335,57 +336,17 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                                       )
                                                   );
                                                 },
-                                                clipBehavior: Clip.none,
-                                                style: const MenuStyle(
-                                                  backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                                                  elevation: WidgetStatePropertyAll(0),
-                                                ),
+                                                style: IosMenu.menuStyle,
                                                 menuChildren: [
-                                                  TweenAnimationBuilder<double>(
-                                                    tween: Tween(begin: 0, end: 1),
-                                                    duration: const Duration(milliseconds: 250),
-                                                    curve: Curves.easeOut,
-                                                    builder: (context, value, child) {
-                                                      return Opacity(
-                                                        opacity: value,
-                                                        child: child,
-                                                      );
-                                                    },
-                                                    child: Container(
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius: BorderRadius.circular(20),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors.black.withValues(alpha: 0.18),
-                                                              blurRadius: 100,
-                                                              spreadRadius: 6,
-                                                              offset: Offset.zero,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Container(
-                                                          constraints: BoxConstraints(
-                                                            maxHeight: 400,
-                                                          ),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(22),
-                                                          ),
-                                                          clipBehavior: Clip.antiAlias,
-                                                          child: SizedBox(
-                                                              width: 200,
-                                                              child: SingleChildScrollView(
-                                                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                                                                primary: false,
-                                                                child: SeparatorCard(
-                                                                  borderRadius: BorderRadius.circular(0),
-                                                                  children: [
+  IosMenu(
+    width: 200,
+    maxHeight: 400,
+    children: [
 
                                                                     for (int i = ((allowDateFrom?.year ?? DateTime.now().year - 100) == _focusedDay.year) ? (allowDateFrom?.month ?? 1) - 1 : 0 ; i <= (((allowDateTo?.year ?? DateTime.now().year) == _focusedDay.year) ? (allowDateTo?.month ?? DateTime.now().month) - 1 : 11); i++)
-                                                                      TextButton(
-                                                                        arrow: false,
+                                                                      IosMenuItem(
                                                                         label: month[i],
-                                                                        onPressed: () {
+                                                                        onTap: () {
                                                                           setState(() {
                                                                             _monthController.close();
                                                                             _focusedDay = DateTime(
@@ -396,10 +357,10 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                                                       ),
 
                                                                     // ...month.map((m) {
-                                                                    //   return TextButton(
+                                                                    //   return IosMenuItem(
                                                                     //     arrow: false,
                                                                     //     label: m['name'],
-                                                                    //     onPressed: () {
+                                                                    //     onTap: () {
                                                                     //       setState(() {
                                                                     //         _monthController.close();
                                                                     //         _focusedDay = DateTime(focusedMonth.year, m['index']+1);
@@ -408,13 +369,8 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                                                     //   );
                                                                     // })
                                                                   ],
-                                                                ),
-                                                              )
-                                                          ),
-                                                        )
-                                                    ),
-                                                  ),
-                                                ],
+  ),
+],
                                               ),
                                             ),
                                             Expanded(
@@ -436,56 +392,16 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                                       )
                                                   );
                                                 },
-                                                clipBehavior: Clip.none,
-                                                style: const MenuStyle(
-                                                  backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                                                  elevation: WidgetStatePropertyAll(0),
-                                                ),
+                                                style: IosMenu.menuStyle,
                                                 menuChildren: [
-                                                  TweenAnimationBuilder<double>(
-                                                    tween: Tween(begin: 0, end: 1),
-                                                    duration: const Duration(milliseconds: 250),
-                                                    curve: Curves.easeOut,
-                                                    builder: (context, value, child) {
-                                                      return Opacity(
-                                                        opacity: value,
-                                                        child: child,
-                                                      );
-                                                    },
-                                                    child: Container(
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius: BorderRadius.circular(20),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors.black.withValues(alpha: 0.18),
-                                                              blurRadius: 100,
-                                                              spreadRadius: 6,
-                                                              offset: Offset.zero,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Container(
-                                                          constraints: BoxConstraints(
-                                                            maxHeight: 400,
-                                                          ),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(22),
-                                                          ),
-                                                          clipBehavior: Clip.antiAlias,
-                                                          child: SizedBox(
-                                                              width: 200,
-                                                              child: SingleChildScrollView(
-                                                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                                                                primary: false,
-                                                                child: SeparatorCard(
-                                                                  borderRadius: BorderRadius.circular(0),
-                                                                  children: [
+  IosMenu(
+    width: 200,
+    maxHeight: 400,
+    children: [
                                                                     for (int i = (allowDateTo?.year ?? DateTime.now().year); i >= (allowDateFrom?.year ?? DateTime.now().year - 100); i--)
-                                                                      TextButton(
-                                                                        arrow: false,
+                                                                      IosMenuItem(
                                                                         label: (i + 543).toString(),
-                                                                        onPressed: () {
+                                                                        onTap: () {
                                                                           setState(() {
                                                                             _yearController.close();
 
@@ -509,13 +425,8 @@ class DateSelectorFilterState extends State<DateSelectorFilter> {
                                                                         },
                                                                       ),
                                                                   ],
-                                                                ),
-                                                              )
-                                                          ),
-                                                        )
-                                                    ),
-                                                  ),
-                                                ],
+  ),
+],
                                               ),
                                             )
                                           ],
