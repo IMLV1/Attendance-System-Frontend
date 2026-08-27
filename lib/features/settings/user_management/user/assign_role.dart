@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/assign_role_page/role_model.dart';
 import 'package:attendance_system/services/assign_role_page/role_service.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
@@ -86,6 +87,10 @@ class _AssignRoleState extends State<AssignRole> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      // 🚩 (2026-08-27) เดิมไม่ได้ระบุ maxWidth เลยตกไปใช้ค่า default
+      // (dashboard = 1100) ทั้งที่หน้านี้เป็นฟอร์มคอลัมน์เดียว ผลคือบนจอกว้าง
+      // ช่องกรอกช่องเดียวยืดยาวเป็นพันพิกเซล
+      maxWidth: Responsive.widthFor(ContentShape.form),
       header: Header.subHeader(
         context,
         title: widget.title,

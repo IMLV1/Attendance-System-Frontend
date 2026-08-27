@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/max_leave/max_leave_model.dart';
 import 'package:attendance_system/services/max_leave/max_leave_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -46,162 +47,162 @@ class _MaxLeaveState extends State<MaxLeave> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      content: AppScaffold(
-        header: Header.subHeader(
-          context,
-          title: widget.title
-        ),
-        content: SafeArea(
-          child: Container(
-            color: AppColors.backgroundColor,
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 20),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ServiceLoader(
-                        request: () => MaxLeaveService().getData(widget.id),
-                        onSuccess: (jsonData) {
-                          final data = MaxLeaveModel.fromJson(jsonData);
-                          setState(() {
-                            maxLeave = data;
-                          });
-                        },
-                      //child: Column(),
-                        builder: () => SingleChildScrollView(
-                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                            physics: AlwaysScrollableScrollPhysics(),
-                            child: SeparatorCard(
-                              separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                              children: [
-                                IconTextValueButton(onPressed: () {
-                                  NumberServicePopup(
-                                      title: 'ลาป่วย',
-                                      buttonLabel: 'บันทึก',
-                                      fit: FlexFit.tight,
-                                      suffixText: 'วัน',
-                                      decimal: true,
-                                      maxHeight: 700,
-                                      decimalRange: 1,
-                                      step: 0.5,
-                                      currentValue: maxLeave!.sick,
+      // 🚩 (2026-08-27) AppScaffold ซ้อนกันสองชั้นแบบเดียวกับ set_max_leave
+    maxWidth: Responsive.widthFor(ContentShape.form),
+      header: Header.subHeader(
+        context,
+        title: widget.title
+      ),
+      content: SafeArea(
+        child: Container(
+          color: AppColors.backgroundColor,
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding: EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 20),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ServiceLoader(
+                      request: () => MaxLeaveService().getData(widget.id),
+                      onSuccess: (jsonData) {
+                        final data = MaxLeaveModel.fromJson(jsonData);
+                        setState(() {
+                          maxLeave = data;
+                        });
+                      },
+                    //child: Column(),
+                      builder: () => SingleChildScrollView(
+                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: SeparatorCard(
+                            separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
+                            children: [
+                              IconTextValueButton(onPressed: () {
+                                NumberServicePopup(
+                                    title: 'ลาป่วย',
+                                    buttonLabel: 'บันทึก',
+                                    fit: FlexFit.tight,
+                                    suffixText: 'วัน',
+                                    decimal: true,
+                                    maxHeight: 700,
+                                    decimalRange: 1,
+                                    step: 0.5,
+                                    currentValue: maxLeave!.sick,
 
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(sick: value % 1 == 0.5 ? value : value.round().toDouble())),
-                                      onSuccess: (number) {
-                                        setState(() {
-                                          maxLeave = maxLeave?.copyWith(sick: number % 1 == 0.5 ? number : number.round().toDouble());
-                                        });
-                                      }
-                                  ).showPopup(context);
-                                }, icon: 'leave_sick.svg', label: 'ลาป่วย', value: '${NumberFormat("#,##0.#").format(maxLeave!.sick)} วัน'),
-                                IconTextValueButton(onPressed: () {
-                                  NumberServicePopup(
-                                      title: 'ลากิจส่วนตัว',
-                                      buttonLabel: 'บันทึก',
-                                      fit: FlexFit.tight,
-                                      suffixText: 'วัน',
-                                      decimal: true,
-                                      maxHeight: 700,
-                                      decimalRange: 1,
-                                      step: 0.5,
-                                      currentValue: maxLeave!.personal,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(personal: value % 1 == 0.5 ? value : value.round().toDouble())),
-                                      onSuccess: (number) {
-                                        setState(() {
-                                          maxLeave = maxLeave?.copyWith(personal: number % 1 == 0.5 ? number : number.round().toDouble());
-                                        });
-                                      }
-                                  ).showPopup(context);
-                                }, icon: 'leave_personal.svg', label: 'ลากิจส่วนตัว', value: '${NumberFormat("#,##0.#").format(maxLeave!.personal)} วัน'),
-                                IconTextValueButton(onPressed: () {
-                                  NumberServicePopup(
-                                      title: 'ลาพักผ่อน',
-                                      buttonLabel: 'บันทึก',
-                                      fit: FlexFit.tight,
-                                      suffixText: 'วัน',
-                                      decimal: true,
-                                      maxHeight: 700,
-                                      decimalRange: 1,
-                                      step: 0.5,
-                                      currentValue: maxLeave!.vacation,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(vacation: value % 1 == 0.5 ? value : value.round().toDouble())),
-                                      onSuccess: (number) {
-                                        setState(() {
-                                          maxLeave = maxLeave?.copyWith(vacation: number % 1 == 0.5 ? number : number.round().toDouble());
-                                        });
-                                      }
-                                  ).showPopup(context);
-                                }, icon: 'leave_vacation.svg', label: 'ลาพักผ่อน', value: '${NumberFormat("#,##0.#").format(maxLeave!.vacation)} วัน'),
-                                IconTextValueButton(onPressed: () {
-                                  NumberServicePopup(
-                                      title: 'ลาคลอดบุตร',
-                                      buttonLabel: 'บันทึก',
-                                      fit: FlexFit.tight,
-                                      suffixText: 'วัน',
-                                      decimal: true,
-                                      maxHeight: 700,
-                                      decimalRange: 1,
-                                      step: 0.5,
-                                      currentValue: maxLeave!.maternity,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(maternity: value % 1 == 0.5 ? value : value.round().toDouble())),
-                                      onSuccess: (number) {
-                                        setState(() {
-                                          maxLeave = maxLeave?.copyWith(maternity: number % 1 == 0.5 ? number : number.round().toDouble());
-                                        });
-                                      }
-                                  ).showPopup(context);
-                                }, icon: 'leave_maternity.svg', label: 'ลาคลอดบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.maternity)} วัน'),
-                                IconTextValueButton(onPressed: () {
-                                  NumberServicePopup(
-                                      title: 'ลาช่วยเหลือภริยาคลอดบุตร',
-                                      buttonLabel: 'บันทึก',
-                                      fit: FlexFit.tight,
-                                      suffixText: 'วัน',
-                                      decimal: true,
-                                      maxHeight: 700,
-                                      decimalRange: 1,
-                                      step: 0.5,
-                                      currentValue: maxLeave!.paternity,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(paternity: value % 1 == 0.5 ? value : value.round().toDouble())),
-                                      onSuccess: (number) {
-                                        setState(() {
-                                          maxLeave = maxLeave?.copyWith(paternity: number % 1 == 0.5 ? number : number.round().toDouble());
-                                        });
-                                      }
-                                  ).showPopup(context);
-                                }, icon: 'leave_paternity.svg', label: 'ลาช่วยเหลือภริยาคลอดบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.paternity)} วัน'),
-                                IconTextValueButton(onPressed: () {
-                                  NumberServicePopup(
-                                      title: 'ลากิจเพื่อเลี้ยงดูบุตร',
-                                      buttonLabel: 'บันทึก',
-                                      fit: FlexFit.tight,
-                                      suffixText: 'วัน',
-                                      decimal: true,
-                                      maxHeight: 700,
-                                      decimalRange: 1,
-                                      step: 0.5,
-                                      currentValue: maxLeave!.parental,
-                                      request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(parental: value % 1 == 0.5 ? value : value.round().toDouble())),
-                                      onSuccess: (number) {
-                                        setState(() {
-                                          maxLeave = maxLeave?.copyWith(parental: number % 1 == 0.5 ? number : number.round().toDouble());
-                                        });
-                                      }
-                                  ).showPopup(context);
-                                }, icon: 'leave_parental.svg', label: 'ลากิจเพื่อเลี้ยงดูบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.parental)} วัน'),
-                              ],
-                            )
-                        ),
-                    )
+                                    request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(sick: value % 1 == 0.5 ? value : value.round().toDouble())),
+                                    onSuccess: (number) {
+                                      setState(() {
+                                        maxLeave = maxLeave?.copyWith(sick: number % 1 == 0.5 ? number : number.round().toDouble());
+                                      });
+                                    }
+                                ).showPopup(context);
+                              }, icon: 'leave_sick.svg', label: 'ลาป่วย', value: '${NumberFormat("#,##0.#").format(maxLeave!.sick)} วัน'),
+                              IconTextValueButton(onPressed: () {
+                                NumberServicePopup(
+                                    title: 'ลากิจส่วนตัว',
+                                    buttonLabel: 'บันทึก',
+                                    fit: FlexFit.tight,
+                                    suffixText: 'วัน',
+                                    decimal: true,
+                                    maxHeight: 700,
+                                    decimalRange: 1,
+                                    step: 0.5,
+                                    currentValue: maxLeave!.personal,
+                                    request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(personal: value % 1 == 0.5 ? value : value.round().toDouble())),
+                                    onSuccess: (number) {
+                                      setState(() {
+                                        maxLeave = maxLeave?.copyWith(personal: number % 1 == 0.5 ? number : number.round().toDouble());
+                                      });
+                                    }
+                                ).showPopup(context);
+                              }, icon: 'leave_personal.svg', label: 'ลากิจส่วนตัว', value: '${NumberFormat("#,##0.#").format(maxLeave!.personal)} วัน'),
+                              IconTextValueButton(onPressed: () {
+                                NumberServicePopup(
+                                    title: 'ลาพักผ่อน',
+                                    buttonLabel: 'บันทึก',
+                                    fit: FlexFit.tight,
+                                    suffixText: 'วัน',
+                                    decimal: true,
+                                    maxHeight: 700,
+                                    decimalRange: 1,
+                                    step: 0.5,
+                                    currentValue: maxLeave!.vacation,
+                                    request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(vacation: value % 1 == 0.5 ? value : value.round().toDouble())),
+                                    onSuccess: (number) {
+                                      setState(() {
+                                        maxLeave = maxLeave?.copyWith(vacation: number % 1 == 0.5 ? number : number.round().toDouble());
+                                      });
+                                    }
+                                ).showPopup(context);
+                              }, icon: 'leave_vacation.svg', label: 'ลาพักผ่อน', value: '${NumberFormat("#,##0.#").format(maxLeave!.vacation)} วัน'),
+                              IconTextValueButton(onPressed: () {
+                                NumberServicePopup(
+                                    title: 'ลาคลอดบุตร',
+                                    buttonLabel: 'บันทึก',
+                                    fit: FlexFit.tight,
+                                    suffixText: 'วัน',
+                                    decimal: true,
+                                    maxHeight: 700,
+                                    decimalRange: 1,
+                                    step: 0.5,
+                                    currentValue: maxLeave!.maternity,
+                                    request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(maternity: value % 1 == 0.5 ? value : value.round().toDouble())),
+                                    onSuccess: (number) {
+                                      setState(() {
+                                        maxLeave = maxLeave?.copyWith(maternity: number % 1 == 0.5 ? number : number.round().toDouble());
+                                      });
+                                    }
+                                ).showPopup(context);
+                              }, icon: 'leave_maternity.svg', label: 'ลาคลอดบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.maternity)} วัน'),
+                              IconTextValueButton(onPressed: () {
+                                NumberServicePopup(
+                                    title: 'ลาช่วยเหลือภริยาคลอดบุตร',
+                                    buttonLabel: 'บันทึก',
+                                    fit: FlexFit.tight,
+                                    suffixText: 'วัน',
+                                    decimal: true,
+                                    maxHeight: 700,
+                                    decimalRange: 1,
+                                    step: 0.5,
+                                    currentValue: maxLeave!.paternity,
+                                    request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(paternity: value % 1 == 0.5 ? value : value.round().toDouble())),
+                                    onSuccess: (number) {
+                                      setState(() {
+                                        maxLeave = maxLeave?.copyWith(paternity: number % 1 == 0.5 ? number : number.round().toDouble());
+                                      });
+                                    }
+                                ).showPopup(context);
+                              }, icon: 'leave_paternity.svg', label: 'ลาช่วยเหลือภริยาคลอดบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.paternity)} วัน'),
+                              IconTextValueButton(onPressed: () {
+                                NumberServicePopup(
+                                    title: 'ลากิจเพื่อเลี้ยงดูบุตร',
+                                    buttonLabel: 'บันทึก',
+                                    fit: FlexFit.tight,
+                                    suffixText: 'วัน',
+                                    decimal: true,
+                                    maxHeight: 700,
+                                    decimalRange: 1,
+                                    step: 0.5,
+                                    currentValue: maxLeave!.parental,
+                                    request: (value) => MaxLeaveService().updateMaxLeave(widget.id, maxLeave!.copyWith(parental: value % 1 == 0.5 ? value : value.round().toDouble())),
+                                    onSuccess: (number) {
+                                      setState(() {
+                                        maxLeave = maxLeave?.copyWith(parental: number % 1 == 0.5 ? number : number.round().toDouble());
+                                      });
+                                    }
+                                ).showPopup(context);
+                              }, icon: 'leave_parental.svg', label: 'ลากิจเพื่อเลี้ยงดูบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.parental)} วัน'),
+                            ],
+                          )
+                      ),
                   )
-                ]
-              )
+                )
+              ]
             )
           )
         )
       )
-    );
+  );
   }
 
 }

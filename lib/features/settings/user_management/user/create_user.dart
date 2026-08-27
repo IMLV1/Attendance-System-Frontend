@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/features/settings/user_management/user/set_max_leave.dart';
 import 'package:attendance_system/main.dart';
 import 'package:attendance_system/services/max_leave/max_leave_model.dart';
@@ -46,6 +47,10 @@ class _CreateUserState extends State<CreateUser> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      // 🚩 (2026-08-27) เดิมไม่ได้ระบุ maxWidth เลยตกไปใช้ค่า default
+      // (dashboard = 1100) ทั้งที่หน้านี้เป็นฟอร์มคอลัมน์เดียว ผลคือบนจอกว้าง
+      // ช่องกรอกช่องเดียวยืดยาวเป็นพันพิกเซล
+      maxWidth: Responsive.widthFor(ContentShape.form),
       header: Header.subHeader(
         context,
         title: 'เพิ่มผู้ใช้'
