@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/attachment_picker.dart';
-import 'package:desktop_drop/desktop_drop.dart';
+import 'package:attendance_system/shared/widgets/utils/drop/drop_region.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +15,11 @@ import 'package:path/path.dart' as p;
 /// สัญชาตญาณ ก่อนหน้านี้แนบไฟล์ได้ทางเดียวคือกดปุ่มแล้วเปิดไดอะล็อก
 ///
 /// ปิดตัวเองบน iOS/Android เพราะไม่มี "เคอร์เซอร์ที่ถือไฟล์อยู่" ให้ลากมาวาง
-/// (iPadOS มี drag & drop ระหว่างแอปจริง แต่ `desktop_drop` ไม่รองรับ — ถ้าจะทำ
-/// ต้องใช้ `super_drag_and_drop` ซึ่งพ่วง Rust toolchain เข้ามาใน build ทุก
-/// platform จึงไม่คุ้มกับฟีเจอร์เดียว)
+/// (iPadOS มี drag & drop ระหว่างแอปจริง แต่ต้องใช้ `super_drag_and_drop` ซึ่ง
+/// พ่วง Rust toolchain เข้ามาใน build ทุก platform จึงไม่คุ้มกับฟีเจอร์เดียว)
 ///
-/// ใช้ `desktop_drop` ไม่ใช่ `super_drag_and_drop` ตามที่จดไว้ในแผนเดิม เพราะ
-/// ตัวหลังต้องมี Rust ตอน build (cargokit) = ใครก็ตามที่ clone repo แล้ว build
-/// ไม่ผ่านทันทีถ้าไม่มี Rust ส่วน `desktop_drop` เป็น platform channel ล้วนๆ
+/// ท่ารับ event ต่างกันตามแพลตฟอร์ม ดู [buildDropRegion] — เว็บต่อ DOM event เอง
+/// ส่วนเดสก์ท็อปใช้ `desktop_drop`
 class FileDropTarget extends StatefulWidget {
 
   const FileDropTarget({
@@ -60,10 +58,15 @@ class _FileDropTargetState extends State<FileDropTarget> {
   Widget build(BuildContext context) {
     if (!FileDropTarget.isSupported) return widget.child;
 
-    return DropTarget(
-      onDragEntered: (_) => setState(() => _hovering = true),
-      onDragExited: (_) => setState(() => _hovering = false),
-      onDragDone: _onDrop,
+    return buildDropRegion(
+      onHover: (hovering) {
+        if (mounted) setState(() => _hovering = hovering);
+      },
+      onFiles: (files) {
+        for (final file in files) {
+          if (FileDropTarget.accepts(file.name)) widget.onPicked(file);
+        }
+      },
       child: Stack(
         children: [
           widget.child,
@@ -98,29 +101,5 @@ class _FileDropTargetState extends State<FileDropTarget> {
         ],
       ),
     );
-  }
-
-  Future<void> _onDrop(DropDoneDetails details) async {
-    setState(() => _hovering = false);
-
-    for (final item in details.files) {
-      // โฟลเดอร์ลากมาวางได้เหมือนกัน แต่แนบเป็นไฟล์แนบไม่ได้ — ข้ามเงียบๆ
-      if (item is DropItemDirectory) continue;
-
-      final name = item.name.isNotEmpty ? item.name : p.basename(item.path);
-      if (!FileDropTarget.accepts(name)) continue;
-
-      final bytes = await item.readAsBytes();
-      if (!mounted) return;
-
-      widget.onPicked(PlatformFile(
-        name: name,
-        size: bytes.length,
-        // บนเว็บ path เป็น blob URL ใช้อ่านไฟล์ในเครื่องไม่ได้ ต้องเป็น null
-        // ให้เหมือนที่ `file_picker` คืนมา ไม่งั้นโค้ดฝั่งอัพโหลดจะเลือกทางผิด
-        path: kIsWeb ? null : item.path,
-        bytes: bytes,
-      ));
-    }
   }
 }
