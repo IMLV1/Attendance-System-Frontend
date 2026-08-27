@@ -9,6 +9,7 @@ import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/icon_text_button.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/floating_popup.dart';
+import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/option_service_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/service_popup/text_service_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
@@ -284,29 +285,57 @@ class _UserInfoState extends State<UserInfo> {
                                   ]
                               ),
 
+                              // 🚩 (2026-08-27) เดิมสองแถวนี้ push หน้าใหม่ทับทั้งจอ
+                              // ทั้งที่อีก 7 ช่องในหน้าเดียวกันเปิดเป็น popup กันหมด
+                              // และบนจอกว้างการ push ยังกลืน master-detail ทั้งอัน
                               SeparatorCard(
                                   separatorPadding: EdgeInsets.only(left: 45, right: 15),
                                   children: [
-                                    TextRoleButton(onPressed: () async {
-                                      List<Role>? updatedRole = await Navigator.of(context).push(
-                                        MaterialPageRoute<List<Role>>(
-                                          builder: (context) => AssignRole(id: userInfo.id, title: 'ตำแหน่ง: ${userInfo.nameTH}', roles: userInfo.roles)
+                                    TextRoleButton(onPressed: () {
+                                      PushPopup(
+                                        title: 'ตำแหน่ง: ${userInfo.nameTH}',
+                                        fit: FlexFit.tight,
+                                        maxHeight: 700,
+                                        scroll: false,
+                                        builder: (_) => AssignRole(
+                                          id: userInfo.id,
+                                          roles: userInfo.roles,
+                                          onSaved: (updated) {
+                                            _update(userInfo.copyWith(roles: updated));
+                                          },
                                         ),
-                                      );
-
-                                      if (updatedRole != null) {
-                                        _update(userInfo.copyWith(roles: updatedRole));
-                                      }
-
+                                      ).showPopup(context);
                                     }, label: 'ตำแหน่งปัจจุบัน', roles: [...userInfo.roles], icon: SvgPicture.asset('assets/images/icon_role.svg')),
-                                    IconTextButton(onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (context) => MaxLeave(id: userInfo.id, title: 'จำนวนวันลา: ${userInfo.nameTH}')
-                                        ),
-                                      );
-                                    }, icon: 'max_leave_count.svg', label: 'จำนวนวันลาสูงสุด')
                                   ]
+                              ),
+
+                              // จำนวนวันลาเคยเป็นหน้าแยกเหมือนกัน แต่มันเป็นหน้าเดียวกับ
+                              // ข้อมูลส่วนตัวข้างบนทุกอย่าง (6 แถวคงที่ เซฟทันทีทีละแถว)
+                              // จึงยุบเข้ามาเลย ไม่ต้องมีปุ่มให้กดเข้าไปอีกชั้น
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 5,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                                    child: Row(
+                                      spacing: 6,
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/images/max_leave_count.svg',
+                                          width: 15,
+                                          height: 15,
+                                        ),
+                                        const Text('จำนวนวันลาสูงสุด'),
+                                      ],
+                                    ),
+                                  ),
+                                  MaxLeaveSection(
+                                    // เปลี่ยนคน = โหลดใหม่ทั้งก้อน ไม่ค้างตัวเลขของคนก่อนหน้า
+                                    key: ValueKey(userInfo.id),
+                                    id: userInfo.id,
+                                  ),
+                                ],
                               ),
 
                               SeparatorCard(

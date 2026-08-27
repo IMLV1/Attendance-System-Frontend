@@ -1,11 +1,8 @@
-import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/assign_role_page/role_model.dart';
 import 'package:attendance_system/services/assign_role_page/role_service.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
 import 'package:attendance_system/services/user_management/user_management_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
-import 'package:attendance_system/shared/widgets/app_scaffold.dart';
-import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
@@ -57,13 +54,34 @@ Future<Response> mockData() async {
   );
 }
 
+/// เนื้อหาของ popup "ตำแหน่งของผู้ใช้" — เลือกตำแหน่งให้คนหนึ่งคน แล้วกดบันทึกทีเดียว
+///
+/// 🚩 (2026-08-27) เดิมเป็นหน้าเต็มที่ `user_info` push ไปอีกชั้น ทั้งที่ช่องอื่น
+/// ในหน้าเดียวกันทั้ง 7 ช่องเปิดเป็น popup กันหมด และบนจอกว้างการ push ยังทับ
+/// master-detail จนรายการผู้ใช้ทางซ้ายหายไปทั้งอัน
+///
+/// ยังไม่ยุบเข้าไปในหน้า `user_info` ตรงๆ (ต่างจาก `MaxLeaveSection`) เพราะ
+/// สองข้อ: ยาวไม่จำกัดตามจำนวนตำแหน่ง และเป็น batch-save — เอาไปวางกลางหน้าที่
+/// ทุกช่องเซฟทันที ผู้ใช้จะติ๊กเสร็จแล้วเลื่อนไปทำอย่างอื่นต่อโดยไม่กดบันทึก
+/// แล้วของหายเงียบ ปุ่มบันทึกจึงต้องอยู่ในกรอบของตัวเอง
 class AssignRole extends StatefulWidget {
 
   final String id;
   final List<Role> roles;
-  final String title;
-  
-  const AssignRole({super.key, required this.id, required this.roles, this.title = 'เพิ่มตำแหน่ง'});
+
+  /// รายงานผลหลัง **บันทึกสำเร็จ** เท่านั้น
+  ///
+  /// 🚩 เดิมหน้านี้ pop คืน `roles` ตอนกดย้อนกลับด้วย และตัวแปร `roles` ก็เป็น
+  /// ลิสต์ตัวเดียวกับของผู้เรียก (ไม่ได้ก๊อป) — ติ๊กแล้วกดย้อนกลับโดยไม่บันทึก
+  /// หน้าก่อนจึงแสดงตำแหน่งใหม่ทั้งที่เซิร์ฟเวอร์ไม่เคยรู้เรื่อง
+  final ValueChanged<List<Role>> onSaved;
+
+  const AssignRole({
+    super.key,
+    required this.id,
+    required this.roles,
+    required this.onSaved,
+  });
 
   @override
   State<StatefulWidget> createState() => _AssignRoleState();
@@ -81,41 +99,18 @@ class _AssignRoleState extends State<AssignRole> {
   void initState() {
     super.initState();
     oldRoles = [...widget.roles];
-    roles = widget.roles;
+    // ก๊อปจริงๆ ไม่ใช่อ้างลิสต์เดิมของผู้เรียก (ดูหมายเหตุที่ onSaved)
+    roles = [...widget.roles];
   }
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      // 🚩 (2026-08-27) เดิมไม่ได้ระบุ maxWidth เลยตกไปใช้ค่า default
-      // (dashboard = 1100) ทั้งที่หน้านี้เป็นฟอร์มคอลัมน์เดียว ผลคือบนจอกว้าง
-      // ช่องกรอกช่องเดียวยืดยาวเป็นพันพิกเซล
-      maxWidth: Responsive.widthFor(ContentShape.form),
-      header: Header.subHeader(
-        context,
-        title: widget.title,
-        onBack: () {
-          Navigator.pop(context, roles);
-        }
-      ),
-      content: SafeArea(
-        child: Container(
-          color: AppColors.backgroundColor,
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: EdgeInsets.only(left: 10, right: 10, top: 20),
-            child: Stack(
-              children: [
-                Column(
-                  children: [
-                    Expanded(
-
+    return Column(
+      children: [
+        Expanded(
                         child: ServiceLoader(
                             request: () => RoleService().getData(),
                             onSuccess: (jsonData) {
-
-                              print(jsonData);
-
                               final data = RoleModel.getList(jsonData);
                               setState(() {
                                 allRoles = data;
@@ -237,19 +232,17 @@ class _AssignRoleState extends State<AssignRole> {
                                 ],
                               ),
                             )
-                        )
-                    )
-                  ],
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+                        ),
+        ),
+        const SizedBox(height: 12),
                     ServiceUpdater(
                         request: () => UserManagementService().updateRole(widget.id, roles),
                         onSuccess: () {
                           setState(() {
                             oldRoles = [...roles];
                           });
+                          widget.onSaved([...roles]);
+                          Navigator.of(context).pop();
                         },
                         builder: (trigger, state, errorMessage) {
 
@@ -307,14 +300,8 @@ class _AssignRoleState extends State<AssignRole> {
                             ],
                           );
                         }
-                    )
-                  ],
-                ),
-              ],
-            )
-          )
-        )
-      )
+                    ),
+      ],
     );
   }
 }
