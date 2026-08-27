@@ -662,7 +662,7 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                                           onDownloadSuccess: () => setState(() {
                                                                             downloading = false;
                                                                           })
-                                                                      ).shareFile(file);
+                                                                      ).shareFile(file, origin: Downloader.originOf(context));
                                                                     },
                                                                   ),
                                                                 Padding(

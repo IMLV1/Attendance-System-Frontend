@@ -75,6 +75,9 @@ class _FilePreviewViewState extends State<_FilePreviewView> {
   final GlobalKey _viewerKey = GlobalKey();
   final MenuController _menu = MenuController();
 
+  /// ปุ่ม `…` — บน iPad share sheet เป็น popover ที่ต้องชี้มาที่ปุ่มนี้
+  final GlobalKey _menuKey = GlobalKey();
+
   /// ระยะที่นิ้วลากลงอยู่ตอนนี้ — ใช้ทั้งเลื่อนรูปและหรี่ฉากหลัง
   double _dragOffset = 0;
 
@@ -301,7 +304,12 @@ class _FilePreviewViewState extends State<_FilePreviewView> {
               IosMenuItem(
                 iconData: Icons.ios_share,
                 label: 'แชร์ไฟล์',
-                onTap: () => _run((d) => d.shareFile(widget.file)),
+                onTap: () => _run((d) => d.shareFile(
+                  widget.file,
+                  // ต้องชี้ที่ปุ่ม `…` ไม่ใช่ context ของทั้งหน้า ไม่งั้น
+                  // popover บน iPad จะไปโผล่กลางจอห่างจากปุ่มที่กด
+                  origin: Downloader.originOf(_menuKey.currentContext!),
+                )),
               ),
             // ครึ่งหลังของทาง B3 — พรีวิวยังอยู่ในแอป แต่มีทางออกไปหาแอปของ
             // ระบบสำหรับสิ่งที่ viewer นี้ทำไม่ได้ (พิมพ์ / ค้นคำในเอกสาร /
@@ -315,6 +323,7 @@ class _FilePreviewViewState extends State<_FilePreviewView> {
         ),
       ],
       builder: (context, controller, _) => IconButton(
+        key: _menuKey,
         icon: const Icon(Icons.more_horiz, color: Colors.white),
         onPressed: () => controller.isOpen ? controller.close() : controller.open(),
       ),

@@ -536,7 +536,7 @@ class _PersonnelLeaveDetailState extends State<PersonnelLeaveDetail> {
                                                                       onDownloadSuccess: () => setState(() {
                                                                         downloading = false;
                                                                       })
-                                                                  ).shareFile(file);
+                                                                  ).shareFile(file, origin: Downloader.originOf(context));
                                                                 },
                                                               ),
                                                             Padding(

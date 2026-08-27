@@ -4,6 +4,7 @@ import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -90,7 +91,18 @@ class Downloader {
   ///
   /// ไม่รองรับบนเว็บ (Web Share API ยังส่งไฟล์ไม่ได้ทุกเบราว์เซอร์) ปุ่มนี้
   /// จึงถูกซ่อนไปเลยบนเว็บ ดู `Downloader.canShare`
-  Future<void> shareFile(NetworkFile file) async {
+  ///
+  /// 🚩 (2026-08-27) [origin] **บังคับต้องส่ง** ไม่ใช่ของเสริม — บน iPad กับ
+  /// macOS ระบบแสดง share sheet เป็น **popover ที่ต้องชี้ไปยังของบางอย่างบนจอ**
+  /// ถ้าไม่บอกว่าชี้ที่ไหน `UIActivityViewController` จะไม่ขึ้นมาเลย
+  ///
+  /// อาการที่ผู้ใช้เจอ: กด "แชร์ไฟล์" บน iPad แล้วไม่เกิดอะไรขึ้น เงียบสนิท
+  /// ไม่มี error ให้เห็นด้วย (iPhone ไม่มีปัญหาเพราะขึ้นเป็นชีตเต็มจอ ไม่ใช่
+  /// popover จึงไม่สนใจค่านี้)
+  ///
+  /// ทำเป็น named แบบ `required` เพื่อให้ลืมไม่ได้ — ค่า null ยังยอมรับได้
+  /// สำหรับจุดที่หา RenderBox ไม่เจอจริงๆ แต่ต้องเขียนออกมาให้เห็นว่าตั้งใจ
+  Future<void> shareFile(NetworkFile file, {required Rect? origin}) async {
     try {
       final tempPath = await _downloadToTemp(file);
 
@@ -98,11 +110,22 @@ class Downloader {
         ShareParams(
           files: [XFile(tempPath)],
           subject: file.fileName,
+          sharePositionOrigin: origin,
         ),
       );
     } catch (e) {
       onError?.call(e);
     }
+  }
+
+  /// กรอบของ widget ที่กดในพิกัดจอ — ใช้เป็นจุดที่ popover ของ iPad ชี้ไป
+  ///
+  /// ส่ง context ของ **ปุ่มที่ผู้ใช้กด** มา ไม่ใช่ของทั้งหน้า ไม่งั้น popover
+  /// จะไปโผล่กลางจอห่างจากปุ่ม
+  static Rect? originOf(BuildContext context) {
+    final box = context.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
   }
 
   /// เว็บไม่มี share sheet ที่ส่งไฟล์ได้จริง — ให้ผู้เรียกซ่อนปุ่มแชร์เอง

@@ -631,7 +631,7 @@ class _LeaveRequestDetailState extends State<LeaveRequestDetail> {
                                                               onDownloadSuccess: () => setState(() {
                                                                 downloading = false;
                                                               })
-                                                          ).shareFile(file);
+                                                          ).shareFile(file, origin: Downloader.originOf(context));
                                                         },
                                                       ),
                                                     Padding(

@@ -667,7 +667,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                                             onDownloadSuccess: () => setState(() {
                                                               downloading = false;
                                                             })
-                                                        ).shareFile(file);
+                                                        ).shareFile(file, origin: Downloader.originOf(context));
                                                       },
                                                     ),
                                                   Padding(
