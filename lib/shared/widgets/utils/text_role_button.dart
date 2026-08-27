@@ -1,4 +1,5 @@
 import 'package:attendance_system/services/user_management/user_management_model.dart';
+import 'package:attendance_system/shared/widgets/utils/role_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -50,13 +51,18 @@ class TextRoleButton extends StatelessWidget {
                           width: 20,
                           child: icon
                       ),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: color,
+                      // 🚩 (2026-08-27) เดิมไม่ได้ห่อ Flexible — `overflow: ellipsis`
+                      // ไม่ทำงานถ้า Text ยังได้ความกว้างเท่าที่ตัวเองอยาก
+                      // ป้ายยาวๆ จึงดัน Row จนล้นออกนอก Expanded
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: color,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   )
@@ -68,28 +74,10 @@ class TextRoleButton extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Flexible(
-                        child: Wrap(
-                          spacing: 5,
-                          runSpacing: 5,
-                          children: [
-                            ...roles.map((m) {
-                              return Container(
-                                  padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(2),
-                                    color: m.color.withAlpha((20 * 255 / 100).toInt()),
-                                  ),
-                                  child: Text(
-                                    m.name as String,
-                                    style: TextStyle(
-                                        color: m.color,
-                                        fontSize: 10
-                                    ),
-                                  )
-                              );
-                            })
-                          ]
-                        )
+                        child: RoleChips(
+                          roles: roles,
+                          alignment: WrapAlignment.end,
+                        ),
                       ),
                       if (!disable) const SizedBox(width: 4),
                       if (!disable)

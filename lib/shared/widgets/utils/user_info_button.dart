@@ -1,4 +1,5 @@
 import 'package:attendance_system/services/user_management/user_management_model.dart';
+import 'package:attendance_system/shared/widgets/utils/role_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -112,42 +113,21 @@ class UserInfoButton extends StatelessWidget {
           if (roles.isNotEmpty)
             Expanded(
               flex: 2,
-              child: IntrinsicHeight(
-                child: Row(
-                  spacing: 10,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      width: 1,
-                      color: Colors.grey, // 👈 remove fixed height
-                    ),
-                    Expanded(
-                      child: Wrap(
-                        spacing: 5,
-                        runSpacing: 5,
-                        children: [
-                          ...roles.map((m) {
-                            return Container(
-                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(2),
-                                color: m.color.withAlpha((20 * 255 / 100).toInt()),
-                              ),
-                              child: Text(
-                                m.name,
-                                style: TextStyle(
-                                  color: m.color,
-                                  fontSize: 10
-                                ),
-                              )
-                            );
-                          }),
-                        ]
-                      ),
-                    ),
-                  ],
+              // 🚩 (2026-08-27) เดิมเป็น IntrinsicHeight + Container(width: 1)
+              // เพื่อให้เส้นคั่นสูงเท่าบล็อกป้ายตำแหน่ง แต่ IntrinsicHeight ถาม
+              // ความสูง "โดยธรรมชาติ" ของลูก ซึ่ง LayoutBuilder (ที่ RoleChips
+              // ใช้วัดความกว้างที่มี) ตอบไม่ได้ → ทั้งลิสต์พังทั้งแถบ
+              //
+              // ใช้ border ซ้ายแทน — เส้นสูงเท่ากล่องอยู่แล้วโดยไม่ต้องถาม
+              // intrinsic และได้ผลเหมือนเดิมเป๊ะ เพราะใน Row เดิมมีลูกแค่
+              // ป้ายตำแหน่งตัวเดียว ความสูง intrinsic จึงเท่ากับป้ายอยู่แล้ว
+              child: Container(
+                padding: const EdgeInsets.only(left: 10),
+                decoration: const BoxDecoration(
+                  border: Border(left: BorderSide(color: Colors.grey)),
                 ),
-              )
+                child: RoleChips(roles: roles),
+              ),
             ),
             if (arrow) SizedBox(
               height: 10,
