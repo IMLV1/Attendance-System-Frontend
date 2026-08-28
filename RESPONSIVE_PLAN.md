@@ -1227,9 +1227,9 @@ user_info · set_max_leave · max_leave
 
 ---
 
-## 📌 ช่องโหว่สิทธิ์อนุมัติ — ปุ่มโผล่ทั้งที่กดไม่ผ่าน (สำรวจ 27 ส.ค. 2569)
+## ✅ ช่องโหว่สิทธิ์อนุมัติ — ปุ่มโผล่ทั้งที่กดไม่ผ่าน (แก้แล้ว 28 ส.ค. 2569)
 
-> ยังไม่ได้แก้ — รอเคาะ
+> backend `6577a42` · frontend ↓
 
 **นโยบายปัจจุบัน** (ยืนยันแล้วใน `leave_approval_repo.go:22`):
 
@@ -1250,5 +1250,39 @@ user_info · set_max_leave · max_leave
 (`You don't have permission to approve/reject this request`) ซึ่งแอปไม่มีการดัก
 เคสนี้เป็นการเฉพาะ
 
-**ทางแก้ที่เสนอ**: ให้ API ตอบ flag รายคำขอมาด้วย (เช่น `can_approve`) แล้วแอป
-ใช้ค่านั้นแทนการเดาจาก role type ของตัวเอง
+**ทางแก้ที่ทำจริง**: API ตอบ `can-approve` ใน `approve-detail` ของทั้งสองโดเมน
+(ใบลา + แก้ไขเวลา) แอปใช้ค่านั้นตรงๆ แทนการเดา
+
+| ที่ | เดิม | ใหม่ |
+|---|---|---|
+| `leave_approval_repo.go` `GetRequestDetail` | — | `"can-approve": r.canApprove(managerID, req.UserID)` |
+| `attendance_approval_repo.go` | — | เหมือนกัน |
+| `leave_model.dart` / `time_request_model.dart` | — | `canApprove` (default **false** เมื่อ field หาย) |
+| ปุ่มอนุมัติทั้งสอง popup | `roleType.any((r) => r == 'admin' \|\| r == 'main')` | `approveDetail.canApprove` |
+
+default เป็น `false` ตั้งใจ — ยอมซ่อนปุ่มผิดพลาดดีกว่าโชว์ปุ่มที่กดแล้วได้ 403
+
+**ตรวจแล้ว** คำขอใบเดียวกัน 4 มุมมอง:
+
+| ผู้ดู | can-approve | PUT จริง |
+|---|---|---|
+| admin (`system-root`) | true | 200 |
+| main (ผู้อนุมัติ) | true | 200 |
+| special (รองหัวหน้า) | false | 403 |
+| เจ้าของคำขอเอง | false | — (กัน self-approve) |
+
+ยิง PUT จริงเทียบด้วย ไม่ใช่แค่เชื่อว่า flag ถูก — กันเคสที่คำนวณคนละที่แล้ว
+บังเอิญตรงกันวันนี้ แต่หลุดกันวันหน้า
+
+### บั๊กที่เจอระหว่างทาง: `status` ไม่เคยถูกตรวจ
+
+ยิง `status=__probe__` เพื่อทดสอบว่า 403 มาจากสิทธิ์จริงไหม (คิดว่าจะตกที่
+validation) ปรากฏว่า **มันเขียนลงฐานเลย** — `leave_requests.status` กลายเป็น
+`__probe__` คำขอนั้นค้างถาวร: ไม่นับเป็น `pending` อีกต่อไปจึงหลุดจากหน้าอนุมัติ
+แต่ก็ไม่ใช่ `approved`/`rejected` เจ้าของคำขอไม่ได้คำตอบและไม่มีใครกดต่อได้
+
+โควตาไม่ถูกแตะเพราะการตัดยอดอยู่ใต้ `if status == "approved"` อยู่แล้ว
+กู้คืนแล้ว (`status` กลับเป็น `pending`, ลบแถวใน `leave_approvals` ที่ probe
+สร้าง, ยืนยัน `days_used` 0.5 มาจากคำขอ id 7 ที่อนุมัติไว้แต่เดิม)
+
+ปิดที่ handler ทั้งสองฝั่ง: รับแค่ `approved`/`rejected` นอกนั้น 400

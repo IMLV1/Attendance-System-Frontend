@@ -676,7 +676,9 @@ class AttendanceDetailState extends State<AttendanceDetailPopup> {
                 ),
               ),
 
-              if (data!.approveDetail.status == 'pending' && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'main'))
+              // 🚩 (2026-08-28) ใช้สิทธิ์รายคำขอจาก backend แทนการเดาจาก role type รวม
+              // (เหตุผลเดียวกับฝั่งใบลา — ดู leave_approval_detail_popup.dart)
+              if (data!.approveDetail.status == 'pending' && data!.approveDetail.canApprove)
                 Positioned(
                   left: 0,
                   right: 0,

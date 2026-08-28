@@ -1,4 +1,3 @@
-import 'package:attendance_system/core/auth/auth_state.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/approval/leave/leave_approval_detail_model.dart';
 import 'package:attendance_system/services/approval/leave/leave_service.dart';
@@ -10,7 +9,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 import '../../../../services/leave/leave_model.dart';
 import '../../../../services/system_config/leave/config_leave_model.dart';
@@ -56,9 +54,6 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
 
   @override
   Widget build(BuildContext context) {
-
-    final auth = context.read<AuthState>();
-
     return Padding(
       padding: EdgeInsets.only(
         // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
@@ -554,7 +549,11 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                 ),
               ),
 
-              if (status == .pending && (auth.user?.roleType ?? []).any((r) => r == 'admin' || r == 'main'))
+              // 🚩 (2026-08-28) เดิมเช็ค `roleType.any((r) => r == 'admin' || r == 'main')`
+              // ซึ่งดู role type ของ "คนนั้นโดยรวม" ไม่ใช่สิทธิ์บนคำขอใบนี้ — คนที่มีทั้ง
+              // role main (คุมทีมอื่น) และ role อื่นที่คุมเจ้าของคำขอ จะเห็นปุ่มแล้วกดได้ 403
+              // ตอนนี้ backend ตอบ can-approve มารายคำขอ ใช้ค่านั้นตรงๆ
+              if (status == .pending && (requestDetail?.approveDetail.canApprove ?? false))
                 Positioned(
                   left: 0,
                   right: 0,

@@ -170,12 +170,23 @@ class AttendanceApproveDetail {
   final String reason;
   final DateTime? approveDate;
 
+  /// สิทธิ์อนุมัติ **ของคำขอใบนี้** ตามที่ backend ตอบมา (`can-approve`)
+  ///
+  /// 🚩 (2026-08-28) เดิมแอปเดาเองจาก role type รวมของผู้ใช้
+  /// (`roleType.any((r) => r == 'admin' || r == 'main')`) ซึ่งตอบเป็นรายคน
+  /// ไม่ใช่รายคำขอ — คนที่มีทั้ง role `main` (คุมทีมอื่น) และ role อื่นที่คุม A
+  /// จึงเห็นปุ่มอนุมัติบนคำขอของ A ทั้งที่กดแล้วได้ 403
+  ///
+  /// default `false` เมื่อ field หายไป: ยอมซ่อนปุ่มผิดพลาดดีกว่าโชว์ปุ่มที่กดไม่ผ่าน
+  final bool canApprove;
+
   AttendanceApproveDetail({
     required this.status,
     required this.approveRole,
     required this.approver,
     required this.reason,
     required this.approveDate,
+    this.canApprove = false,
   });
 
   factory AttendanceApproveDetail.fromJson(Map<String, dynamic> json) {
@@ -185,6 +196,7 @@ class AttendanceApproveDetail {
       approver: json['approver'] ?? '',
       reason: json['reason'] ?? '',
       approveDate: DateTime.tryParse(json['approve-date'] ?? ''),
+      canApprove: json['can-approve'] == true,
     );
   }
 }
