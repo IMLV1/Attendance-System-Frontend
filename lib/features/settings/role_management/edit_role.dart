@@ -7,7 +7,6 @@ import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/user_cancel_checkbox.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -20,81 +19,6 @@ import '../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../shared/widgets/utils/separator_card.dart';
 import '../../../shared/widgets/utils/services/service_updater.dart';
 import '../../../shared/widgets/utils/sliver_separator_list.dart';
-
-Future<Response> getMemberAll() async {
-  await Future.delayed(const Duration(milliseconds: 500));
-
-  final mockData = {
-    "members": [
-      {
-        "id": "EMP001",
-        "thName": "พนักงาน 1",
-        "enName": "Employee 1",
-        "avatarUrl": "https://i.pravatar.cc/150?img=1"
-      },
-      {
-        "id": "EMP002",
-        "thName": "พนักงาน 2",
-        "enName": "Employee 2",
-        "avatarUrl": "https://i.pravatar.cc/150?img=2"
-      },
-      {
-        "id": "EMP003",
-        "thName": "พนักงาน 3",
-        "enName": "Employee 3",
-        "avatarUrl": "https://i.pravatar.cc/150?img=3"
-      },
-      {
-        "id": "EMP004",
-        "thName": "พนักงาน 4",
-        "enName": "Employee 4",
-        "avatarUrl": "https://i.pravatar.cc/150?img=4"
-      },
-      {
-        "id": "EMP005",
-        "thName": "พนักงาน 5",
-        "enName": "Employee 5",
-        "avatarUrl": "https://i.pravatar.cc/150?img=5"
-      },
-      {
-        "id": "EMP006",
-        "thName": "พนักงาน 6",
-        "enName": "Employee 6",
-        "avatarUrl": "https://i.pravatar.cc/150?img=6"
-      },
-      {
-        "id": "EMP007",
-        "thName": "พนักงาน 7",
-        "enName": "Employee 7",
-        "avatarUrl": "https://i.pravatar.cc/150?img=7"
-      },
-      {
-        "id": "EMP008",
-        "thName": "พนักงาน 8",
-        "enName": "Employee 8",
-        "avatarUrl": "https://i.pravatar.cc/150?img=8"
-      },
-      {
-        "id": "EMP009",
-        "thName": "พนักงาน 9",
-        "enName": "Employee 9",
-        "avatarUrl": "https://i.pravatar.cc/150?img=9"
-      },
-      {
-        "id": "EMP010",
-        "thName": "พนักงาน 10",
-        "enName": "Employee 10",
-        "avatarUrl": "https://i.pravatar.cc/150?img=10"
-      },
-    ]
-  };
-
-  return Response(
-    requestOptions: RequestOptions(path: '/system/role/all-user/1'),
-    data: mockData,
-    statusCode: 200,
-  );
-}
 
 class EditRole extends StatefulWidget {
   final RoleSystem roleInfo;

@@ -12,54 +12,8 @@ import 'package:attendance_system/shared/widgets/master_detail_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-Future<Response> mockGetUser() async {
-  await Future.delayed(const Duration(milliseconds: 500));
-
-  return Response(
-    requestOptions: RequestOptions(path: '/mock/user'),
-    statusCode: 200,
-    data: {
-      'data': [
-        {
-          'id': '1100000000000',
-          'name-th': 'ศ.ดร.บลาๆๆๆๆๆๆๆๆ นี่คือนามสกุล',
-          'name-en': 'Prof. Dr. ThisisSurName ThisIsLastName',
-          'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
-          'employee-id': '6630300327',
-          'gender': 'ชาย',
-          'nationality': 'ไทย',
-          'phone': '012-345-6789',
-          'email': 'duaydee.t@eng.src.ku.ac.th',
-          'initial-role': 'วิศวกรรมคอมพิวเตอร์',
-          'roles': [
-            {'role-id': '0000000001', 'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
-            {'role-id': '0000000002', 'role-name': 'รองคณบดี', 'role-color': 'FFA51D'}
-          ]
-        },
-        {
-          'id': '1100000000001',
-          'name-th': 'ศ.ดร.บลาๆๆๆๆๆๆๆๆ นี่คือนามสกุล',
-          'name-en': 'Prof. Dr. ThisisSurName ThisIsLastName',
-          'avatar-url': 'https://i.pinimg.com/736x/c0/05/11/c005114aae03691b32012e18c7ef3a6e.jpg',
-          'employee-id': '6630300327',
-          'gender': 'ชาย',
-          'nationality': 'ไทย',
-          'phone': '012-345-6789',
-          'email': 'duaydee.t@eng.src.ku.ac.th',
-          'initial-role': 'วิศวกรรมคอมพิวเตอร์',
-          'roles': [
-            {'role-id': '0000000001', 'role-name': 'ผู้ดูแลระบบ', 'role-color': 'FF0000'},
-            {'role-id': '0000000002', 'role-name': 'รองคณบดี', 'role-color': 'FFA51D'}
-          ]
-        },
-      ]
-    }
-  );
-}
 
 class UserManagement extends StatefulWidget {
   const UserManagement({super.key});

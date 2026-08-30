@@ -5,7 +5,6 @@ import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,50 +18,6 @@ import '../../../shared/widgets/utils/popup/file_preview_popup.dart';
 import '../../../shared/widgets/utils/popup/floating_popup.dart';
 import '../../../shared/widgets/utils/popup/multi_page/dynamic_popup_config.dart';
 import '../../../shared/widgets/utils/utils.dart';
-
-Future<Response> mockData() async {
-
-  await Future.delayed(
-    const Duration(milliseconds: 200),
-  );
-
-  return Response(
-
-    requestOptions: RequestOptions(path: '/api/attendance_request/detail'),
-    statusCode: 200,
-    data: {
-
-      'request-detail': {
-        'date-from': '2026-02-18T18:00:45.621Z',
-        'date-to': '2026-02-18T18:00:45.621Z',
-        'time-start': '08:00',
-        'time-end': '09:00',
-        'remark': 'ปวดหัว อาเจียน เป็นไข้ ทิฟฟี่แผงสีเขียว',
-        'evidence-files': [
-          {
-            'file-name': 'final algorithm.pdf',
-            'file-url': 'https://drive.google.com/uc?export=download&id=1vlrDqDVuYZhqy8E3HQXf8DsxctgnYUCN',
-            'file-type': 'pdf',
-            'file-size': 3079943
-          },
-          {
-            'file-name': 'IMG_3535.jpg',
-            'file-url': 'https://media.discordapp.net/attachments/1339973422494515212/1466642651330777222/61346471-07C0-4AED-AF16-B46C7876F3D4.jpg?ex=69a11568&is=699fc3e8&hm=156a11fcf6d2687752a07202dac4988fd913061d0fe04c11b82df47b62994eab&=&format=webp&width=669&height=1189',
-            'file-type': 'jpg',
-            'file-size': 5434478723
-          }
-        ],
-      },
-      'approve-detail': {
-        'status': 'rejected', // pending, approved, rejected
-        'approve-role': 'คณบดี',
-        'approver': 'ด้วยดี ตามไท',
-        'reason': 'ดีมาก',
-        'approve-date': '2026-02-01T08:00:00.000Z',
-      }
-    },
-  );
-}
 
 String formatDateTime(DateTime dt) {
   return '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')} น.';

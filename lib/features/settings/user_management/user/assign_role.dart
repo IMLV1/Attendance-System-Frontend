@@ -8,51 +8,9 @@ import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:collection/collection.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-Future<Response> mockData() async {
-  await Future.delayed(const Duration(milliseconds: 500));
-
-  return Response(
-      requestOptions: RequestOptions(path: '/mock/user'),
-      statusCode: 200,
-      data: {
-        'data': [
-          {
-            'id': '0000000001',
-            'name': 'ผู้ดูแลระบบ',
-            'type': 'main',
-            'color': 'FF0000',
-            'member': 1
-          },
-          {
-            'id': '0000000002',
-            'name': 'รองคณบดี',
-            'type': 'special',
-            'color': 'FFA51D',
-            'member': 2
-          },
-          {
-            'id': '0000000003',
-            'name': 'ฝ่ายบุคคล',
-            'type': 'main',
-            'color': 'B71DFF',
-            'member': 2
-          },
-          {
-            'id': '0000000004',
-            'name': 'หัวหน้าสำนักงานเลขานุการ',
-            'type': 'main',
-            'color': '1D83FF',
-            'member': 9
-          },
-        ]
-      }
-  );
-}
 
 /// เนื้อหาของ popup "ตำแหน่งของผู้ใช้" — เลือกตำแหน่งให้คนหนึ่งคน แล้วกดบันทึกทีเดียว
 ///

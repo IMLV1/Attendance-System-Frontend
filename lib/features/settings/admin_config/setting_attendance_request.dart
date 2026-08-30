@@ -8,29 +8,10 @@ import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../shared/theme/app_colors.dart';
-
-Future<Response> mockData() async {
-  await Future.delayed(const Duration(milliseconds: 200));
-
-  return Response(
-      requestOptions: RequestOptions(path: '/mock/user'),
-      statusCode: 200,
-      data: {
-        'request-need-signature': true,
-        'approve-need-signature': true,
-        'specify-approval-reason': true,
-        'specify-remark': false,
-        'required-remark': true,
-        'evidence-file': true,
-        'required-evidence-file': true,
-      }
-  );
-}
 
 class SettingAttendanceRequest extends StatefulWidget {
   const SettingAttendanceRequest({super.key});

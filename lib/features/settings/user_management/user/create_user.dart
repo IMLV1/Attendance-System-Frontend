@@ -14,21 +14,11 @@ import 'package:attendance_system/shared/widgets/utils/popup/text_input_popup.da
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater.dart';
 import 'package:attendance_system/shared/widgets/utils/text_value_button.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-
-Future<Response> mockUpdate() async {
-  await Future.delayed(const Duration(milliseconds: 2000));
-
-  return Response(
-      requestOptions: RequestOptions(path: '/mock/user'),
-      statusCode: 200,
-  );
-}
 
 class CreateUser extends StatefulWidget {
   const CreateUser({super.key});

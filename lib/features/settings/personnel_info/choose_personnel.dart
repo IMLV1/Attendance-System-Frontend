@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:attendance_system/services/personnel_info/personnel_info_model.dart';
 import 'package:attendance_system/services/personnel_info/personnel_info_service.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
-import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
 import 'package:collection/collection.dart';

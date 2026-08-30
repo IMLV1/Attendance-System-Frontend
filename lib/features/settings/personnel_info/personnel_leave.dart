@@ -16,7 +16,6 @@ import 'package:attendance_system/shared/widgets/utils/popup/push_popup.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_updater_promax.dart';
 import 'package:attendance_system/shared/widgets/utils/user_info_button.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -24,84 +23,6 @@ import 'package:intl/intl.dart';
 
 import '../../../shared/widgets/utils/sliver_separator_list.dart';
 import '../../main_feature/leave_request/leave_type.dart';
-
-Future<Response> mockData() async {
-  await Future.delayed(const Duration(milliseconds: 1000));
-
-  return Response(
-      requestOptions: RequestOptions(path: '/mock/data'),
-      statusCode: 200,
-      data: {
-        'pending': [
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z'
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z'
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z'
-          },
-        ]
-      }
-  );
-}
-
-Future<Response> mockData2() async {
-  await Future.delayed(const Duration(milliseconds: 2000));
-
-  return Response(
-      requestOptions: RequestOptions(path: '/mock/data'),
-      statusCode: 200,
-      data: {
-        'recent': [
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z',
-            'status': 'approved'
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z',
-            'status': 'overdue'
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z',
-            'status': 'approved'
-          },
-          {
-            'id': 'LEV000000065013',
-            'leave-type': 'sick',
-            'date-start': '2026-02-18T18:00:45.621Z',
-            'status': 'rejected'
-          },
-        ]
-      }
-  );
-}
-
-Future<Response> mockData3() async {
-  await Future.delayed(const Duration(milliseconds: 200));
-
-  return Response(
-      requestOptions: RequestOptions(path: '/mock/data'),
-      statusCode: 200,
-      data: {
-        'start': '2025-04-01T00:00:00.000Z',
-        'end': '2027-06-30T00:00:00.000Z'
-      }
-  );
-}
 
 class PersonnelLeave extends StatefulWidget {
 
