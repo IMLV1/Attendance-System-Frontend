@@ -130,10 +130,13 @@ cd ../Attendance-System-Backend && git push origin main
 
 ## 🩹 ที่ต้องซ่อมเพราะผมทำพัง
 
-- [ ] **Chrome ต้องล็อกอินใหม่** — ผมลองฉีด JWT เข้า `localStorage` เพื่อสลับบัญชี
-      แต่ `flutter_secure_storage` บนเว็บ **เข้ารหัสค่าด้วย `crypto.subtle`**
-      ค่าที่เขียนทับลงไปจึงถอดรหัสไม่ได้ และผมลบ refresh token ทิ้งด้วย
-      → session เดิม (admin) หายถาวร ต้องกด Login with Google ใหม่
+- [x] ~~**Chrome ต้องล็อกอินใหม่**~~ — ✅ ผู้ใช้ล็อกอินกลับเป็น `admin` แล้ว (31 ส.ค.)
+
+      **บทเรียน**: `flutter_secure_storage` บนเว็บ **เข้ารหัสค่าด้วย `crypto.subtle`**
+      (คีย์เก็บใน `localStorage` key `FlutterSecureStorage`) — ค่าที่เห็นใน
+      `localStorage.FlutterSecureStorage.access_token` **ไม่ใช่ JWT ดิบ** เขียนทับด้วย
+      JWT ตรงๆ ไม่ได้ แอปจะถอดรหัสไม่ผ่านแล้วเด้งไปหน้า login
+      → ถ้าจะสลับบัญชีบนเว็บ ต้องล็อกอินผ่าน Google จริงเท่านั้น
 
 ## 🧹 ของค้างเล็กๆ
 
