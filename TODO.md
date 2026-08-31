@@ -101,7 +101,8 @@ cd ../Attendance-System-Backend && git push origin main
       (`RESPONSIVE_PLAN.md` ข้อ B บรรทัด 694 + หัวข้อ "รูปแบบสุดท้ายของ /statistic")
       🚩 บรรทัด 339 ในไฟล์นั้นเป็นรายการค้างจากตอนสำรวจ Phase 3 ที่ไม่มีใครขีดฆ่า
       หลังเปลี่ยนแผน — ผมยกมาใส่ TODO โดยไม่ได้เช็คว่าถูก supersede ไปแล้ว
-- [ ] **`mockGetUser()` ใน `user_management.dart`** — dead code ค้าง
+- [x] ~~**mock function ที่ตายแล้ว**~~ — **ลบแล้ว `28e05a6`** เจอ 18 ตัวใน 12 ไฟล์
+      (CLAUDE.md จดไว้ตัวเดียว) รวมกับ import ที่ค้างตามมา = 1,012 บรรทัด
 - [x] ~~**เคส role ผสม**~~ — **พิสูจน์ครบแล้ว 30 ส.ค.** (ดูหัวข้อด้านล่าง)
 
 ---
@@ -141,7 +142,8 @@ cd ../Attendance-System-Backend && git push origin main
       รอเคาะว่าจะย้อนหรือปล่อย
 - [ ] ไฟล์ `ลายเซ็นดิจิทัล_6630300670.pdf` ค้างใน Files app ของ iPhone simulator
       (เศษจากการทดสอบ)
-- [ ] `user_management.dart` มี `mockGetUser()` เหลือค้าง (จด CLAUDE.md ไว้แล้ว)
+- [ ] **CLAUDE.md ข้อ 7 ล้าสมัยแล้ว** — เขียนว่า `user_management.dart` มี `mockGetUser()`
+      เหลือค้าง แต่ลบไปแล้วใน `28e05a6` (พร้อมอีก 17 ตัวทั้งโปรเจกต์) ควรแก้ข้อนั้น
 
 ---
 

@@ -53,7 +53,7 @@ Service ทั่วไป (`*_service.dart`): `final Dio dio = GetIt.I<ApiClien
 4. ไฟล์ `check-in_model.dart`/`check-in_service.dart`/`check_in-leave-*.dart` มี hyphen ในชื่อไฟล์ (ผิดธรรมเนียม Dart แต่ compile ผ่าน)
 5. get_it ใช้ไม่สม่ำเสมอ: บาง service ลงทะเบียนไว้แต่จุดเรียกใช้สร้าง instance ตรงๆ แทน (เช่น `ProfileService` ใน `auth_state.dart`), ส่วนใหญ่ไม่ได้ลงทะเบียนเลย — ยังไม่มี convention ตายตัว
 6. widget ชื่อ `TextButton` เอง (`lib/shared/widgets/utils/text_button.dart`) บัง Material's `TextButton` — ต้อง `hide TextButton` ตอน import material ในไฟล์ที่ใช้ทั้งคู่
-7. `user_management.dart` มี `mockGetUser()` เหลือค้าง — เช็คก่อนว่ายังใช้จริงหรือของเก่า
+7. ~~`user_management.dart` มี `mockGetUser()` เหลือค้าง~~ — **ลบแล้ว (2026-08-30)** ไล่ทั้งโปรเจกต์เจอ mock ที่ไม่มีใครเรียก 18 ตัวใน 12 ไฟล์ ลบครบพร้อม import ที่ค้าง (1,012 บรรทัด) ตอนนี้ทุกหน้ายิง service จริงหมด
 8. Auth token ถูกแนบ 2 ทางซ้อนกัน (interceptor + `ApiClient.setToken`) ตามที่บอกด้านบน
 
 ## เชื่อมกับ backend
