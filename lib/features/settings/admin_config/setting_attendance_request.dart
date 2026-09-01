@@ -118,16 +118,14 @@ class _SettingAttendanceRequestState extends State<SettingAttendanceRequest> {
                                                   });
                                                 },
                                               ),
-                                              ToggleSwitch(
-                                                icon: 'icon_specify_approval.svg',
-                                                label: 'ระบุเหตุผลการอนุมัติ',
-                                                value: data!.specifyApprovalReason,
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    data = data!.copyWith(specifyApprovalReason: value);
-                                                  });
-                                                },
-                                              )
+                                              // 🚩 (2026-09-01) ถอดสวิตช์ "ระบุเหตุผลการอนุมัติ" ออก
+                                              // ไม่มีจุดไหนในระบบอ่านค่านี้ไปตัดสินอะไรเลย — ช่อง
+                                              // "ระบุเหตุผล..." ในหน้าอนุมัติ (attendance_detail_popup)
+                                              // แสดงตลอดเวลาแบบไม่มีเงื่อนไข เปิดหรือปิดสวิตช์ก็เหมือนกัน
+                                              //
+                                              // ฟิลด์ `specify-approval-reason` ยังอยู่ครบใน DB / entity /
+                                              // model / service ตั้งใจไม่ลบ เพื่อไม่ต้องทำ migration
+                                              // ถ้าวันหนึ่งจะทำให้มันคุมช่องเหตุผลจริง
                                             ],
                                           ),
                                           SeparatorCard(
