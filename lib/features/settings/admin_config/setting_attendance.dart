@@ -9,7 +9,6 @@ import 'package:attendance_system/shared/widgets/utils/animation/animated_widget
 import 'package:attendance_system/shared/widgets/utils/icon_text_value_button.dart';
 import 'package:attendance_system/shared/widgets/utils/separator_card.dart';
 import 'package:attendance_system/shared/widgets/utils/services/service_loader.dart';
-import 'package:attendance_system/shared/widgets/utils/toggle_switch.dart';
 import 'package:attendance_system/shared/widgets/utils/wheel_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -192,16 +191,14 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                           SeparatorCard(
                                             separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
                                             children: [
-                                              ToggleSwitch(
-                                                icon: 'auto_checkout.svg',
-                                                label: 'เช็คเอ้าท์อัตโนมัติเมื่อถึงกำหนดลาครึ่งวันเย็น',
-                                                value: data!.autoCheckout,
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    data = data!.copyWith(autoCheckout: value);
-                                                  });
-                                                },
-                                              ),
+                                              // 🚩 (2026-09-01) ถอดสวิตช์ "เช็คเอ้าท์อัตโนมัติ" ออก
+                                              // — ไม่มีโค้ดที่ทำงานตามนั้นเลยทั้งแอปและ backend
+                                              // ตั้งไว้เท่าไหร่ก็ไม่มีผล นอกจากไปโชว์ข้อความใน
+                                              // หน้าเช็คอินว่าระบบจะทำให้ ซึ่งทำให้คนไม่กดเอง
+                                              //
+                                              // ฟิลด์ `auto-checkout` **ยังอยู่ครบ**ใน DB / entity /
+                                              // model / service ตั้งใจไม่ลบ เพื่อไม่ต้องทำ migration
+                                              // ตอนกลับมาทำฟีเจอร์นี้จริง (ค่า default = false)
                                               _buildTimePickerItem(
                                                 index: 3,
                                                 icon: 'check-in-time.svg',
