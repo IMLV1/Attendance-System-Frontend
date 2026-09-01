@@ -418,27 +418,19 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     final double currentTime = now.hour + (now.minute / 60);
 
     // ดึงค่าเวลาจาก Config
-    final double checkInLeaveLimit = configSetting!.checkInLeaveTime.hour + (configSetting!.checkInLeaveTime.minute / 60);
+    // (ไม่ต้องใช้ check-in-time / check-in-leave-time ที่นี่ — เวลา "เข้างาน"
+    //  ไม่ได้กั้นการเช็คอิน มันเป็นแค่เกณฑ์ตัดสินว่าสายหรือไม่ ซึ่งคิดตอนทำสถิติ)
     final double checkOutLeaveLimit = configSetting!.checkOutLeaveTime.hour + (configSetting!.checkOutLeaveTime.minute / 60);
     final double regularCheckOutTime = configSetting!.checkOutTime.hour + (configSetting!.checkOutTime.minute / 60);
 
     // 1. ตรวจสอบวันหยุดราชการ
     if (isPublicHoliday) return "PUBLIC_HOLIDAY";
 
-    // 2. ตรวจสอบสถานะการลา
-    if (currentLeave != null && currentLeave!.isApproved) {
-      if (currentLeave!.leaveType == "FULL_DAY") return "FULL_DAY";
-
-      // ลาครึ่งวันเช้า: ถ้ายังไม่ถึงเวลาเข้างานช่วงบ่าย ให้โชว์ปุ่มลา
-      if (currentLeave!.leaveType == "MORNING" && currentTime < checkInLeaveLimit) {
-        return "MORNING";
-      }
-
-      // ลาครึ่งวันบ่าย: ถ้าถึงเวลาเริ่มลาบ่ายแล้ว ให้โชว์ปุ่มลา (ยกเว้นเช็คเอาต์ไปแล้ว)
-      if (currentLeave!.leaveType == "AFTERNOON" && currentTime >= checkOutLeaveLimit) {
-        if (hasCheckedOut) return "FINISHED";
-        return "AFTERNOON";
-      }
+    // 2. ลาทั้งวัน = ทำอะไรไม่ได้เลยทั้งวัน
+    if (currentLeave != null &&
+        currentLeave!.isApproved &&
+        currentLeave!.leaveType == "FULL_DAY") {
+      return "FULL_DAY";
     }
 
     // 3. ตรวจสอบวันหยุดสุดสัปดาห์ (เรียกฟังก์ชันเดิมของคุณ)
@@ -447,15 +439,30 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     // 4. ตรวจสอบว่าเช็คเอาต์ไปหรือยัง
     if (hasCheckedOut) return "FINISHED";
 
-    // 5. คำนวณเวลาเลิกงานที่เหมาะสม (Effective Checkout Time)
-    // ถ้าลาบ่าย ให้ใช้ checkOutLeaveLimit เป็นเกณฑ์เลิกงาน เพื่อให้ปุ่มเช็คเอาต์ปรากฏ
-    double effectiveCheckOutTime = (currentLeave?.leaveType == "AFTERNOON" && currentLeave!.isApproved)
-        ? checkOutLeaveLimit
-        : regularCheckOutTime;
+    // 5. เวลาเลิกงานของวันนี้ — ลาครึ่งบ่ายเลิกตอนเที่ยง นอกนั้นใช้เวลาปกติ
+    //
+    // 🚩 แก้ (2026-09-01) เดิมขั้นนี้มีสองบั๊กที่มาจากบล็อก "ตรวจสถานะการลา"
+    // ที่เคยอยู่ก่อนหน้า:
+    //
+    //  1. **ลาครึ่งเช้าเช็คอินก่อนเวลาเข้างานช่วงบ่ายไม่ได้** — เดิมคืน "MORNING"
+    //     (ปุ่มปิด) ทุกครั้งที่ยังไม่ถึง 13:00 ต่างจากคนไม่ลาที่มาก่อน 08:30 ได้ปกติ
+    //     มาก่อนเวลาไม่ใช่ความผิด ส่วนสายหรือไม่คิดตอนทำสถิติอยู่แล้ว
+    //
+    //  2. **ลาครึ่งบ่ายเช็คเอาท์หลังเที่ยงไม่ได้** ทั้งที่เช็คอินไว้แล้ว — เดิมคืน
+    //     "AFTERNOON" ไปก่อนเสมอเมื่อเลย checkOutLeaveLimit บรรทัดคำนวณ
+    //     effectiveCheckOutTime ข้างล่างที่เขียนไว้ว่า "เพื่อให้ปุ่มเช็คเอาต์ปรากฏ"
+    //     จึงไม่มีวันถูกใช้ = dead code
+    //
+    // ตอนนี้เหลือกฎเดียวที่ใช้กับทุกสถานะการลา: ก่อนเวลาเลิกงาน = เช็คอินได้
+    // ถึงเวลาเลิกงาน = เช็คเอาท์ได้ (ถ้าเช็คอินไว้) — ตรงกับที่ backend บังคับใน
+    // `CheckAttendanceAllowed` เป๊ะ ปุ่มกับเซิร์ฟเวอร์จึงไม่มีทางเห็นไม่ตรงกัน
+    final bool isAfternoonLeave =
+        currentLeave?.leaveType == "AFTERNOON" && currentLeave!.isApproved;
 
-    bool isAfterWork = currentTime >= effectiveCheckOutTime;
+    final double effectiveCheckOutTime =
+        isAfternoonLeave ? checkOutLeaveLimit : regularCheckOutTime;
 
-    if (isAfterWork) {
+    if (currentTime >= effectiveCheckOutTime) {
       return _hasCheckedIn ? "CHECK_OUT_READY" : "ABSENT";
     }
 
@@ -993,25 +1000,10 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
           fontSize = 27;
           break;
 
-        case "MORNING":
-          buttonColor = AppColors.buttonDisable;
-          buttonText = "ลาช่วงเช้า";
-          // ดึงเวลาเข้างานจาก Config มาแสดง
-          String checkInTime = "${configSetting!.checkInLeaveTime.hour.toString().padLeft(2, '0')}:${configSetting!.checkInLeaveTime.minute.toString().padLeft(2, '0')}";
-          showtext = 'คุณลางานช่วงลาเช้า กรุณาเช็คอินหลัง $checkInTime น.';
-          iconPath = 'assets/images/leave.svg';
-          isDisabled = true;
-          fontSize = 27;
-          break;
-
-        case "AFTERNOON":
-          buttonColor = AppColors.buttonDisable;
-          buttonText = "ลาช่วงบ่าย";
-          showtext = 'คุณลางานช่วงบ่าย';
-          iconPath = 'assets/images/leave.svg';
-          isDisabled = true;
-          fontSize = 27;
-          break;
+        // 🚩 (2026-09-01) เอา case "MORNING" / "AFTERNOON" ออก
+        // `_getButtonState()` ไม่คืนสองค่านี้แล้ว เพราะทั้งคู่เคยเป็นตัวที่ปิดปุ่ม
+        // ผิดกติกา (ลาครึ่งเช้าเช็คอินก่อนบ่ายไม่ได้ / ลาครึ่งบ่ายเช็คเอาท์ไม่ได้)
+        // ส่วนข้อความบอกสถานะการลายังอยู่ครบใน `_infoText()` ซึ่งขึ้นใต้ปุ่มอยู่แล้ว
 
         case "ABSENT":
           buttonColor = AppColors.buttonDisable;
@@ -1211,9 +1203,16 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     if (isAfternoonLeave) {
       parts.add('วันนี้คุณลาครึ่งวันเย็น เวลาออกงานคือ $outAt');
-      if (config.autoCheckout) {
-        parts.add('ระบบจะเช็คเอาท์ให้อัตโนมัติเมื่อถึงเวลา $outAt');
-      }
+      // 🚩 (2026-09-01) เดิมตรงนี้ขึ้นว่า "ระบบจะเช็คเอาท์ให้อัตโนมัติเมื่อถึงเวลา ..."
+      // เมื่อเปิดสวิตช์ `auto-checkout` ไว้ — **แต่ไม่มีโค้ดที่เช็คเอาท์ให้จริงเลย**
+      // ทั้งฝั่งแอปและ backend (cron ที่มีอยู่ใช้ sync วันหยุดอย่างเดียว)
+      // ผู้ใช้ที่ลาครึ่งบ่ายจึงเชื่อข้อความแล้วไม่กดเอง กลายเป็นขาดงาน
+      // -> ถอดคำสัญญาออกก่อน อันตรายกว่าไม่มีข้อความเลย
+      //
+      // ถ้าจะทำจริง อย่าทำแบบที่ข้อความเดิมบอก (ปิดเวลาให้ตอนถึงเวลาเลิกงาน)
+      // เพราะคนที่อยู่ทำงานเลยเวลาจะถูกปิดเวลาผิดทุกวัน — ควรเป็น cron ที่ทำงาน
+      // ตอน `cutoff-time` แล้ว "เติม" ให้เฉพาะแถวที่มี check_in แต่ check_out ว่าง
+      // พร้อมมาร์กว่าเป็นค่าที่ระบบเติม (ต้องเพิ่มคอลัมน์ = ต้องมี migration)
     } else {
       parts.add('เวลาออกงานคือ $outAt');
     }
