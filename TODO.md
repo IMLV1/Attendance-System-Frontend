@@ -88,8 +88,14 @@ cd ../Attendance-System-Backend && git push origin main
 - [x] ~~**drag & drop บน macOS/Windows/Linux**~~ — **ไม่ต้องทดสอบ** โปรเจกต์รองรับแค่
       `android` / `ios` / `web` ไม่มี desktop target เลย `desktop_drop` จึงมีผลเฉพาะบนเว็บ
       (ซึ่งทดสอบไปแล้ว)
-- [ ] **`openExternally` บน Android** — **ติด** ไม่มี Android SDK / AVD ในเครื่องเลย
-      ต้องโหลด SDK + system image หลาย GB · ดิสก์เหลือ ~19GB → ไม่ทำให้เอง
+- [x] ~~**`openExternally` บน Android**~~ — ✅ **ผ่านแล้ว (31 ส.ค.)** ทดสอบบน emulator
+      Pixel/Android 16 (API 36) ล็อกอินจริงเป็น `system-root` → คำขอ `REQ000000000013`
+      → พรีวิวไฟล์แนบ → เมนู `…` → "เปิดด้วยแอปอื่น"
+      **หลักฐาน**: `topResumedActivity = com.google.android.apps.photos/.pager.HostPhotoPagerActivity`
+      คือระบบส่งต่อให้แอปนอกจริง (`ACTION_VIEW` ผ่าน `OpenFilex`) ไม่ใช่ viewer ในแอป
+      ยืนยันด้วยภาพหน้าจอ: chrome ของ Google Photos (cast / Share / Lens) ทับเต็มจอ
+      · ยังไม่ได้ลองเคส **PDF** บน Android — emulator เปล่าไม่มีแอปอ่าน PDF จะได้
+        `ResultType != done` ซึ่งเป็น error path ที่ถูกต้องอยู่แล้ว ไม่ใช่บั๊ก
 
 ---
 
@@ -180,3 +186,32 @@ Phase 3** และถูกตอบไปแล้วในตารางข�
 
 **ก่อนหยิบงานจากไฟล์แผน ให้เช็คตารางสถานะท้ายไฟล์ก่อนเสมอ** ว่ารายการนั้นถูก
 supersede ไปหรือยัง
+
+---
+
+## 🐞 บั๊ก Android build ที่เจอตอนตั้ง environment (31 ส.ค.) — แก้แล้ว ยังไม่ commit
+
+ไม่เกี่ยวกับ `openExternally` แต่เจอระหว่างทาง ทั้งสองข้อทำให้ **build Android ไม่ผ่านบน
+เครื่องที่ไม่ใช่ของคนที่ commit มา**
+
+| ไฟล์ | ปัญหา | แก้ |
+|---|---|---|
+| `android/gradle.properties` | `org.gradle.java.home=C:\Program Files\Android\Android Studio\jbr` ฝังมาตั้งแต่ commit แรก (23 ม.ค.) — ค่าเฉพาะเครื่องที่ไม่ควรอยู่ใน repo | ลบบรรทัดนั้น ให้ Gradle ใช้ JDK ที่ `flutter config --jdk-dir` ชี้ |
+| `android/app/build.gradle.kts:42` | `signingConfigs` แคสต์ `keystoreProperties["storeFile"] as String` โดยไม่เช็คว่ามี `key.properties` มั้ย ทั้งที่ตอนโหลดด้านบนเช็คอยู่ · บล็อกนี้ประเมินตอน configure จึงพัง **ทั้ง debug และ release** | ห่อด้วย `if (keystorePropertiesFile.exists())` + ให้ release fallback ไป debug key |
+
+**ยังไม่ได้แก้ (แค่เลี่ยงตอนทดสอบ)**: `lib/core/network/api_config.dart` — dev mode ตั้ง
+`baseUrl = 'http://localhost:3000'` สำหรับ mobile ทั้งหมด แต่ Android emulator ต้องใช้
+`10.0.2.2` (ในโค้ดมีคอมเมนต์เขียนไว้เองว่า "Android Emulator: use http://10.0.2.2:3000
+instead" แต่ไม่ได้ทำตาม และคอมเมนต์ด้านบนบอกว่า "emulator ไม่ต้องใส่" ซึ่งจริงเฉพาะ iOS)
+ตอนทดสอบใช้ `--dart-define=API_BASE_URL=http://10.0.2.2:3000` แทน
+
+## 🛠️ environment Android ที่ตั้งไว้แล้ว (31 ส.ค.)
+
+- SDK: `/opt/homebrew/share/android-commandlinetools` (~10 GB รวม NDK 2 ตัว)
+- JDK: `brew install openjdk@21` (**formula ไม่ใช่ cask** — cask ต้อง sudo, formula ไม่ต้อง)
+- AVD `ku_test` · Android 16 API 36 · google_apis arm64-v8a
+- ⚠️ บูตต้องใส่ `-gpu host` ไม่งั้น RAM ว่าง < 5.12 GB แล้วตกไปใช้ software rendering (ช้ามาก)
+- ⚠️ แก้ `config.ini` แล้วต้องบูตด้วย `-no-snapshot-load` ไม่งั้น snapshot เก่าทับ config ใหม่
+- ⚠️ คีย์บอร์ด Mac พิมพ์เข้า emulator ไม่ได้ถ้าเปิด emulator จาก shell เบื้องหลัง —
+  ต้องเปิดจาก Terminal.app เอง
+- NDK ที่ใช้จริงคือ **27.0.12077973** (ตัว 28.2.13676358 ลงเกินมา ลบได้ ~2.8 GB)
