@@ -79,6 +79,10 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # สร้างไอคอนแอปบนหน้า home ให้ทุกแพลตฟอร์มจากรูปเดียว
+  # สั่ง generate ใหม่ด้วย: dart run flutter_launcher_icons
+  flutter_launcher_icons: ^0.14.4
 flutter:
 
   # The following line ensures that the Material Icons font is
@@ -161,10 +165,28 @@ flutter_native_splash:
   image: assets/images/app_logo.png
 
   # Android 12+ ใช้ API คนละตัว: รูปถูกครอปเป็นวงกลมและกินแค่ 768px กลางภาพ
-  # 1152x1152 โลโก้ของเราเป็นแนวนอน (397x224) ถ้าส่งตัวเดิมไปจะโดนครอปหัวท้าย
-  # จึงเตรียมไฟล์จัตุรัสที่เติมขอบสีพื้นไว้ให้แล้วใน assets/splash/
+  # 1152x1152 จึงต้องเป็นไฟล์แยกที่เผื่อขอบไว้แล้ว อยู่ใน assets/splash/
   android_12:
     color: "#F6F6F6"
     image: assets/splash/android12_logo.png
 
   web: true
+
+# ไอคอนแอปบนหน้า home — คนละชุดกับ splash ข้างบน ต้อง generate แยก
+# สั่ง: dart run flutter_launcher_icons
+#
+# ทำไมใช้คนละไฟล์กับ assets/images/app_logo.png:
+#   - iOS ไม่รับ alpha และตัดมุมมนให้เองอยู่แล้ว ไฟล์จึงต้องทึบเต็มกรอบ
+#   - Android adaptive icon ครอปเหลือ ~66% กลางภาพ ตัว foreground เลยต้องเผื่อขอบไว้เยอะ
+flutter_launcher_icons:
+  image_path: "assets/icons/app_icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icons/app_icon_foreground.png"
+  web:
+    generate: true
+    image_path: "assets/icons/app_icon.png"
+    background_color: "#FFFFFF"
+    theme_color: "#02544A"
