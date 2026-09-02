@@ -7,6 +7,9 @@ class MaxLeaveModel {
   final double maternity;
   final double paternity;
   final double parental;
+  final double ordination;
+  final double military;
+  final double rehabilitation;
 
   MaxLeaveModel({
     required this.sick,
@@ -15,6 +18,9 @@ class MaxLeaveModel {
     required this.maternity,
     required this.paternity,
     required this.parental,
+    required this.ordination,
+    required this.military,
+    required this.rehabilitation,
   });
 
   factory MaxLeaveModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +31,9 @@ class MaxLeaveModel {
       maternity: (json['maternity'] ?? 0 as num).toDouble(),
       paternity: (json['paternity'] ?? 0 as num).toDouble(),
       parental: (json['parental'] ?? 0 as num).toDouble(),
+      ordination: (json['ordination'] ?? 0 as num).toDouble(),
+      military: (json['military'] ?? 0 as num).toDouble(),
+      rehabilitation: (json['rehabilitation'] ?? 0 as num).toDouble(),
     );
   }
 
@@ -35,6 +44,9 @@ class MaxLeaveModel {
     double? maternity,
     double? paternity,
     double? parental,
+    double? ordination,
+    double? military,
+    double? rehabilitation,
   }) {
     return MaxLeaveModel(
       sick: sick ?? this.sick,
@@ -43,6 +55,9 @@ class MaxLeaveModel {
       maternity: maternity ?? this.maternity,
       paternity: paternity ?? this.paternity,
       parental: parental ?? this.parental,
+      ordination: ordination ?? this.ordination,
+      military: military ?? this.military,
+      rehabilitation: rehabilitation ?? this.rehabilitation,
     );
   }
 
@@ -55,6 +70,9 @@ class MaxLeaveModel {
       'maternity': maternity,
       'paternity': paternity,
       'parental': parental,
+      'ordination': ordination,
+      'military': military,
+      'rehabilitation': rehabilitation,
     }.toString();
   }
 }

@@ -41,6 +41,9 @@ double _readVacation(MaxLeaveModel m) => m.vacation;
 double _readMaternity(MaxLeaveModel m) => m.maternity;
 double _readPaternity(MaxLeaveModel m) => m.paternity;
 double _readParental(MaxLeaveModel m) => m.parental;
+double _readOrdination(MaxLeaveModel m) => m.ordination;
+double _readMilitary(MaxLeaveModel m) => m.military;
+double _readRehabilitation(MaxLeaveModel m) => m.rehabilitation;
 
 MaxLeaveModel _writeSick(MaxLeaveModel m, double v) => m.copyWith(sick: v);
 MaxLeaveModel _writePersonal(MaxLeaveModel m, double v) => m.copyWith(personal: v);
@@ -48,14 +51,20 @@ MaxLeaveModel _writeVacation(MaxLeaveModel m, double v) => m.copyWith(vacation: 
 MaxLeaveModel _writeMaternity(MaxLeaveModel m, double v) => m.copyWith(maternity: v);
 MaxLeaveModel _writePaternity(MaxLeaveModel m, double v) => m.copyWith(paternity: v);
 MaxLeaveModel _writeParental(MaxLeaveModel m, double v) => m.copyWith(parental: v);
+MaxLeaveModel _writeOrdination(MaxLeaveModel m, double v) => m.copyWith(ordination: v);
+MaxLeaveModel _writeMilitary(MaxLeaveModel m, double v) => m.copyWith(military: v);
+MaxLeaveModel _writeRehabilitation(MaxLeaveModel m, double v) => m.copyWith(rehabilitation: v);
 
 const List<_LeaveField> _fields = [
   (label: 'ลาป่วย', icon: 'leave_sick.svg', read: _readSick, write: _writeSick),
   (label: 'ลากิจส่วนตัว', icon: 'leave_personal.svg', read: _readPersonal, write: _writePersonal),
   (label: 'ลาพักผ่อน', icon: 'leave_vacation.svg', read: _readVacation, write: _writeVacation),
   (label: 'ลาคลอดบุตร', icon: 'leave_maternity.svg', read: _readMaternity, write: _writeMaternity),
-  (label: 'ลาช่วยเหลือภริยาคลอดบุตร', icon: 'leave_paternity.svg', read: _readPaternity, write: _writePaternity),
+  (label: 'ลาไปช่วยเหลือภริยาที่คลอดบุตร', icon: 'leave_paternity.svg', read: _readPaternity, write: _writePaternity),
   (label: 'ลากิจเพื่อเลี้ยงดูบุตร', icon: 'leave_parental.svg', read: _readParental, write: _writeParental),
+  (label: 'ลาอุปสมบทหรือการลาไปประกอบพิธีฮัจย์', icon: 'leave.svg', read: _readOrdination, write: _writeOrdination),
+  (label: 'ลาเข้ารับการตรวจเลือกเตรียมทหาร', icon: 'leave.svg', read: _readMilitary, write: _writeMilitary),
+  (label: 'ลาไปฟื้นฟูสมรรถภาพด้านอาชีพ', icon: 'leave.svg', read: _readRehabilitation, write: _writeRehabilitation),
 ];
 
 /// 🚩 รับได้แค่จำนวนเต็มกับครึ่งวัน — ค่าอื่นปัดเป็นจำนวนเต็ม

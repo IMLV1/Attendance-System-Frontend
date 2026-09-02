@@ -76,6 +76,9 @@ class LeaveDetailModel {
   final LeaveTypeDetailModel maternity;
   final LeaveTypeDetailModel paternity;
   final LeaveTypeDetailModel parental;
+  final LeaveTypeDetailModel ordination;
+  final LeaveTypeDetailModel military;
+  final LeaveTypeDetailModel rehabilitation;
 
   LeaveDetailModel({
     required this.sick,
@@ -84,6 +87,9 @@ class LeaveDetailModel {
     required this.maternity,
     required this.paternity,
     required this.parental,
+    required this.ordination,
+    required this.military,
+    required this.rehabilitation,
   });
 
   factory LeaveDetailModel.fromJson(Map<String, dynamic> json) {
@@ -94,6 +100,9 @@ class LeaveDetailModel {
       maternity: LeaveTypeDetailModel.fromJson(json['maternity'] ?? {}),
       paternity: LeaveTypeDetailModel.fromJson(json['paternity'] ?? {}),
       parental: LeaveTypeDetailModel.fromJson(json['parental'] ?? {}),
+      ordination: LeaveTypeDetailModel.fromJson(json['ordination'] ?? {}),
+      military: LeaveTypeDetailModel.fromJson(json['military'] ?? {}),
+      rehabilitation: LeaveTypeDetailModel.fromJson(json['rehabilitation'] ?? {}),
     );
   }
 }

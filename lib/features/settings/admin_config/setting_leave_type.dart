@@ -41,6 +41,9 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
         'maternity' => data!.copyWith(maternity: updated),
         'paternity' => data!.copyWith(paternity: updated),
         'parental' => data!.copyWith(parental: updated),
+        'ordination' => data!.copyWith(ordination: updated),
+        'military' => data!.copyWith(military: updated),
+        'rehabilitation' => data!.copyWith(rehabilitation: updated),
         _ => data!,
       };
       final res = await ConfigLeaveService().update(merged);
@@ -176,12 +179,12 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                               ),
                                               AppButton(
                                                 icon: 'icon_leave_assist_childbirth.svg',
-                                                title: 'ลาช่วยเหลือภริยาคลอดบุตร',
+                                                title: 'ลาไปช่วยเหลือภริยาที่คลอดบุตร',
                                                 weightTitle: FontWeight.normal,
                                                 onPressed: () async {
                                                   await Navigator.of(context).push(
                                                       MaterialPageRoute<LeaveSetting>(
-                                                          builder: (_) => ConfigLeave(type: 'paternity', name: 'ลาช่วยเหลือภริยาคลอดบุตร', data: data!.paternity, onSaveRequest: _saveHandler('paternity'))
+                                                          builder: (_) => ConfigLeave(type: 'paternity', name: 'ลาไปช่วยเหลือภริยาที่คลอดบุตร', data: data!.paternity, onSaveRequest: _saveHandler('paternity'))
                                                       )
                                                   );
                                                 },
@@ -194,6 +197,42 @@ class _SettingLeaveTypeState extends State<SettingLeaveType> {
                                                   await Navigator.of(context).push(
                                                       MaterialPageRoute<LeaveSetting>(
                                                           builder: (_) => ConfigLeave(type: 'parental', name: 'ลากิจเพื่อเลี้ยงดูบุตร', data: data!.parental, onSaveRequest: _saveHandler('parental'))
+                                                      )
+                                                  );
+                                                },
+                                              ),
+                                              AppButton(
+                                                icon: 'icon_taking_care_child.svg',
+                                                title: 'ลาอุปสมบทหรือการลาไปประกอบพิธีฮัจย์',
+                                                weightTitle: FontWeight.normal,
+                                                onPressed: () async {
+                                                  await Navigator.of(context).push(
+                                                      MaterialPageRoute<LeaveSetting>(
+                                                          builder: (_) => ConfigLeave(type: 'ordination', name: 'ลาอุปสมบทหรือการลาไปประกอบพิธีฮัจย์', data: data!.ordination, onSaveRequest: _saveHandler('ordination'))
+                                                      )
+                                                  );
+                                                },
+                                              ),
+                                              AppButton(
+                                                icon: 'icon_taking_care_child.svg',
+                                                title: 'ลาเข้ารับการตรวจเลือกเตรียมทหาร',
+                                                weightTitle: FontWeight.normal,
+                                                onPressed: () async {
+                                                  await Navigator.of(context).push(
+                                                      MaterialPageRoute<LeaveSetting>(
+                                                          builder: (_) => ConfigLeave(type: 'military', name: 'ลาเข้ารับการตรวจเลือกเตรียมทหาร', data: data!.military, onSaveRequest: _saveHandler('military'))
+                                                      )
+                                                  );
+                                                },
+                                              ),
+                                              AppButton(
+                                                icon: 'icon_taking_care_child.svg',
+                                                title: 'ลาไปฟื้นฟูสมรรถภาพด้านอาชีพ',
+                                                weightTitle: FontWeight.normal,
+                                                onPressed: () async {
+                                                  await Navigator.of(context).push(
+                                                      MaterialPageRoute<LeaveSetting>(
+                                                          builder: (_) => ConfigLeave(type: 'rehabilitation', name: 'ลาไปฟื้นฟูสมรรถภาพด้านอาชีพ', data: data!.rehabilitation, onSaveRequest: _saveHandler('rehabilitation'))
                                                       )
                                                   );
                                                 },

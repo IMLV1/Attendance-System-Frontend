@@ -143,7 +143,7 @@ class _SetMaxLeaveState extends State<SetMaxLeave> {
                                             });
                                           }
                                       ).showPopup(context);
-                                    }, icon: 'leave_paternity.svg', label: 'ลาช่วยเหลือภริยาคลอดบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.paternity)} วัน'),
+                                    }, icon: 'leave_paternity.svg', label: 'ลาไปช่วยเหลือภริยาที่คลอดบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.paternity)} วัน'),
                                     IconTextValueButton(onPressed: () {
                                       NumberInputPopup(
                                           title: 'ลากิจเพื่อเลี้ยงดูบุตร',
@@ -161,6 +161,57 @@ class _SetMaxLeaveState extends State<SetMaxLeave> {
                                           }
                                       ).showPopup(context);
                                     }, icon: 'leave_parental.svg', label: 'ลากิจเพื่อเลี้ยงดูบุตร', value: '${NumberFormat("#,##0.#").format(maxLeave!.parental)} วัน'),
+                                    IconTextValueButton(onPressed: () {
+                                      NumberInputPopup(
+                                          title: 'ลาอุปสมบทหรือการลาไปประกอบพิธีฮัจย์',
+                                          buttonLabel: 'บันทึก',
+                                          fit: FlexFit.tight,
+                                          suffixText: 'วัน',
+                                          decimal: true,
+                                          maxHeight: 700,
+                                          step: 0.5,
+                                          currentValue: maxLeave!.ordination,
+                                          onSubmit: (number) {
+                                            setState(() {
+                                              maxLeave = maxLeave?.copyWith(ordination: number);
+                                            });
+                                          }
+                                      ).showPopup(context);
+                                    }, icon: 'leave.svg', label: 'ลาอุปสมบทหรือการลาไปประกอบพิธีฮัจย์', value: '${NumberFormat("#,##0.#").format(maxLeave!.ordination)} วัน'),
+                                    IconTextValueButton(onPressed: () {
+                                      NumberInputPopup(
+                                          title: 'ลาเข้ารับการตรวจเลือกเตรียมทหาร',
+                                          buttonLabel: 'บันทึก',
+                                          fit: FlexFit.tight,
+                                          suffixText: 'วัน',
+                                          decimal: true,
+                                          maxHeight: 700,
+                                          step: 0.5,
+                                          currentValue: maxLeave!.military,
+                                          onSubmit: (number) {
+                                            setState(() {
+                                              maxLeave = maxLeave?.copyWith(military: number);
+                                            });
+                                          }
+                                      ).showPopup(context);
+                                    }, icon: 'leave.svg', label: 'ลาเข้ารับการตรวจเลือกเตรียมทหาร', value: '${NumberFormat("#,##0.#").format(maxLeave!.military)} วัน'),
+                                    IconTextValueButton(onPressed: () {
+                                      NumberInputPopup(
+                                          title: 'ลาไปฟื้นฟูสมรรถภาพด้านอาชีพ',
+                                          buttonLabel: 'บันทึก',
+                                          fit: FlexFit.tight,
+                                          suffixText: 'วัน',
+                                          decimal: true,
+                                          maxHeight: 700,
+                                          step: 0.5,
+                                          currentValue: maxLeave!.rehabilitation,
+                                          onSubmit: (number) {
+                                            setState(() {
+                                              maxLeave = maxLeave?.copyWith(rehabilitation: number);
+                                            });
+                                          }
+                                      ).showPopup(context);
+                                    }, icon: 'leave.svg', label: 'ลาไปฟื้นฟูสมรรถภาพด้านอาชีพ', value: '${NumberFormat("#,##0.#").format(maxLeave!.rehabilitation)} วัน'),
                                   ],
                                 )
                             ),

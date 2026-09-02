@@ -155,6 +155,9 @@ class _LeaveApprovalDetail extends State<LeaveApprovalDetail> {
                                                   _buildLegend(LeaveType.maternity, model?.leaveDetail.maternity, pending),
                                                   _buildLegend(LeaveType.paternity, model?.leaveDetail.paternity, pending),
                                                   _buildLegend(LeaveType.parental, model?.leaveDetail.parental, pending),
+                                                  _buildLegend(LeaveType.ordination, model?.leaveDetail.ordination, pending),
+                                                  _buildLegend(LeaveType.military, model?.leaveDetail.military, pending),
+                                                  _buildLegend(LeaveType.rehabilitation, model?.leaveDetail.rehabilitation, pending),
                                                 ]
                                             ),
                                           ),

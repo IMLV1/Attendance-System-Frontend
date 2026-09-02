@@ -5,6 +5,9 @@ class ConfigLeaveModel {
   final LeaveSetting maternity;
   final LeaveSetting paternity;
   final LeaveSetting parental;
+  final LeaveSetting ordination;
+  final LeaveSetting military;
+  final LeaveSetting rehabilitation;
 
   ConfigLeaveModel({
     required this.sick,
@@ -13,6 +16,9 @@ class ConfigLeaveModel {
     required this.maternity,
     required this.paternity,
     required this.parental,
+    required this.ordination,
+    required this.military,
+    required this.rehabilitation,
   });
 
   factory ConfigLeaveModel.fromJson(Map<String, dynamic> json) {
@@ -23,6 +29,9 @@ class ConfigLeaveModel {
       maternity: LeaveSetting.fromJson(json['maternity'] ?? {}),
       paternity: LeaveSetting.fromJson(json['paternity'] ?? {}),
       parental: LeaveSetting.fromJson(json['parental'] ?? {}),
+      ordination: LeaveSetting.fromJson(json['ordination'] ?? {}),
+      military: LeaveSetting.fromJson(json['military'] ?? {}),
+      rehabilitation: LeaveSetting.fromJson(json['rehabilitation'] ?? {}),
     );
   }
 
@@ -33,6 +42,9 @@ class ConfigLeaveModel {
     LeaveSetting? maternity,
     LeaveSetting? paternity,
     LeaveSetting? parental,
+    LeaveSetting? ordination,
+    LeaveSetting? military,
+    LeaveSetting? rehabilitation,
   }) {
     return ConfigLeaveModel(
       sick: sick ?? this.sick,
@@ -41,6 +53,9 @@ class ConfigLeaveModel {
       maternity: maternity ?? this.maternity,
       paternity: paternity ?? this.paternity,
       parental: parental ?? this.parental,
+      ordination: ordination ?? this.ordination,
+      military: military ?? this.military,
+      rehabilitation: rehabilitation ?? this.rehabilitation,
     );
   }
 
@@ -51,6 +66,9 @@ class ConfigLeaveModel {
       maternity.isSame(other.maternity) &&
       paternity.isSame(other.paternity) &&
       parental.isSame(other.parental);
+      ordination.isSame(other.ordination);
+      military.isSame(other.military);
+      rehabilitation.isSame(other.rehabilitation);
   }
 }
 

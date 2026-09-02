@@ -103,6 +103,9 @@ class LeaveStatistic extends StatelessWidget {
                     _buildLegend(LeaveType.maternity, statistic?.leaveDetail.leaveDetails.maternity),
                     _buildLegend(LeaveType.paternity, statistic?.leaveDetail.leaveDetails.paternity),
                     _buildLegend(LeaveType.parental, statistic?.leaveDetail.leaveDetails.parental),
+                    _buildLegend(LeaveType.ordination, statistic?.leaveDetail.leaveDetails.ordination),
+                    _buildLegend(LeaveType.military, statistic?.leaveDetail.leaveDetails.military),
+                    _buildLegend(LeaveType.rehabilitation, statistic?.leaveDetail.leaveDetails.rehabilitation),
                   ]
                 ),
               )

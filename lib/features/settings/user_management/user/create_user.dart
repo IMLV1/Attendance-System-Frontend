@@ -31,7 +31,20 @@ class CreateUser extends StatefulWidget {
 class _CreateUserState extends State<CreateUser> {
 
   String? error;
-  MaxLeaveModel maxLeave = MaxLeaveModel(sick: 0, personal: 0, vacation: 0, maternity: 0, paternity: 0, parental: 0);
+  /// 🚩 (2026-09-03) ค่าตั้งต้นตามเอกสารสิทธิ์การลา — เดิมเป็น 0 ทุกช่อง ผู้สร้าง
+  /// ผู้ใช้ต้องพิมพ์เองทั้ง 9 ช่องทุกครั้ง (backend ก็ใช้ default_days ของ
+  /// leave_types เป็นตัวสำรองอยู่แล้ว ตรงนี้แค่ให้ฟอร์มโชว์เลขเดียวกัน)
+  MaxLeaveModel maxLeave = MaxLeaveModel(
+    sick: 60,
+    personal: 45,
+    vacation: 30,
+    maternity: 180,
+    paternity: 60,
+    parental: 150,
+    ordination: 120,
+    military: 365,
+    rehabilitation: 365,
+  );
   UserManagementModel userInfo = UserManagementModel(id: '', employeeId: '', nameTH: '', nameEN: '', gender: '', nationality: '', phone: '', email: '', roles: [], avatarUrl: '', initRole: '');
 
   @override

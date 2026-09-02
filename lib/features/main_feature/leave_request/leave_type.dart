@@ -3,7 +3,9 @@ import 'package:attendance_system/services/system_config/leave/config_leave_mode
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
-enum LeaveType {sick, personal, vacation, maternity, paternity, parental}
+enum LeaveType {sick, personal, vacation, maternity, paternity, parental,
+  // 🚩 (2026-09-03) เพิ่มตามเอกสารสิทธิ์การลา ต้องตรงกับ name_en ใน leave_types
+  ordination, military, rehabilitation}
 
 extension LeaveTypeX on LeaveType {
 
@@ -24,9 +26,15 @@ extension LeaveTypeX on LeaveType {
       case LeaveType.maternity:
         return 'ลาคลอดบุตร';
       case LeaveType.paternity:
-        return 'ลาช่วยเหลือภริยาคลอดบุตร';
+        return 'ลาไปช่วยเหลือภริยาที่คลอดบุตร';
       case LeaveType.parental:
         return 'ลากิจเพื่อเลี้ยงดูบุตร';
+      case LeaveType.ordination:
+        return 'ลาอุปสมบทหรือการลาไปประกอบพิธีฮัจย์';
+      case LeaveType.military:
+        return 'ลาเข้ารับการตรวจเลือกเตรียมทหาร';
+      case LeaveType.rehabilitation:
+        return 'ลาไปฟื้นฟูสมรรถภาพด้านอาชีพ';
     }
   }
 
@@ -41,6 +49,11 @@ extension LeaveTypeX on LeaveType {
         return 'leave_paternity.svg';
       case LeaveType.parental:
         return 'leave_parental.svg';
+      // ยังไม่มีไอคอนเฉพาะของสามประเภทนี้ ใช้ไอคอนกลางไปก่อน
+      case LeaveType.ordination:
+      case LeaveType.military:
+      case LeaveType.rehabilitation:
+        return 'leave.svg';
     }
   }
 
@@ -61,6 +74,12 @@ extension LeaveTypeX on LeaveType {
         return config?.paternity;
       case LeaveType.parental:
         return config?.parental;
+      case LeaveType.ordination:
+        return config?.ordination;
+      case LeaveType.military:
+        return config?.military;
+      case LeaveType.rehabilitation:
+        return config?.rehabilitation;
     }
   }
 }
