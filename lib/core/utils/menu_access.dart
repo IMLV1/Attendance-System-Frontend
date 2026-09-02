@@ -78,6 +78,38 @@ class MenuAccess {
   /// ตั้งค่าระบบ (ปีงบประมาณ, เวลางาน, คำขอ, ประเภทการลา)
   bool get canConfigSystem => roles.contains('admin');
 
+  /// เส้นทางที่ต้องมีสิทธิ์ถึงจะเปิดได้ — คีย์เทียบแบบ prefix (route ลูกใช้กฎเดียวกับแม่)
+  ///
+  /// 🚩 (2026-09-02) `redirect` ของ go_router ตรวจแค่ "ล็อกอินรึยัง" ไม่เคยตรวจ
+  /// สิทธิ์เลย เมนูถูกซ่อนก็จริงแต่เป็นการซ่อนที่ปุ่มเท่านั้น — บนเว็บพิมพ์
+  /// `/settings/config-attendance` ลงแถบที่อยู่ตรงๆ ก็เข้าได้ทุก role
+  /// (backend ยังกัน PUT ด้วย RequireAdmin อยู่ จึงบันทึกไม่ได้ แต่เห็นค่าทั้งหมด
+  /// และกดบันทึกจนได้ 403 ซึ่งไม่ควรมาถึงตรงนั้นตั้งแต่แรก)
+  static const _guarded = <String, String>{
+    '/settings/budget-year': 'config',
+    '/settings/config-attendance': 'config',
+    '/settings/config-attendance-request': 'config',
+    '/settings/config-leave-type': 'config',
+    '/settings/user-management': 'users',
+    '/settings/role-management': 'users',
+    '/approval': 'approve',
+    '/personnel-info': 'personnel',
+  };
+
+  bool canOpen(String location) {
+    for (final entry in _guarded.entries) {
+      if (location != entry.key && !location.startsWith('${entry.key}/')) continue;
+      return switch (entry.value) {
+        'config' => canConfigSystem,
+        'users' => canManageUsers,
+        'approve' => canApprove,
+        'personnel' => canViewPersonnel,
+        _ => true,
+      };
+    }
+    return true;
+  }
+
   /// มีอะไรให้กดในกลุ่ม "อนุมัติ / บุคลากร" อย่างน้อย 1 อย่างมั้ย
   bool get hasApprovalGroup => canApprove || canViewPersonnel;
 

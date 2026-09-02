@@ -2,6 +2,7 @@ import 'package:attendance_system/app/route_names.dart';
 import 'package:attendance_system/features/main_feature/checkin_page.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_request_create.dart';
 import 'package:attendance_system/features/main_feature/leave_request/leave_request_status.dart';
+import 'package:attendance_system/core/utils/menu_access.dart';
 import 'package:attendance_system/features/main_feature/profile_page.dart';
 import 'package:attendance_system/features/main_feature/statistic/statistic_page.dart';
 import 'package:attendance_system/features/main_feature/time_request/time_request_create.dart';
@@ -128,7 +129,17 @@ final appRouter = GoRouter(
       return '/login';
     }
 
-    // authenticated — ถ้ายังค้างอยู่ที่หน้าทางผ่าน ให้พากลับไปที่ที่ขอไว้
+    // authenticated — กันเข้าหน้าที่ role ไม่มีสิทธิ์ (ดู MenuAccess.canOpen)
+    //
+    // เช็คเฉพาะตอนรู้ role จริงๆ เท่านั้น: ถ้า `user` ยังโหลดไม่สำเร็จ ลิสต์ role
+    // จะว่างเปล่า ซึ่งแปลว่า "ไม่รู้" ไม่ใช่ "ไม่มีสิทธิ์" — เด้งออกตอนนั้นจะกัน
+    // คนที่มีสิทธิ์จริงออกจากหน้าตัวเอง backend ยังเป็นด่านจริงอยู่แล้ว
+    final roles = auth.user?.roleType;
+    if (roles != null && !MenuAccess(roles).canOpen(location)) {
+      return '/check-in';
+    }
+
+    // ถ้ายังค้างอยู่ที่หน้าทางผ่าน ให้พากลับไปที่ที่ขอไว้
     if (_transientLocations.contains(location)) {
       final pending = _pendingLocation;
       _pendingLocation = null;
