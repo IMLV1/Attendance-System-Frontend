@@ -7,14 +7,18 @@ import 'package:attendance_system/services/system_config/attendance_time/config_
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_service.dart';
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
+import '../../service_locator.dart';
+import '../../services/notification/notification_provider.dart';
 import 'auth_repository.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
-class AuthState extends ChangeNotifier {
+class AuthState extends ChangeNotifier with WidgetsBindingObserver {
   final AuthRepository repo;
 
   AuthStatus status = AuthStatus.unknown;
@@ -66,6 +70,80 @@ class AuthState extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  /// 🚩 (2026-09-02) โหลด `user` ใหม่ตอนแอปกลับมาทำงาน
+  ///
+  /// `roleType` ที่ `MenuAccess` ใช้ตัดสินว่าจะโชว์เมนูไหน มาจาก `/api/init`
+  /// ซึ่งเดิมถูกเรียก **ครั้งเดียว** ตอน `init()` (`main.dart`) แปลว่าถ้า HR
+  /// เพิ่ม/ถอด role ให้ระหว่างที่ผู้ใช้เปิดแอปค้างไว้ เมนูจะค้างของเดิมทั้ง session
+  /// จนกว่าจะปิดแอปเปิดใหม่ — ทั้งที่ฝั่ง server สิทธิ์เปลี่ยนไปแล้ว
+  ///
+  /// การยิงตอน resume ยังทำหน้าที่ที่สองด้วย: ถ้า session ถูกเพิกถอนไปแล้ว
+  /// (เช่น role ถูกแก้ ดู `UpdateUserRoles` ฝั่ง backend) คำขอนี้จะได้ 401 ->
+  /// interceptor พยายาม refresh -> ไม่ผ่าน -> logout -> เด้งหน้า login ทันที
+  /// แทนที่จะปล่อยให้ผู้ใช้กดใช้งานเมนูที่ตัวเองไม่มีสิทธิ์แล้วไปเรื่อยๆ
+  Future<void> reloadUser() async {
+    if (status != AuthStatus.authenticated || _reloadingUser) return;
+
+    _reloadingUser = true;
+    try {
+      final fresh = await repo.getUser();
+      // `getUser()` กลืน error เป็น null อยู่แล้ว — เน็ตสะดุดก็แค่ใช้ค่าเดิมต่อ
+      // ไม่ควรล้าง user ทิ้งหรือเตะออกจากระบบเพราะเหตุนี้
+      if (fresh == null) return;
+
+      final changed = !_sameRoles(fresh.roleType, user?.roleType);
+      user = fresh;
+
+      // notify เฉพาะตอน "สิทธิ์เปลี่ยนจริง" — resume เกิดบ่อยมาก (สลับแอป,
+      // ดึง notification center, รับสาย) ถ้า notify ทุกครั้งจะลาก rebuild
+      // ทั้งต้นไม้ + ทำให้ redirect ของ GoRouter ทำงานใหม่โดยไม่จำเป็น
+      if (changed) notifyListeners();
+    } finally {
+      _reloadingUser = false;
+    }
+  }
+
+  bool _reloadingUser = false;
+
+  static bool _sameRoles(List<String> a, List<String>? b) {
+    if (b == null || a.length != b.length) return false;
+    final x = [...a]..sort();
+    final y = [...b]..sort();
+    for (var i = 0; i < x.length; i++) {
+      if (x[i] != y[i]) return false;
+    }
+    return true;
+  }
+
+  /// 🚩 (2026-09-02) ให้หน้าอื่นเติม `profile` เองได้เมื่อของที่โหลดตอนเปิดแอปหาย
+  ///
+  /// `_loadUserContext()` ถูกเรียกครั้งเดียวตอน init/login และถ้าคำขอไหนพัง
+  /// (เน็ตสะดุด, token ยังไม่ทันถูก set) ฟิลด์นั้นจะเป็น null ไปตลอด session
+  /// โดยไม่มีใครลองใหม่ — หน้า /profile ที่อ่านค่านี้จึงพังทั้งหน้า
+  void setProfile(ProfileModel value) {
+    profile = value;
+    notifyListeners();
+  }
+
+  /// ต่อเข้ากับ lifecycle ของแอป — เรียกจาก `main()` หลัง
+  /// `WidgetsFlutterBinding.ensureInitialized()` แล้วเท่านั้น
+  ///
+  /// ตั้งใจแยกออกมาจาก [init] เพราะ `WidgetsBinding.instance` โยน exception ถ้า
+  /// binding ยังไม่ถูกสร้าง — `init()` ถูกเรียกตรงๆ ใน unit test (ไม่มี binding)
+  /// อยู่ด้วย ถ้าผูกไว้ข้างในจะพังทั้งที่ตรรกะไม่เกี่ยวกัน
+  void observeAppLifecycle() => WidgetsBinding.instance.addObserver(this);
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(reloadUser());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   /// โหลดข้อมูลประกอบของผู้ใช้ที่เพิ่งยืนยันตัวตนแล้ว — โปรไฟล์ + config 3 ชุด

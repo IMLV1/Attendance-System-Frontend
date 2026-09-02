@@ -99,6 +99,9 @@ void main() async {
   // บนพื้นสีเดียวกัน
   FlutterNativeSplash.remove();
 
+  // ผูก lifecycle ที่นี่ (ไม่ใช่ใน init()) เพราะต้องมั่นใจว่า binding ถูกสร้างแล้ว
+  // — resume แต่ละครั้งจะโหลดสิทธิ์ของผู้ใช้ใหม่ ดู AuthState.reloadUser()
+  getIt<AuthState>().observeAppLifecycle();
   unawaited(getIt<AuthState>().init());
 
   _lockPortraitOnPhonesOnly();

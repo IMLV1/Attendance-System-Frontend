@@ -10,6 +10,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/profile_page/profile_model.dart';
+import '../../services/profile_page/profile_service.dart';
+import '../../shared/widgets/utils/services/service_loader.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/utils/separator_card.dart';
 
@@ -55,6 +57,31 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
 
     profile = context.watch<AuthState>().profile;
+
+    // 🚩 (2026-09-02) เดิมหน้านี้ใช้ `profile!` ทุกจุดโดยไม่มี guard — ถ้า
+    // `_loadUserContext()` ตอนเปิดแอปโหลดโปรไฟล์ไม่สำเร็จ (ค่าเป็น null และ
+    // ไม่มีใครลองใหม่) การเข้าหน้านี้จะโยน "Null check operator used on a null
+    // value" ทั้งหน้า = จอว่าง ไม่มีอะไรบอกผู้ใช้เลย
+    //
+    // ตอนนี้โหลดเองด้วย ServiceLoader (มี loading/error/ลองใหม่ในตัว) แล้วยัด
+    // กลับเข้า AuthState ให้หน้าอื่นได้ใช้ด้วย
+    if (profile == null) {
+      return AppScaffold(
+        maxWidth: 900,
+        header: Header.mainHeader(
+          context,
+          title: 'ข้อมูลผู้ใช้งาน',
+          subTitle: 'User Profile',
+          iconPath: 'icon_profile.svg',
+        ),
+        content: ServiceLoader(
+          request: () => ProfileService().getProfile(),
+          onSuccess: (val) =>
+              context.read<AuthState>().setProfile(ProfileModel.fromJson(val)),
+          builder: () => const SizedBox.shrink(),
+        ),
+      );
+    }
 
     final fieldsCard = SeparatorCard(
       separatorPadding: EdgeInsetsGeometry.only(right: 15, left: 15),
