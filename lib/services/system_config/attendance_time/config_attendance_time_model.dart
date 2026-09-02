@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
+/// 🚩 (2026-09-03) ถอด `cutoff-time` (เวลาการตัดรอบวัน) ออกทั้งชุด
+///
+/// ตัวตั้งค่านี้บันทึกได้แต่ไม่มีผลอะไรเลย: ฝั่ง backend ไม่มีจุดไหนอ่านค่าไปใช้
+/// (การตัดสินว่า "วันไหน" ใช้วันที่ปฏิทินตรงๆ ผ่าน time.Now() แล้ว format) ส่วน
+/// ฝั่งแอปใช้แค่เคลียร์ตัวเลขบนหน้าจอตอนนาฬิกาตรงกับค่านั้นเป๊ะทั้งชั่วโมงและนาที
+/// ซึ่งต้องเปิดหน้าค้างไว้พอดีในนาทีนั้นถึงจะทำงาน และถึงไม่ทำก็ไม่มีผล เพราะหน้า
+/// ดึงข้อมูลของวันนี้จาก API อยู่แล้ว
+///
+/// ปล่อยไว้อันตรายกว่าไม่มี เพราะ admin ปรับแล้วเชื่อว่าตั้งได้จริง (รูปแบบเดียว
+/// กับ auto-checkout ที่ถอดคำสัญญาออกไปแล้วเมื่อ 1 ก.ย.)
 class ConfigAttendanceTimeModel {
-  final TimeOfDay cutoffTime;
   final TimeOfDay checkInTime;
   final TimeOfDay checkOutTime;
 
@@ -11,7 +20,6 @@ class ConfigAttendanceTimeModel {
   final bool autoCheckout;
 
   ConfigAttendanceTimeModel({
-    required this.cutoffTime,
     required this.checkInTime,
     required this.checkOutTime,
     required this.checkInLeaveTime,
@@ -21,7 +29,6 @@ class ConfigAttendanceTimeModel {
 
   factory ConfigAttendanceTimeModel.fromJson(Map<String, dynamic> json) {
     return ConfigAttendanceTimeModel(
-      cutoffTime: TimeOfDay(hour: json['cutoff-time']?['hour'] ?? 0, minute: json['cutoff-time']?['minute'] ?? 0),
       checkInTime: TimeOfDay(hour: json['check-in-time']?['hour'] ?? 0, minute: json['check-in-time']?['minute'] ?? 0),
       checkOutTime: TimeOfDay(hour: json['check-out-time']?['hour'] ?? 0, minute: json['check-out-time']?['minute'] ?? 0),
       checkInLeaveTime: TimeOfDay(hour: json['check-in-leave-time']?['hour'] ?? 0, minute: json['check-in-leave-time']?['minute'] ?? 0),
@@ -31,7 +38,6 @@ class ConfigAttendanceTimeModel {
   }
 
   ConfigAttendanceTimeModel copyWith({
-    TimeOfDay? cutoffTime,
     TimeOfDay? checkInTime,
     TimeOfDay? checkOutTime,
     TimeOfDay? checkInLeaveTime,
@@ -39,7 +45,6 @@ class ConfigAttendanceTimeModel {
     bool? autoCheckout,
   }) {
     return ConfigAttendanceTimeModel(
-      cutoffTime: cutoffTime ?? this.cutoffTime,
       checkInTime: checkInTime ?? this.checkInTime,
       checkOutTime: checkOutTime ?? this.checkOutTime,
       checkInLeaveTime: checkInLeaveTime ?? this.checkInLeaveTime,
@@ -50,8 +55,6 @@ class ConfigAttendanceTimeModel {
 
   bool isSame(ConfigAttendanceTimeModel other) {
     return
-      cutoffTime.hour == other.cutoffTime.hour &&
-          cutoffTime.minute == other.cutoffTime.minute &&
 
           checkInTime.hour == other.checkInTime.hour &&
           checkInTime.minute == other.checkInTime.minute &&

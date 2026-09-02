@@ -149,22 +149,6 @@ class _SettingAttendanceState extends State<SettingAttendance> {
                                             separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
                                             children: [
                                               _buildTimePickerItem(
-                                                index: 0,
-                                                icon: 'sunraise.svg',
-                                                label: 'เวลาการตัดรอบวัน',
-                                                time: data!.cutoffTime,
-                                                onChanged: (h, m) {
-                                                  setState(() {
-                                                    data = data!.copyWith(cutoffTime: TimeOfDay(hour: h, minute: m ?? 0));
-                                                  });
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                          SeparatorCard(
-                                            separatorPadding: EdgeInsetsGeometry.only(left: 45, right: 15),
-                                            children: [
-                                              _buildTimePickerItem(
                                                 index: 1,
                                                 icon: 'check-in-time.svg',
                                                 label: 'เวลาเข้างาน',

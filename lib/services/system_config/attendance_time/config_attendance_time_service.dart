@@ -15,10 +15,6 @@ class ConfigAttendanceTimeService {
         '/system/config/attendance_time/update',
         data: {
           'auto-checkout': data.autoCheckout,
-          'cutoff-time': {
-            'hour': data.cutoffTime.hour,
-            'minute': data.cutoffTime.minute,
-          },
           'check-in-time': {
             'hour': data.checkInTime.hour,
             'minute': data.checkInTime.minute,

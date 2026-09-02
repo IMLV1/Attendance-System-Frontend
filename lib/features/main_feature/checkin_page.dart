@@ -55,7 +55,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
   ConfigAttendanceTimeModel? configSetting;
 
   Timer? _timer;
-  DateTime? _lastResetDate;
   Duration? _timeOffset = Duration.zero;
   // 🚩 แก้ (2026-08-13): กันไม่ให้นาฬิกาโชว์เวลา local ก่อนแล้วค่อยกระโดดไปเวลา server
   // (เห็นเป็นจังหวะ "กระตุก" ตอนเข้าหน้า) — ไม่โชว์เวลาจนกว่าจะ sync เสร็จ (สำเร็จหรือ fail ก็ได้)
@@ -316,43 +315,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         _loadInitialState(_currentNetworkTime!);
       }
     }
-  }
-
-  void _checkAndResetLogic(ConfigAttendanceTimeModel? configSetting) {
-    if (_currentNetworkTime == null || configSetting == null) return;
-
-    final now = _currentNetworkTime!;
-
-    final isCutoffTime =
-        now.hour == configSetting.cutoffTime.hour &&
-        now.minute == configSetting.cutoffTime.minute;
-
-    final notToday =
-        _lastResetDate == null ||
-        _lastResetDate!.year != now.year ||
-        _lastResetDate!.month != now.month ||
-        _lastResetDate!.day != now.day;
-
-    if (isCutoffTime && notToday) {
-      debugPrint("🔥 ถึง cutoffTime → RESET");
-
-      _resetDailyData(now);
-      _lastResetDate = now;
-    }
-    // debugPrint("NOW: $now");
-    // debugPrint("CUTOFF: ${configSetting.cutoffTime}");
-  }
-
-  Future<void> _resetDailyData(DateTime now) async {
-    setState(() {
-      checkInTimeRecorded = "---";
-      checkOutTimeRecorded = "---";
-      _hasCheckedIn = false;
-      hasCheckedOut = false;
-      _lastResetDate = now;
-    });
-    await _saveCurrentState();
-    debugPrint("ระบบทำการ Reset ข้อมูลประจำวันเรียบร้อยแล้ว");
   }
 
   // String _getButtonState() {
@@ -887,7 +849,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
         setState(() {
           // 💡 เวลาแสดงผล = เวลาเครื่องจริง + ส่วนต่าง (ทำให้เน็ตหลุดนาฬิกาก็ยังเดินตรงเป๊ะ)
           _currentNetworkTime = DateTime.now().add(_timeOffset!);
-          _checkAndResetLogic(configSetting);
         });
       }
     });
@@ -1190,7 +1151,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
 
     final inAt = _fmtTime(isMorningLeave ? config.checkInLeaveTime : config.checkInTime);
     final outAt = _fmtTime(isAfternoonLeave ? config.checkOutLeaveTime : config.checkOutTime);
-    final cutoff = _fmtTime(config.cutoffTime);
 
     final parts = <String>[];
 
@@ -1216,8 +1176,6 @@ class _CheckinPageState extends State<CheckinPage> with WidgetsBindingObserver {
     } else {
       parts.add('เวลาออกงานคือ $outAt');
     }
-
-    parts.add('ระบบจะทำการตัดรอบเวลา $cutoff ของทุกวัน');
 
     return parts.join(' ');
   }
