@@ -14,6 +14,13 @@ class AppButton extends StatelessWidget {
   final Widget? arrowWidget;
   final Color? bg;
 
+  /// ป้ายเล็กมุมขวาล่างของไอคอน (เช่น ติ๊กถูก/กากบาทบนแจ้งเตือน)
+  ///
+  /// 🚩 (2026-09-03) เดิมผู้เรียกวางเองด้วย `Positioned(left: 32, top: 47)` ทับ
+  /// ลงบน AppButton ซึ่งเป็นพิกัดตายตัว — ไอคอนถูกจัดกึ่งกลางแนวตั้ง พอหัวข้อ
+  /// หรือข้อความยาวขึ้นแถวจะสูงขึ้น ไอคอนเลื่อนลง แต่ป้ายไม่เลื่อนตาม
+  final Widget? iconBadge;
+
   const AppButton({
     super.key,
     required this.icon,
@@ -27,6 +34,7 @@ class AppButton extends StatelessWidget {
     this.weightTitle = FontWeight.w700,
     this.arrowWidget,
     this.bg,
+    this.iconBadge,
   });
 
   @override
@@ -52,6 +60,9 @@ class AppButton extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // ไอคอน
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
                 Container(
                   width: 40,
                   height: 40,
@@ -73,6 +84,10 @@ class AppButton extends StatelessWidget {
                           : null,
                     ),
                   ),
+                ),
+                    if (iconBadge != null)
+                      Positioned(right: -2, bottom: -2, child: iconBadge!),
+                  ],
                 ),
 
                 // ข้อความ

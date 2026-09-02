@@ -2,7 +2,6 @@ import 'package:attendance_system/features/main_feature/leave_request/date_selec
 import 'package:attendance_system/features/main_feature/leave_request/leave_type.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
-import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/widgets/utils/attachment_picker.dart';
 import 'package:attendance_system/shared/widgets/utils/file_drop_target.dart';
@@ -106,7 +105,6 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
                 Navigator.of(context, rootNavigator: true).pop();
                 widget.onResend();
 
-                NotificationService().sendRequestNotification('APPROVER_LEAVE', widget.requestId);
               },
               builder: (trigger, state, errorMessage) {
 
@@ -193,7 +191,6 @@ class _LeaveRequestResendState extends State<LeaveRequestResend> {
                                   Navigator.of(context, rootNavigator: true).pop();
                                   widget.onResend();
 
-                                  NotificationService().sendRequestNotification('APPROVER_LEAVE', widget.requestId);
                                 },
                               ));
 

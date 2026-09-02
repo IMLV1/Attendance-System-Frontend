@@ -1,6 +1,7 @@
 import 'package:attendance_system/services/check-in/check-in_service.dart';
 import 'package:attendance_system/services/check-in/check_in-leave-service.dart';
 import 'package:attendance_system/services/check-in/holiday_service.dart';
+import 'package:attendance_system/services/notification/notification_provider.dart';
 import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/profile_page/profile_service.dart';
 import 'package:attendance_system/services/system_config/attendance_time/config_attendance_time_service.dart';
@@ -61,6 +62,12 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<ConfigAttendanceTimeService>(() => ConfigAttendanceTimeService());
 
   getIt.registerLazySingleton<NotificationService>(() => NotificationService());
+
+  // 🚩 (2026-09-03) ลงทะเบียนไว้ที่นี่เพื่อให้ `AuthState.logout()` เอื้อมถึงตัว
+  // เดียวกับที่ provider tree ใช้ — เดิม `NotificationProvider.clear()` เขียนไว้
+  // พร้อมคอมเมนต์ว่า "ล้างตอน logout" แต่ไม่มีใครเรียกเลย สลับบัญชีแล้วแจ้งเตือน
+  // กับจุดแดงของคนเก่าค้างอยู่จนกว่า poll รอบถัดไป (สูงสุด 15 วินาที)
+  getIt.registerLazySingleton<NotificationProvider>(() => NotificationProvider());
 
   getIt.registerLazySingleton<Leaveservice>(() => Leaveservice(getIt<Dio>()));
 

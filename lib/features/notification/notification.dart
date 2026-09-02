@@ -6,6 +6,7 @@ import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/shared/widgets/app_scaffold.dart';
 import 'package:attendance_system/shared/widgets/head_bar/header.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
+import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -43,14 +44,10 @@ class _NotificationPageState extends State<NotificationPage> {
           }
         },
       ),
-      content: PopScope(
-        canPop: true,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) {
-             context.read<NotificationProvider>().markAllAsRead();
-          }
-        },
-        child: Consumer<NotificationProvider>(
+      // 🚩 (2026-09-03) เดิมห่อด้วย PopScope ที่สั่ง markAllAsRead() ตอนกดย้อนกลับ
+      // — แค่ "เปิดหน้าแล้วออก" ก็ล้าง unread ทั้งกล่อง ทั้งที่ผู้ใช้ยังไม่ได้อ่าน
+      // อะไรเลย ตอนนี้มาร์กเฉพาะใบที่กดจริง (ดู _buildNotificationItem)
+      content: Consumer<NotificationProvider>(
           builder: (context, provider, child) {
             if (provider.isLoading && provider.notifications.isEmpty) {
               return const Center(child: CircularProgressIndicator());
@@ -154,7 +151,6 @@ class _NotificationPageState extends State<NotificationPage> {
               ],
             );
           },
-        ),
       ),
     );
   }
@@ -191,74 +187,53 @@ class _NotificationPageState extends State<NotificationPage> {
       }
     }
 
-    bool isActionable = (notification.type == 'APPROVER_LEAVE' || notification.type == 'APPROVER_ATTENDANCE');
+
+    final isApproverNotif =
+        notification.type == 'APPROVER_LEAVE' || notification.type == 'APPROVER_ATTENDANCE';
+    final isLeave =
+        notification.type == 'LEAVE_REQUEST' || notification.type == 'APPROVER_LEAVE';
 
     return Container(
       color: Colors.white,
-      child: Stack(
-        children: [
-          AppButton(
-            arrow: isActionable,
-            icon: iconName,
-            iconColor: iconColor,
-            bg: iconBgColor,
-            title: notification.title,
-            subTitle: notification.message,
-            notation: 'หมายเลขคำขอ: ${notification.requestNumber}',
-            timeStamp: _formatDate(notification.createdAt),
-            weightTitle: notification.isRead ? FontWeight.normal : FontWeight.bold,
-            onPressed: () {
-              provider.markAsRead(notification.id);
-              
-              // Navigate to approval page ONLY if the notification requires approval action
-              // 'APPROVER_LEAVE' or 'APPROVER_ATTENDANCE' means a subordinate sent a request
-              if (notification.type == 'APPROVER_LEAVE' || notification.type == 'APPROVER_ATTENDANCE') {
-                int tabIndex = (notification.type == 'APPROVER_LEAVE') ? 1 : 0;
-                context.pushNamed(
-                  RouteNames.approval,
-                  queryParameters: {'tab': tabIndex.toString()},
-                );
-              }
-            },
-          ),
-          
-          // Status Badges
-          if (notification.status == 'APPROVED')
-            Positioned(
-              left: 32,
-              top: 47,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check_circle, color: Colors.green, size: 15),
-              ),
-            ),
-          if (notification.status == 'REJECTED')
-            Positioned(
-              left: 32,
-              top: 47,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.cancel, color: Colors.red, size: 15),
-              ),
-            ),
-        ],
+      child: AppButton(
+        // 🚩 (2026-09-03) เดิม arrow โชว์เฉพาะแจ้งเตือนที่หัวหน้าต้องไปกดอนุมัติ
+        // ส่วนแจ้งเตือน "คำขอของคุณถูกอนุมัติ/ปฏิเสธ" แตะแล้วไม่ไปไหนเลย
+        // ตอนนี้พาไปหน้ารายการของประเภทนั้นให้ทุกแบบ
+        arrow: true,
+        icon: iconName,
+        iconColor: iconColor,
+        bg: iconBgColor,
+        iconBadge: switch (notification.status) {
+          'APPROVED' => const Icon(Icons.check_circle, color: Colors.green, size: 15),
+          'REJECTED' => const Icon(Icons.cancel, color: Colors.red, size: 15),
+          _ => null,
+        },
+        title: notification.title,
+        subTitle: notification.message,
+        notation: 'หมายเลขคำขอ: ${notification.requestNumber}',
+        timeStamp: _formatDate(notification.createdAt),
+        weightTitle: notification.isRead ? FontWeight.normal : FontWeight.bold,
+        onPressed: () {
+          provider.markAsRead(notification.id);
+
+          if (isApproverNotif) {
+            // ลูกน้องส่งคำขอมา -> ไปหน้าอนุมัติ แท็บของประเภทนั้น
+            context.pushNamed(
+              RouteNames.approval,
+              queryParameters: {'tab': isLeave ? '1' : '0'},
+            );
+          } else {
+            // คำขอของตัวเอง -> ไปหน้ารายการคำขอของประเภทนั้น
+            context.pushNamed(
+              isLeave ? RouteNames.leaveRequest : RouteNames.attendanceRequest,
+            );
+          }
+        },
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    // Custom Thai Month formatting
-    const thaiMonths = [
-      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-    ];
-    String month = thaiMonths[date.month - 1];
-    return '$month ${date.day}';
-  }
+  // 🚩 (2026-09-03) เดิมคืน "กันยายน 3" — เดือนนำหน้าวัน ไม่มีปี ไม่มีเวลา
+  // แจ้งเตือนสะสมข้ามปีแล้วแยกไม่ออกว่าอันไหนปีไหน ใช้ตัวกลางร่วมกับหน้าอื่น
+  String _formatDate(DateTime date) => Utils.formatDateTimeFull(date);
 }

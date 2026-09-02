@@ -1,4 +1,3 @@
-import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/widgets/utils/file_drop_target.dart';
 import 'package:file_picker/file_picker.dart';
@@ -88,7 +87,6 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
         Navigator.of(context, rootNavigator: true).pop();
         widget.onResend();
 
-        NotificationService().sendRequestNotification('APPROVER_ATTENDANCE', widget.id);
       },
       builder: (trigger, state, errorMessage) {
 
@@ -170,7 +168,6 @@ class _TimeRequestResendState extends State<TimeRequestResend> {
                           Navigator.of(context, rootNavigator: true).pop();
                           widget.onResend();
 
-                          NotificationService().sendRequestNotification('APPROVER_ATTENDANCE', widget.id);
                         },
                       ));
 

@@ -60,8 +60,8 @@ void main() async {
         ChangeNotifierProvider<AuthState>.value(
           value: getIt<AuthState>(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => NotificationProvider()..fetchNotifications(),
+        ChangeNotifierProvider<NotificationProvider>.value(
+          value: getIt<NotificationProvider>()..fetchNotifications(),
         ),
         ChangeNotifierProvider(
           create: (_) => NavigationGuard(),

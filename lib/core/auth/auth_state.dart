@@ -255,7 +255,10 @@ class AuthState extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> logout() async {
     await repo.logout();
+    // แจ้งเตือนของคนก่อนหน้าต้องไม่ค้างให้คนถัดไปเห็น (รวมจุดแดงบนหัวข้อ)
+    getIt<NotificationProvider>().clear();
     user = null;
+    profile = null;
     status = AuthStatus.unauthenticated;
     notifyListeners();
   }

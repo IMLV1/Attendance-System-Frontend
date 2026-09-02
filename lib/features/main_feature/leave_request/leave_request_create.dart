@@ -5,7 +5,6 @@ import 'package:attendance_system/features/main_feature/leave_request/leave_type
 import 'package:attendance_system/features/main_feature/leave_request/select_leave_type.dart';
 import 'package:attendance_system/services/leave/leave_model.dart';
 import 'package:attendance_system/services/leave/leave_service.dart';
-import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/system_config/leave/config_leave_model.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
@@ -721,7 +720,6 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                             );
 
                             if (requestID != null) {
-                              NotificationService().sendRequestNotification('APPROVER_LEAVE', requestID);
                             }
                           },
                           builder: (trigger, state, errorMessage) {
@@ -770,7 +768,6 @@ class _LeaveRequestPage extends State<LeaveRequestCreate> {
                                                     );
 
                                                     if (requestID != null) {
-                                                      NotificationService().sendRequestNotification('APPROVER_LEAVE', requestID);
                                                     }
                                                   },
                                                   infoWidget: Row(

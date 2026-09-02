@@ -1,6 +1,5 @@
 
 import 'package:attendance_system/features/main_feature/time_request/time_request_popup.dart';
-import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/time_request/time_request_model.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -1084,7 +1083,6 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                         );
 
                         if (requestID != null) {
-                          NotificationService().sendRequestNotification('APPROVER_ATTENDANCE', requestID);
                         }
                       },
                       builder: (trigger, state, errorMessage) {
@@ -1140,7 +1138,6 @@ class _TimeRequestCreateState extends State<TimeRequestCreate> {
                                                 );
 
                                                 if (requestID != null) {
-                                                  NotificationService().sendRequestNotification('APPROVER_ATTENDANCE', requestID);
                                                 }
                                               },
                                               infoWidget: Row(
