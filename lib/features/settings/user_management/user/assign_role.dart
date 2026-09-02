@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/menu_access.dart';
 import 'package:attendance_system/services/assign_role_page/role_model.dart';
 import 'package:attendance_system/services/assign_role_page/role_service.dart';
 import 'package:attendance_system/services/user_management/user_management_model.dart';
@@ -63,6 +64,9 @@ class _AssignRoleState extends State<AssignRole> {
 
   @override
   Widget build(BuildContext context) {
+    // สิทธิ์แตะตำแหน่งระดับผู้ดูแลระบบ — ตรงกับที่ backend บังคับใน user_handler.go
+    final canManageAdmin = MenuAccess.of(context).canManageAdminRole;
+
     return Column(
       children: [
         Expanded(
@@ -123,19 +127,28 @@ class _AssignRoleState extends State<AssignRole> {
                                               title: m.name,
                                               subTitle: 'ใต้สังกัด ${m.member} คน',
                                               weightTitle: FontWeight.normal,
-                                              arrowWidget: Padding(
-                                                padding: EdgeInsetsGeometry.only(right: 10),
-                                                child: SvgPicture.asset(
-                                                  'assets/images/remove.svg',
-                                                  width: 15,
-                                                  height: 15,
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                setState(() {
-                                                  roles.removeWhere((r) => r.id == m.id);
-                                                });
-                                              },
+                                              // 🚩 (2026-09-02) ตำแหน่งระดับผู้ดูแลระบบ HR ถอดไม่ได้
+                                              // ยังโชว์ให้เห็นว่าคนนี้ถืออยู่ แต่ไม่มีปุ่มลบ — สำคัญที่ต้อง
+                                              // "โชว์แต่กดไม่ได้" ไม่ใช่ซ่อนทิ้ง เพราะรายการที่เห็นคือสิ่งที่
+                                              // ถูกส่งไปตอนบันทึก ถ้าซ่อน admin ออก การกดบันทึกจะกลายเป็น
+                                              // การถอด admin ทิ้งโดยไม่ได้ตั้งใจ
+                                              arrowWidget: (m.type == RoleType.admin && !canManageAdmin)
+                                                  ? null
+                                                  : Padding(
+                                                      padding: EdgeInsetsGeometry.only(right: 10),
+                                                      child: SvgPicture.asset(
+                                                        'assets/images/remove.svg',
+                                                        width: 15,
+                                                        height: 15,
+                                                      ),
+                                                    ),
+                                              onPressed: (m.type == RoleType.admin && !canManageAdmin)
+                                                  ? null
+                                                  : () {
+                                                      setState(() {
+                                                        roles.removeWhere((r) => r.id == m.id);
+                                                      });
+                                                    },
                                             );
                                           })
                                         ],
@@ -156,7 +169,13 @@ class _AssignRoleState extends State<AssignRole> {
                                         separatorPadding: EdgeInsetsGeometry.only(right: 10, left: 60),
                                         children: [
 
-                                          ...allRoles.where((m) => !roles.map((m) => m.id).toList().contains(m.id)).map((m) {
+                                          // 🚩 (2026-09-02) HR มอบตำแหน่งระดับผู้ดูแลระบบให้ใครไม่ได้
+                                          // จึงไม่ต้องเห็นในรายการที่เพิ่มได้เลย (backend ปฏิเสธอยู่แล้ว
+                                          // — ตรงนี้แค่ไม่ให้เห็นตัวเลือกที่กดไปก็โดนปฏิเสธ)
+                                          ...allRoles
+                                              .where((m) => !roles.map((m) => m.id).toList().contains(m.id))
+                                              .where((m) => canManageAdmin || m.type != RoleType.admin)
+                                              .map((m) {
                                             return AppButton(
                                               icon: switch (m.type) {
                                                 RoleType.admin => 'icon_admin.svg',

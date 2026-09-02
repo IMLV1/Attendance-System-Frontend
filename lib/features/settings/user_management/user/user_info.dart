@@ -1,3 +1,6 @@
+import 'package:attendance_system/core/auth/auth_state.dart';
+import 'package:attendance_system/core/utils/menu_access.dart';
+import 'package:provider/provider.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/features/settings/user_management/user/assign_role.dart';
 import 'package:attendance_system/features/settings/user_management/user/max_leave.dart';
@@ -291,21 +294,38 @@ class _UserInfoState extends State<UserInfo> {
                               SeparatorCard(
                                   separatorPadding: EdgeInsets.only(left: 45, right: 15),
                                   children: [
-                                    TextRoleButton(onPressed: () {
-                                      PushPopup(
-                                        title: 'ตำแหน่ง: ${userInfo.nameTH}',
-                                        fit: FlexFit.tight,
-                                        maxHeight: 700,
-                                        scroll: false,
-                                        builder: (_) => AssignRole(
-                                          id: userInfo.id,
-                                          roles: userInfo.roles,
-                                          onSaved: (updated) {
-                                            _update(userInfo.copyWith(roles: updated));
-                                          },
-                                        ),
-                                      ).showPopup(context);
-                                    }, label: 'ตำแหน่งปัจจุบัน', roles: [...userInfo.roles], icon: SvgPicture.asset('assets/images/icon_role.svg')),
+                                    // 🚩 (2026-09-02) แก้ตำแหน่งของ "ตัวเอง" ไม่ได้ ไม่ว่าจะเป็น
+                                    // admin หรือ HR — backend ปฏิเสธอยู่แล้ว ตรงนี้ปิดปุ่มไม่ให้
+                                    // กดเข้าไปเจอ 403 (`disable` ทำให้ลูกศรหายไปด้วย จึงอ่านออก
+                                    // ว่าแถวนี้กดไม่ได้ ไม่ใช่ปุ่มที่กดแล้วเงียบ)
+                                    Builder(builder: (context) {
+                                      final canEdit = MenuAccess.of(context).canEditRolesOf(
+                                        userInfo.id,
+                                        context.watch<AuthState>().user?.id,
+                                      );
+
+                                      return TextRoleButton(
+                                        disable: !canEdit,
+                                        onPressed: !canEdit ? null : () {
+                                          PushPopup(
+                                            title: 'ตำแหน่ง: ${userInfo.nameTH}',
+                                            fit: FlexFit.tight,
+                                            maxHeight: 700,
+                                            scroll: false,
+                                            builder: (_) => AssignRole(
+                                              id: userInfo.id,
+                                              roles: userInfo.roles,
+                                              onSaved: (updated) {
+                                                _update(userInfo.copyWith(roles: updated));
+                                              },
+                                            ),
+                                          ).showPopup(context);
+                                        },
+                                        label: 'ตำแหน่งปัจจุบัน',
+                                        roles: [...userInfo.roles],
+                                        icon: SvgPicture.asset('assets/images/icon_role.svg'),
+                                      );
+                                    }),
                                   ]
                               ),
 

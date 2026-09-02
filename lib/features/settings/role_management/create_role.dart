@@ -1,3 +1,4 @@
+import 'package:attendance_system/core/utils/menu_access.dart';
 import 'package:attendance_system/core/utils/responsive.dart';
 import 'dart:async';
 
@@ -352,7 +353,14 @@ class _CreateRoleState extends State<CreateRole> {
                                   onPressed: ()  {
                                     OptionPopup(
                                       title: 'ระดับสิทธิ์การเข้าถึง',
-                                      options: ['ตำแหน่งหลัก', 'ตำแหน่งเพิ่มเติม', 'ผู้ดูแลระบบ','ฝ่ายบุคคล'],
+                                      // 🚩 (2026-09-02) HR สร้างตำแหน่งระดับ "ผู้ดูแลระบบ" ไม่ได้
+                                      // backend ปฏิเสธอยู่แล้ว ตรงนี้แค่ไม่ให้เห็นตัวเลือกที่กดไปก็โดนปฏิเสธ
+                                      options: [
+                                        'ตำแหน่งหลัก',
+                                        'ตำแหน่งเพิ่มเติม',
+                                        if (MenuAccess.of(context).canManageAdminRole) 'ผู้ดูแลระบบ',
+                                        'ฝ่ายบุคคล',
+                                      ],
                                       buttonLabel: 'บันทึก',
                                       maxHeight: 700,
                                       fit: FlexFit.tight,

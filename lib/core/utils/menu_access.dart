@@ -80,4 +80,25 @@ class MenuAccess {
 
   /// มีอะไรให้กดในกลุ่ม "อนุมัติ / บุคลากร" อย่างน้อย 1 อย่างมั้ย
   bool get hasApprovalGroup => canApprove || canViewPersonnel;
+
+  // --- กฎการมอบ/ถอดตำแหน่ง (2026-09-02) --------------------------------
+  //
+  // 🚩 กฎชุดนี้ backend บังคับอยู่แล้ว (user_handler.go) — ที่นี่มีไว้เพื่อไม่ให้
+  // ผู้ใช้เห็นตัวเลือกที่กดไปก็โดนปฏิเสธ ไม่ใช่ด่านความปลอดภัย
+  // **ห้ามแก้ที่นี่อย่างเดียวโดยไม่แก้ backend** ไม่งั้นจะกลายเป็นบังคับที่หน้าจอ
+  // ที่เดียวเหมือนที่เคยเป็นมา
+
+  /// แตะตำแหน่งระดับ "ผู้ดูแลระบบ" ได้มั้ย (สร้าง / แก้ / ลบ / มอบให้คนอื่น)
+  /// HR ทำไม่ได้ — ทำได้เฉพาะ admin
+  bool get canManageAdminRole => roles.contains('admin');
+
+  /// แก้ตำแหน่งของผู้ใช้คนนี้ได้มั้ย
+  ///
+  /// ห้ามแก้ของตัวเองเสมอ ไม่ว่าจะเป็น admin หรือ HR — คนที่มีสิทธิ์แก้ตำแหน่ง
+  /// ไม่ควรยกระดับตัวเองได้
+  bool canEditRolesOf(String? targetUserId, String? myUserId) {
+    if (!canManageUsers) return false;
+    if (targetUserId == null || myUserId == null) return true;
+    return targetUserId != myUserId;
+  }
 }
