@@ -204,7 +204,7 @@ class _UserInfoState extends State<UserInfo> {
                                     TextValueButton(onPressed: () {
                                       OptionServicePopup(
                                           title: 'เพศ',
-                                          options: ['ชาย', 'หญิง', 'เกย์', 'กระเทย', 'มึงสิอิกะเทย', 'อื่นๆ'],
+                                          options: const ['ชาย', 'หญิง', 'อื่นๆ'],
                                           buttonLabel: 'บันทึก',
                                           maxHeight: 700,
                                           fit: FlexFit.tight,
