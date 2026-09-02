@@ -1,4 +1,3 @@
-import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/features/main_feature/time_request/time_request_resend.dart';
 import 'package:attendance_system/services/time_request/time_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
@@ -74,13 +73,10 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
         builder: () {
 
           return Padding(
-            padding: EdgeInsets.only(
-              // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
-              // (หน้า + การ์ดสีเทา) เหลือให้เนื้อหาจริงไม่ถึง 330pt — บีบขอบหน้า
-              // ลงบนจอเล็ก จอใหญ่ยังเว้นเท่าเดิมเพราะมีที่เหลือเฟือ
+            padding: const EdgeInsets.only(
+              // 🚩 (2026-09-02) ขอบซ้าย/ขวาปล่อยให้เปลือก popup คุมชั้นเดียว (20pt)
+              // ชั้นในนี้เลยเป็น 0 — เนื้อหาจะตรงแนวเดียวกับเส้นคั่นใต้หัวข้อพอดี
               top: 0,
-              left: Responsive.isCompact(context) ? 14 : 20,
-              right: Responsive.isCompact(context) ? 14 : 20,
             ),
             child: Column(
               spacing: 13,
@@ -131,8 +127,8 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                             _ => Color(0xFFE79E00)
                           },
                           title: switch(data?.approveDetail.status) {
-                            'approved' => 'อนุมัติแล้ว',
-                            'rejected' => 'ไม่อนุมัติ',
+                            'approved' => 'อนุมัติแล้ว${Utils.onDate(data?.approveDetail.approveDate)}',
+                            'rejected' => 'ไม่อนุมัติ${Utils.onDate(data?.approveDetail.approveDate)}',
                             'overdue'  => 'เลยกำหนดเวลา',
                             'canceled' => 'ยกเลิก',
                             _ => 'รอดำเนินการ'
@@ -148,10 +144,15 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                             'canceled' => 'คำขอนี้ถูกยกเลิกแล้ว',
                             _ => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
                           },
-                          arrow: false,
-                          timeStamp: data?.approveDetail.approveDate != null
-                              ? formatDateTime(data!.approveDetail.approveDate!)
-                              : null,
+                          arrow: true,
+                          // 🚩 (2026-09-02) ปุ่มนี้กดเพื่อกาง "ผู้อนุมัติ/เหตุผล" ได้ แต่เดิมไม่มีลูกศร
+                          // ผู้ใช้จึงไม่มีทางรู้ว่ากดได้
+                          // และหมุนลงเมื่อกางอยู่ ให้สื่อสถานะเปิด/ปิดในตัว
+                          arrowWidget: AnimatedRotation(
+                            turns: onSelect ? 0.25 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: SvgPicture.asset('assets/images/icon_next.svg'),
+                          ),
                           onPressed: () {
                             setState(() {
                               onSelect = !onSelect;
@@ -159,7 +160,7 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                           },
                         ),
                         AnimatedSizeWidget(
-                          enable: onSelect && !(data!.approveDetail.status == 'pending' || data!.approveDetail.status == 'overdue' || data!.approveDetail.status == 'canceled'),
+                          enable: onSelect,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 6,
@@ -173,20 +174,33 @@ class _TimeRequestPopupDetailState extends State<TimeRequestPopupDetail> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'เนื่องจาก:',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: AppColors.lightTextColor,
-                                        ),
+                                      // 🚩 (2026-09-02) "ยื่นเมื่อ" อยู่ตรงนี้เพื่อให้เห็นได้ทุกสถานะ — เดิมเมนูนี้
+                                      // กางได้เฉพาะใบที่ตัดสินแล้ว ทั้งที่ใบที่ยังรออนุมัติคือใบที่อยากรู้ที่สุดว่ายื่นไปนานแค่ไหน
+                                      const Text(
+                                        'ยื่นเมื่อ:',
+                                        style: TextStyle(fontSize: 14, color: AppColors.lightTextColor),
                                       ),
                                       Text(
-                                        data?.approveDetail.reason ?? '-',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                        ),
-                                        softWrap: true,
+                                        Utils.dateTimeOrDash(data?.requestDetail.requestDate),
+                                        style: const TextStyle(fontSize: 12),
                                       ),
+                                      if (!(data!.approveDetail.status == 'pending' || data!.approveDetail.status == 'overdue' || data!.approveDetail.status == 'canceled')) ...[
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'เนื่องจาก:',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: AppColors.lightTextColor,
+                                          ),
+                                        ),
+                                        Text(
+                                          data?.approveDetail.reason ?? '-',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                          ),
+                                          softWrap: true,
+                                        ),
+                                      ],
                                       SizedBox(height: 10)
                                     ],
                                   )

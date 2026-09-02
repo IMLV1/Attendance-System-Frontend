@@ -1,7 +1,5 @@
-import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/approval/leave/leave_approval_detail_model.dart';
 import 'package:attendance_system/services/approval/leave/leave_service.dart';
-import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/shared/widgets/utils/profile_button.dart';
 import 'package:attendance_system/shared/widgets/utils/utils.dart';
 import 'package:dio/dio.dart';
@@ -55,13 +53,10 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
-        // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
-        // (หน้า + การ์ดสีเทา) เหลือให้เนื้อหาจริงไม่ถึง 330pt — บีบขอบหน้า
-        // ลงบนจอเล็ก จอใหญ่ยังเว้นเท่าเดิมเพราะมีที่เหลือเฟือ
+      padding: const EdgeInsets.only(
+        // 🚩 (2026-09-02) ขอบซ้าย/ขวาปล่อยให้เปลือก popup คุมชั้นเดียว (20pt)
+        // ชั้นในนี้เลยเป็น 0 — เนื้อหาจะตรงแนวเดียวกับเส้นคั่นใต้หัวข้อพอดี
         top: 10,
-        left: Responsive.isCompact(context) ? 14 : 20,
-        right: Responsive.isCompact(context) ? 14 : 20,
       ),
       child: ServiceLoader(
         request: () => LeaveApprovalService().getRequestDetail(widget.requestID), // mockData(),
@@ -110,8 +105,8 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                               AppButton(
                                 icon: status.icon,
                                 title: switch (status) {
-                                      .approved => 'อนุมัติแล้ว',
-                                      .rejected => 'ไม่อนุมัติ',
+                                      .approved => 'อนุมัติแล้ว${Utils.onDate(requestDetail?.approveDetail.approveDate)}',
+                                      .rejected => 'ไม่อนุมัติ${Utils.onDate(requestDetail?.approveDetail.approveDate)}',
                                       .pending => 'รออนุมัติ',
                                       .overdue => 'เลยกำหนดเวลา',
                                       .canceled => 'ยกเลิก'
@@ -124,10 +119,15 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                       .pending => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${requestDetail?.approveDetail.approveRole ?? '-'}',
                                   _ => 'เนื่องจาก: ${requestDetail?.approveDetail.reason ?? '-'}',
                                 },
-                                arrow: false,
-                                timeStamp: requestDetail?.approveDetail.approveDate != null
-                                    ? formatDateTime(requestDetail!.approveDetail.approveDate!)
-                                    : null,
+                                arrow: true,
+                                // 🚩 (2026-09-02) ปุ่มนี้กดเพื่อกาง "ผู้อนุมัติ/เหตุผล" ได้ แต่เดิมไม่มีลูกศร
+                                // ผู้ใช้จึงไม่มีทางรู้ว่ากดได้
+                                // และหมุนลงเมื่อกางอยู่ ให้สื่อสถานะเปิด/ปิดในตัว
+                                arrowWidget: AnimatedRotation(
+                                  turns: onSelect ? 0.25 : 0,
+                                  duration: const Duration(milliseconds: 200),
+                                  child: SvgPicture.asset('assets/images/icon_next.svg'),
+                                ),
                                 onPressed: () {
                                   setState(() {
                                     onSelect = !onSelect;
@@ -135,7 +135,7 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                 },
                               ),
                               AnimatedSizeWidget(
-                                enable: onSelect && !(status == .pending || status == .overdue || status == .canceled),
+                                enable: onSelect,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   spacing: 6,
@@ -149,20 +149,33 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
+                                            // 🚩 (2026-09-02) "ยื่นเมื่อ" อยู่ตรงนี้เพื่อให้เห็นได้ทุกสถานะ — เดิมเมนูนี้
+                                            // กางได้เฉพาะใบที่ตัดสินแล้ว ทั้งที่ใบที่ยังรออนุมัติคือใบที่อยากรู้ที่สุดว่ายื่นไปนานแค่ไหน
                                             const Text(
-                                              'ผู้อนุมัติ:',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: AppColors.lightTextColor,
-                                              ),
+                                              'ยื่นเมื่อ:',
+                                              style: TextStyle(fontSize: 14, color: AppColors.lightTextColor),
                                             ),
                                             Text(
-                                              requestDetail?.approveDetail.approver ?? '-',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                              ),
-                                              softWrap: true,
+                                              Utils.dateTimeOrDash(requestDetail?.requestDetail.requestDate),
+                                              style: const TextStyle(fontSize: 12),
                                             ),
+                                            if (!(status == .pending || status == .overdue || status == .canceled)) ...[
+                                              const SizedBox(height: 8),
+                                              const Text(
+                                                'ผู้อนุมัติ:',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: AppColors.lightTextColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                requestDetail?.approveDetail.approver ?? '-',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                                softWrap: true,
+                                              ),
+                                            ],
                                             const SizedBox(height: 10)
                                           ],
                                         )
@@ -719,7 +732,6 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                                 navigator.pop();
                                                 widget.onRejected();
 
-                                                NotificationService().sendApprovalResponseNotification('LEAVE_REQUEST', widget.requestID, 'REJECTED');
                                               },
                                             ));
 
@@ -750,7 +762,6 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                                         Navigator.of(context, rootNavigator: true).pop();
                                                         widget.onRejected();
 
-                                                        NotificationService().sendApprovalResponseNotification('LEAVE_REQUEST', widget.requestID, 'REJECTED');
                                                       },
                                                     )
                                                   ];
@@ -858,7 +869,6 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                                 navigator.pop();
                                                 widget.onApproved();
 
-                                                NotificationService().sendApprovalResponseNotification('LEAVE_REQUEST', widget.requestID, 'APPROVED');
                                               },
                                             ));
 
@@ -889,7 +899,6 @@ class _LeaveApprovalDetailPopup extends State<LeaveApprovalDetailPopup> {
                                                         Navigator.of(context, rootNavigator: true).pop();
                                                         widget.onApproved();
 
-                                                        NotificationService().sendApprovalResponseNotification('LEAVE_REQUEST', widget.requestID, 'REJECTED');
                                                       },
                                                     )
                                                   ];

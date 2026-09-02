@@ -134,6 +134,9 @@ class AttendanceRequestDetail {
   final String remark;
   final List<NetworkFile> evidenceFiles;
 
+  /// เวลาที่ยื่นคำขอ — คนละอันกับ `approveDetail.approveDate` (เวลาที่ตัดสิน)
+  final DateTime? requestDate;
+
   AttendanceRequestDetail({
     required this.dateFrom,
     required this.dateTo,
@@ -141,6 +144,7 @@ class AttendanceRequestDetail {
     required this.timeEnd,
     required this.remark,
     required this.evidenceFiles,
+    this.requestDate,
   });
 
   factory AttendanceRequestDetail.fromJson(Map<String, dynamic> json) {
@@ -151,6 +155,7 @@ class AttendanceRequestDetail {
       timeEnd: _parseTime(json['time-end']),
       remark: json['remark'] ?? '',
       evidenceFiles: (json['evidence-files'] as List? ?? []).map((e) => NetworkFile.fromJson(e)).toList(),
+      requestDate: DateTime.tryParse('${json['request-date']}'),
     );
   }
 

@@ -1,7 +1,5 @@
 import 'package:attendance_system/core/auth/auth_state.dart';
-import 'package:attendance_system/core/utils/responsive.dart';
 import 'package:attendance_system/services/approval/attendance/attendance_service.dart';
-import 'package:attendance_system/services/notification/notification_service.dart';
 import 'package:attendance_system/services/personnel_info/personnel_attendance_request_service.dart';
 import 'package:attendance_system/shared/theme/app_colors.dart';
 import 'package:attendance_system/shared/widgets/utils/app_button.dart';
@@ -72,13 +70,10 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
     final setting = auth.attendanceConfig;
 
     return Padding(
-        padding: EdgeInsets.only(
-          // 🚩 (2026-08-27) จอมือถือกว้าง 393pt แต่โดนขอบกินไปสองชั้น
-          // (หน้า + การ์ดสีเทา) เหลือให้เนื้อหาจริงไม่ถึง 330pt — บีบขอบหน้า
-          // ลงบนจอเล็ก จอใหญ่ยังเว้นเท่าเดิมเพราะมีที่เหลือเฟือ
+        padding: const EdgeInsets.only(
+          // 🚩 (2026-09-02) ขอบซ้าย/ขวาปล่อยให้เปลือก popup คุมชั้นเดียว (20pt)
+          // ชั้นในนี้เลยเป็น 0 — เนื้อหาจะตรงแนวเดียวกับเส้นคั่นใต้หัวข้อพอดี
           top: 10,
-          left: Responsive.isCompact(context) ? 14 : 20,
-          right: Responsive.isCompact(context) ? 14 : 20,
         ),
         child: ServiceLoader(
             request: () {
@@ -126,8 +121,8 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                         _ => Color(0xFFE79E00)
                                       },
                                       title: switch(data?.approveDetail.status) {
-                                        'approved' => 'อนุมัติแล้ว',
-                                        'rejected' => 'ไม่อนุมัติ',
+                                        'approved' => 'อนุมัติแล้ว${Utils.onDate(data?.approveDetail.approveDate)}',
+                                        'rejected' => 'ไม่อนุมัติ${Utils.onDate(data?.approveDetail.approveDate)}',
                                         'overdue'  => 'เลยกำหนดเวลา',
                                         'canceled' => 'ยกเลิก',
                                         _ => 'รอดำเนินการ'
@@ -143,10 +138,15 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                         'canceled' => 'คำขอนี้ถูกยกเลิกแล้ว',
                                         _ => 'ตำแหน่งที่รับผิดชอบการอนุมัติ: ${data?.approveDetail.approveRole ?? '-'}'
                                       },
-                                      arrow: false,
-                                      timeStamp: data?.approveDetail.approveDate != null
-                                          ? formatDateTime(data!.approveDetail.approveDate!)
-                                          : null,
+                                      arrow: true,
+                                      // 🚩 (2026-09-02) ปุ่มนี้กดเพื่อกาง "ผู้อนุมัติ/เหตุผล" ได้ แต่เดิมไม่มีลูกศร
+                                      // ผู้ใช้จึงไม่มีทางรู้ว่ากดได้
+                                      // และหมุนลงเมื่อกางอยู่ ให้สื่อสถานะเปิด/ปิดในตัว
+                                      arrowWidget: AnimatedRotation(
+                                        turns: onSelect ? 0.25 : 0,
+                                        duration: const Duration(milliseconds: 200),
+                                        child: SvgPicture.asset('assets/images/icon_next.svg'),
+                                      ),
                                       onPressed: () {
                                         setState(() {
                                           onSelect = !onSelect;
@@ -154,7 +154,7 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                       },
                                     ),
                                     AnimatedSizeWidget(
-                                      enable: onSelect && !(data!.approveDetail.status == 'pending' || data!.approveDetail.status == 'overdue' || data!.approveDetail.status == 'canceled'),
+                                      enable: onSelect,
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         spacing: 6,
@@ -168,20 +168,33 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(
-                                                    'เนื่องจาก:',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: AppColors.lightTextColor,
-                                                    ),
+                                                  // 🚩 (2026-09-02) "ยื่นเมื่อ" อยู่ตรงนี้เพื่อให้เห็นได้ทุกสถานะ — เดิมเมนูนี้
+                                                  // กางได้เฉพาะใบที่ตัดสินแล้ว ทั้งที่ใบที่ยังรออนุมัติคือใบที่อยากรู้ที่สุดว่ายื่นไปนานแค่ไหน
+                                                  const Text(
+                                                    'ยื่นเมื่อ:',
+                                                    style: TextStyle(fontSize: 14, color: AppColors.lightTextColor),
                                                   ),
                                                   Text(
-                                                    data?.approveDetail.reason ?? '-',
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                    ),
-                                                    softWrap: true,
+                                                    Utils.dateTimeOrDash(data?.requestDetail.requestDate),
+                                                    style: const TextStyle(fontSize: 12),
                                                   ),
+                                                  if (!(data!.approveDetail.status == 'pending' || data!.approveDetail.status == 'overdue' || data!.approveDetail.status == 'canceled')) ...[
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      'เนื่องจาก:',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: AppColors.lightTextColor,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      data?.approveDetail.reason ?? '-',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                      ),
+                                                      softWrap: true,
+                                                    ),
+                                                  ],
                                                   SizedBox(height: 10)
                                                 ],
                                               )
@@ -836,7 +849,6 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                     navigator.pop();
                                                     widget.onRejected();
 
-                                                    NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', widget.id, 'REJECTED');
                                                   },
                                                 ));
 
@@ -867,7 +879,6 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                             Navigator.of(context, rootNavigator: true).pop();
                                                             widget.onRejected();
 
-                                                            NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', widget.id, 'REJECTED');
                                                           },
                                                         )
                                                       ];
@@ -975,7 +986,6 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                     navigator.pop();
                                                     widget.onApproved();
 
-                                                    NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', widget.id, 'APPROVED');
                                                   },
                                                 ));
 
@@ -1006,7 +1016,6 @@ class _PersonnelAttendanceRequestDetailState extends State<PersonnelAttendanceRe
                                                             Navigator.of(context, rootNavigator: true).pop();
                                                             widget.onApproved();
 
-                                                            NotificationService().sendApprovalResponseNotification('ATTENDANCE_REQUEST', widget.id, 'APPROVED');
                                                           },
                                                         )
                                                       ];

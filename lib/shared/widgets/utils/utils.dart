@@ -4,6 +4,26 @@ import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 
 class Utils {
+  /// 🚩 (2026-09-02) วันที่+เวลาแบบเต็ม เช่น "2 ก.ย. 2569 10:05 น."
+  ///
+  /// เดิมแต่ละหน้ารายละเอียดนิยาม `formatDateTime` ของตัวเองซ้ำกัน 6 ไฟล์ และทุกตัว
+  /// คืน **เวลาอย่างเดียว** ไม่มีวันที่ — บนหน้าจอจึงเห็นแค่ "10:05 น." ลอยๆ
+  /// โดยไม่รู้ว่าวันไหน
+  static String formatDateTimeFull(DateTime dt) =>
+      '${DateFormat.MMMd('th_TH').format(dt)} ${dt.year + 543} '
+      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} น.';
+
+  /// ต่อท้ายข้อความสถานะ เช่น 'อนุมัติแล้ว' + ' วันที่ 2 ก.ย. 2569 10:05 น.'
+  /// คืนสตริงว่างถ้ายังไม่มีวันที่ (ใบที่ยังไม่ถูกตัดสิน)
+  static String onDate(DateTime? dt) =>
+      (dt == null || dt.millisecondsSinceEpoch <= 0)
+          ? ''
+          : ' วันที่ ${formatDateTimeFull(dt)}';
+
+  /// ค่าที่เอาไปวางเป็นเนื้อหาได้ตรงๆ — ไม่มีข้อมูลก็ขึ้น '-'
+  static String dateTimeOrDash(DateTime? dt) =>
+      (dt == null || dt.millisecondsSinceEpoch <= 0) ? '-' : formatDateTimeFull(dt);
+
   static String formatBytes(int bytes, {int decimals = 2}) {
     if (bytes <= 0) return '0 B';
 
