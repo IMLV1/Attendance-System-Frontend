@@ -15,6 +15,14 @@ class TextToggleSwitch extends StatefulWidget {
   final FontWeight fontWeight;
   final bool isFirst;
 
+  /// ปิดตัวเลือกทีละข้าง — กดไม่ได้และแสดงเป็นสีจาง
+  ///
+  /// 🚩 (2026-09-02) มีไว้ให้หน้าเลือกวันลาล็อก "ครึ่งวันที่ถูกจองไปแล้ว"
+  /// (ดู `date_select.dart`) เดิมกดได้ทั้งสองข้างเสมอ ผู้ใช้จึงเลือกครึ่งที่ทับ
+  /// ใบลาเดิมได้ แล้วไปโดน backend ตอบ 409 ตอนกดส่ง
+  final bool disableFirst;
+  final bool disableSecond;
+
   const TextToggleSwitch({
     super.key,
     required this.onChanged,
@@ -26,7 +34,9 @@ class TextToggleSwitch extends StatefulWidget {
     this.backgroundColor = const Color(0xFF515151),
     this.fontSize = 15,
     this.fontWeight = FontWeight.normal,
-    this.isFirst = true
+    this.isFirst = true,
+    this.disableFirst = false,
+    this.disableSecond = false,
   });
 
   @override
@@ -42,6 +52,16 @@ class _TextToggleSwitchState extends State<TextToggleSwitch> {
     // TODO: implement initState
     super.initState();
     isSecond = !widget.isFirst;
+  }
+
+  // ค่าถูกบังคับจากข้างนอกได้ (เช่น ครึ่งเช้าถูกจองแล้ว ต้องเด้งไปเป็น "เย็น" เอง)
+  // ถ้าไม่ sync ตรงนี้ ตัวเลื่อนจะค้างอยู่ครึ่งเดิมทั้งที่ค่าจริงเปลี่ยนไปแล้ว
+  @override
+  void didUpdateWidget(covariant TextToggleSwitch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isFirst != widget.isFirst) {
+      isSecond = !widget.isFirst;
+    }
   }
 
   @override
@@ -84,6 +104,7 @@ class _TextToggleSwitchState extends State<TextToggleSwitch> {
               _buildLabel(
                 title: widget.label1,
                 isSelected: !isSecond,
+                enabled: !widget.disableFirst,
                 onTap: () {
                   setState(() => isSecond = false);
                   widget.onChanged(true); // true = morning
@@ -92,6 +113,7 @@ class _TextToggleSwitchState extends State<TextToggleSwitch> {
               _buildLabel(
                 title: widget.label2,
                 isSelected: isSecond,
+                enabled: !widget.disableSecond,
                 onTap: () {
                   setState(() => isSecond = true);
                   widget.onChanged(false);
@@ -108,10 +130,11 @@ class _TextToggleSwitchState extends State<TextToggleSwitch> {
     required String title,
     required bool isSelected,
     required VoidCallback onTap,
+    bool enabled = true,
   }) {
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         behavior: HitTestBehavior.translucent, // ให้กดติดง่ายขึ้น
         child: Container(
           alignment: Alignment.center,
@@ -120,7 +143,9 @@ class _TextToggleSwitchState extends State<TextToggleSwitch> {
             style: TextStyle(
               fontSize: widget.fontSize,
               fontWeight: widget.fontWeight,
-              color: isSelected ? widget.color : widget.backgroundColor,
+              color: !enabled
+                  ? widget.backgroundColor.withValues(alpha: 0.3)
+                  : (isSelected ? widget.color : widget.backgroundColor),
             ),
           ),
         ),

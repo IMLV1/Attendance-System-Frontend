@@ -96,6 +96,55 @@ class _DateSelectState extends State<DateSelect> {
   final MenuController _monthController = MenuController();
   final MenuController _yearController = MenuController();
 
+  // ───────── ครึ่งวันที่ถูกจองไปแล้ว ─────────
+  //
+  // 🚩 (2026-09-02) ปฏิทินเดิมปิดได้แค่วันที่ "เต็มทั้งสองครึ่ง" (isFull) วันที่
+  // จองไว้ครึ่งเดียวจึงเลือกเป็นเต็มวันได้ แล้วไปโดน 409 ตอนกดส่ง — และก่อนถึง
+  // ตรงนั้นพรีวิว "คำขอนี้จะใช้สิทธิ์ N วัน" ก็ขึ้นเลขผิดด้วย เพราะ
+  // /calculate_days ไม่รู้จักใบลาเดิมของผู้ใช้เลย (ไม่มีพารามิเตอร์ user)
+  //
+  // กติกาที่ backend ใช้จริง (CheckOverlappingLeave) แปลเป็นเงื่อนไขฝั่งหน้าจอ:
+  //   วันเดียว     — ครึ่งที่เลือกต้องว่าง
+  //   หลายวัน      — วันแรกใช้ตั้งแต่ครึ่งที่เลือกถึงสิ้นวัน (บ่ายต้องว่างเสมอ)
+  //                  วันสุดท้ายใช้ตั้งแต่เช้าถึงครึ่งที่เลือก (เช้าต้องว่างเสมอ)
+  //                  วันที่อยู่ตรงกลางลาเต็มวัน ต้องว่างทั้งสองครึ่ง
+  bool get _startMorningTaken =>
+      _rangeStart != null && widget.occupiedDates.isMorningTaken(_rangeStart!);
+
+  bool get _startAfternoonTaken =>
+      _rangeStart != null && widget.occupiedDates.isAfternoonTaken(_rangeStart!);
+
+  bool get _endMorningTaken =>
+      _rangeEnd != null && widget.occupiedDates.isMorningTaken(_rangeEnd!);
+
+  bool get _endAfternoonTaken =>
+      _rangeEnd != null && widget.occupiedDates.isAfternoonTaken(_rangeEnd!);
+
+  /// ช่วงนี้ชนใบลาเดิมแบบที่แก้ด้วยการสลับครึ่งวันไม่ได้หรือเปล่า
+  bool _rangeHasConflict(DateTime start, DateTime end) {
+    if (isSameDay(start, end)) return false;
+
+    // วันแรกใช้ถึงสิ้นวันเสมอ / วันสุดท้ายใช้ตั้งแต่เช้าเสมอ
+    if (widget.occupiedDates.isAfternoonTaken(start)) return true;
+    if (widget.occupiedDates.isMorningTaken(end)) return true;
+
+    // วันตรงกลางลาเต็มวันเสมอ จึงต้องว่างทั้งสองครึ่ง
+    for (var d = start.add(const Duration(days: 1));
+        d.isBefore(DateTime(end.year, end.month, end.day));
+        d = d.add(const Duration(days: 1))) {
+      if (widget.occupiedDates.isPartlyTaken(d)) return true;
+    }
+    return false;
+  }
+
+  /// ดันครึ่งวันไปอยู่ครึ่งที่ยังว่างจริง — เรียกทุกครั้งที่ช่วงวันเปลี่ยน
+  void _clampHalves() {
+    if (_startMorningTaken) _fromDateMorning = false;
+    if (_startAfternoonTaken) _fromDateMorning = true;
+    if (_endAfternoonTaken) _toDateMorning = true;
+    if (_endMorningTaken) _toDateMorning = false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -264,10 +313,24 @@ class _DateSelectState extends State<DateSelect> {
               titleCentered: true,
             ),
             onRangeSelected: (start, end, focusedDay) {
+              final s = start;
+              final e = end ?? start;
+
+              // ปฏิทินยอมให้ "ลาก" คร่อมวันที่ปิดอยู่ได้ (enabledDayPredicate กันได้
+              // แค่การแตะเลือก) จึงต้องตรวจทั้งช่วงอีกชั้น
+              //
+              // ไม่ขึ้นข้อความเตือน — วันที่ลาไปแล้วถูกทำเป็นสีจางในปฏิทินอยู่แล้ว
+              // ผู้ใช้เห็นเองว่าทำไมช่วงถึงไม่ขยับ (ตกลงกันแล้ว 2026-09-02)
+              if (s != null && e != null && _rangeHasConflict(s, e)) {
+                setState(() => _focusedDay = focusedDay);
+                return; // คงช่วงเดิมไว้ ส่งไปก็โดนปฏิเสธอยู่ดี
+              }
+
               setState(() {
-                _rangeStart = start;
-                _rangeEnd = end ?? start;
+                _rangeStart = s;
+                _rangeEnd = e;
                 _focusedDay = focusedDay;
+                _clampHalves();
               });
               widget.onChanged(
                 LeaveDate(
@@ -350,7 +413,11 @@ class _DateSelectState extends State<DateSelect> {
                               ),
 
                               TextToggleSwitch(
-                                isFirst: widget.dateData?.fromDateMorning ?? true,
+                                // ใช้ค่าใน state ไม่ใช่ prop ที่ส่งเข้ามาตอนแรก —
+                                // ครึ่งวันถูกบังคับเปลี่ยนได้จาก _clampHalves()
+                                isFirst: _fromDateMorning,
+                                disableFirst: _startMorningTaken,
+                                disableSecond: _startAfternoonTaken,
                                 onChanged: (bool isFirst) {
                                   setState(() {
                                     _fromDateMorning = isFirst;
@@ -418,7 +485,9 @@ class _DateSelectState extends State<DateSelect> {
                                 ),
                               ),
                               TextToggleSwitch(
-                                isFirst: widget.dateData?.toDateMorning ?? false,
+                                isFirst: _toDateMorning,
+                                disableFirst: _endMorningTaken,
+                                disableSecond: _endAfternoonTaken,
                                 onChanged: (bool isFirst) {
 
                                   setState(() {
@@ -514,10 +583,20 @@ class OccupiedLeaveDates {
   }
 
   /// วันนี้ถูกจองไปแล้วทั้งวัน (ทั้งเช้าและบ่าย) หรือยัง
-  bool isFull(DateTime day) {
-    final i = _dayIndex(day) * 2;
-    return _slots.contains(i) && _slots.contains(i + 1);
-  }
+  bool isFull(DateTime day) => isMorningTaken(day) && isAfternoonTaken(day);
+
+  /// 🚩 (2026-09-02) เปิดข้อมูลระดับ "ครึ่งวัน" ออกมาใช้
+  ///
+  /// เดิมมีแต่ [isFull] ปฏิทินจึงรู้แค่ว่าวันนั้นเต็มหรือยัง แต่ไม่รู้ว่า
+  /// **เหลือครึ่งไหน** — วันที่จองบ่ายไว้แล้วยังเลือกเป็น "เต็มวัน" ได้อยู่
+  /// ซึ่ง backend จะตอบ 409 ตอนกดส่ง (ดู CheckOverlappingLeave)
+  bool isMorningTaken(DateTime day) => _slots.contains(_dayIndex(day) * 2);
+
+  bool isAfternoonTaken(DateTime day) => _slots.contains(_dayIndex(day) * 2 + 1);
+
+  /// มีครึ่งใดครึ่งหนึ่งถูกจองแล้ว — ใช้กับ "วันที่อยู่กลางช่วง" ซึ่งถูกลาเต็มวัน
+  /// เสมอ จึงต้องว่างทั้งสองครึ่ง
+  bool isPartlyTaken(DateTime day) => isMorningTaken(day) || isAfternoonTaken(day);
 
   bool get isEmpty => _slots.isEmpty;
 }
